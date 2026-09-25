@@ -61,12 +61,20 @@ class SaveManager(
     private val sramSource: SramStorageSource = DefaultNativeSramSource,
     val periodicFlushIntervalSec: Long = 60L
 ) {
-    val tmpSaveFile: File = File(saveFile.parentFile, "${saveFile.name}.tmp")
-    val bakSaveFile: File = File(saveFile.parentFile, "${saveFile.name}.bak")
+    // Sibling files resolved null-safely: File(File, String) tolerates a null
+    // parent, but be explicit so CWD-relative saveFiles (File("game.sav"))
+    // still place .tmp/.bak alongside the target.
+    private fun sibling(name: String): File {
+        val dir = saveFile.parentFile ?: saveFile.absoluteFile.parentFile
+        return if (dir != null) File(dir, name) else File(name)
+    }
+
+    val tmpSaveFile: File = sibling("${saveFile.name}.tmp")
+    val bakSaveFile: File = sibling("${saveFile.name}.bak")
 
     private val lock = Any()
     private val dirty = AtomicBoolean(false)
-    private var lastFlushedHash: Int = 0
+    private var lastFlushedHash: Int? = null
 
     val isDirty: Boolean
         get() = dirty.get()
@@ -100,6 +108,11 @@ class SaveManager(
             val bytes = fileToRead.readBytes()
             if (bytes.isEmpty()) return false
 
+            val expectedSize = sramSource.getSramSize()
+            if (expectedSize > 0 && bytes.size != expectedSize) {
+                return false
+            }
+
             val success = sramSource.writeSram(bytes)
             if (success) {
                 dirty.set(false)
@@ -131,8 +144,8 @@ class SaveManager(
 
         val currentHash = Arrays.hashCode(buffer)
 
-        // Dirty gating check
-        if (!force && !dirty.get() && currentHash == lastFlushedHash) {
+        // Dirty gating check (null = never flushed, must not skip)
+        if (!force && !dirty.get() && lastFlushedHash != null && currentHash == lastFlushedHash) {
             return false
         }
 
@@ -158,12 +171,26 @@ class SaveManager(
                 fos.fd.sync()
             }
 
-            // Step 5: If previous save exists, rotate to backup
+            // Step 5: If previous save exists, rotate to backup (checked)
             if (saveFile.exists()) {
                 if (bakSaveFile.exists()) {
                     bakSaveFile.delete()
                 }
-                saveFile.renameTo(bakSaveFile)
+                if (!saveFile.renameTo(bakSaveFile)) {
+                    // Fallback copy when atomic rename is unsupported; abort
+                    // rather than overwriting saveFile with a stale backup.
+                    try {
+                        saveFile.copyTo(bakSaveFile, overwrite = true)
+                        saveFile.delete()
+                    } catch (_: IOException) {
+                        if (tmpSaveFile.exists()) tmpSaveFile.delete()
+                        return false
+                    }
+                    if (bakSaveFile.length() == 0L) {
+                        if (tmpSaveFile.exists()) tmpSaveFile.delete()
+                        return false
+                    }
+                }
             }
 
             // Step 6: Atomic directory swap
@@ -193,6 +220,12 @@ class SaveManager(
     fun checkAndMarkDirty(): Boolean = synchronized(lock) {
         val sramSize = sramSource.getSramSize()
         if (sramSize <= 0) return false
+
+        // Never flushed: treat as dirty so the first periodic flush commits.
+        if (lastFlushedHash == null) {
+            dirty.set(true)
+            return true
+        }
 
         val buffer = ByteArray(sramSize)
         if (sramSource.readSram(buffer)) {
