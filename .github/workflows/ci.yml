@@ -33,16 +33,36 @@ jobs:
         run: chmod +x gradlew
 
       - name: Core Module Unit & Conformance Tests
-        run: ./gradlew :core:test --info --stacktrace
+        run: |
+          ./gradlew :core:test --stacktrace || {
+            echo "::error::Core unit tests failed!"
+            find core/build/test-results/test -name "TEST-*.xml" -exec grep -Hn "failure\|error" {} + || true
+            exit 1
+          }
 
       - name: Runtime Bedrock Tests
-        run: ./gradlew :runtime:retropack-runtime-mgba:test --info --stacktrace
+        run: |
+          ./gradlew :runtime:retropack-runtime-mgba:test --stacktrace || {
+            echo "::error::Runtime bedrock tests failed!"
+            find runtime/retropack-runtime-mgba/build/test-results/test -name "TEST-*.xml" -exec grep -Hn "failure\|error" {} + || true
+            exit 1
+          }
 
       - name: Template APK Invariant Tests
-        run: ./gradlew :template-apk:test --info --stacktrace
+        run: |
+          ./gradlew :template-apk:test --stacktrace || {
+            echo "::error::Template APK tests failed!"
+            find template-apk/build/test-results/test -name "TEST-*.xml" -exec grep -Hn "failure\|error" {} + || true
+            exit 1
+          }
 
       - name: Manager App UI & ViewModel Tests
-        run: ./gradlew :app:test --info --stacktrace
+        run: |
+          ./gradlew :app:test --stacktrace || {
+            echo "::error::Manager App tests failed!"
+            find app/build/test-results/test -name "TEST-*.xml" -exec grep -Hn "failure\|error" {} + || true
+            exit 1
+          }
 
       - name: Upload Test Results & Reports
         if: always()

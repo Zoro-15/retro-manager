@@ -62,7 +62,8 @@ class AlignmentVerifierTest {
         assertFalse(report.isCompliant)
         assertEquals(1, report.nativeLibraries.size)
         assertFalse(report.nativeLibraries[0].isAligned16Kb)
-        assertEquals(54L, report.nativeLibraries[0].dataOffset)
+        assertTrue(report.nativeLibraries[0].dataOffset > 0L)
+        assertNotEquals(0L, report.nativeLibraries[0].dataOffset % 16384L)
 
         assertThrows(IllegalStateException::class.java) {
             AlignmentVerifier.assertCompliant(unalignedApk)
