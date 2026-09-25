@@ -36,9 +36,12 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Pure Kotlin/JVM path: test stubs without Android SDK markers
+      # Pure Kotlin/JVM path: test stubs without Android SDK markers.
+      # :template-apk:test is included (JVM mode + stubs) so its tests can
+      # never rot unnoticed, and RuntimeBundleIntegrityTest hard-gates the
+      # pinned runtime bundle (template.apk + anchors) on every push.
       - name: Run JVM tests
-        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test :template-apk:test --no-daemon --stacktrace
 
   android-build:
     name: Android APK/AAR Build
@@ -113,6 +116,32 @@ jobs:
 
       - name: Assemble Manager APK
         run: ./gradlew :app:assembleDebug --stacktrace
+
+      # The manager APK embeds ${rootDir}/runtimes as assets. If the pinned
+      # bundle is missing (gitignore regression, deleted template, stale
+      # checkout), every in-app 'retropack transform' fails at Stage 2 with
+      # "No runtime template registered for ID: 'mgba-unified'". This gate
+      # inspects the FINAL packaged APK so that class of failure can never
+      # ship again.
+      - name: Verify Manager APK embeds the pinned runtime bundle
+        run: |
+          MANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"
+          echo "Inspecting $MANAGER_APK"
+          unzip -l "$MANAGER_APK" > /tmp/manager-apk-entries.txt
+          cat /tmp/manager-apk-entries.txt
+          for REQUIRED in \
+            "assets/mgba-unified/template.apk" \
+            "assets/mgba-unified/runtime.json" \
+            "assets/mgba-unified/licenses/LICENSE.txt" ; do
+            if ! grep -q "$REQUIRED" /tmp/manager-apk-entries.txt ; then
+              echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded. Restore runtimes/mgba-unified/template.apk (see scripts/rotate-trust-anchors.sh) and rebuild."
+              exit 1
+            fi
+          done
+          echo "Pinned runtime bundle verified inside Manager APK."
+
+      - name: Run Android unit tests (app + template-apk)
+        run: ./gradlew :app:testDebugUnitTest :template-apk:testDebugUnitTest --stacktrace
 
       - name: Upload Manager APK artifact
         if: always()
