@@ -130,4 +130,16 @@ class MainViewModelTest {
         assertEquals("RSA-2048", viewModel.uiState.value.signingState.keyType)
         assertNotNull(viewModel.uiState.value.signingState.certFingerprint)
     }
+
+    @Test
+    fun testLogBufferLimit() {
+        val viewModel = MainViewModel()
+        for (i in 1..2500) {
+            viewModel.appendLog("Log entry $i")
+        }
+        // Terminal log limit is 2000
+        val logs = viewModel.uiState.value.terminalLogs
+        assertEquals(2000, logs.size)
+        assertTrue(logs.last().contains("Log entry 2500"))
+    }
 }

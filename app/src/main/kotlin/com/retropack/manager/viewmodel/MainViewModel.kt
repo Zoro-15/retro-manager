@@ -413,24 +413,44 @@ class MainViewModel : ViewModel() {
             }
 
             result.onSuccess { buildResult ->
-                appendLog("==================================================")
-                appendLog("[✓] BUILD PIPELINE COMPLETE IN ${buildResult.durationMs} ms")
-                appendLog("--> Target APK: ${buildResult.artifactFile?.absolutePath}")
-                appendLog("--> Package ID: ${buildResult.packageName} (v${buildResult.versionCode})")
-                appendLog("--> Cert SHA-256: ${buildResult.certificateSha256Fingerprint}")
-                appendLog("--> 16 KB Page Alignment: VERIFIED COMPLIANT")
-                appendLog("--> Signature Schemes: v1 + v2 + v3 PASSED")
-                appendLog("==================================================")
+                if (buildResult.success) {
+                    appendLog("==================================================")
+                    appendLog("[✓] BUILD PIPELINE COMPLETE IN ${buildResult.durationMs} ms")
+                    appendLog("--> Target APK: ${buildResult.artifactFile?.absolutePath}")
+                    appendLog("--> Package ID: ${buildResult.packageName} (v${buildResult.versionCode})")
+                    appendLog("--> Cert SHA-256: ${buildResult.certificateSha256Fingerprint}")
+                    appendLog("--> 16 KB Page Alignment: VERIFIED COMPLIANT")
+                    appendLog("--> Signature Schemes: v1 + v2 + v3 PASSED")
+                    appendLog("==================================================")
 
-                _uiState.update { current ->
-                    current.copy(
-                        buildState = current.buildState.copy(
-                            isBuilding = false,
-                            isComplete = true,
-                            isSuccess = true,
-                            buildResult = buildResult
+                    _uiState.update { current ->
+                        current.copy(
+                            buildState = current.buildState.copy(
+                                isBuilding = false,
+                                isComplete = true,
+                                isSuccess = true,
+                                errorMessage = null,
+                                buildResult = buildResult
+                            )
                         )
-                    )
+                    }
+                } else {
+                    val errorMsg = buildResult.errorMessage ?: "Pipeline execution failed at an intermediate stage"
+                    appendLog("==================================================")
+                    appendLog("[✗] BUILD PIPELINE FAILED: $errorMsg")
+                    appendLog("==================================================")
+
+                    _uiState.update { current ->
+                        current.copy(
+                            buildState = current.buildState.copy(
+                                isBuilding = false,
+                                isComplete = true,
+                                isSuccess = false,
+                                errorMessage = errorMsg,
+                                buildResult = buildResult
+                            )
+                        )
+                    }
                 }
             }.onFailure { error ->
                 appendLog("==================================================")
