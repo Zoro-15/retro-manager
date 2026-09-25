@@ -23,21 +23,25 @@ Copy and paste the block below into your AI coding assistant or session prompt t
 
 ```text
 You are pair programming on RetroPack (an on-device ROM-to-standalone Android APK transformer).
+Repository: https://github.com/Zoro-15/retro-manager
 Read context.md, masterplan.md, and roadmap.md first.
 
 Current Status:
 - Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE.
 - Phase 1 (Domain Core & ROM Engine) is COMPLETE.
 - Phase 2, Part 2.1 (Skeleton & NativeCore Contracts) is COMPLETE.
-- Phase 2, Part 2.2 (Save Durability & POSIX fsync) is COMPLETE:
-  - SaveManager.kt and SaveManagerTest.kt implemented with 100% test pass rate.
-  - 53/53 unit tests passing across core and runtime modules.
+- Phase 2, Part 2.2 (Save Durability & POSIX fsync) is COMPLETE.
+- 53/53 unit tests passing repository-wide (:core and :runtime:retropack-runtime-mgba).
+
+Key Operating Invariants:
+1. APK & NDK compilation is handled via CI/CD (GitHub Actions), NOT locally on the host machine. Local workflow is pure Kotlin/JVM test-driven.
+2. Maximize reuse: adapt battle-tested code directly from staging/ (ksupatcher, retra, garnacha-boy) rather than writing code from scratch.
 
 Your Task:
 Proceed with Phase 2, Part 2.3 (16 KB CMake & mGBA C Bridge):
 1. Vendor canonical mGBA (v0.10.5+) as an untouched Git submodule under runtime/retropack-runtime-mgba/submodules/mgba/.
 2. Configure CMakeLists.txt with mandatory 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) targeting NDK r28b+.
-3. Implement JNI bridge mgba-jni.c and ringbuffer.c in runtime/retropack-runtime-mgba/src/main/cpp/ binding to NativeCore.kt JNI methods.
+3. Implement JNI bridge mgba-jni.c and ringbuffer.c in runtime/retropack-runtime-mgba/src/main/cpp/ adapted from staging/garnacha-boy and binding to NativeCore.kt JNI methods.
 ```
 
 ---
