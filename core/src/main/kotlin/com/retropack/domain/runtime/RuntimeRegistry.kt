@@ -20,6 +20,11 @@ object RuntimeRegistry {
     /**
      * TRUST ANCHORS: Hardcoded SHA-256 fingerprints compiled directly into Kotlin bytecode.
      * Invariant: Never loaded from mutable disk or `.sha256` text files.
+     *
+     * TODO(Phase 3-artifact): these are placeholder hashes — runtimes/mgba-unified/
+     * currently ships only runtime.json + licenses/ (template.apk is unbuilt and
+     * *.apk is gitignored). Rotating to the real template hashes must update this
+     * map, TRUSTED_PROTECTED_ENTRIES, and the fixture-gated tests in lockstep.
      */
     val TRUSTED_TEMPLATES: Map<String, String> = mapOf(
         RUNTIME_MGBA_UNIFIED to "52498f863e0efb3c05fd9fcf4ebaade5c0a03db4f725e5ac264150fad132f566"
@@ -35,9 +40,17 @@ object RuntimeRegistry {
         )
     )
 
-    private val registeredDescriptors = mutableMapOf<String, RuntimeDescriptor>()
-    private val registeredTemplates = mutableMapOf<String, RuntimeTemplate>()
-    private val platformMappings = mutableMapOf<String, MutableList<String>>()
+    private val registeredDescriptors = java.util.concurrent.ConcurrentHashMap<String, RuntimeDescriptor>()
+    private val registeredTemplates = java.util.concurrent.ConcurrentHashMap<String, RuntimeTemplate>()
+    private val platformMappings = java.util.concurrent.ConcurrentHashMap<String, MutableList<String>>()
+
+    /**
+     * Guards compound multi-map updates. Single-map reads/writes are already
+     * safe via [ConcurrentHashMap]; registration/reset must be atomic across maps.
+     * NOTE: batch builds must still serialize register/load cycles at the call
+     * site — the registry does not version concurrent template generations.
+     */
+    private val registryLock = Any()
 
     init {
         resetToDefaults()
@@ -47,26 +60,30 @@ object RuntimeRegistry {
      * Resets registry state to default built-in configurations.
      */
     fun resetToDefaults() {
-        registeredDescriptors.clear()
-        registeredTemplates.clear()
-        platformMappings.clear()
+        synchronized(registryLock) {
+            registeredDescriptors.clear()
+            registeredTemplates.clear()
+            platformMappings.clear()
 
-        // Register default mgba-unified descriptor
-        registerDescriptor(RuntimeDescriptor.MGBA_UNIFIED)
+            // Register default mgba-unified descriptor
+            registerDescriptor(RuntimeDescriptor.MGBA_UNIFIED)
 
-        // Register canonical platform associations
-        registerPlatformMapping("gb", RUNTIME_MGBA_UNIFIED)
-        registerPlatformMapping("gbc", RUNTIME_MGBA_UNIFIED)
-        registerPlatformMapping("gba", RUNTIME_MGBA_UNIFIED)
+            // Register canonical platform associations
+            registerPlatformMapping("gb", RUNTIME_MGBA_UNIFIED)
+            registerPlatformMapping("gbc", RUNTIME_MGBA_UNIFIED)
+            registerPlatformMapping("gba", RUNTIME_MGBA_UNIFIED)
+        }
     }
 
     /**
      * Registers a runtime descriptor into the registry.
      */
     fun registerDescriptor(descriptor: RuntimeDescriptor) {
-        registeredDescriptors[descriptor.id] = descriptor
-        for (platform in descriptor.supportedPlatforms) {
-            registerPlatformMapping(platform, descriptor.id)
+        synchronized(registryLock) {
+            registeredDescriptors[descriptor.id] = descriptor
+            for (platform in descriptor.supportedPlatforms) {
+                registerPlatformMapping(platform, descriptor.id)
+            }
         }
     }
 
@@ -74,8 +91,18 @@ object RuntimeRegistry {
      * Registers a complete runtime template bundle into the registry.
      */
     fun registerTemplate(template: RuntimeTemplate) {
-        registerDescriptor(template.descriptor)
-        registeredTemplates[template.descriptor.id] = template
+        synchronized(registryLock) {
+            // Inline descriptor registration to stay under one lock acquisition.
+            registeredDescriptors[template.descriptor.id] = template.descriptor
+            for (platform in template.descriptor.supportedPlatforms) {
+                val normalized = platform.lowercase().trim().removePrefix(".")
+                val list = platformMappings.getOrPut(normalized) { mutableListOf() }
+                if (!list.contains(template.descriptor.id)) {
+                    list.add(template.descriptor.id)
+                }
+            }
+            registeredTemplates[template.descriptor.id] = template
+        }
     }
 
     /**
@@ -83,9 +110,13 @@ object RuntimeRegistry {
      */
     fun registerPlatformMapping(platform: String, runtimeId: String) {
         val normalized = platform.lowercase().trim().removePrefix(".")
-        val list = platformMappings.getOrPut(normalized) { mutableListOf() }
-        if (!list.contains(runtimeId)) {
-            list.add(runtimeId)
+        // List mutation is guarded by the caller's registryLock where compound;
+        // standalone calls synchronize here for the get-or-create + add pair.
+        synchronized(registryLock) {
+            val list = platformMappings.getOrPut(normalized) { mutableListOf() }
+            if (!list.contains(runtimeId)) {
+                list.add(runtimeId)
+            }
         }
     }
 
@@ -156,13 +187,15 @@ object RuntimeRegistry {
     }
 
     /**
-     * Loads a [RuntimeTemplate] from a standard on-disk layout:
+     * Loads a [RuntimeTemplate] from a standard on-disk layout and registers it:
      * ```
      * runtimeDir/
      * ├── runtime.json
      * ├── template.apk
      * └── licenses/ (optional)
      * ```
+     * NOTE: registration is a global side effect by design (single-template
+     * host); concurrent loaders overwrite each other — serialize at call site.
      */
     fun loadFromDirectory(runtimeDir: File): RuntimeTemplate {
         require(runtimeDir.exists() && runtimeDir.isDirectory) {

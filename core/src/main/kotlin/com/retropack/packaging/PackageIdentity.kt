@@ -1,5 +1,6 @@
 package com.retropack.packaging
 
+import com.retropack.packaging.HexUtils.toHexString
 import java.security.MessageDigest
 import java.util.Locale
 
@@ -24,6 +25,7 @@ data class PackageIdentity(
         const val PACKAGE_PREFIX = "com.retropack.game."
         private const val MAX_SLUG_LEN = 16
         private val ANDROID_PACKAGE_REGEX = Regex("^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)+$")
+        private val SLUG_SANITIZE_REGEX = Regex("[^a-z0-9]")
 
         /**
          * Creates a deterministic [PackageIdentity] for the specified [gameTitle] and [romBytes].
@@ -35,6 +37,24 @@ data class PackageIdentity(
             versionName: String = "1.0.0"
         ): PackageIdentity {
             val hash10 = sha256Hex(romBytes).substring(0, 10).lowercase(Locale.ROOT)
+            return createWithHash(gameTitle, hash10, versionCode, versionName)
+        }
+
+        /**
+         * Creates a deterministic [PackageIdentity] from a precomputed ROM
+         * SHA-256 hex digest, avoiding a second full hash pass when the caller
+         * (Step 1 checksums, `RomParser`) already hashed the ROM.
+         */
+        fun createWithHash(
+            gameTitle: String,
+            romSha256Hex: String,
+            versionCode: Int = 1000,
+            versionName: String = "1.0.0"
+        ): PackageIdentity {
+            val hash10 = romSha256Hex.lowercase(Locale.ROOT).take(10)
+            require(hash10.length == 10 && hash10.all { it in '0'..'9' || it in 'a'..'f' }) {
+                "ROM SHA-256 must provide at least 10 hex chars"
+            }
             val slug = sanitizeSlug(gameTitle)
             val packageName = "$PACKAGE_PREFIX${slug}_$hash10"
             validatePackageName(packageName)
@@ -52,7 +72,7 @@ data class PackageIdentity(
          */
         fun sanitizeSlug(title: String): String {
             var cleaned = title.lowercase(Locale.ROOT)
-                .replace(Regex("[^a-z0-9]"), "")
+                .replace(SLUG_SANITIZE_REGEX, "")
             if (cleaned.isEmpty()) {
                 cleaned = "game"
             }
@@ -82,8 +102,7 @@ data class PackageIdentity(
 
         private fun sha256Hex(bytes: ByteArray): String {
             val md = MessageDigest.getInstance("SHA-256")
-            val digest = md.digest(bytes)
-            return digest.joinToString("") { "%02x".format(it) }
+            return md.digest(bytes).toHexString()
         }
     }
 }
