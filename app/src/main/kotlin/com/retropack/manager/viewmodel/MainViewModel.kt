@@ -22,13 +22,15 @@ import com.retropack.domain.runtime.RuntimeProvisionResult
 import com.retropack.domain.runtime.RuntimeProvisioner
 import com.retropack.domain.runtime.RuntimeRegistry
 import com.retropack.manager.runtime.AndroidAssetSource
+import com.retropack.manager.util.IconSynthesizer
+import com.retropack.manager.util.TerminalLogBuffer
+import com.retropack.manager.util.UriUtils
 import com.retropack.packaging.BuildEngine
+import com.retropack.packaging.BuildTerminalReporter
 import com.retropack.security.AesGcmMasterKeyProvider
 import com.retropack.security.HybridKeystore
 import com.retropack.security.KeyType
 import com.retropack.security.SigningIdentity
-import com.retropack.manager.util.IconSynthesizer
-import com.retropack.manager.util.UriUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -312,22 +314,23 @@ class MainViewModel : ViewModel() {
         val signingIdentity = activeSigningIdentity ?: return
 
         viewModelScope.launch {
-            val logBuffer = StringBuilder()
+            val logBuffer = TerminalLogBuffer()
             val dateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
             fun appendLog(line: String) {
                 val time = dateFormat.format(Date())
-                logBuffer.append("[$time] $line\n")
+                logBuffer.append("[$time] $line")
                 _uiState.update { current ->
                     current.copy(
                         buildState = current.buildState.copy(
-                            rawTerminalLogs = logBuffer.toString()
+                            rawTerminalLogs = logBuffer.snapshot()
                         )
                     )
                 }
             }
 
             // Prepare Initial UI State for Build
+            logBuffer.clear()
             _uiState.update { current ->
                 current.copy(
                     buildState = current.buildState.copy(
@@ -416,15 +419,12 @@ class MainViewModel : ViewModel() {
             }
 
             result.onSuccess { buildResult ->
-                if (buildResult.success) {
-                    appendLog("==================================================")
-                    appendLog("[✓] BUILD PIPELINE COMPLETE IN ${buildResult.durationMs} ms")
-                    appendLog("--> Target APK: ${buildResult.artifactFile?.absolutePath}")
-                    appendLog("--> Package ID: ${buildResult.packageName} (v${buildResult.versionCode})")
-                    appendLog("--> Cert SHA-256: ${buildResult.certificateSha256Fingerprint}")
-                    appendLog("--> 16 KB Page Alignment: VERIFIED COMPLIANT")
-                    appendLog("--> Signature Schemes: v1 + v2 + v3 PASSED")
-                    appendLog("==================================================")
+                // Structural anti-false-positive guard: success requires BOTH the
+                // engine's success flag AND a materialized artifact file on disk.
+                // Anything else is rendered through the failure path.
+                val genuineSuccess = buildResult.success && buildResult.artifactFile?.isFile == true
+                if (genuineSuccess) {
+                    BuildTerminalReporter.successSummary(buildResult).forEach { appendLog(it) }
 
                     _uiState.update { current ->
                         current.copy(
@@ -438,10 +438,9 @@ class MainViewModel : ViewModel() {
                         )
                     }
                 } else {
-                    val errorMsg = buildResult.errorMessage ?: "Pipeline execution failed at an intermediate stage"
-                    appendLog("==================================================")
-                    appendLog("[✗] BUILD PIPELINE FAILED: $errorMsg")
-                    appendLog("==================================================")
+                    val errorMsg = buildResult.errorMessage
+                        ?: "Pipeline execution failed at an intermediate stage"
+                    BuildTerminalReporter.failureSummary(errorMsg).forEach { appendLog(it) }
 
                     _uiState.update { current ->
                         current.copy(
@@ -456,9 +455,7 @@ class MainViewModel : ViewModel() {
                     }
                 }
             }.onFailure { error ->
-                appendLog("==================================================")
-                appendLog("[✗] BUILD PIPELINE ABORTED: ${error.message}")
-                appendLog("==================================================")
+                BuildTerminalReporter.abortSummary(error.message).forEach { appendLog(it) }
 
                 _uiState.update { current ->
                     current.copy(
