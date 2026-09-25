@@ -3,6 +3,7 @@ package com.retropack.manager
 import com.retropack.domain.model.ChecksumRecords
 import com.retropack.domain.model.RomIdentity
 import com.retropack.domain.rom.GbRomHeader
+import com.retropack.manager.util.TerminalLogBuffer
 import com.retropack.manager.viewmodel.MainUiState
 import com.retropack.manager.viewmodel.MainViewModel
 import com.retropack.manager.viewmodel.RomUiState
@@ -133,13 +134,15 @@ class MainViewModelTest {
 
     @Test
     fun testLogBufferLimit() {
-        val viewModel = MainViewModel()
+        // The terminal keeps a rolling window of the last 2000 lines.
+        val buffer = TerminalLogBuffer()
         for (i in 1..2500) {
-            viewModel.appendLog("Log entry $i")
+            buffer.append("Log entry $i")
         }
-        // Terminal log limit is 2000
-        val logs = viewModel.uiState.value.terminalLogs
-        assertEquals(2000, logs.size)
-        assertTrue(logs.last().contains("Log entry 2500"))
+        val lines = buffer.snapshot().lines()
+        assertEquals(2000, lines.size)
+        assertTrue(lines.last().contains("Log entry 2500"))
+        assertFalse(lines.first().contains("Log entry 1"))
+        assertFalse(lines.any { it.contains("Log entry 499") })
     }
 }

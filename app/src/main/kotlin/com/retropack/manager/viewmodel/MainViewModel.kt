@@ -18,14 +18,19 @@ import com.retropack.domain.model.StoragePayload
 import com.retropack.domain.model.TouchControlsSettings
 import com.retropack.domain.model.VideoSettings
 import com.retropack.domain.rom.RomParser
+import com.retropack.domain.runtime.RuntimeProvisionResult
+import com.retropack.domain.runtime.RuntimeProvisioner
 import com.retropack.domain.runtime.RuntimeRegistry
+import com.retropack.manager.runtime.AndroidAssetSource
+import com.retropack.manager.util.IconSynthesizer
+import com.retropack.manager.util.TerminalLogBuffer
+import com.retropack.manager.util.UriUtils
 import com.retropack.packaging.BuildEngine
+import com.retropack.packaging.BuildTerminalReporter
 import com.retropack.security.AesGcmMasterKeyProvider
 import com.retropack.security.HybridKeystore
 import com.retropack.security.KeyType
 import com.retropack.security.SigningIdentity
-import com.retropack.manager.util.IconSynthesizer
-import com.retropack.manager.util.UriUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -309,22 +314,23 @@ class MainViewModel : ViewModel() {
         val signingIdentity = activeSigningIdentity ?: return
 
         viewModelScope.launch {
-            val logBuffer = StringBuilder()
+            val logBuffer = TerminalLogBuffer()
             val dateFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)
 
             fun appendLog(line: String) {
                 val time = dateFormat.format(Date())
-                logBuffer.append("[$time] $line\n")
+                logBuffer.append("[$time] $line")
                 _uiState.update { current ->
                     current.copy(
                         buildState = current.buildState.copy(
-                            rawTerminalLogs = logBuffer.toString()
+                            rawTerminalLogs = logBuffer.snapshot()
                         )
                     )
                 }
             }
 
             // Prepare Initial UI State for Build
+            logBuffer.clear()
             _uiState.update { current ->
                 current.copy(
                     buildState = current.buildState.copy(
@@ -386,7 +392,7 @@ class MainViewModel : ViewModel() {
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
-                    ensureRuntimesLoaded(context)
+                    ensureRuntimesLoaded(context) { line -> appendLog(line) }
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -413,15 +419,12 @@ class MainViewModel : ViewModel() {
             }
 
             result.onSuccess { buildResult ->
-                if (buildResult.success) {
-                    appendLog("==================================================")
-                    appendLog("[✓] BUILD PIPELINE COMPLETE IN ${buildResult.durationMs} ms")
-                    appendLog("--> Target APK: ${buildResult.artifactFile?.absolutePath}")
-                    appendLog("--> Package ID: ${buildResult.packageName} (v${buildResult.versionCode})")
-                    appendLog("--> Cert SHA-256: ${buildResult.certificateSha256Fingerprint}")
-                    appendLog("--> 16 KB Page Alignment: VERIFIED COMPLIANT")
-                    appendLog("--> Signature Schemes: v1 + v2 + v3 PASSED")
-                    appendLog("==================================================")
+                // Structural anti-false-positive guard: success requires BOTH the
+                // engine's success flag AND a materialized artifact file on disk.
+                // Anything else is rendered through the failure path.
+                val genuineSuccess = buildResult.success && buildResult.artifactFile?.isFile == true
+                if (genuineSuccess) {
+                    BuildTerminalReporter.successSummary(buildResult).forEach { appendLog(it) }
 
                     _uiState.update { current ->
                         current.copy(
@@ -435,10 +438,9 @@ class MainViewModel : ViewModel() {
                         )
                     }
                 } else {
-                    val errorMsg = buildResult.errorMessage ?: "Pipeline execution failed at an intermediate stage"
-                    appendLog("==================================================")
-                    appendLog("[✗] BUILD PIPELINE FAILED: $errorMsg")
-                    appendLog("==================================================")
+                    val errorMsg = buildResult.errorMessage
+                        ?: "Pipeline execution failed at an intermediate stage"
+                    BuildTerminalReporter.failureSummary(errorMsg).forEach { appendLog(it) }
 
                     _uiState.update { current ->
                         current.copy(
@@ -453,9 +455,7 @@ class MainViewModel : ViewModel() {
                     }
                 }
             }.onFailure { error ->
-                appendLog("==================================================")
-                appendLog("[✗] BUILD PIPELINE ABORTED: ${error.message}")
-                appendLog("==================================================")
+                BuildTerminalReporter.abortSummary(error.message).forEach { appendLog(it) }
 
                 _uiState.update { current ->
                     current.copy(
@@ -481,31 +481,52 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun ensureRuntimesLoaded(context: Context) {
-        try {
-            val targetRuntimesDir = File(context.filesDir, "runtimes").also { it.mkdirs() }
-            val assetManager = context.assets
-            val assetList = assetManager.list("") ?: emptyArray()
+    /**
+     * Provisions the pinned runtime bundle (assets -> filesDir) and registers it
+     * in RuntimeRegistry. Failures are REPORTED through [appendLog] — never
+     * silently swallowed — so the terminal sheet shows the true root cause
+     * (missing bundle asset, stale trust anchor, corrupt descriptor) BEFORE
+     * the pipeline records its Stage 2 failure.
+     *
+     * Returns true when a usable template is registered.
+     */
+    private fun ensureRuntimesLoaded(context: Context, appendLog: (String) -> Unit): Boolean {
+        val assets = try {
+            context.assets
+        } catch (_: Throwable) {
+            null
+        }
+        if (assets == null) {
+            appendLog("[i] Runtime provisioning skipped: asset manager unavailable (headless/unit-test environment)")
+            return false
+        }
 
-            if (assetList.contains("mgba-unified") || assetManager.list("mgba-unified")?.isNotEmpty() == true) {
-                val mgbaTarget = File(targetRuntimesDir, "mgba-unified").also { it.mkdirs() }
-                val files = assetManager.list("mgba-unified") ?: emptyArray()
-                for (f in files) {
-                    val outFile = File(mgbaTarget, f)
-                    if (!outFile.exists() || outFile.length() == 0L) {
-                        assetManager.open("mgba-unified/$f").use { input ->
-                            outFile.outputStream().use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                    }
-                }
-                if (File(mgbaTarget, "runtime.json").exists() && File(mgbaTarget, "template.apk").exists()) {
-                    RuntimeRegistry.loadFromDirectory(mgbaTarget)
-                }
+        val targetRuntimesDir = File(context.filesDir, RuntimeProvisioner.BUNDLE_ROOT_DIRNAME)
+        val outcome = RuntimeProvisioner.provision(
+            targetRoot = targetRuntimesDir,
+            source = AndroidAssetSource(assets),
+            log = appendLog
+        )
+        return when (outcome) {
+            is RuntimeProvisionResult.Provisioned -> {
+                appendLog(
+                    "[✓] Runtime template ready: ${outcome.template.templateApk.name} " +
+                        "(${outcome.template.templateApk.length()} bytes)"
+                )
+                true
             }
-        } catch (_: Exception) {
-            // Ignored in headless/unit-test environments
+            is RuntimeProvisionResult.MissingTemplate -> {
+                appendLog("[✗] Runtime template MISSING: ${outcome.guidance}")
+                false
+            }
+            is RuntimeProvisionResult.IntegrityMismatch -> {
+                appendLog("[✗] Runtime template INTEGRITY FAILURE: ${outcome.details}")
+                false
+            }
+            is RuntimeProvisionResult.ExtractionFailure -> {
+                appendLog("[✗] Runtime bundle provisioning failed: ${outcome.cause}")
+                false
+            }
         }
     }
 

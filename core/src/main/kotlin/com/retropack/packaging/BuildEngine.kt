@@ -109,7 +109,14 @@ object BuildEngine {
                     templateFile = templateOverride
                 } else {
                     val template = RuntimeRegistry.getTemplate(templateId)
-                        ?: throw IllegalStateException("No runtime template registered for ID: '$templateId'")
+                        ?: throw IllegalStateException(
+                            "No runtime template registered for ID: '$templateId'. " +
+                                "The runtime bundle was never provisioned on this device: the manager APK " +
+                                "is missing assets/runtimes/$templateId/template.apk (the pinned bundle was " +
+                                "not committed / not embedded at build time), or on-device extraction " +
+                                "failed before registration. Rebuild the manager APK from a checkout " +
+                                "containing runtimes/mgba-unified/template.apk and try again."
+                        )
                     templateFile = template.templateApk
                     require(templateFile.exists()) { "Runtime template APK not found at: ${templateFile.absolutePath}" }
 

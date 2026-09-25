@@ -39,10 +39,12 @@ class RuntimeTemplateTest {
             templateApk = templateApk
         )
 
-        val actualEntries = mapOf(
-            "classes.dex" to "798a89a984f3e83964c19e681336ce6dacf4d948bd4253dfb895c55b82ef243d",
-            "lib/arm64-v8a/libmgba.so" to "79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
-        )
+        // Mirror the descriptor's declared digests (both bare and sha256:-prefixed
+        // forms must verify — the template normalizes both).
+        val declared = RuntimeDescriptor.MGBA_UNIFIED.protectedEntries
+        val actualEntries = declared.entries.associate { (k, v) ->
+            k to v.removePrefix("sha256:")
+        }
 
         assertTrue(template.verifyProtectedEntries(actualEntries))
     }
@@ -54,10 +56,11 @@ class RuntimeTemplateTest {
             templateApk = templateApk
         )
 
-        val tamperedEntries = mapOf(
-            "classes.dex" to "0000000000000000000000000000000000000000000000000000000000000000",
-            "lib/arm64-v8a/libmgba.so" to "79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
-        )
+        val declared = RuntimeDescriptor.MGBA_UNIFIED.protectedEntries
+        val tamperedEntries = declared.entries.associate { (k, v) ->
+            if (k == "classes.dex") k to "0000000000000000000000000000000000000000000000000000000000000000"
+            else k to v.removePrefix("sha256:")
+        }
 
         assertFalse(template.verifyProtectedEntries(tamperedEntries), "Must reject tampered bytecode")
     }

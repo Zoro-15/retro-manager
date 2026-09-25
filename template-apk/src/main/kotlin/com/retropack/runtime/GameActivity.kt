@@ -71,8 +71,8 @@ open class GameActivity : Activity() {
         // 2. Load Injected Runtime Configuration (assets/retropack.json)
         config = loadRuntimeConfig()
 
-        // 3. Stage ROM atomically to filesDir/game.rom with SHA-256 verification
-        val romFile = File(filesDir, ROM_FILENAME)
+        // 3. Stage ROM atomically to storage/game.rom with SHA-256 verification
+        val romFile = File(storageDirectory(), ROM_FILENAME)
         stageRomIfNeeded(romFile, config.game.romSha256)
 
         // 4. Assemble View Hierarchy
@@ -100,7 +100,7 @@ open class GameActivity : Activity() {
         setContentView(root)
 
         // 5. Initialize Core Subsystems and Wire into EmulationHost
-        val saveFile = File(filesDir, SAVE_FILENAME)
+        val saveFile = File(storageDirectory(), SAVE_FILENAME)
         val sm = createSaveManager(saveFile)
         this.saveManager = sm
 
@@ -122,7 +122,7 @@ open class GameActivity : Activity() {
         if (romFile.exists() && romFile.length() > 0L) {
             isGameLoaded = emulationHost.loadGame(
                 romFile = romFile,
-                internalStorageDir = filesDir,
+                internalStorageDir = storageDirectory(),
                 saveFile = saveFile
             )
         }
@@ -180,6 +180,17 @@ open class GameActivity : Activity() {
         }
         return super.dispatchGenericMotionEvent(event)
     }
+
+    /**
+     * Storage root for the staged ROM and cartridge save file.
+     *
+     * Test seam: production resolves [filesDir]; tests override this to inject
+     * a temp directory. This works in BOTH build modes — the previous test
+     * approach called the JVM-stub-only Context.setFilesDir(), which does not
+     * exist on the real Android framework jar and broke
+     * :template-apk:compileDebugUnitTestKotlin in CI (unresolved reference).
+     */
+    protected open fun storageDirectory(): File = filesDir
 
     /**
      * Reads `assets/retropack.json` or falls back to canonical default settings.
