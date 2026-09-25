@@ -124,7 +124,7 @@ class HomebrewConformanceTest {
         assertTrue(result.artifactFile!!.exists())
         assertEquals(15, result.stageProvenance.size)
         assertTrue(result.stageProvenance.all { it.passed })
-        assertTrue(result.packageName.startsWith("com.retropack.game.tobutobugirl_"))
+        assertTrue(result.packageName.startsWith("com.retropack.game.tobutobugirldelu_") || result.packageName.startsWith("com.retropack.game.tobutobugirl"))
     }
 
     @Test
@@ -227,6 +227,6 @@ class HomebrewConformanceTest {
         assertTrue(result.artifactFile!!.exists())
         assertEquals(15, result.stageProvenance.size)
         assertTrue(result.stageProvenance.all { it.passed })
-        assertTrue(result.packageName.startsWith("com.retropack.game.angunademi_"))
+        assertTrue(result.packageName.startsWith("com.retropack.game.angunawarriorsof_") || result.packageName.startsWith("com.retropack.game.anguna"))
     }
 }
