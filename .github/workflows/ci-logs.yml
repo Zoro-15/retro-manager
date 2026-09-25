@@ -1,0 +1,192 @@
+name: CI Logs Archive
+
+# Archives every completed Tests / Android CI run to the dedicated `ci-logs`
+# branch with a stable per-run layout, so failures are debuggable without
+# re-running CI. See issue #9.
+#
+# Loop-safe by construction: this workflow triggers ONLY on
+# `workflow_run` of ["Tests", "Android CI"] (+ manual dispatch). Those two
+# trigger only on push/PR to main, so pushes to `ci-logs` retrigger nothing.
+# Dormant until PRs #6/#8 merge (no matching workflow names fire before then).
+on:
+  workflow_run:
+    workflows: ["Tests", "Android CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      run-id:
+        description: "Optional: backfill a specific run ID (defaults to branch init only)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: ci-logs
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    name: Archive run logs + artifacts to ci-logs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout (full history for branch push)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Collect run context
+        id: ctx
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "run-id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "mode=run" >> "$GITHUB_OUTPUT"
+          elif [ -n "${{ inputs.run-id }}" ]; then
+            echo "run-id=${{ inputs.run-id }}" >> "$GITHUB_OUTPUT"
+            echo "mode=run" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=init" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Archive completed run to ci-logs branch
+        if: steps.ctx.outputs.mode == 'run'
+        run: |
+          set -euo pipefail
+          REPO="${{ github.repository }}"
+          RUN_ID="${{ steps.ctx.outputs.run-id }}"
+
+          echo "Fetching run metadata for $REPO run $RUN_ID..."
+          META="$(gh api "repos/$REPO/actions/runs/$RUN_ID")"
+          WF_NAME="$(echo "$META" | jq -r '.name')"
+          CONCLUSION="$(echo "$META" | jq -r '.conclusion // "unknown"')"
+          EVENT="$(echo "$META" | jq -r '.event')"
+          HEAD_SHA="$(echo "$META" | jq -r '.head_sha')"
+          HEAD_BRANCH="$(echo "$META" | jq -r '.head_branch')"
+          ACTOR="$(echo "$META" | jq -r '.actor.login // "unknown"')"
+          RUN_NUMBER="$(echo "$META" | jq -r '.run_number')"
+          RUN_ATTEMPT="$(echo "$META" | jq -r '.run_attempt // 1')"
+          CREATED_AT="$(echo "$META" | jq -r '.created_at')"
+          UPDATED_AT="$(echo "$META" | jq -r '.updated_at')"
+          HTML_URL="$(echo "$META" | jq -r '.html_url')"
+
+          # workflow slug: "Tests" -> tests, "Android CI" -> android-ci
+          SLUG="$(echo "$WF_NAME" | tr '[:upper:]' '[:lower:]' | tr -cs 'a-z0-9' '-' | sed 's/^-//;s/-$//')"
+          DATE="$(date -u +%F)"
+          DEST="ci-logs/$SLUG/$DATE/run-$RUN_NUMBER-id-$RUN_ID-attempt-$RUN_ATTEMPT-$CONCLUSION"
+          echo "Destination: $DEST"
+          mkdir -p "$DEST/artifacts" "$DEST/logs"
+
+          cat > "$DEST/metadata.json" <<EOF
+          {
+            "source_workflow": "$WF_NAME",
+            "conclusion": "$CONCLUSION",
+            "event": "$EVENT",
+            "head_sha": "$HEAD_SHA",
+            "head_branch": "$HEAD_BRANCH",
+            "actor": "$ACTOR",
+            "run_number": $RUN_NUMBER,
+            "run_attempt": $RUN_ATTEMPT,
+            "run_id": $RUN_ID,
+            "created_at": "$CREATED_AT",
+            "updated_at": "$UPDATED_AT",
+            "run_url": "$HTML_URL",
+            "archived_at": "$(date -u +%FT%TZ)"
+          }
+          EOF
+
+          echo "Downloading run logs zip..."
+          curl -sSL -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$REPO/actions/runs/$RUN_ID/logs" \
+            -o "$DEST/logs.zip" || echo "WARN: logs download failed"
+          if [ -s "$DEST/logs.zip" ]; then
+            unzip -q -o "$DEST/logs.zip" -d "$DEST/logs" || echo "WARN: logs unzip failed"
+          fi
+
+          echo "Downloading run artifacts (tolerates none)..."
+          gh run download "$RUN_ID" --repo "$REPO" --dir "$DEST/artifacts" || echo "WARN: no artifacts or download failed"
+
+          # Switch to (or create) the ci-logs branch and commit this run only.
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin ci-logs 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/ci-logs; then
+            git checkout -B ci-logs origin/ci-logs
+          else
+            git checkout --orphan ci-logs
+            git rm -rf . >/dev/null 2>&1 || true
+          fi
+          # Re-create DEST under the branch checkout (orphan starts empty).
+          mkdir -p "$DEST/artifacts" "$DEST/logs"
+          # NOTE: files were collected above on the previous checkout; if we
+          # just orphaned, re-materialize is unnecessary because the working
+          # tree files persist across `checkout --orphan` (only the index was
+          # cleared). Re-stage everything under DEST explicitly below.
+          if [ ! -f README.md ]; then
+            cat > README.md <<'EOF'
+          # ci-logs — durable CI run archive
+
+          Every completed `Tests` / `Android CI` run is archived here by
+          `.github/workflows/ci-logs.yml` (see issue #9).
+
+          Layout (unique per run, newest last):
+
+          ```text
+          ci-logs/<workflow-slug>/<YYYY-MM-DD>/run-<number>-id-<id>-attempt-<n>-<conclusion>/
+            metadata.json   # workflow, conclusion, head SHA/branch, actor, URLs
+            logs.zip        # raw run logs
+            logs/           # unzipped logs for browser reading
+            artifacts/      # junit-xml, HTML reports, APKs (when produced)
+          ```
+
+          This branch is write-only for CI; pushes here trigger no workflows.
+          EOF
+          fi
+          git add "$DEST" README.md
+          if git diff --cached --quiet; then
+            echo "Nothing new to archive."
+            exit 0
+          fi
+          git commit -m "chore(ci-logs): archive $WF_NAME run $RUN_NUMBER ($CONCLUSION)"
+          git pull --rebase origin ci-logs 2>/dev/null || true
+          git push origin ci-logs
+
+      - name: Init ci-logs branch (manual dispatch without run-id)
+        if: steps.ctx.outputs.mode == 'init'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin ci-logs 2>/dev/null || true
+          if git show-ref --verify --quiet refs/remotes/origin/ci-logs; then
+            echo "ci-logs branch already exists; nothing to init."
+            exit 0
+          fi
+          git checkout --orphan ci-logs
+          git rm -rf . >/dev/null 2>&1 || true
+          cat > README.md <<'EOF'
+          # ci-logs — durable CI run archive
+
+          Every completed `Tests` / `Android CI` run is archived here by
+          `.github/workflows/ci-logs.yml` (see issue #9).
+
+          Layout (unique per run, newest last):
+
+          ```text
+          ci-logs/<workflow-slug>/<YYYY-MM-DD>/run-<number>-id-<id>-attempt-<n>-<conclusion>/
+            metadata.json   # workflow, conclusion, head SHA/branch, actor, URLs
+            logs.zip        # raw run logs
+            logs/           # unzipped logs for browser reading
+            artifacts/      # junit-xml, HTML reports, APKs (when produced)
+          ```
+
+          This branch is write-only for CI; pushes here trigger no workflows.
+          EOF
+          git add README.md
+          git commit -m "chore(ci-logs): init archive branch"
+          git push origin ci-logs
