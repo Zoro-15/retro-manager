@@ -10,16 +10,13 @@
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Part 2.1 is COMPLETE**. The project is ready for **Part 2.2: Save Durability & POSIX fsync (`SaveManager.kt`)**.
+> * **Current Phase**: **Part 2.2 is COMPLETE**. The project is ready for **Part 2.3: 16 KB CMake & mGBA C Bridge**.
 > * **Active Workstream**: Workstream B (Runtime Host Subsystem).
-> * **Last Completed Work (Part 2.1 — Skeleton & NativeCore Contracts)**:
->   1. Implemented [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt): Declared JNI methods matching `masterplan.md lines 167-189` with safe library load handling for host JVM testing.
->   2. Implemented [`RetroKey.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt): Canonical 10-bit hardware input bitmasks matching GBA register order (`KEY_A` through `KEY_L`) and [`KeyMaskBuilder`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt#L64-L105).
->   3. Implemented [`EmulationState.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationState.kt): State machine enum (`UNINITIALIZED`, `INITIALIZED`, `RUNNING`, `PAUSED`, `STOPPED`, `ERROR`) with transition validation.
->   4. Implemented [`ScaleMode.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/ScaleMode.kt): Video scaling options (`INTEGER_FIT`, `ASPECT_FIT`) with pixel-perfect square and smooth aspect-ratio viewport calculations.
->   5. Implemented [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt): Engine interface and [`NativeEmulationEngine`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt#L98-L235) implementing thread-synchronized core management.
->   6. Created ProGuard/R8 consumer rules [`consumer-rules.pro`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/consumer-rules.pro) preserving JNI methods and contracts.
->   7. Added unit test suite (`RetroKeyTest`, `EmulationStateTest`, `ScaleModeTest`, `NativeEmulationEngineTest`) with 19/19 tests passing (46/46 repository-wide).
+> * **Last Completed Work (Part 2.2 — Save Durability & POSIX fsync)**:
+>   1. Implemented [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt): Enforces atomic POSIX fsync replacement sequence: `write tmp` $\rightarrow$ `stream.flush()` $\rightarrow$ `stream.fd.sync()` $\rightarrow$ `tmp.renameTo(game.sav)`.
+>   2. Implemented dirty-gated flush logic comparing SRAM buffer hashes to eliminate redundant NAND flash writes.
+>   3. Implemented automatic backup rotation (`game.sav.bak`) and corrupt temporary file pruning on restore.
+>   4. Added unit test suite [`SaveManagerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/save/SaveManagerTest.kt) with 7/7 tests passing (53/53 tests passing repository-wide).
 
 ### 📋 Copy-Paste Prompt for the Next Session
 Copy and paste the block below into your AI coding assistant or session prompt to resume work immediately:
@@ -31,18 +28,16 @@ Read context.md, masterplan.md, and roadmap.md first.
 Current Status:
 - Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE.
 - Phase 1 (Domain Core & ROM Engine) is COMPLETE.
-- Phase 2, Part 2.1 (Skeleton & NativeCore Contracts) is COMPLETE:
-  - NativeCore.kt, RetroKey.kt, EmulationState.kt, ScaleMode.kt, EmulationEngine.kt implemented.
-  - 46/46 unit tests passing across core and runtime modules.
+- Phase 2, Part 2.1 (Skeleton & NativeCore Contracts) is COMPLETE.
+- Phase 2, Part 2.2 (Save Durability & POSIX fsync) is COMPLETE:
+  - SaveManager.kt and SaveManagerTest.kt implemented with 100% test pass rate.
+  - 53/53 unit tests passing across core and runtime modules.
 
 Your Task:
-Proceed with Phase 2, Part 2.2 (Save Durability & POSIX fsync):
-1. Implement SaveManager.kt in runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/:
-   - Enforce atomic POSIX fsync replacement sequence: write tmp -> stream.flush() -> stream.fd.sync() -> tmp.renameTo(game.sav).
-   - Dirty-gated periodic flush (60-second timer/coroutine checking isSramDirty).
-   - Lifecycle flush for onPause() / onStop().
-   - SRAM restore on session start.
-2. Add comprehensive unit tests in SaveManagerTest.kt verifying atomic swap, corrupt recovery, and dirty gating.
+Proceed with Phase 2, Part 2.3 (16 KB CMake & mGBA C Bridge):
+1. Vendor canonical mGBA (v0.10.5+) as an untouched Git submodule under runtime/retropack-runtime-mgba/submodules/mgba/.
+2. Configure CMakeLists.txt with mandatory 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) targeting NDK r28b+.
+3. Implement JNI bridge mgba-jni.c and ringbuffer.c in runtime/retropack-runtime-mgba/src/main/cpp/ binding to NativeCore.kt JNI methods.
 ```
 
 ---

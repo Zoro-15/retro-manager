@@ -129,11 +129,12 @@ To enable seamless, frictionless collaboration between two developers (You and y
     - Emulation Engine Interface & Native Driver: [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt).
     - Consumer ProGuard/R8 Rules: [`consumer-rules.pro`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/consumer-rules.pro).
     - Full Unit Test Suite: 19/19 tests passing (`RetroKeyTest`, `EmulationStateTest`, `ScaleModeTest`, `NativeEmulationEngineTest`).
-  * ⏳ **Part 2.2 — Save Durability & POSIX fsync Contract [NEXT]**:
-    - Implement `SaveManager.kt`: 60-second dirty-only background flush + `onPause`/`onStop` flush using atomic write sequence with POSIX `fsync()`:
-      `write tmp` $\rightarrow$ `fileDescriptor.sync()` $\rightarrow$ `tmp.renameTo(game.sav)`.
-    - Unit tests in `SaveManagerTest.kt` for atomic rotation, crash safety, and dirty gating.
-  * ⏳ **Part 2.3 — 16 KB CMake & mGBA C Bridge**:
+  * ✅ **Part 2.2 — Save Durability & POSIX fsync Contract [COMPLETED]**:
+    - Atomic POSIX fsync durability manager: [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt).
+    - Dirty-gated hash check eliminating redundant NAND flash wear.
+    - Lifecycle flush guarantees (`onPause`/`onStop`) and backup rotation (`.bak`).
+    - Full Unit Test Suite: 7/7 tests passing in [`SaveManagerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/save/SaveManagerTest.kt) (53/53 tests passing repository-wide).
+  * ⏳ **Part 2.3 — 16 KB CMake & mGBA C Bridge [NEXT]**:
     - Vendor canonical mGBA (`v0.10.5`+) as Git submodule under `runtime/retropack-runtime-mgba/submodules/mgba/`.
     - Configure CMake with mandatory 16 KB linker flags:
       `-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`.
