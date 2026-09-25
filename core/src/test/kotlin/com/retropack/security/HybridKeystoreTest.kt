@@ -2,6 +2,7 @@ package com.retropack.security
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -102,5 +103,20 @@ class HybridKeystoreTest {
         assertEquals(original.alias, restored.alias)
         assertArrayEquals(original.privateKey.encoded, restored.privateKey.encoded)
         assertEquals(original.certificate, restored.certificate)
+    }
+
+    @Test
+    fun `test corrupt payload sizes rejected without large allocation`() {
+        // Valid header, absurd IV size: must throw before any big ByteArray.
+        val bos = ByteArrayOutputStream()
+        java.io.DataOutputStream(bos).use { dos ->
+            dos.write(byteArrayOf('R'.code.toByte(), 'P'.code.toByte(), 'E'.code.toByte(), 'K'.code.toByte()))
+            dos.writeInt(1)
+            dos.writeUTF("AES/GCM/NoPadding")
+            dos.writeInt(Int.MAX_VALUE)
+        }
+        assertThrows<IllegalArgumentException> {
+            EncryptedPayload.fromBytes(bos.toByteArray())
+        }
     }
 }

@@ -15,52 +15,63 @@ object RomParser {
      */
     fun parse(bytes: ByteArray): RomIdentity {
         val checksumResult = StreamChecksum.calculate(bytes)
-        return parseWithChecksums(bytes, checksumResult)
+        return parseWithChecksums(bytes, checksumResult, bytes.size.toLong())
     }
 
     /**
-     * Inspects a ROM file and resolves its complete [RomIdentity].
+     * Inspects a ROM file in a single streaming pass: checksums plus a bounded
+     * header prefix (GB headers need 0x150 bytes; GBA needs 0xC0). The old
+     * implementation read the whole file into heap and then hashed it again.
      */
     fun parse(file: File): RomIdentity {
-        val bytes = file.readBytes()
-        val checksumResult = StreamChecksum.calculate(file)
-        return parseWithChecksums(bytes, checksumResult)
+        val (checksumResult, prefix) =
+            StreamChecksum.calculateWithPrefix(file, GbRomParser.MIN_HEADER_SIZE)
+        return parseWithChecksums(prefix, checksumResult, checksumResult.totalBytes)
     }
 
-    private fun parseWithChecksums(bytes: ByteArray, checksumResult: StreamChecksumResult): RomIdentity {
+    private fun parseWithChecksums(
+        headerBytes: ByteArray,
+        checksumResult: StreamChecksumResult,
+        fileSize: Long
+    ): RomIdentity {
         // Attempt GBA detection first
-        if (bytes.size >= GbaRomParser.MIN_HEADER_SIZE) {
-            val isGbaFixedByte = (bytes[0xB2].toInt() and 0xFF) == 0x96
-            val gbaChecksumCalculated = GbaRomParser.calculateHeaderChecksum(bytes)
-            val gbaChecksumStored = bytes[0xBD].toInt() and 0xFF
+        if (headerBytes.size >= GbaRomParser.MIN_HEADER_SIZE) {
+            val isGbaFixedByte = (headerBytes[0xB2].toInt() and 0xFF) == 0x96
+            val gbaChecksumCalculated = GbaRomParser.calculateHeaderChecksum(headerBytes)
+            val gbaChecksumStored = headerBytes[0xBD].toInt() and 0xFF
             val isGbaChecksumMatch = gbaChecksumCalculated == gbaChecksumStored
 
             if (isGbaFixedByte || isGbaChecksumMatch) {
-                val gbaHeader = GbaRomParser.parse(bytes)
-                return RomIdentity(
-                    platform = "gba",
-                    gameTitle = gbaHeader.title,
-                    gameCode = gbaHeader.gameCode,
-                    makerCode = gbaHeader.makerCode,
-                    softwareVersion = gbaHeader.softwareVersion,
-                    fileSize = bytes.size.toLong(),
-                    checksums = checksumResult.checksums,
-                    headerChecksumValid = gbaHeader.headerChecksumValid,
-                    logoOrFixedValid = gbaHeader.fixedValueValid,
-                    gbaHeader = gbaHeader
-                )
+                // Fixed byte alone is not sufficient proof (issue #18): a bad
+                // fixed byte with matching checksum must fall through to GB
+                // instead of throwing out of the strict GBA parser.
+                val gbaHeader = runCatching { GbaRomParser.parse(headerBytes) }.getOrNull()
+                if (gbaHeader != null) {
+                    return RomIdentity(
+                        platform = "gba",
+                        gameTitle = gbaHeader.title,
+                        gameCode = gbaHeader.gameCode,
+                        makerCode = gbaHeader.makerCode,
+                        softwareVersion = gbaHeader.softwareVersion,
+                        fileSize = fileSize,
+                        checksums = checksumResult.checksums,
+                        headerChecksumValid = gbaHeader.headerChecksumValid,
+                        logoOrFixedValid = gbaHeader.fixedValueValid,
+                        gbaHeader = gbaHeader
+                    )
+                }
             }
         }
 
         // Attempt GB/GBC detection
-        if (bytes.size >= GbRomParser.MIN_HEADER_SIZE) {
-            val gbHeader = GbRomParser.parse(bytes)
+        if (headerBytes.size >= GbRomParser.MIN_HEADER_SIZE) {
+            val gbHeader = GbRomParser.parse(headerBytes)
             if (gbHeader.logoValid || gbHeader.headerChecksumValid) {
                 return RomIdentity(
                     platform = gbHeader.platform,
                     gameTitle = gbHeader.title,
                     softwareVersion = gbHeader.maskRomVersion,
-                    fileSize = bytes.size.toLong(),
+                    fileSize = fileSize,
                     checksums = checksumResult.checksums,
                     headerChecksumValid = gbHeader.headerChecksumValid,
                     logoOrFixedValid = gbHeader.logoValid,
@@ -73,6 +84,6 @@ object RomParser {
             }
         }
 
-        throw InvalidRomException("Unrecognized ROM format: file size ${bytes.size} bytes does not match GB/GBC or GBA header specifications.")
+        throw InvalidRomException("Unrecognized ROM format: file size $fileSize bytes does not match GB/GBC or GBA header specifications.")
     }
 }

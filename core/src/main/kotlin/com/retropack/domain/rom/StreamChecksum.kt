@@ -18,6 +18,15 @@ data class StreamChecksumResult(
 )
 
 /**
+ * Streaming checksum result plus the first [prefixSize] bytes captured during
+ * the same single pass (for header detection without a second read).
+ */
+data class StreamChecksumWithPrefix(
+    val result: StreamChecksumResult,
+    val prefix: ByteArray
+)
+
+/**
  * High-performance, zero-heap chunked streaming checksum calculator.
  * Reads InputStreams in 64 KB buffers, calculating CRC32, MD5, SHA-1, and SHA-256
  * concurrently in a single pass without heap allocation spikes.
@@ -76,6 +85,56 @@ object StreamChecksum {
      */
     fun calculate(file: File): StreamChecksumResult {
         return FileInputStream(file).use { calculate(it) }
+    }
+
+    /**
+     * Single-pass file hashing that also captures the leading [prefixSize]
+     * bytes for header detection. Replaces the old read-twice pattern
+     * (readBytes + separate checksum pass) with one streaming pass and a
+     * bounded prefix buffer.
+     */
+    fun calculateWithPrefix(file: File, prefixSize: Int): StreamChecksumWithPrefix {
+        require(prefixSize >= 0) { "prefixSize must be non-negative" }
+        val crc = CRC32()
+        val md5 = MessageDigest.getInstance("MD5")
+        val sha1 = MessageDigest.getInstance("SHA-1")
+        val sha256 = MessageDigest.getInstance("SHA-256")
+
+        val prefix = ByteArray(prefixSize)
+        var prefixFilled = 0
+        val buffer = ByteArray(BUFFER_SIZE)
+        var totalBytes = 0L
+
+        FileInputStream(file).use { stream ->
+            var bytesRead: Int
+            while (stream.read(buffer).also { bytesRead = it } != -1) {
+                if (bytesRead > 0) {
+                    totalBytes += bytesRead
+                    crc.update(buffer, 0, bytesRead)
+                    md5.update(buffer, 0, bytesRead)
+                    sha1.update(buffer, 0, bytesRead)
+                    sha256.update(buffer, 0, bytesRead)
+                    if (prefixFilled < prefixSize) {
+                        // Invariant: prefixFilled = min(prefixSize, bytes consumed
+                        // so far), hence the overlap always starts at buffer[0].
+                        val take = minOf(bytesRead, prefixSize - prefixFilled)
+                        buffer.copyInto(prefix, prefixFilled, 0, take)
+                        prefixFilled += take
+                    }
+                }
+            }
+        }
+
+        val records = ChecksumRecords(
+            crc32 = "%08x".format(crc.value and 0xFFFFFFFFL),
+            md5 = md5.digest().toHexString(),
+            sha1 = sha1.digest().toHexString(),
+            sha256 = sha256.digest().toHexString()
+        )
+        return StreamChecksumWithPrefix(
+            result = StreamChecksumResult(records, totalBytes),
+            prefix = prefix.copyOf(prefixFilled)
+        )
     }
 
     /**
