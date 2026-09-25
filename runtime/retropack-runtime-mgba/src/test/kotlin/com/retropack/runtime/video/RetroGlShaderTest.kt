@@ -48,9 +48,11 @@ class RetroGlShaderTest {
 
         val values = FloatArray(8)
         buffer.get(values)
+        // V is flipped so the mGBA top-row-first frame maps to GLES
+        // bottom-row-first textures (issue #13): TL=(0,1), BL=(0,0).
         assertEquals(0.0f, values[0]) // u0
-        assertEquals(0.0f, values[1]) // v0
+        assertEquals(1.0f, values[1]) // v0 (flipped)
         assertEquals(1.0f, values[6]) // u3
-        assertEquals(1.0f, values[7]) // v3
+        assertEquals(0.0f, values[7]) // v3 (flipped)
     }
 }

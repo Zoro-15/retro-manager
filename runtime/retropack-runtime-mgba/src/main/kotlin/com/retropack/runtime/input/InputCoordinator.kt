@@ -17,6 +17,8 @@ class InputCoordinator(
 ) {
     var autoHideTouchOnGamepad: Boolean = true
 
+    private val maskLock = Any()
+
     @Volatile
     private var touchMask: Int = RetroKey.NO_KEYS_MASK
 
@@ -24,19 +26,25 @@ class InputCoordinator(
     private var gamepadMask: Int = RetroKey.NO_KEYS_MASK
 
     val compositeKeyMask: Int
-        get() = (touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK
+        get() = synchronized(maskLock) {
+            (touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK
+        }
 
     init {
         // Wire touch overlay callbacks
         touchOverlay?.onKeyMaskChanged = { mask ->
-            touchMask = mask
-            dispatchCompositeMask()
+            synchronized(maskLock) {
+                touchMask = mask
+                onKeyMaskDispatched((touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK)
+            }
         }
 
         // Wire gamepad mapper callbacks
         gamepadMapper.onKeyMaskChanged = { mask ->
-            gamepadMask = mask
-            dispatchCompositeMask()
+            synchronized(maskLock) {
+                gamepadMask = mask
+                onKeyMaskDispatched((touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK)
+            }
         }
 
         gamepadMapper.onGamepadDetected = {
@@ -50,26 +58,39 @@ class InputCoordinator(
      * Updates the touch key mask directly.
      */
     fun updateTouchMask(mask: Int) {
-        touchMask = mask
-        dispatchCompositeMask()
+        synchronized(maskLock) {
+            touchMask = mask
+            dispatchCompositeMask()
+        }
     }
 
     /**
      * Updates the gamepad key mask directly.
      */
     fun updateGamepadMask(mask: Int) {
-        gamepadMask = mask
-        dispatchCompositeMask()
+        synchronized(maskLock) {
+            gamepadMask = mask
+            dispatchCompositeMask()
+        }
     }
 
     /**
-     * Resets all touch and gamepad key states.
+     * Resets all touch and gamepad key states with a single dispatch (the old
+     * path fired once via gamepadMapper.reset() plus once directly).
      */
     fun reset() {
-        touchMask = RetroKey.NO_KEYS_MASK
-        gamepadMask = RetroKey.NO_KEYS_MASK
-        gamepadMapper.reset()
-        dispatchCompositeMask()
+        val mapperCallback = gamepadMapper.onKeyMaskChanged
+        gamepadMapper.onKeyMaskChanged = null
+        try {
+            gamepadMapper.reset()
+        } finally {
+            gamepadMapper.onKeyMaskChanged = mapperCallback
+        }
+        synchronized(maskLock) {
+            touchMask = RetroKey.NO_KEYS_MASK
+            gamepadMask = RetroKey.NO_KEYS_MASK
+            dispatchCompositeMask()
+        }
     }
 
     private fun dispatchCompositeMask() {

@@ -2,7 +2,11 @@ name: Tests
 
 # Regression + performance-loss guard. Triggers exactly on pushes to main
 # and pull requests (plus manual dispatch). See issue #7.
-# - unit-tests: fail-closed; any failing test blocks merge.
+# - core-tests + runtime-tests: fail-closed module suites on PARALLEL runners
+#   (was one serial job; wall time roughly halves). Shipping the workflow
+#   in-branch is also what makes checks appear on the PR itself: GitHub only
+#   runs workflow files present in the PR head, which is why PRs opened before
+#   #8 merged showed no checks.
 # - perf-budget: parses JUnit XML durations; fails on suite/class wall-time
 #   blowup so throughput collapse (StreamChecksum, IpsUpsPatcher, SaveManager)
 #   is visible without flaky micro-benchmarks.
@@ -26,8 +30,8 @@ env:
   PERF_CLASS_BUDGET_SEC: "120"
 
 jobs:
-  unit-tests:
-    name: Unit tests (gated)
+  core-tests:
+    name: Core tests (gated)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -35,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -47,29 +51,81 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Pure Kotlin/JVM path: no Android SDK required (runtime module falls
-      # back to the java-library + src/stub/java variant when ANDROID_HOME
-      # is absent). Covers :core (6 test files) + runtime (15 test files).
-      - name: Run unit tests
-        run: ./gradlew :core:test :runtime:retropack-runtime-mgba:test --stacktrace
+      - name: Run core unit tests
+        # Sanitized like runtime-tests so module configuration resolves
+        # identically on runners with a preinstalled Android SDK.
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test --no-daemon --stacktrace
 
-      - name: Upload JUnit XML results
+      - name: Upload JUnit XML results (core)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-xml
+          name: junit-core
           path: |
-            **/build/test-results/test/*.xml
+            core/build/test-results/test/*.xml
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload HTML test reports
+      - name: Upload HTML test reports (core)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports-html
+          name: test-reports-core
           path: |
-            **/build/reports/tests
+            core/build/reports/tests
+          if-no-files-found: warn
+          retention-days: 30
+
+  runtime-tests:
+    name: Runtime tests (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Pure Kotlin/JVM path: the unit tests are authored against the
+      # src/stub/java doubles (MotionEvent.createTouch/createJoystick etc.),
+      # which only compile in the hasAndroidSdk==false java-library variant.
+      # Hosted runners preinstall an Android SDK, which would flip the module
+      # to the android-library variant (real android.jar: abstract MotionEvent,
+      # no stub helpers) and fail compilation. Unset the SDK markers so CI
+      # exercises the same JVM variant as local runs; Android-variant
+      # compilation stays covered by the Android CI workflow's assembleDebug.
+      # --no-daemon pins the sanitized environment (no reused SDK daemon).
+      - name: Run runtime unit tests (JVM stub variant)
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
+
+      - name: Upload JUnit XML results (runtime)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-runtime
+          path: |
+            runtime/retropack-runtime-mgba/build/test-results/test/*.xml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload HTML test reports (runtime)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-runtime
+          path: |
+            runtime/retropack-runtime-mgba/build/reports/tests
           if-no-files-found: warn
           retention-days: 30
 
@@ -77,15 +133,16 @@ jobs:
     name: Perf budget (gated)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: unit-tests
-    # Run even if unit-tests failed so timing data is still evaluated when
+    needs: [core-tests, runtime-tests]
+    # Run even if module suites failed so timing data is still evaluated when
     # reports exist; the job itself stays gated (fails on budget breach).
     if: always()
     steps:
-      - name: Download JUnit XML results
+      - name: Download JUnit XML results (both modules)
         uses: actions/download-artifact@v4
         with:
-          name: junit-xml
+          pattern: junit-*
+          merge-multiple: true
           path: junit-xml
 
       - name: Enforce suite/class wall-time budgets
@@ -104,7 +161,7 @@ jobs:
               # Fall back to flat layout (download-artifact may flatten paths)
               files = sorted(glob.glob("junit-xml/TEST-*.xml"))
           if not files:
-              print("::error::No JUnit XML found under junit-xml/. Did unit-tests upload results?")
+              print("::error::No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?")
               raise SystemExit(1)
 
           rows = []

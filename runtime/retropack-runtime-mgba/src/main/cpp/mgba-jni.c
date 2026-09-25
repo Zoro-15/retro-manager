@@ -40,6 +40,16 @@ static struct {
     int video_height;
     RingBuffer* audio_rb;
     pthread_mutex_t lock;
+    // Cached SRAM size: savedataClone (malloc+memcpy+free) is too expensive
+    // to run on every flush probe, so it is captured once at ROM load.
+    // Cached JNI refs: FindClass/GetMethodID per frame at 60fps is pure
+    // overhead, so ByteBuffer view plumbing is resolved once (issue #11).
+    size_t sram_size;
+    bool sram_size_valid;
+    jclass byte_buffer_class;
+    jmethodID byte_buffer_order;
+    jmethodID byte_buffer_as_int_buffer;
+    jobject byte_order_native;
 } g_runtime = {
     .core = NULL,
     .initialized = false,
@@ -49,6 +59,12 @@ static struct {
     .video_height = 0,
     .audio_rb = NULL,
     .lock = PTHREAD_MUTEX_INITIALIZER,
+    .sram_size = 0,
+    .sram_size_valid = false,
+    .byte_buffer_class = NULL,
+    .byte_buffer_order = NULL,
+    .byte_buffer_as_int_buffer = NULL,
+    .byte_order_native = NULL,
 };
 
 static void release_core_locked(void) {
@@ -60,6 +76,8 @@ static void release_core_locked(void) {
     g_runtime.rom_loaded = false;
     g_runtime.video_width = 0;
     g_runtime.video_height = 0;
+    g_runtime.sram_size = 0;
+    g_runtime.sram_size_valid = false;
     memset(g_runtime.video_buffer, 0, sizeof(g_runtime.video_buffer));
     if (g_runtime.audio_rb) {
         ringbuffer_reset(g_runtime.audio_rb);
@@ -187,6 +205,18 @@ Java_com_retropack_runtime_core_NativeCore_nativeLoadRom(
     g_runtime.core = core;
     g_runtime.rom_loaded = true;
 
+    // Cache the SRAM size once: every flush probe previously paid a full
+    // savedataClone (malloc+memcpy+free) just to learn the size (issue #12).
+    {
+        void* sram_probe = NULL;
+        size_t probe_size = core->savedataClone(core, &sram_probe);
+        if (sram_probe) {
+            free(sram_probe);
+        }
+        g_runtime.sram_size = probe_size;
+        g_runtime.sram_size_valid = true;
+    }
+
     LOGI("nativeLoadRom: loaded ROM successfully (%dx%d)", g_runtime.video_width, g_runtime.video_height);
 
     pthread_mutex_unlock(&g_runtime.lock);
@@ -215,6 +245,16 @@ Java_com_retropack_runtime_core_NativeCore_nativeDestroy(
         ringbuffer_destroy(g_runtime.audio_rb);
         g_runtime.audio_rb = NULL;
     }
+    if (g_runtime.byte_buffer_class) {
+        (*env)->DeleteGlobalRef(env, g_runtime.byte_buffer_class);
+        g_runtime.byte_buffer_class = NULL;
+    }
+    if (g_runtime.byte_order_native) {
+        (*env)->DeleteGlobalRef(env, g_runtime.byte_order_native);
+        g_runtime.byte_order_native = NULL;
+    }
+    g_runtime.byte_buffer_order = NULL;
+    g_runtime.byte_buffer_as_int_buffer = NULL;
     g_runtime.initialized = false;
     g_runtime.storage_path[0] = '\0';
     LOGI("nativeDestroy: native subsystem destroyed");
@@ -236,10 +276,10 @@ Java_com_retropack_runtime_core_NativeCore_nativeRunFrame(
     struct mCore* core = g_runtime.core;
     core->runFrame(core);
 
-    size_t total_pixels = (size_t) g_runtime.video_width * (size_t) g_runtime.video_height;
-    for (size_t i = 0; i < total_pixels; ++i) {
-        g_runtime.video_buffer[i] |= 0xFF000000U;
-    }
+    // NOTE: no per-pixel alpha fix-up here. The GLSurfaceView renderer never
+    // enables blending, so the unused color_t top byte is irrelevant to the
+    // opaque framebuffer; the previous 38k-iteration OR loop cost ~2.3M
+    // ops/sec for zero visual effect (issue #12).
 
     blip_t* left = core->getAudioChannel(core, 0);
     blip_t* right = core->getAudioChannel(core, 1);
@@ -295,19 +335,46 @@ Java_com_retropack_runtime_core_NativeCore_nativeGetVideoBuffer(
         return NULL;
     }
 
-    jclass byteBufferClass = (*env)->GetObjectClass(env, byteBuffer);
-    jclass byteOrderClass = (*env)->FindClass(env, "java/nio/ByteOrder");
-    if (!byteBufferClass || !byteOrderClass) {
-        pthread_mutex_unlock(&g_runtime.lock);
-        return NULL;
+    // Cache the ByteBuffer view plumbing once instead of FindClass/
+    // GetMethodID on every frame at 60fps (issue #11). Initialized under the
+    // runtime lock so concurrent GL threads cannot double-create globals.
+    if (!g_runtime.byte_buffer_class || !g_runtime.byte_order_native) {
+        jclass localBbClass = (*env)->GetObjectClass(env, byteBuffer);
+        jclass localOrderClass = (*env)->FindClass(env, "java/nio/ByteOrder");
+        if (!localBbClass || !localOrderClass) {
+            pthread_mutex_unlock(&g_runtime.lock);
+            return NULL;
+        }
+        jmethodID nativeOrderMethod = (*env)->GetStaticMethodID(
+            env, localOrderClass, "nativeOrder", "()Ljava/nio/ByteOrder;");
+        jobject localNativeOrder = nativeOrderMethod
+            ? (*env)->CallStaticObjectMethod(env, localOrderClass, nativeOrderMethod)
+            : NULL;
+        jmethodID orderMethod = (*env)->GetMethodID(
+            env, localBbClass, "order", "(Ljava/nio/ByteOrder;)Ljava/nio/ByteBuffer;");
+        jmethodID asIntBufferMethod = (*env)->GetMethodID(
+            env, localBbClass, "asIntBuffer", "()Ljava/nio/IntBuffer;");
+        if (!localNativeOrder || !orderMethod || !asIntBufferMethod) {
+            pthread_mutex_unlock(&g_runtime.lock);
+            return NULL;
+        }
+        g_runtime.byte_buffer_class = (*env)->NewGlobalRef(env, localBbClass);
+        jclass orderClassGlobal = (*env)->NewGlobalRef(env, localOrderClass);
+        (void) orderClassGlobal; // kept alive implicitly via the order object below
+        g_runtime.byte_order_native = (*env)->NewGlobalRef(env, localNativeOrder);
+        g_runtime.byte_buffer_order = orderMethod;
+        g_runtime.byte_buffer_as_int_buffer = asIntBufferMethod;
+        if (!g_runtime.byte_buffer_class || !g_runtime.byte_order_native) {
+            pthread_mutex_unlock(&g_runtime.lock);
+            return NULL;
+        }
     }
 
-    jmethodID nativeOrderMethod = (*env)->GetStaticMethodID(env, byteOrderClass, "nativeOrder", "()Ljava/nio/ByteOrder;");
-    jobject nativeOrder = (*env)->CallStaticObjectMethod(env, byteOrderClass, nativeOrderMethod);
-    jmethodID orderMethod = (*env)->GetMethodID(env, byteBufferClass, "order", "(Ljava/nio/ByteOrder;)Ljava/nio/ByteBuffer;");
-    jobject orderedByteBuffer = (*env)->CallObjectMethod(env, byteBuffer, orderMethod, nativeOrder);
-    jmethodID asIntBufferMethod = (*env)->GetMethodID(env, byteBufferClass, "asIntBuffer", "()Ljava/nio/IntBuffer;");
-    jobject intBuffer = (*env)->CallObjectMethod(env, orderedByteBuffer, asIntBufferMethod);
+    jobject orderedByteBuffer = (*env)->CallObjectMethod(
+        env, byteBuffer, g_runtime.byte_buffer_order, g_runtime.byte_order_native);
+    jobject intBuffer = orderedByteBuffer
+        ? (*env)->CallObjectMethod(env, orderedByteBuffer, g_runtime.byte_buffer_as_int_buffer)
+        : NULL;
 
     pthread_mutex_unlock(&g_runtime.lock);
     return intBuffer;
@@ -317,13 +384,20 @@ JNIEXPORT jint JNICALL
 Java_com_retropack_runtime_core_NativeCore_nativeGetAudioSamples(
         JNIEnv* env, jobject thiz, jshortArray outSamples, jint maxSamples) {
     (void) thiz;
-    if (!outSamples || maxSamples <= 0 || !g_runtime.audio_rb) {
+    // The whole read holds the runtime lock (lock order g_runtime -> audio_rb
+    // matches nativeRunFrame) so nativeDestroy cannot free the ring buffer
+    // mid-read (issue #11). The copy itself is memcpy-fast.
+    pthread_mutex_lock(&g_runtime.lock);
+    RingBuffer* rb = g_runtime.audio_rb;
+    if (!outSamples || maxSamples <= 0 || !rb) {
+        pthread_mutex_unlock(&g_runtime.lock);
         return 0;
     }
 
     jsize arrayLen = (*env)->GetArrayLength(env, outSamples);
     size_t to_read = (size_t) (maxSamples < arrayLen ? maxSamples : arrayLen);
     if (to_read == 0) {
+        pthread_mutex_unlock(&g_runtime.lock);
         return 0;
     }
 
@@ -331,7 +405,7 @@ Java_com_retropack_runtime_core_NativeCore_nativeGetAudioSamples(
     size_t total_read = 0;
     while (to_read > 0) {
         size_t chunk = to_read > 1024 ? 1024 : to_read;
-        size_t read_count = ringbuffer_read(g_runtime.audio_rb, temp_buf, chunk);
+        size_t read_count = ringbuffer_read(rb, temp_buf, chunk);
         if (read_count == 0) {
             break;
         }
@@ -343,7 +417,50 @@ Java_com_retropack_runtime_core_NativeCore_nativeGetAudioSamples(
         }
     }
 
+    pthread_mutex_unlock(&g_runtime.lock);
     return (jint) total_read;
+}
+
+/**
+ * Returns the number of samples currently buffered for playback without
+ * draining. Lets the Kotlin drift controller evaluate true occupancy
+ * instead of the drained batch size (issue #13).
+ */
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetAudioAvailable(
+        JNIEnv* env, jobject thiz) {
+    (void) env;
+    (void) thiz;
+    pthread_mutex_lock(&g_runtime.lock);
+    size_t avail = g_runtime.audio_rb ? ringbuffer_available(g_runtime.audio_rb) : 0;
+    pthread_mutex_unlock(&g_runtime.lock);
+    return (jint) avail;
+}
+
+/**
+ * Returns the active frame dimensions as int[width, height], or null
+ * when no ROM is loaded, so the GL renderer can sync instead of assuming
+ * 240x160 for GB/GBC titles (issue #13).
+ */
+JNIEXPORT jintArray JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetVideoSize(
+        JNIEnv* env, jobject thiz) {
+    (void) thiz;
+    pthread_mutex_lock(&g_runtime.lock);
+    int w = g_runtime.video_width;
+    int h = g_runtime.video_height;
+    jboolean loaded = (jboolean) (g_runtime.core && g_runtime.rom_loaded && w > 0 && h > 0);
+    pthread_mutex_unlock(&g_runtime.lock);
+    if (!loaded) {
+        return NULL;
+    }
+    jintArray out = (*env)->NewIntArray(env, 2);
+    if (!out) {
+        return NULL;
+    }
+    jint dims[2] = { w, h };
+    (*env)->SetIntArrayRegion(env, out, 0, 2, dims);
+    return out;
 }
 
 JNIEXPORT jint JNICALL
@@ -358,11 +475,9 @@ Java_com_retropack_runtime_core_NativeCore_nativeGetSramSize(
         return 0;
     }
 
-    void* sram = NULL;
-    size_t size = g_runtime.core->savedataClone(g_runtime.core, &sram);
-    if (sram) {
-        free(sram);
-    }
+    // Size was captured once at ROM load; probing here used to pay a full
+    // savedataClone (malloc+memcpy+free) on every flush check (issue #12).
+    size_t size = g_runtime.sram_size_valid ? g_runtime.sram_size : 0;
 
     pthread_mutex_unlock(&g_runtime.lock);
     return (jint) size;
@@ -444,6 +559,11 @@ Java_com_retropack_runtime_core_NativeCore_nativeWriteSram(
         return JNI_FALSE;
     }
 
+    // Ownership note: this mirrors staging/garnacha-boy mgba_session_restore_
+    // savedata — loadSave consumes the VFile synchronously inside this call
+    // (under the runtime lock), so freeing our copy and closing only the
+    // failure path is correct here. Do not "fix" by closing on success: the
+    // handle belongs to the core after a successful load (freed at unload).
     bool success = g_runtime.core->loadSave(g_runtime.core, save);
     if (!success) {
         save->close(save);

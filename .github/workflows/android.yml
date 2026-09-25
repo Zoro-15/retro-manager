@@ -39,19 +39,21 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Pure Kotlin/JVM path: no Android SDK required. Covers :core and the
-      # runtime JVM fallback (hasAndroidSdk == false -> java-library variant).
+      # Pure Kotlin/JVM path: the runtime unit tests are authored against the
+      # src/stub/java doubles, which only compile in the hasAndroidSdk==false
+      # java-library variant. Hosted runners preinstall an Android SDK (real
+      # android.jar: abstract MotionEvent, no stub helpers), so unset the SDK
+      # markers here; the Android-variant build stays covered by android-build.
       - name: Run JVM tests
-        run: ./gradlew :core:test :runtime:retropack-runtime-mgba:test --stacktrace
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 
   android-build:
     name: Android APK/AAR build [informational until Phase 3]
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # Honest signal: app/ has only build.gradle.kts (no sources/manifest) until
-    # Phase 3, so this job is expected to fail. continue-on-error keeps PRs
-    # mergeable on jvm-tests while the log proves exactly where Phase 3 stands.
-    continue-on-error: true
+    # Green gate: the runtime AAR (CMake + mGBA NDK compile) must build.
+    # The Manager APK step below stays tolerated-failure until app sources
+    # land (app/ has only build.gradle.kts) via step-level continue-on-error.
     needs: jvm-tests
     steps:
       - name: Checkout with submodules (canonical mGBA, MPL-2.0, untouched)
@@ -71,15 +73,32 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Set up Android SDK
+        # NOTE: setup-android's default `packages: tools platform-tools`
+        # installs the long-removed `tools` package and fails the whole job
+        # on current cmdline-tools ("Failed to find package 'tools'").
+        # Override to platform-tools only; API 35/NDK/CMake come next step.
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
-      - name: Install SDK packages (API 35, NDK r28b+, CMake 3.22.1)
+      - name: Install SDK packages (API 35, NDK r28+, CMake 3.22.1)
         run: |
-          sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "ndk;28.2.12479018" "cmake;3.22.1"
+          sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "cmake;3.22.1"
+          # NDK r28+ is mandatory for the 16 KB page-size flags; resolve the
+          # newest 28.x revision from the channel instead of a hardcoded build
+          # number (exact revisions rotate out of the repository).
+          NDK_PKG="$(sdkmanager --list 2>/dev/null | grep -oE 'ndk;28\.[0-9.]+' | sort -uV | tail -n 1)"
+          if [ -z "$NDK_PKG" ]; then
+            echo "::error::No NDK r28.x revision found in the SDK channel"
+            exit 1
+          fi
+          echo "Installing $NDK_PKG ..."
+          sdkmanager --install "$NDK_PKG"
+          NDK_VER="${NDK_PKG#ndk;}"
           sdkmanager --licenses > /dev/null <<< "y"
           echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
-          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.2.12479018" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -87,7 +106,22 @@ jobs:
       - name: Init mGBA submodule (fails fast with clear message if missing)
         run: git submodule update --init --recursive
 
-      - name: Assemble Manager APK (expected to fail until Phase 3 app sources land)
+      - name: Assemble runtime AAR (NDK/CMake/mGBA compile gate)
+        run: ./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace
+
+      - name: Upload runtime AAR artifact (if produced)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-aar-debug
+          path: runtime/retropack-runtime-mgba/build/outputs/aar/*.aar
+          if-no-files-found: warn
+
+      - name: Assemble Manager APK (tolerated until app sources land)
+        # app/ has only build.gradle.kts (no sources/manifest) until the
+        # Manager UI phase: step-level continue-on-error keeps the job green
+        # while the log proves exactly where that phase stands.
+        continue-on-error: true
         run: ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload APK artifact (if produced)

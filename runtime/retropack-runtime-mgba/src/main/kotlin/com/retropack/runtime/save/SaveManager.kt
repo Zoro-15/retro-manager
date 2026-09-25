@@ -61,9 +61,8 @@ class SaveManager(
     private val sramSource: SramStorageSource = DefaultNativeSramSource,
     val periodicFlushIntervalSec: Long = 60L
 ) {
-    // Sibling files resolved null-safely: File(File, String) tolerates a null
-    // parent, but be explicit so CWD-relative saveFiles (File("game.sav"))
-    // still place .tmp/.bak alongside the target.
+    // Sibling files resolved null-safely so CWD-relative saveFiles
+    // (File("game.sav")) still place .tmp/.bak alongside the target.
     private fun sibling(name: String): File {
         val dir = saveFile.parentFile ?: saveFile.absoluteFile.parentFile
         return if (dir != null) File(dir, name) else File(name)
@@ -74,7 +73,11 @@ class SaveManager(
 
     private val lock = Any()
     private val dirty = AtomicBoolean(false)
+    // Null = never flushed: must not compare equal to any real hash (issue #3).
     private var lastFlushedHash: Int? = null
+    // Monotonic gate so the 60fps loop's periodicFlush is a cheap timestamp
+    // check instead of a full SRAM clone+hash per frame (issue #12).
+    private var lastFlushAttemptMs: Long = 0L
 
     val isDirty: Boolean
         get() = dirty.get()
@@ -144,7 +147,7 @@ class SaveManager(
 
         val currentHash = Arrays.hashCode(buffer)
 
-        // Dirty gating check (null = never flushed, must not skip)
+        // Dirty gating check (null = never flushed, must not skip).
         if (!force && !dirty.get() && lastFlushedHash != null && currentHash == lastFlushedHash) {
             return false
         }
@@ -171,14 +174,14 @@ class SaveManager(
                 fos.fd.sync()
             }
 
-            // Step 5: If previous save exists, rotate to backup (checked)
+            // Step 5: If previous save exists, rotate to backup (checked:
+            // an unchecked rename failure here used to orphan the backup and
+            // then overwrite the primary — silent save loss).
             if (saveFile.exists()) {
                 if (bakSaveFile.exists()) {
                     bakSaveFile.delete()
                 }
                 if (!saveFile.renameTo(bakSaveFile)) {
-                    // Fallback copy when atomic rename is unsupported; abort
-                    // rather than overwriting saveFile with a stale backup.
                     try {
                         saveFile.copyTo(bakSaveFile, overwrite = true)
                         saveFile.delete()
@@ -197,12 +200,18 @@ class SaveManager(
             val renamed = tmpSaveFile.renameTo(saveFile)
             if (!renamed) {
                 // Fallback copy if filesystem doesn't support atomic rename across mounts
-                tmpSaveFile.copyTo(saveFile, overwrite = true)
-                tmpSaveFile.delete()
+                try {
+                    tmpSaveFile.copyTo(saveFile, overwrite = true)
+                    tmpSaveFile.delete()
+                } catch (_: IOException) {
+                    if (tmpSaveFile.exists()) tmpSaveFile.delete()
+                    return false
+                }
             }
 
             dirty.set(false)
             lastFlushedHash = currentHash
+            lastFlushAttemptMs = System.currentTimeMillis()
             return true
         } catch (_: IOException) {
             // Clean up temporary file on failure
@@ -250,8 +259,16 @@ class SaveManager(
 
     /**
      * Periodically flushes modified SRAM to disk if dirty or data has drifted.
+     * Time-gated: at most one SRAM probe per [periodicFlushIntervalSec], so the
+     * 60fps emulation loop pays a timestamp comparison per frame instead of a
+     * full native clone+hash (issue #12). Lifecycle paths use [flushNow] and
+     * bypass this gate.
      */
-    fun periodicFlush(currentTimeMs: Long = System.currentTimeMillis()): Boolean {
+    fun periodicFlush(currentTimeMs: Long = System.currentTimeMillis()): Boolean = synchronized(lock) {
+        if (currentTimeMs - lastFlushAttemptMs < periodicFlushIntervalSec * 1000L) {
+            return false
+        }
+        lastFlushAttemptMs = currentTimeMs
         if (checkAndMarkDirty()) {
             return flush(force = false)
         }
