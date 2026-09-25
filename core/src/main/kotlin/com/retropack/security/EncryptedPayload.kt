@@ -33,6 +33,10 @@ data class EncryptedPayload(
         val MAGIC = byteArrayOf('R'.code.toByte(), 'P'.code.toByte(), 'E'.code.toByte(), 'K'.code.toByte())
         const val VERSION = 1
         const val ALGORITHM_AES_GCM = "AES/GCM/NoPadding"
+        // Corrupt files must be rejected before allocating (issue #18):
+        // IVs are always 12-byte GCM nonces; encrypted identities are KBs.
+        const val MAX_IV_BYTES = 64
+        const val MAX_CIPHERTEXT_BYTES = 16 * 1024 * 1024
 
         fun fromBytes(bytes: ByteArray): EncryptedPayload {
             DataInputStream(ByteArrayInputStream(bytes)).use { dis ->
@@ -45,10 +49,12 @@ data class EncryptedPayload(
 
                 val algorithm = dis.readUTF()
                 val ivSize = dis.readInt()
+                require(ivSize in 1..MAX_IV_BYTES) { "Invalid IV size: $ivSize" }
                 val iv = ByteArray(ivSize)
                 dis.readFully(iv)
 
                 val ciphertextSize = dis.readInt()
+                require(ciphertextSize in 0..MAX_CIPHERTEXT_BYTES) { "Invalid ciphertext size: $ciphertextSize" }
                 val ciphertext = ByteArray(ciphertextSize)
                 dis.readFully(ciphertext)
 

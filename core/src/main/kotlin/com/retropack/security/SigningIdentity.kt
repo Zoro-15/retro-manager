@@ -56,12 +56,19 @@ data class SigningIdentity(
     }
 
     companion object {
+        // Corrupt inputs must be rejected before allocating (issue #18):
+        // PKCS8 RSA-2048 is ~1.2KB and X.509 certs are ~1KB; caps are generous.
+        const val MAX_KEY_BYTES = 64 * 1024
+        const val MAX_CERT_BYTES = 64 * 1024
+        const val MAX_CERT_CHAIN = 10
+
         fun fromSerializedBytes(bytes: ByteArray): SigningIdentity {
             DataInputStream(ByteArrayInputStream(bytes)).use { dis ->
                 val alias = dis.readUTF()
                 val keyAlgorithm = dis.readUTF()
 
                 val keySize = dis.readInt()
+                require(keySize in 1..MAX_KEY_BYTES) { "Invalid key size: $keySize" }
                 val keyBytes = ByteArray(keySize)
                 dis.readFully(keyBytes)
 
@@ -69,11 +76,13 @@ data class SigningIdentity(
                 val privateKey = keyFactory.generatePrivate(PKCS8EncodedKeySpec(keyBytes))
 
                 val certCount = dis.readInt()
+                require(certCount in 1..MAX_CERT_CHAIN) { "Invalid certificate count: $certCount" }
                 val certFactory = CertificateFactory.getInstance("X.509")
                 val certChain = mutableListOf<X509Certificate>()
 
                 for (i in 0 until certCount) {
                     val certSize = dis.readInt()
+                    require(certSize in 1..MAX_CERT_BYTES) { "Invalid certificate size: $certSize" }
                     val certBytes = ByteArray(certSize)
                     dis.readFully(certBytes)
                     val cert = certFactory.generateCertificate(ByteArrayInputStream(certBytes)) as X509Certificate
