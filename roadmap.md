@@ -119,16 +119,31 @@ To enable seamless, frictionless collaboration between two developers (You and y
   * JNI `NativeCore` bindings: [`masterplan.md#L167-L189`](file:///c:/Users/ok/Documents/retro%20manager/masterplan.md#L167-L189).
   * 16 KB Page Linker rules: [`architechture.md#L277-L281`](file:///c:/Users/ok/Documents/retro%20manager/architechture.md#L277-L281).
   * Durability & POSIX `fsync` contract: [`architechture.md#L289-L295`](file:///c:/Users/ok/Documents/retro%20manager/architechture.md#L289-L295).
-* **Detailed Tasks**:
-  1. Vendor canonical mGBA (`v0.10.5`+) as an untouched Git submodule under `runtime/retropack-runtime-mgba/submodules/mgba/`.
-  2. Configure CMake with mandatory 16 KB linker flags:
-     `-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`.
-  3. Implement JNI bridge `mgba-jni.c` and Kotlin interface `NativeCore.kt` supporting frame stepping, input keymasks, audio buffers, and SRAM read/write.
-  4. Implement OpenGL ES 2.0/3.0 SurfaceView renderer with `integer_fit` and `aspect_fit` scaling modes.
-  5. Implement ring-buffered `AudioTrack` 16-bit stereo at $44,100\text{ Hz}$ with dynamic drift compensation.
-  6. Implement virtual `TouchOverlayView` (custom coords, haptics) and physical controller HID mapper with auto-hide.
-  7. Implement `SaveManager.kt`: 60-second dirty-only background flush + `onPause`/`onStop` flush using atomic write sequence with POSIX `fsync()`:
-     `write tmp` $\rightarrow$ `fileDescriptor.sync()` $\rightarrow$ `tmp.renameTo(game.sav)`.
+* **Subphase Breakdown & Implementation Status**:
+  * ✅ **Part 2.1 — Skeleton & NativeCore Contracts [COMPLETED]**:
+    - Runtime module structure: [`runtime/retropack-runtime-mgba`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba).
+    - JNI Core Bridge contract: [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt).
+    - Hardware Keymask & Builder: [`RetroKey.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt).
+    - Emulation Lifecycle State Machine: [`EmulationState.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationState.kt).
+    - Display Scaling Modes & Viewport Math: [`ScaleMode.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/ScaleMode.kt).
+    - Emulation Engine Interface & Native Driver: [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt).
+    - Consumer ProGuard/R8 Rules: [`consumer-rules.pro`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/consumer-rules.pro).
+    - Full Unit Test Suite: 19/19 tests passing (`RetroKeyTest`, `EmulationStateTest`, `ScaleModeTest`, `NativeEmulationEngineTest`).
+  * ⏳ **Part 2.2 — Save Durability & POSIX fsync Contract [NEXT]**:
+    - Implement `SaveManager.kt`: 60-second dirty-only background flush + `onPause`/`onStop` flush using atomic write sequence with POSIX `fsync()`:
+      `write tmp` $\rightarrow$ `fileDescriptor.sync()` $\rightarrow$ `tmp.renameTo(game.sav)`.
+    - Unit tests in `SaveManagerTest.kt` for atomic rotation, crash safety, and dirty gating.
+  * ⏳ **Part 2.3 — 16 KB CMake & mGBA C Bridge**:
+    - Vendor canonical mGBA (`v0.10.5`+) as Git submodule under `runtime/retropack-runtime-mgba/submodules/mgba/`.
+    - Configure CMake with mandatory 16 KB linker flags:
+      `-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`.
+    - Implement JNI bridge `mgba-jni.c` and ringbuffer `ringbuffer.c`.
+  * ⏳ **Part 2.4 — Video & Audio Subsystems**:
+    - OpenGL ES 2.0/3.0 SurfaceView renderer with `integer_fit` and `aspect_fit` scaling modes.
+    - Low-latency circular ring-buffered `AudioTrack` 16-bit stereo at $44,100\text{ Hz}$ with dynamic drift compensation.
+  * ⏳ **Part 2.5 — Virtual Touch & HID Gamepad Mapper**:
+    - Virtual `TouchOverlayView` (custom coordinates, opacity, haptics).
+    - Physical controller HID mapper with auto-hiding virtual controls upon gamepad button press.
 * **Deliverables**: Standalone `retropack-runtime-mgba.aar` compiled for `arm64-v8a` and `x86_64`.
 * **Acceptance Gate**: ELF inspection verifies `LOAD` segments aligned to 16,384 bytes (`readelf -l libmgba.so`); audio/video loop executes cleanly at 60 FPS without memory leaks.
 
