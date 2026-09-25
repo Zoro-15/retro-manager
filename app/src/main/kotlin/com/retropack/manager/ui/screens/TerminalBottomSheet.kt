@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -207,7 +208,8 @@ fun TerminalBottomSheet(
             )
 
             // Success or Failure Action Cards
-            if (buildResult != null && buildResult.success && buildResult.artifactFile != null) {
+            val artifact = buildResult?.artifactFile
+            if (buildResult != null && buildResult.success && artifact != null) {
                 Spacer(modifier = Modifier.height(16.dp))
 
                 RetroCard(
@@ -244,7 +246,7 @@ fun TerminalBottomSheet(
                         )
 
                         Text(
-                            text = "Artifact: ${buildResult.artifactFile.name}",
+                            text = "Artifact: ${artifact.name}",
                             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -258,7 +260,7 @@ fun TerminalBottomSheet(
                         ) {
                             Button(
                                 onClick = {
-                                    ApkInstaller.installApk(context, buildResult.artifactFile)
+                                    ApkInstaller.installApk(context, artifact)
                                         .onFailure { err ->
                                             Toast.makeText(context, "Install trigger error: ${err.message}", Toast.LENGTH_LONG).show()
                                         }
@@ -286,7 +288,7 @@ fun TerminalBottomSheet(
 
                             OutlinedButton(
                                 onClick = {
-                                    ApkInstaller.shareApk(context, buildResult.artifactFile)
+                                    ApkInstaller.shareApk(context, artifact)
                                         .onFailure { err ->
                                             Toast.makeText(context, "Share error: ${err.message}", Toast.LENGTH_LONG).show()
                                         }

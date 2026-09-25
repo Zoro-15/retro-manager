@@ -163,14 +163,17 @@ fun RomInspectionCard(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                if (!identity.gameCode.isNullOrBlank()) {
-                    MetadataChip(label = "CODE", value = identity.gameCode)
+                val gameCode = identity.gameCode
+                if (!gameCode.isNullOrBlank()) {
+                    MetadataChip(label = "CODE", value = gameCode)
                 }
-                if (!identity.makerCode.isNullOrBlank()) {
-                    MetadataChip(label = "MAKER", value = identity.makerCode)
+                val makerCode = identity.makerCode
+                if (!makerCode.isNullOrBlank()) {
+                    MetadataChip(label = "MAKER", value = makerCode)
                 }
-                if (identity.mbcType != null) {
-                    MetadataChip(label = "CHIP", value = identity.mbcType)
+                val mbcType = identity.mbcType
+                if (mbcType != null) {
+                    MetadataChip(label = "CHIP", value = mbcType)
                 }
                 MetadataChip(label = "VER", value = "v1.${identity.softwareVersion}")
                 MetadataChip(label = "SIZE", value = UriUtils.formatFileSize(identity.fileSize))
