@@ -64,6 +64,20 @@ jobs:
             exit 1
           }
 
+      - name: Build Manager App & Template APK (Assemble Debug)
+        run: |
+          ./gradlew :app:assembleDebug :template-apk:assembleDebug --stacktrace
+
+      - name: Upload Debug APK Artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: retropack-debug-apks
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            template-apk/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
       - name: Upload Test Results & Reports
         if: always()
         uses: actions/upload-artifact@v4

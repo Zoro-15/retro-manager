@@ -18,6 +18,7 @@ import com.retropack.domain.model.StoragePayload
 import com.retropack.domain.model.TouchControlsSettings
 import com.retropack.domain.model.VideoSettings
 import com.retropack.domain.rom.RomParser
+import com.retropack.domain.runtime.RuntimeRegistry
 import com.retropack.packaging.BuildEngine
 import com.retropack.security.AesGcmMasterKeyProvider
 import com.retropack.security.HybridKeystore
@@ -385,6 +386,7 @@ class MainViewModel : ViewModel() {
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
+                    ensureRuntimesLoaded(context)
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -453,9 +455,37 @@ class MainViewModel : ViewModel() {
                                 errorMessage = error.message
                             )
                         )
-                    }
+                    )
                 }
             }
+        }
+    }
+
+    private fun ensureRuntimesLoaded(context: Context) {
+        try {
+            val targetRuntimesDir = File(context.filesDir, "runtimes").also { it.mkdirs() }
+            val assetManager = context.assets
+            val assetList = assetManager.list("") ?: emptyArray()
+
+            if (assetList.contains("mgba-unified") || assetManager.list("mgba-unified")?.isNotEmpty() == true) {
+                val mgbaTarget = File(targetRuntimesDir, "mgba-unified").also { it.mkdirs() }
+                val files = assetManager.list("mgba-unified") ?: emptyArray()
+                for (f in files) {
+                    val outFile = File(mgbaTarget, f)
+                    if (!outFile.exists() || outFile.length() == 0L) {
+                        assetManager.open("mgba-unified/$f").use { input ->
+                            outFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                    }
+                }
+                if (File(mgbaTarget, "runtime.json").exists() && File(mgbaTarget, "template.apk").exists()) {
+                    RuntimeRegistry.loadFromDirectory(mgbaTarget)
+                }
+            }
+        } catch (_: Exception) {
+            // Ignored in headless/unit-test environments
         }
     }
 
