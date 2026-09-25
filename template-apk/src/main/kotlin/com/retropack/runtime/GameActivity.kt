@@ -10,15 +10,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.retropack.runtime.audio.RetroAudioPlayer
 import com.retropack.runtime.core.EmulationEngine
+import com.retropack.runtime.core.NativeCore
 import com.retropack.runtime.core.NativeEmulationEngine
 import com.retropack.runtime.host.EmulationHost
 import com.retropack.runtime.host.RomStager
 import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.input.GamepadMapper
 import com.retropack.runtime.input.TouchOverlayView
+import com.retropack.runtime.logging.RuntimeLogger
 import com.retropack.runtime.save.SaveManager
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
@@ -63,6 +68,8 @@ open class GameActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        RuntimeLogger.start(this)
+        RuntimeLogger.i("Bootstrap", "GameActivity.onCreate starting...")
 
         // 1. Configure Fullscreen Immersive Window
         requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -115,16 +122,41 @@ open class GameActivity : Activity() {
             renderer = sv.renderer,
             touchOverlay = touchOverlay,
             gamepadMapper = gamepadMapper
-        )
+        ).apply {
+            onFrameRenderRequested = {
+                sv.requestRenderFrame()
+            }
+        }
         this.host = emulationHost
 
         // 6. Bootstrap Emulation if ROM is staged and verified
         if (romFile.exists() && romFile.length() > 0L) {
+            RuntimeLogger.i("Bootstrap", "Loading ROM into EmulationHost: ${romFile.absolutePath} (${romFile.length()} bytes)")
             isGameLoaded = emulationHost.loadGame(
                 romFile = romFile,
                 internalStorageDir = storageDirectory(),
                 saveFile = saveFile
             )
+            RuntimeLogger.i("Bootstrap", "EmulationHost.loadGame result: $isGameLoaded (engine state: ${engine.state})")
+            if (isGameLoaded) {
+                emulationHost.start()
+                RuntimeLogger.i("Bootstrap", "EmulationHost active loop started successfully")
+            } else {
+                val errorDetails = buildString {
+                    appendLine("Failed to initialize or parse ROM in mGBA core.")
+                    appendLine("• Engine State: ${engine.state}")
+                    appendLine("• NativeCore loaded: ${NativeCore.isLoaded()} (${NativeCore.loadedLibraryName ?: "none"})")
+                    if (NativeCore.loadError != null) {
+                        appendLine("• Native Library Error: ${NativeCore.loadError}")
+                    }
+                }
+                RuntimeLogger.e("Bootstrap", errorDetails)
+                showDiagnosticAlert(root, errorDetails)
+            }
+        } else {
+            val errorMsg = "ROM file not found or empty at '${romFile.absolutePath}'. Staging from APK assets failed."
+            RuntimeLogger.e("Bootstrap", errorMsg)
+            showDiagnosticAlert(root, errorMsg)
         }
     }
 
@@ -132,6 +164,7 @@ open class GameActivity : Activity() {
         super.onResume()
         hideSystemUI()
         surfaceView?.resume()
+        RuntimeLogger.i("Lifecycle", "onResume: isGameLoaded=$isGameLoaded")
         host?.let {
             if (isGameLoaded) {
                 it.resume()
@@ -140,6 +173,7 @@ open class GameActivity : Activity() {
     }
 
     override fun onPause() {
+        RuntimeLogger.i("Lifecycle", "onPause: pausing emulation and flushing SRAM")
         host?.pause()
         // Invariant 5: Guarantees synchronous POSIX fsync cartridge SRAM flush to flash memory
         saveManager?.flushNow()
@@ -148,15 +182,18 @@ open class GameActivity : Activity() {
     }
 
     override fun onStop() {
+        RuntimeLogger.i("Lifecycle", "onStop: flushing SRAM")
         // Invariant 5: Guarantees synchronous POSIX fsync cartridge SRAM flush on activity backgrounding
         saveManager?.flushNow()
         super.onStop()
     }
 
     override fun onDestroy() {
+        RuntimeLogger.i("Lifecycle", "onDestroy: closing host and stopping logger")
         saveManager?.flushNow()
         host?.close()
         host = null
+        RuntimeLogger.stop(this)
         super.onDestroy()
     }
 
@@ -199,9 +236,11 @@ open class GameActivity : Activity() {
         return try {
             assets.open(RuntimeConfig.ASSET_PATH).use { stream ->
                 val jsonText = stream.bufferedReader(Charsets.UTF_8).readText()
+                RuntimeLogger.i("Config", "Loaded runtime config: $jsonText")
                 RuntimeConfig.fromJson(jsonText)
             }
-        } catch (_: IOException) {
+        } catch (e: Exception) {
+            RuntimeLogger.w("Config", "assets.open('${RuntimeConfig.ASSET_PATH}') failed: ${e.message}, using DEFAULT", e)
             RuntimeConfig.DEFAULT
         }
     }
@@ -211,15 +250,75 @@ open class GameActivity : Activity() {
      */
     protected open fun stageRomIfNeeded(targetFile: File, expectedSha256: String): Boolean {
         if (RomStager.isRomStaged(targetFile, expectedSha256)) {
+            RuntimeLogger.i("RomStager", "ROM already staged and valid at ${targetFile.absolutePath}")
             return true
         }
 
         return try {
             assets.open(ROM_FILENAME).use { stream ->
-                RomStager.stageRom(stream, targetFile, expectedSha256)
+                val ok = RomStager.stageRom(stream, targetFile, expectedSha256)
+                RuntimeLogger.i("RomStager", "RomStager.stageRom returned: $ok")
+                ok
             }
-        } catch (_: IOException) {
+        } catch (e: Exception) {
+            RuntimeLogger.e("RomStager", "Failed staging ROM asset '$ROM_FILENAME' to '${targetFile.absolutePath}'", e)
             false
+        }
+    }
+
+    private fun showDiagnosticAlert(root: FrameLayout, details: String) {
+        runOnUiThread {
+            try {
+                val container = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setBackgroundColor(0xF00A0C10.toInt())
+                    setPadding(48, 80, 48, 48)
+                }
+
+                val title = TextView(this).apply {
+                    text = "⚠️ RetroPack Runtime Alert"
+                    textSize = 20f
+                    setTextColor(0xFFFF5252.toInt())
+                }
+                container.addView(title)
+
+                val body = TextView(this).apply {
+                    text = details
+                    textSize = 14f
+                    setTextColor(0xFFE0E0E0.toInt())
+                }
+                container.addView(body)
+
+                val logPathInfo = TextView(this).apply {
+                    val path = RuntimeLogger.logFile?.absolutePath ?: "Unavailable"
+                    text = "\nDiagnostic log saved to:\n$path\n"
+                    textSize = 12f
+                    setTextColor(0xFF80D8FF.toInt())
+                }
+                container.addView(logPathInfo)
+
+                val shareBtn = Button(this).apply {
+                    text = "Share Diagnostic Log"
+                    setOnClickListener {
+                        try {
+                            val file = RuntimeLogger.logFile
+                            val text = if (file != null && file.exists()) file.readText() else details
+                            val sendIntent = android.content.Intent().apply {
+                                action = "android.intent.action.SEND"
+                                putExtra("android.intent.extra.TEXT", text)
+                                type = "text/plain"
+                            }
+                            startActivity(android.content.Intent.createChooser(sendIntent, "Share RetroPack Log"))
+                        } catch (_: Throwable) {}
+                    }
+                }
+                container.addView(shareBtn)
+
+                root.addView(container, FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                ))
+            } catch (_: Throwable) {}
         }
     }
 

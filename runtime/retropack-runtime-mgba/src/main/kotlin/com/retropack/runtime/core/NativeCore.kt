@@ -9,18 +9,37 @@ import java.nio.IntBuffer
  * All native methods execute synchronously on the caller's emulation thread.
  */
 object NativeCore {
-    private const val LIBRARY_NAME = "retropack-runtime"
+    private val CANDIDATE_LIBRARIES = listOf("retropack-runtime", "mgba")
 
     @Volatile
     private var libraryLoaded: Boolean = false
 
+    @Volatile
+    var loadedLibraryName: String? = null
+        private set
+
+    @Volatile
+    var loadError: String? = null
+        private set
+
     init {
-        try {
-            System.loadLibrary(LIBRARY_NAME)
-            libraryLoaded = true
-        } catch (e: UnsatisfiedLinkError) {
-            // Permitted on host JVM during unit testing where native .so binaries are not compiled/loaded.
+        var loaded = false
+        var lastError: Throwable? = null
+        for (lib in CANDIDATE_LIBRARIES) {
+            try {
+                System.loadLibrary(lib)
+                libraryLoaded = true
+                loadedLibraryName = lib
+                loaded = true
+                loadError = null
+                break
+            } catch (e: Throwable) {
+                lastError = e
+            }
+        }
+        if (!loaded) {
             libraryLoaded = false
+            loadError = lastError?.message ?: "Unknown native library link failure"
         }
     }
 

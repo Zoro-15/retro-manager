@@ -30,4 +30,16 @@ public class Context {
     public Object getSystemService(String name) {
         return null;
     }
+
+    public ComponentName startService(Intent service) {
+        return null;
+    }
+
+    public boolean stopService(Intent service) {
+        return true;
+    }
+
+    public java.io.File getExternalFilesDir(String type) {
+        return getFilesDir();
+    }
 }

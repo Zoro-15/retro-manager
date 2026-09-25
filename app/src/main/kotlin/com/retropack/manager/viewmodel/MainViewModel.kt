@@ -81,12 +81,12 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(romState = it.romState.copy(isLoading = true, errorMessage = null)) }
 
-            val (fileName, fileSize) = UriUtils.getFileNameAndSize(context, uri)
-            val romBytes = withContext(Dispatchers.IO) {
+            val (rawFileName, rawFileSize) = UriUtils.getFileNameAndSize(context, uri)
+            val rawBytes = withContext(Dispatchers.IO) {
                 UriUtils.readBytesFromUri(context, uri)
             }
 
-            if (romBytes == null || romBytes.isEmpty()) {
+            if (rawBytes == null || rawBytes.isEmpty()) {
                 _uiState.update {
                     it.copy(
                         romState = it.romState.copy(
@@ -97,6 +97,8 @@ class MainViewModel : ViewModel() {
                 }
                 return@launch
             }
+
+            val (romBytes, fileName, fileSize) = UriUtils.extractRomIfZip(rawBytes, rawFileName)
 
             val parseResult = withContext(Dispatchers.Default) {
                 runCatching { RomParser.parse(romBytes) }
@@ -302,6 +304,34 @@ class MainViewModel : ViewModel() {
 
     fun onClearToast() {
         _uiState.update { it.copy(toastMessage = null) }
+    }
+
+    fun onImportRuntimeLog(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val content = withContext(Dispatchers.IO) {
+                try {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        stream.bufferedReader(Charsets.UTF_8).readText()
+                    }
+                } catch (e: Exception) {
+                    "Error reading log file: ${e.message}"
+                }
+            } ?: "Log file is empty or unreadable."
+
+            val (name, _) = UriUtils.getFileNameAndSize(context, uri)
+            _uiState.update { current ->
+                current.copy(
+                    buildState = current.buildState.copy(
+                        showTerminalSheet = true,
+                        rawTerminalLogs = buildString {
+                            appendLine("=== IMPORTED RUNTIME LOG: $name ===")
+                            appendLine(content)
+                            appendLine("=== END RUNTIME LOG ===")
+                        }
+                    )
+                )
+            }
+        }
     }
 
     /**

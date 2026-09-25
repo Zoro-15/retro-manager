@@ -34,12 +34,14 @@ class EmulationHost(
         onKeyMaskDispatched = { mask -> engine.setKeyMask(mask) }
     )
 
+    var onFrameRenderRequested: (() -> Unit)? = null
+
     val emulationLoop: EmulationLoop = EmulationLoop(
         engine = engine,
         audioPlayer = audioPlayer,
         saveManagerSupplier = { saveManager },
         onFrameComplete = {
-            // Video buffer is updated in-engine; renderer draws on next surface tick
+            onFrameRenderRequested?.invoke()
         }
     )
 

@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudDownload
@@ -107,6 +108,11 @@ fun MainScreen(
     val iconPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri -> uri?.let { viewModel.onSelectIcon(context, it) } }
+    )
+
+    val logPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri -> uri?.let { viewModel.onImportRuntimeLog(context, it) } }
     )
 
     // Handle Toast events
@@ -492,6 +498,19 @@ fun MainScreen(
                 badge = "16 KB ALIGNED",
                 onSelect = {
                     Toast.makeText(context, "Output stored in App External Files / RetroPack", Toast.LENGTH_SHORT).show()
+                }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            ActionTile(
+                title = "Inspect Game Runtime Log",
+                subtitle = "Load retropack_runtime.log into Terminal",
+                icon = Icons.Default.BugReport,
+                badgeText = "DIAGNOSTICS",
+                selected = false,
+                onClick = {
+                    logPickerLauncher.launch(arrayOf("text/*", "*/*"))
                 }
             )
 

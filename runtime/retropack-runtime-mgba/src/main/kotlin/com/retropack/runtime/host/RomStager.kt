@@ -27,7 +27,7 @@ object RomStager {
         if (!destination.exists() || destination.length() == 0L) {
             return false
         }
-        if (expectedSha256 == null) {
+        if (expectedSha256.isNullOrBlank()) {
             return true
         }
         val actualSha256 = calculateFileSha256(destination)
@@ -82,7 +82,7 @@ object RomStager {
             }
 
             val actualSha256 = bytesToHex(digest.digest())
-            if (expectedSha256 != null && !actualSha256.equals(expectedSha256, ignoreCase = true)) {
+            if (!expectedSha256.isNullOrBlank() && !actualSha256.equals(expectedSha256, ignoreCase = true)) {
                 tempFile.delete()
                 return false
             }

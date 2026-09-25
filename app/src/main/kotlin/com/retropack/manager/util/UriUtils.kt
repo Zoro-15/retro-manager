@@ -58,4 +58,36 @@ object UriUtils {
             else -> "$bytes B"
         }
     }
+
+    /**
+     * Inspects incoming byte array. If it is a ZIP archive containing a retro ROM
+     * (.gba, .gbc, .gb), extracts the inner ROM bytes, fileName, and size.
+     */
+    fun extractRomIfZip(rawBytes: ByteArray, rawFileName: String): Triple<ByteArray, String, Long> {
+        if (!rawFileName.endsWith(".zip", ignoreCase = true) &&
+            !(rawBytes.size >= 4 && rawBytes[0] == 0x50.toByte() && rawBytes[1] == 0x4B.toByte())
+        ) {
+            return Triple(rawBytes, rawFileName, rawBytes.size.toLong())
+        }
+
+        try {
+            java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(rawBytes)).use { zis ->
+                var entry = zis.nextEntry
+                while (entry != null) {
+                    if (!entry.isDirectory) {
+                        val name = entry.name.substringAfterLast('/').substringAfterLast('\\')
+                        val lower = name.lowercase(java.util.Locale.US)
+                        if (lower.endsWith(".gba") || lower.endsWith(".gbc") || lower.endsWith(".gb")) {
+                            val extracted = zis.readBytes()
+                            return Triple(extracted, name, extracted.size.toLong())
+                        }
+                    }
+                    entry = zis.nextEntry
+                }
+            }
+        } catch (_: Exception) {
+            // Fall back to original bytes if not a valid zip
+        }
+        return Triple(rawBytes, rawFileName, rawBytes.size.toLong())
+    }
 }

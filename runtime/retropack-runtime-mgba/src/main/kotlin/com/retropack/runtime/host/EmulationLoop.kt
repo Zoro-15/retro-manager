@@ -103,6 +103,10 @@ class EmulationLoop(
      */
     fun resume() {
         lock.withLock {
+            if (!isRunning) {
+                start()
+                return
+            }
             if (isPaused) {
                 isPaused = false
                 pauseCondition.signalAll()

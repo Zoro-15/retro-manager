@@ -114,6 +114,12 @@ jobs:
           path: template-apk/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
 
+      - name: Stage Fresh Template APK and Rotate Trust Anchors
+        run: |
+          cp template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk
+          chmod +x scripts/rotate-trust-anchors.sh
+          ./scripts/rotate-trust-anchors.sh
+
       - name: Assemble Manager APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
