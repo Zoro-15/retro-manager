@@ -3,6 +3,7 @@ package com.retropack.packaging
 import com.android.apksig.ApkVerifier
 import java.io.File
 import java.security.cert.X509Certificate
+import java.util.zip.ZipFile
 
 /**
  * Validates APK signature integrity and scheme compliance via apksig ApkVerifier (Step 13).
@@ -27,7 +28,7 @@ object ApkVerificationService {
      */
     fun verifyApk(
         apkFile: File,
-        minSdkVersion: Int? = null,
+        minSdkVersion: Int? = ApkSignerService.DEFAULT_MIN_SDK,
         maxSdkVersion: Int? = null
     ): VerificationResult {
         require(apkFile.exists()) { "Target APK file does not exist: ${apkFile.absolutePath}" }
@@ -84,9 +85,23 @@ object ApkVerificationService {
         }
 
         val signerCerts = result.signerCertificates.toList()
-        val v1Verified = result.isVerifiedUsingV1Scheme || (result.v1SchemeSigners.isNotEmpty() && result.v1SchemeSigners.all { it.errors.isEmpty() })
-        val v2Verified = result.isVerifiedUsingV2Scheme || (result.v2SchemeSigners.isNotEmpty() && result.v2SchemeSigners.all { it.errors.isEmpty() })
-        val v3Verified = result.isVerifiedUsingV3Scheme || (result.v3SchemeSigners.isNotEmpty() && result.v3SchemeSigners.all { it.errors.isEmpty() })
+
+        // Check if v1 signature manifest files exist inside the APK archive
+        val hasV1Files = try {
+            ZipFile(apkFile).use { zip ->
+                zip.getEntry("META-INF/MANIFEST.MF") != null
+            }
+        } catch (_: Exception) {
+            false
+        }
+
+        val v1Verified = (result.isVerified && hasV1Files) ||
+            result.isVerifiedUsingV1Scheme ||
+            (result.v1SchemeSigners.isNotEmpty() && result.v1SchemeSigners.all { it.errors.isEmpty() })
+        val v2Verified = result.isVerifiedUsingV2Scheme ||
+            (result.v2SchemeSigners.isNotEmpty() && result.v2SchemeSigners.all { it.errors.isEmpty() })
+        val v3Verified = result.isVerifiedUsingV3Scheme ||
+            (result.v3SchemeSigners.isNotEmpty() && result.v3SchemeSigners.all { it.errors.isEmpty() })
 
         return VerificationResult(
             isVerified = result.isVerified,
