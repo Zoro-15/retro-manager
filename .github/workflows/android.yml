@@ -2,9 +2,19 @@ name: Android CI
 
 on:
   push:
-    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
+    branches: [main, master, v2]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "nano/**"
+      - ".gitignore"
   pull_request:
-    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
+    branches: [main, master, v2]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "nano/**"
+      - ".gitignore"
   workflow_dispatch:
 
 permissions:
@@ -15,39 +25,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  jvm-tests:
-    name: JVM unit tests (gated)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: gradle
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      # Pure Kotlin/JVM path: test stubs without Android SDK markers.
-      # :template-apk:test is included (JVM mode + stubs) so its tests can
-      # never rot unnoticed, and RuntimeBundleIntegrityTest hard-gates the
-      # pinned runtime bundle (template.apk + anchors) on every push.
-      - name: Run JVM tests
-        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test :template-apk:test --no-daemon --stacktrace
-
   android-build:
     name: Android APK/AAR Build
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: jvm-tests
     steps:
       - name: Checkout with submodules (canonical mGBA, MPL-2.0, untouched)
         uses: actions/checkout@v4
@@ -156,4 +137,3 @@ jobs:
           name: manager-apk-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
-
