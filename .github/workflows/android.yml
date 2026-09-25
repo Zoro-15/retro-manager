@@ -1,0 +1,99 @@
+name: Android CI
+
+# Verifies JVM unit tests on every PR and surfaces the real Android/NDK
+# build state. See issue #5: android-build is informational until Phase 3
+# (template-apk + app sources) lands — it must fail honestly, not fake-green.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  jvm-tests:
+    name: JVM unit tests (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Pure Kotlin/JVM path: no Android SDK required. Covers :core and the
+      # runtime JVM fallback (hasAndroidSdk == false -> java-library variant).
+      - name: Run JVM tests
+        run: ./gradlew :core:test :runtime:retropack-runtime-mgba:test --stacktrace
+
+  android-build:
+    name: Android APK/AAR build [informational until Phase 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Honest signal: app/ has only build.gradle.kts (no sources/manifest) until
+    # Phase 3, so this job is expected to fail. continue-on-error keeps PRs
+    # mergeable on jvm-tests while the log proves exactly where Phase 3 stands.
+    continue-on-error: true
+    needs: jvm-tests
+    steps:
+      - name: Checkout with submodules (canonical mGBA, MPL-2.0, untouched)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages (API 35, NDK r28b+, CMake 3.22.1)
+        run: |
+          sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "ndk;28.2.12479018" "cmake;3.22.1"
+          sdkmanager --licenses > /dev/null <<< "y"
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/28.2.12479018" >> "$GITHUB_ENV"
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Init mGBA submodule (fails fast with clear message if missing)
+        run: git submodule update --init --recursive
+
+      - name: Assemble Manager APK (expected to fail until Phase 3 app sources land)
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Upload APK artifact (if produced)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manager-apk-debug
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
