@@ -57,9 +57,9 @@ object AxmlMutator {
             val name = nameAttr?.valueAsString
                 ?: throw IllegalStateException("Found <activity> element without android:name attribute in manifest")
 
-            if (name.startsWith(".")) {
+            if (name.startsWith(".") || !name.contains('.')) {
                 throw IllegalStateException(
-                    "Violation of Invariant 1: Shorthand relative activity identifier '$name' found. " +
+                    "Violation of Invariant 1: Non-fully-qualified activity identifier '$name' found. " +
                         "Activities must be declared with fully-qualified class names (e.g. 'com.retropack.runtime.GameActivity') " +
                         "to prevent ClassNotFoundException after package rewriting."
                 )
@@ -73,14 +73,16 @@ object AxmlMutator {
 
         val attr = app.searchAttributeByName(ATTR_EXTRACT_NATIVE_LIBS)
             ?: app.searchAttributeByName("android:$ATTR_EXTRACT_NATIVE_LIBS")
+            ?: throw IllegalStateException(
+                "Violation of Invariant 2: android:extractNativeLibs is absent; " +
+                    "the platform default behaves as true, which breaks 16 KB page-size compatibility!"
+            )
 
-        if (attr != null) {
-            val isExtract = attr.valueAsBoolean
-            if (isExtract) {
-                throw IllegalStateException(
-                    "Violation of Invariant 2: android:extractNativeLibs must be false for 16 KB page-size compatibility!"
-                )
-            }
+        val isExtract = attr.valueAsBoolean
+        if (isExtract) {
+            throw IllegalStateException(
+                "Violation of Invariant 2: android:extractNativeLibs must be false for 16 KB page-size compatibility!"
+            )
         }
     }
 }

@@ -1,10 +1,10 @@
 package com.retropack.packaging
 
 import com.retropack.domain.runtime.RuntimeDescriptor
+import com.retropack.packaging.HexUtils.toHexString
 import java.io.File
 import java.io.InputStream
 import java.security.MessageDigest
-import java.util.Locale
 import java.util.zip.ZipFile
 
 /**
@@ -63,15 +63,11 @@ object ProtectedEntriesVerifier {
         while (inputStream.read(buffer).also { read = it } != -1) {
             md.update(buffer, 0, read)
         }
-        return bytesToHex(md.digest())
+        return md.digest().toHexString()
     }
 
     private fun computeSha256(bytes: ByteArray): String {
         val md = MessageDigest.getInstance("SHA-256")
-        return bytesToHex(md.digest(bytes))
-    }
-
-    private fun bytesToHex(bytes: ByteArray): String {
-        return bytes.joinToString("") { "%02x".format(it).lowercase(Locale.ROOT) }
+        return md.digest(bytes).toHexString()
     }
 }

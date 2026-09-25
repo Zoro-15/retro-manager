@@ -51,17 +51,16 @@ object ScratchAllocator {
     }
 
     /**
-     * Safely executes an atomic rename from [source] to [target], falling back to a durable
-     * byte copy with fsync if rename fails.
+     * Safely executes an atomic rename from [source] to [target], falling back
+     * to a durable byte copy with fsync if rename fails. Never pre-deletes the
+     * target: a crash between delete and rename must not lose both artifacts.
      */
     fun atomicFinalize(source: File, target: File) {
         if (!source.exists()) {
             throw IOException("Source scratch file does not exist: ${source.absolutePath}")
         }
-        if (target.exists()) {
-            target.delete()
-        }
         if (source.renameTo(target)) {
+            fsyncParentDir(target)
             return
         }
 
@@ -73,6 +72,20 @@ object ScratchAllocator {
                 output.fd.sync()
             }
         }
+        fsyncParentDir(target)
         source.delete()
+    }
+
+    /**
+     * Best-effort directory fsync so the rename itself is durable.
+     * Ignored where the filesystem/JVM forbids opening directories.
+     */
+    private fun fsyncParentDir(file: File) {
+        try {
+            val dir = file.parentFile ?: return
+            java.io.FileInputStream(dir).use { it.fd.sync() }
+        } catch (_: IOException) {
+        } catch (_: SecurityException) {
+        }
     }
 }

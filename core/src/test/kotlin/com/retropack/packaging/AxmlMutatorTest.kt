@@ -14,7 +14,8 @@ class AxmlMutatorTest {
     private fun createSampleAxml(
         packageName: String = "com.retropack.template",
         activityName: String = "com.retropack.runtime.GameActivity",
-        extractNativeLibs: Boolean = false
+        extractNativeLibs: Boolean = false,
+        includeExtractAttr: Boolean = true
     ): ByteArray {
         val block = AndroidManifestBlock()
         block.packageName = packageName
@@ -23,8 +24,10 @@ class AxmlMutatorTest {
         block.setApplicationLabel("Original Template")
 
         val app = block.getOrCreateApplicationElement()
-        val extractAttr = app.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea)
-        extractAttr.setValueAsBoolean(extractNativeLibs)
+        if (includeExtractAttr) {
+            val extractAttr = app.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea)
+            extractAttr.setValueAsBoolean(extractNativeLibs)
+        }
 
         val activity = app.createChildElement("activity")
         val nameAttr = activity.getOrCreateAndroidAttribute("name", 0x01010003)
@@ -92,6 +95,34 @@ class AxmlMutatorTest {
 
         val ex = assertThrows(IllegalStateException::class.java) {
             AxmlMutator.mutate(extractTrueAxml, identity, "Castlevania Aria of Sorrow")
+        }
+        assertTrue(ex.message!!.contains("Invariant 2"), "Must reference Invariant 2: ${ex.message}")
+    }
+
+    @Test
+    fun `mutate fails when activity name has no package qualifier`() {
+        val bareAxml = createSampleAxml(activityName = "GameActivity")
+        val identity = PackageIdentity.create(
+            gameTitle = "Kirby Nightmare",
+            romBytes = "ROM Sample Kirby".toByteArray(StandardCharsets.UTF_8)
+        )
+
+        val ex = assertThrows(IllegalStateException::class.java) {
+            AxmlMutator.mutate(bareAxml, identity, "Kirby Nightmare")
+        }
+        assertTrue(ex.message!!.contains("Invariant 1"), "Must reference Invariant 1: ${ex.message}")
+    }
+
+    @Test
+    fun `mutate fails when extractNativeLibs attribute is absent`() {
+        val noAttrAxml = createSampleAxml(includeExtractAttr = false)
+        val identity = PackageIdentity.create(
+            gameTitle = "Golden Sun",
+            romBytes = "ROM Sample Golden Sun".toByteArray(StandardCharsets.UTF_8)
+        )
+
+        val ex = assertThrows(IllegalStateException::class.java) {
+            AxmlMutator.mutate(noAttrAxml, identity, "Golden Sun")
         }
         assertTrue(ex.message!!.contains("Invariant 2"), "Must reference Invariant 2: ${ex.message}")
     }

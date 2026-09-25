@@ -1,8 +1,8 @@
 package com.retropack.packaging
 
+import com.retropack.packaging.HexUtils.toHexString
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
-import java.util.Locale
 
 /**
  * Prepares and sanitizes embedded game assets for injection into the APK container (Step 6).
@@ -50,6 +50,6 @@ object RomAssetInjector {
 
     fun computeSha256(bytes: ByteArray): String {
         val md = MessageDigest.getInstance("SHA-256")
-        return md.digest(bytes).joinToString("") { "%02x".format(it).lowercase(Locale.ROOT) }
+        return md.digest(bytes).toHexString()
     }
 }
