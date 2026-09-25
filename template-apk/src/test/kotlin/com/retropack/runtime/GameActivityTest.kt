@@ -6,17 +6,32 @@ import com.retropack.runtime.core.EmulationEngine
 import com.retropack.runtime.core.EmulationState
 import com.retropack.runtime.core.RetroKey
 import com.retropack.runtime.core.ScaleMode
+import com.retropack.runtime.host.RomStager
+import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.save.SaveManager
 import com.retropack.runtime.save.SramStorageSource
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.io.IOException
 import java.security.MessageDigest
 
+/**
+ * Full lifecycle drive (window flags, view hierarchy, gamepad dispatch) runs
+ * against the faithful no-op stubs in
+ * runtime/retropack-runtime-mgba/src/stub/java. Against the mockable real
+ * android.jar (testDebugUnitTest) framework methods return default values
+ * (e.g. KeyEvent.getSource() == 0), so the class is SKIPPED there with an
+ * explicit reason — it still COMPILES in both modes, which is the regression
+ * this rewrite fixes (the old test called the stub-only Context.setFilesDir /
+ * AssetManager.putMockAsset directly and broke
+ * :template-apk:compileDebugUnitTestKotlin: "Unresolved reference").
+ */
 class GameActivityTest {
 
     @TempDir
@@ -88,12 +103,24 @@ class GameActivityTest {
     private class TestableGameActivity(
         private val testEngine: TestEngine,
         private val testSaveSource: TestSaveSource,
-        filesDirectory: File
+        private val filesDirectory: File,
+        private val configJson: String,
+        private val romBytes: ByteArray
     ) : GameActivity() {
 
-        init {
-            setFilesDir(filesDirectory)
-        }
+        // Test seams (work in BOTH build modes — see GameActivity.storageDirectory)
+        override fun storageDirectory(): File = filesDirectory
+
+        override fun loadRuntimeConfig(): RuntimeConfig = RuntimeConfig.fromJson(configJson)
+
+        override fun stageRomIfNeeded(targetFile: File, expectedSha256: String): Boolean =
+            try {
+                java.io.ByteArrayInputStream(romBytes).use { stream ->
+                    RomStager.stageRom(stream, targetFile, expectedSha256)
+                }
+            } catch (_: IOException) {
+                false
+            }
 
         fun performCreate(savedInstanceState: Bundle?) = onCreate(savedInstanceState)
         fun performResume() = onResume()
@@ -115,9 +142,9 @@ class GameActivityTest {
 
     @BeforeEach
     fun setUp() {
+        assumeTrue(isJvmStubMode(), JVM_ONLY_REASON)
         testEngine = TestEngine()
         testSaveSource = TestSaveSource()
-        activity = TestableGameActivity(testEngine, testSaveSource, tempDir)
 
         val retropackJson = """
         {
@@ -140,8 +167,13 @@ class GameActivityTest {
         }
         """.trimIndent()
 
-        activity.assets.putMockAsset("retropack.json", retropackJson.toByteArray(Charsets.UTF_8))
-        activity.assets.putMockAsset("game.rom", sampleRomBytes)
+        activity = TestableGameActivity(
+            testEngine = testEngine,
+            testSaveSource = testSaveSource,
+            filesDirectory = tempDir,
+            configJson = retropackJson,
+            romBytes = sampleRomBytes
+        )
     }
 
     @Test
@@ -210,6 +242,18 @@ class GameActivityTest {
     }
 
     private companion object {
+        const val JVM_ONLY_REASON =
+            "Full lifecycle test requires the JVM stub framework (src/stub/java); " +
+                "Android-mode unit tests use mockable android.jar with default return values"
+
+        fun isJvmStubMode(): Boolean = try {
+            // The stub Context exposes setFilesDir; the real framework does not.
+            android.content.Context::class.java.getMethod("setFilesDir", File::class.java)
+            true
+        } catch (_: NoSuchMethodException) {
+            false
+        }
+
         fun bytesToHex(bytes: ByteArray): String {
             val sb = StringBuilder(bytes.size * 2)
             for (b in bytes) {
