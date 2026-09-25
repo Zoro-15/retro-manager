@@ -20,23 +20,26 @@
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Phase 4 (Build Engine & 15-Step Transformation Pipeline) is 100% COMPLETE**. The project is ready for **Phase 5: Modern Jetpack Compose UI Experience (`app/`)**.
-> * **Active Workstream**: Workstream B (UI & Manager Subsystem) $\rightarrow$ Modern Jetpack Compose Material 3 Stepper, Dark Cards, Floating Dock, and Real-Time Build Log Sheet.
-> * **Accomplished in Phase 4 (Build Engine & Transformation Pipeline)**:
->   1. **Part 4.1 — 16 KB Alignment Verification Engine**: [`AlignmentVerifier.kt`](core/src/main/kotlin/com/retropack/packaging/AlignmentVerifier.kt) reads central directory records and local file headers, extracting payload byte offsets and mathematically asserting `(payloadOffset % 16384 == 0)` for uncompressed native libraries (`.so`).
->   2. **Part 4.2 — Native Zipflinger Archive Reassembly**: [`ZipArchiveTransformer.kt`](core/src/main/kotlin/com/retropack/packaging/ZipArchiveTransformer.kt) consumes precompiled generic template APKs, strips stale `META-INF/` signatures/signing blocks, injects mutated AXML, ROMs, configs, and icons, and writes uncompressed `.so` libraries with 16 KB physical page alignment.
->   3. **Part 4.3 — Single-Pass Multi-Scheme Signing**: [`ApkSignerService.kt`](core/src/main/kotlin/com/retropack/packaging/ApkSignerService.kt) applies APK Signature Schemes v1 (JAR), v2 (APK Signing Block), and v3 (Key rotation support) simultaneously in a single deterministic pass using `HybridKeystore` keys.
->   4. **Part 4.4 — Programmatic Integrity Verification**: [`ApkVerificationService.kt`](core/src/main/kotlin/com/retropack/packaging/ApkVerificationService.kt) verifies signature validity across v1, v2, and v3 schemes via `com.android.apksig.ApkVerifier`.
->   5. **Part 4.5 — 15-Step Verified Transformation Pipeline Orchestrator**: [`BuildEngine.kt`](core/src/main/kotlin/com/retropack/packaging/BuildEngine.kt) orchestrates the end-to-end on-device packaging pipeline (ROM checksums $\rightarrow$ template assertion $\rightarrow$ pre-flight check $\rightarrow$ scratch allocation $\rightarrow$ signature stripping $\rightarrow$ asset injection $\rightarrow$ AXML mutation $\rightarrow$ icon injection $\rightarrow$ protected entry verification $\rightarrow$ 16 KB alignment $\rightarrow$ offset assertion $\rightarrow$ v1/v2/v3 signing $\rightarrow$ ApkVerifier assertion $\rightarrow$ atomic rename $\rightarrow$ BuildResult).
->   6. **Part 4.6 — Remote GitHub Actions CI**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) configured to run all test suites on push/PR.
-> * **Next Task**: **Phase 5: Modern Jetpack Compose UI Experience (`app/`)**.
+> * **Current Phase**: **Phase 5 (Modern Jetpack Compose UI Experience) is 100% COMPLETE**. The project is ready for **Phase 6: Hardware Testing, CI Verification & Conformance Review**.
+> * **Branch**: [`v2`](https://github.com/Zoro-15/retro-manager/tree/v2) (Pushed and tracking origin/v2 with automated CI workflow).
+> * **Accomplished in Phase 5 (Modern Jetpack Compose UI Experience)**:
+>   1. **Part 5.1 — Material 3 Dark Theme & Design System**: [`Color.kt`](app/src/main/kotlin/com/retropack/manager/ui/theme/Color.kt), [`Type.kt`](app/src/main/kotlin/com/retropack/manager/ui/theme/Type.kt), [`Shape.kt`](app/src/main/kotlin/com/retropack/manager/ui/theme/Shape.kt), [`Theme.kt`](app/src/main/kotlin/com/retropack/manager/ui/theme/Theme.kt) with deep OLED dark palette, neon accents, and edge-to-edge system bars.
+>   2. **Part 5.2 — 3-Step Vertical Stepper & Components**: [`StepHeader.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/StepHeader.kt), [`RetroCard.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/RetroCard.kt), [`ActionTile.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/ActionTile.kt), [`RomInspectionCard.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/RomInspectionCard.kt) (with header verification, chip details, and one-tap checksum copy), [`IconPreviewCard.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/IconPreviewCard.kt) (with adaptive icon layer synthesis), [`AdvancedOptionsSection.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/AdvancedOptionsSection.kt) (scaling mode, touch controls, haptics, opacity, gamepad auto-hide), and [`KeystoreDialog.kt`](app/src/main/kotlin/com/retropack/manager/ui/screens/KeystoreDialog.kt).
+>   3. **Part 5.3 — Floating Action Dock**: [`FloatingDock.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/FloatingDock.kt) with live progress bar, stage counter, and glowing CTA.
+>   4. **Part 5.4 — Live Terminal Execution Sheet**: [`TerminalView.kt`](app/src/main/kotlin/com/retropack/manager/ui/components/TerminalView.kt), [`TerminalBottomSheet.kt`](app/src/main/kotlin/com/retropack/manager/ui/screens/TerminalBottomSheet.kt) with real-time 15-step `BuildStageRecord` streaming, log file export, and direct APK installation / sharing.
+>   5. **Reactive State Machine & Tests**: [`MainViewModel.kt`](app/src/main/kotlin/com/retropack/manager/viewmodel/MainViewModel.kt), [`UiState.kt`](app/src/main/kotlin/com/retropack/manager/viewmodel/UiState.kt), [`MainViewModelTest.kt`](app/src/test/kotlin/com/retropack/manager/MainViewModelTest.kt), [`UriUtilsTest.kt`](app/src/test/kotlin/com/retropack/manager/UriUtilsTest.kt), and [`HomebrewConformanceTest.kt`](core/src/test/kotlin/com/retropack/packaging/HomebrewConformanceTest.kt).
+> * **Next Task**: **Phase 6: Hardware Testing, CI Verification Analysis & Final Conformance Review**.
+>   - Inspect and analyze the GitHub Actions CI execution logs for the pushed `v2` branch.
+>   - Verify 100% test pass rate across all 4 modules (`:core`, `:runtime:retropack-runtime-mgba`, `:template-apk`, `:app`).
+>   - Review conformance test artifacts for Game Boy (*Tobu Tobu Girl Deluxe*), Game Boy Color (*Dangan GB*), and Game Boy Advance (*Anguna: Warriors of the Demis*).
 
-### 📋 Copy-Paste Prompt for the Next Session
+### 📋 Copy-Paste Prompt for the Next Session (Phase 6)
 Copy and paste the block below into your AI coding assistant or session prompt to resume work immediately:
 
 ```text
 You are pair programming on RetroPack (an on-device ROM-to-standalone Android APK transformer).
 Repository: https://github.com/Zoro-15/retro-manager
+Branch: v2
 Read context.md, masterplan.md, and roadmap.md first.
 
 Current Status:
@@ -45,19 +48,23 @@ Current Status:
 - Phase 2 (Low-Level Runtime Bedrock & mGBA C Bridge) is COMPLETE.
 - Phase 3 (Generic Standalone Template APK, Packaging Mutators & Trust Registry) is COMPLETE.
 - Phase 4 (Build Engine & 15-Step Transformation Pipeline) is COMPLETE.
-- GitHub Actions CI workflow is configured in .github/workflows/ci.yml.
+- Phase 5 (Modern Jetpack Compose UI Experience & Manager App) is COMPLETE.
+- All code has been pushed to remote branch 'v2'.
+- GitHub Actions CI workflow is running on branch 'v2'.
 
 TOP PRIORITY MANDATE:
-DO NOT RUN VERIFICATION TESTS OR HEAVY GRADLE RUNS ON THE LOCAL LAPTOP (Host is a low-end 2011 Pentium).
-All test suites run in GitHub Actions CI when commits are pushed. We will analyze CI test logs after all phases are complete.
+DO NOT RUN HEAVY GRADLE RUNS ON THE LOCAL LAPTOP (Host is a low-end 2011 Pentium).
+Inspect GitHub Actions CI build logs and reports remotely via git/gh/workflow or web API.
 
 Your Task:
-Proceed with Phase 5 (Modern Jetpack Compose UI Experience):
-Implement the manager application UI in app/ adapted from AkuaTech/ksupatcher:
-- Part 5.1: Material 3 dark theme with custom palette, typography, glassmorphism, and responsive edge-to-edge layout.
-- Part 5.2: 3-Step Vertical Stepper (Step 1: Select ROM file with header auto-detection; Step 2: Configure Package Identity & Runtime Settings; Step 3: Select Signing Key & Output Path).
-- Part 5.3: Floating Action Dock with live Build Button and progress states.
-- Part 5.4: Real-time Live Terminal Log Sheet (ModalBottomSheet / Surface) receiving streaming BuildStageRecord callbacks from BuildEngine during APK packaging.
+Proceed with Phase 6 (Hardware Testing, CI Verification Analysis & Conformance Review):
+1. Review the GitHub Actions CI workflow execution for branch 'v2' across all 4 modules (:core, :runtime:retropack-runtime-mgba, :template-apk, :app).
+2. Validate conformance coverage for the 3 canonical public-domain homebrew ROM fixtures:
+   - Game Boy: Tobu Tobu Girl Deluxe (.gb)
+   - Game Boy Color: Dangan GB (.gbc)
+   - Game Boy Advance: Anguna: Warriors of the Demis (.gba)
+3. Verify all 22 Constitutional Invariants (16 KB page alignment, uncompressed .so, fully qualified GameActivity, single-pass v1/v2/v3 signatures, POSIX fsync save durability, Hybrid Keystore key protection).
+4. Summarize the end-to-end repository architecture and compile the final project conformance report.
 ```
 
 
