@@ -39,7 +39,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -52,7 +52,9 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run core unit tests
-        run: ./gradlew :core:test --stacktrace
+        # Sanitized like runtime-tests so module configuration resolves
+        # identically on runners with a preinstalled Android SDK.
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test --no-daemon --stacktrace
 
       - name: Upload JUnit XML results (core)
         if: always()
@@ -83,7 +85,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 17 (Temurin)
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -95,11 +97,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Pure Kotlin/JVM path: no Android SDK required (runtime module falls
-      # back to the java-library + src/stub/java variant when ANDROID_HOME
-      # is absent).
-      - name: Run runtime unit tests
-        run: ./gradlew :runtime:retropack-runtime-mgba:test --stacktrace
+      # Pure Kotlin/JVM path: the unit tests are authored against the
+      # src/stub/java doubles (MotionEvent.createTouch/createJoystick etc.),
+      # which only compile in the hasAndroidSdk==false java-library variant.
+      # Hosted runners preinstall an Android SDK, which would flip the module
+      # to the android-library variant (real android.jar: abstract MotionEvent,
+      # no stub helpers) and fail compilation. Unset the SDK markers so CI
+      # exercises the same JVM variant as local runs; Android-variant
+      # compilation stays covered by the Android CI workflow's assembleDebug.
+      # --no-daemon pins the sanitized environment (no reused SDK daemon).
+      - name: Run runtime unit tests (JVM stub variant)
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 
       - name: Upload JUnit XML results (runtime)
         if: always()

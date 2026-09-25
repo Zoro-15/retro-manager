@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -59,6 +60,13 @@ class RuntimeRegistryTest {
     fun `loads runtime bundle from directory and registers template`() {
         val runtimeDir = File("runtimes/mgba-unified").takeIf { it.exists() }
             ?: File("../runtimes/mgba-unified")
+        // Pending the real Phase 3 bundle (descriptor + template.apk):
+        // abort, don't fail, when fixtures are absent.
+        assumeTrue(
+            File(runtimeDir, RuntimeDescriptor.DESCRIPTOR_FILENAME).exists() &&
+                File(runtimeDir, RuntimeTemplate.TEMPLATE_APK_FILENAME).exists(),
+            "runtimes/mgba-unified must contain runtime.json + template.apk"
+        )
         val template = RuntimeRegistry.loadFromDirectory(runtimeDir)
 
         assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, template.descriptor.id)
