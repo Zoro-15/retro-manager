@@ -5,3 +5,16 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "2.1.0" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.0" apply false
 }
+
+subprojects {
+    tasks.withType<Test>().configureEach {
+        testLogging {
+            events("passed", "skipped", "failed")
+            showStandardStreams = false
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
+    }
+}
+

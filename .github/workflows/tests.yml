@@ -12,9 +12,9 @@ name: Tests
 #   is visible without flaky micro-benchmarks.
 on:
   push:
-    branches: [main]
+    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
   pull_request:
-    branches: [main]
+    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
   workflow_dispatch:
 
 permissions:
@@ -98,14 +98,7 @@ jobs:
         run: chmod +x gradlew
 
       # Pure Kotlin/JVM path: the unit tests are authored against the
-      # src/stub/java doubles (MotionEvent.createTouch/createJoystick etc.),
-      # which only compile in the hasAndroidSdk==false java-library variant.
-      # Hosted runners preinstall an Android SDK, which would flip the module
-      # to the android-library variant (real android.jar: abstract MotionEvent,
-      # no stub helpers) and fail compilation. Unset the SDK markers so CI
-      # exercises the same JVM variant as local runs; Android-variant
-      # compilation stays covered by the Android CI workflow's assembleDebug.
-      # --no-daemon pins the sanitized environment (no reused SDK daemon).
+      # src/stub/java doubles, which only compile in the hasAndroidSdk==false java-library variant.
       - name: Run runtime unit tests (JVM stub variant)
         run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 

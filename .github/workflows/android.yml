@@ -1,13 +1,10 @@
 name: Android CI
 
-# Verifies JVM unit tests on every PR and surfaces the real Android/NDK
-# build state. See issue #5: android-build is informational until Phase 3
-# (template-apk + app sources) lands — it must fail honestly, not fake-green.
 on:
   push:
-    branches: [main]
+    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
   pull_request:
-    branches: [main]
+    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
   workflow_dispatch:
 
 permissions:
@@ -39,21 +36,14 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Pure Kotlin/JVM path: the runtime unit tests are authored against the
-      # src/stub/java doubles, which only compile in the hasAndroidSdk==false
-      # java-library variant. Hosted runners preinstall an Android SDK (real
-      # android.jar: abstract MotionEvent, no stub helpers), so unset the SDK
-      # markers here; the Android-variant build stays covered by android-build.
+      # Pure Kotlin/JVM path: test stubs without Android SDK markers
       - name: Run JVM tests
         run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 
   android-build:
-    name: Android APK/AAR build [informational until Phase 3]
+    name: Android APK/AAR Build
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    # Green gate: the runtime AAR (CMake + mGBA NDK compile) must build.
-    # The Manager APK step below stays tolerated-failure until app sources
-    # land (app/ has only build.gradle.kts) via step-level continue-on-error.
     needs: jvm-tests
     steps:
       - name: Checkout with submodules (canonical mGBA, MPL-2.0, untouched)
@@ -73,10 +63,6 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Set up Android SDK
-        # NOTE: setup-android's default `packages: tools platform-tools`
-        # installs the long-removed `tools` package and fails the whole job
-        # on current cmdline-tools ("Failed to find package 'tools'").
-        # Override to platform-tools only; API 35/NDK/CMake come next step.
         uses: android-actions/setup-android@v3
         with:
           packages: platform-tools
@@ -84,9 +70,6 @@ jobs:
       - name: Install SDK packages (API 35, NDK r28+, CMake 3.22.1)
         run: |
           sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "cmake;3.22.1"
-          # NDK r28+ is mandatory for the 16 KB page-size flags; resolve the
-          # newest 28.x revision from the channel instead of a hardcoded build
-          # number (exact revisions rotate out of the repository).
           NDK_PKG="$(sdkmanager --list 2>/dev/null | grep -oE 'ndk;28\.[0-9.]+' | sort -uV | tail -n 1)"
           if [ -z "$NDK_PKG" ]; then
             echo "::error::No NDK r28.x revision found in the SDK channel"
@@ -103,13 +86,13 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Init mGBA submodule (fails fast with clear message if missing)
+      - name: Init mGBA submodule
         run: git submodule update --init --recursive
 
       - name: Assemble runtime AAR (NDK/CMake/mGBA compile gate)
         run: ./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace
 
-      - name: Upload runtime AAR artifact (if produced)
+      - name: Upload runtime AAR artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -117,17 +100,25 @@ jobs:
           path: runtime/retropack-runtime-mgba/build/outputs/aar/*.aar
           if-no-files-found: warn
 
-      - name: Assemble Manager APK (tolerated until app sources land)
-        # app/ has only build.gradle.kts (no sources/manifest) until the
-        # Manager UI phase: step-level continue-on-error keeps the job green
-        # while the log proves exactly where that phase stands.
-        continue-on-error: true
+      - name: Assemble Template APK
+        run: ./gradlew :template-apk:assembleDebug --stacktrace
+
+      - name: Upload Template APK artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: template-apk-debug
+          path: template-apk/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+
+      - name: Assemble Manager APK
         run: ./gradlew :app:assembleDebug --stacktrace
 
-      - name: Upload APK artifact (if produced)
+      - name: Upload Manager APK artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: manager-apk-debug
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
+
