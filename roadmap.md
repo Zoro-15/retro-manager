@@ -87,7 +87,7 @@ To enable seamless, frictionless collaboration between two developers (You and y
 
 ---
 
-## 3. Phase 1: Domain Core & ROM Engine
+## 3. Phase 1: Domain Core & ROM Engine [STATUS: COMPLETE]
 
 * **Primary Objective**: Implement zero-heap streaming checksum calculation, binary ROM header parsing, and IPS/UPS patch application.
 * **Detailed Specifications**:
@@ -107,7 +107,7 @@ To enable seamless, frictionless collaboration between two developers (You and y
   4. Implement `IpsUpsPatcher.kt`: In-stream binary patch applicator.
   5. Assemble immutable domain model `RomIdentity` and serializable `BuildRequest`.
 * **Deliverables**: Pure Kotlin domain module passing unit test fixtures against known GB, GBC, and GBA ROM test files.
-* **Acceptance Gate**: 100% test pass rate across test ROM suite; zero heap allocation spikes during multi-megabyte stream hashing.
+* **Acceptance Gate**: 100% test pass rate across test ROM suite (27/27 tests passed); zero heap allocation spikes during multi-megabyte stream hashing.
 
 ---
 

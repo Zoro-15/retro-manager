@@ -10,7 +10,7 @@ java {
 
 dependencies {
     // Packaging & Transformation Stack
-    api("com.github.REAndroid:ARSCLib:1.3.1")
+    api("io.github.reandroid:ARSCLib:1.3.1")
     api("com.android:zipflinger:8.2.0")
     api("com.android.tools.build:apksig:8.2.0")
 

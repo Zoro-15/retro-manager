@@ -10,34 +10,38 @@
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Phase 0 is COMPLETE**. The project is ready for **Phase 1: Domain Core & ROM Engine**.
-> * **Active Workstream**: Workstream A (Domain Models, Stream Checksums, and Binary Header Parsers).
-> * **Last Completed Work**:
->   1. Cloned upstream reference repositories into `staging/ksupatcher/`, `staging/retra/`, and `staging/garnacha-boy/`.
->   2. Initialized multi-module Gradle project (`:core` and `:app`) with `ARSCLib`, `zipflinger`, `apksig`, and BouncyCastle.
->   3. Implemented and tested the `HybridKeystore` (RSA-2048 / EC P-256 with AES-GCM encryption at rest, `.p12` export).
->   4. Defined foundational `BuildRequest` and `BuildResult` domain contracts.
+> * **Current Phase**: **Phase 1 is COMPLETE**. The project is ready for **Phase 2: Low-Level Runtime Bedrock (`retropack-runtime-mgba.aar`)**.
+> * **Active Workstream**: Workstream B (Runtime Host & UI Experience) or Workstream A (Packaging Engine prep).
+> * **Last Completed Work (Phase 1)**:
+>   1. Implemented `StreamChecksum.kt` in `core/src/main/kotlin/com/retropack/domain/rom/`: Zero-heap chunked streaming calculation of CRC32, MD5, SHA-1, and SHA-256.
+>   2. Implemented `GbRomParser.kt`: GB/GBC Nintendo logo validation, title extraction, CGB flag (`0x80`/`0xC0`), cartridge MBC type and battery detection, and 8-bit header checksum validation.
+>   3. Implemented `GbaRomParser.kt`: GBA title, game code, maker code, fixed value (`0x96`) verification, and 8-bit header checksum validation.
+>   4. Implemented `IpsUpsPatcher.kt`: In-stream binary patch applicator supporting IPS, UPS, and BPS patches with checksum verification.
+>   5. Implemented `RomIdentity.kt` & `RomParser.kt`: Unified ROM detection facade with deterministic package name derivation (`com.retropack.game.<slug>_<hash10>`).
+>   6. Added full test suite (`StreamChecksumTest`, `GbRomParserTest`, `GbaRomParserTest`, `IpsUpsPatcherTest`, `RomParserTest`) with 100% pass rate (27/27 tests passing).
 
 ### 📋 Copy-Paste Prompt for the Next Session
 Copy and paste the block below into your AI coding assistant or session prompt to resume work immediately:
 
 ```text
 You are pair programming on RetroPack (an on-device ROM-to-standalone Android APK transformer).
-Read context.md and roadmap.md first.
+Read context.md, masterplan.md, and roadmap.md first.
 
 Current Status:
-- Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE:
-  - Reference repos are staged in staging/ksupatcher, staging/retra, and staging/garnacha-boy.
-  - Gradle multi-module project (core and app) is initialized with ARSCLib, zipflinger, apksig, and BouncyCastle.
-  - HybridKeystore (RSA-2048/EC P-256 with AES-GCM encryption at rest and .p12 export) is implemented and tested in core/src/main/kotlin/com/retropack/security/.
-  - Domain contracts (BuildRequest, BuildResult) are in core/src/main/kotlin/com/retropack/domain/model/.
+- Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE.
+- Phase 1 (Domain Core & ROM Engine) is COMPLETE:
+  - StreamChecksum.kt (zero-heap chunked CRC32, MD5, SHA-1, SHA-256 calculator) in core/src/main/kotlin/com/retropack/domain/rom/.
+  - GbRomParser.kt and GbaRomParser.kt (GB/GBC/GBA header parsing and checksum validation).
+  - IpsUpsPatcher.kt (streaming IPS/UPS/BPS patch applicator).
+  - RomIdentity.kt and RomParser.kt (unified ROM detection and package name derivation).
+  - 100% test pass rate (27/27 tests passing across core module).
 
 Your Task:
-Proceed with Phase 1 from roadmap.md:
-1. Implement StreamChecksum.kt in core/src/main/kotlin/com/retropack/domain/rom/ (zero-heap chunked CRC32, MD5, SHA-1, SHA-256 calculator).
-2. Implement GbRomParser.kt (GB/GBC Nintendo logo, title, CGB flag, MBC, 8-bit checksum validation) and GbaRomParser.kt (GBA title, game code, maker code, checksum validation) by adapting low-level parsers from staging/retra/ (see masterplan.md lines 97–109).
-3. Implement IpsUpsPatcher.kt (streaming binary patch applicator).
-4. Add unit test fixtures validating parsing and hashing against known GB/GBA headers.
+Proceed with Phase 2 from roadmap.md:
+1. Vendor canonical mGBA (v0.10.5+) as a Git submodule under runtime/retropack-runtime-mgba/submodules/mgba/.
+2. Configure CMakeLists.txt with mandatory 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) targeting NDK r28b+.
+3. Implement JNI bridge mgba-jni.c and Kotlin NativeCore.kt interface supporting frame stepping, input keymasks, audio buffers, and SRAM read/write.
+4. Implement SaveManager.kt enforcing POSIX fsync durability contract (tmp -> fsync -> rename).
 ```
 
 ---
