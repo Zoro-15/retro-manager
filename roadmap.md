@@ -185,7 +185,7 @@ To enable seamless, frictionless collaboration between two developers (You and y
 
 ---
 
-## 6. Phase 4: Build Engine & Transformation Pipeline
+## 6. Phase 4: Build Engine & Transformation Pipeline [STATUS: COMPLETE]
 
 * **Primary Objective**: Implement the 15-step verified on-device APK transformation pipeline.
 * **Detailed Specifications**:
@@ -209,28 +209,42 @@ To enable seamless, frictionless collaboration between two developers (You and y
      * **Step 13**: Execute programmatic `ApkVerifier.verify()` assertion.
      * **Step 14**: Atomic rename `.tmp.apk` $\rightarrow$ final destination file.
      * **Step 15**: Return verified `BuildResult` record.
-* **Deliverables**: Fully functioning, pure-Java/Kotlin `BuildEngine` operational on Android.
+* **Deliverables**: Fully functioning, pure-Java/Kotlin `BuildEngine` operational on Android with remote GitHub Actions CI workflow ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 * **Acceptance Gate**: Automated pipeline produces installable APK from raw ROM input in $< 800\text{ ms}$; `ApkVerifier` confirms signature validity across v1, v2, and v3 schemes.
 
 ---
 
-## 7. Phase 5: Modern Jetpack Compose UI Experience
+## 7. Phase 5: Modern Jetpack Compose UI Experience [STATUS: COMPLETE]
 
 * **Primary Objective**: Build the user-facing Manager interface adapted from `AkuaTech/ksupatcher`.
 * **Detailed Specifications**:
   * UI layer breakdown: [`masterplan.md#L89-L96`](file:///c:/Users/ok/Documents/retro%20manager/masterplan.md#L89-L96).
   * Stepper & dark card mechanics: [`masterplan.md#L58-L60`](file:///c:/Users/ok/Documents/retro%20manager/masterplan.md#L58-L60).
   * Package collision & updates: [`masterplan.md#L115-L118`](file:///c:/Users/ok/Documents/retro%20manager/masterplan.md#L115-L118).
-* **Detailed Tasks**:
-  1. Implement Material 3 Dark theme tokens, typography, and card components (`DarkCard.kt`).
-  2. Implement vertical 3-step stepper (`StepperLayout.kt`):
-     * Step 01: Core & Variant card (mGBA Unified).
-     * Step 02: Content & ROM card with SAF file picker, hash badge, and patch slot.
-     * Step 03: Application Identity card with deterministic package derived, custom icon picker, and touch layout dropdown.
-  3. Implement `FloatingDock.kt` pill action bar with "START PACKAGING" primary CTA.
-  4. Implement `TerminalBottomSheet.kt`: Live execution log sheet displaying real-time 15-step progress provenance.
-  5. Implement `PackageCollisionTracker.kt` and Room database `GameEntity` for tracking installed games and managing in-place updates.
-* **Deliverables**: Polished, reactive Android application interface.
+* **Subphase Breakdown & Implementation Status**:
+  * ✅ **Part 5.1 — Material 3 Dark Theme & Design System [COMPLETED]**:
+    - Deep OLED dark color palette with retro gaming cyber accents: [`Color.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/theme/Color.kt).
+    - Monospace and bold modern typography hierarchy: [`Type.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/theme/Type.kt).
+    - Polished rounded corner shape tokens: [`Shape.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/theme/Shape.kt).
+    - Edge-to-edge system bar controller and dynamic theming: [`Theme.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/theme/Theme.kt).
+  * ✅ **Part 5.2 — 3-Step Vertical Stepper & Components [COMPLETED]**:
+    - Glassmorphic elevated container cards with spring press physics: [`RetroCard.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/RetroCard.kt).
+    - Numbered step pill badges and vertical connector lines: [`StepHeader.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/StepHeader.kt).
+    - Selection and file picker tiles: [`ActionTile.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/ActionTile.kt).
+    - Verified ROM header inspection card with platform badges and one-tap checksum copy: [`RomInspectionCard.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/RomInspectionCard.kt).
+    - Adaptive icon layer preview and boxart picker: [`IconPreviewCard.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/IconPreviewCard.kt).
+    - Collapsible emulator runtime & controls options (scaling, touch, opacity, haptics, gamepad auto-hide): [`AdvancedOptionsSection.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/AdvancedOptionsSection.kt).
+    - Hybrid Keystore management modal dialog: [`KeystoreDialog.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/screens/KeystoreDialog.kt).
+    - Central orchestration screen: [`MainScreen.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/screens/MainScreen.kt).
+  * ✅ **Part 5.3 — Floating Action Dock & Progress States [COMPLETED]**:
+    - Anchored glassmorphic bottom pill dock with pulse animation: [`FloatingDock.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/FloatingDock.kt).
+    - State-aware validation and stage counter display during packaging.
+  * ✅ **Part 5.4 — Live Terminal Execution Sheet & Streaming Callback [COMPLETED]**:
+    - Monospace terminal console view with syntax coloring: [`TerminalView.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/components/TerminalView.kt).
+    - Real-time 15-step execution modal bottom sheet with provenance badges, log file export, and direct APK installation / sharing triggers: [`TerminalBottomSheet.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/ui/screens/TerminalBottomSheet.kt).
+    - Central reactive state holder connecting SAF file pickers, ROM inspection, and background coroutine build streaming: [`MainViewModel.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/viewmodel/MainViewModel.kt) and [`UiState.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/main/kotlin/com/retropack/manager/viewmodel/UiState.kt).
+    - Full Unit Test Suite: [`MainViewModelTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/test/kotlin/com/retropack/manager/MainViewModelTest.kt), [`UriUtilsTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/app/src/test/kotlin/com/retropack/manager/UriUtilsTest.kt).
+* **Deliverables**: Complete, responsive Jetpack Compose Material 3 Manager Application in `:app`.
 * **Acceptance Gate**: User can select a ROM via SAF, configure app identity, observe real-time build logs, and install the resulting APK in $< 3$ taps.
 
 ---

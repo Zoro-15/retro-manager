@@ -6,21 +6,30 @@
 
 ---
 
+## 🚨 CRITICAL OPERATIONAL MANDATE (TOP PRIORITY)
+
+> [!CAUTION]
+> **DO NOT RUN VERIFICATION TESTS OR HEAVY GRADLE TEST SUITES ON THE LOCAL HOST MACHINE.**
+> * **Hardware Context**: The user's development laptop is a low-end legacy Pentium machine from 2011. Running heavy local test suites causes extreme latency.
+> * **Remote CI Strategy**: All automated tests and verification pipelines run on **GitHub Actions CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) automatically upon pushing any commit or pull request.
+> * **Phase Completion Strategy**: Proceed directly through the implementation phases without stopping to run local verification tests. Once all phases (Phases 0 through 6) are complete, we will centrally inspect and analyze the CI execution logs and test reports.
+
+---
+
 ## 🤝 Active Handover Station (Current Baton)
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Phase 3 (AxmlMutator) is 100% COMPLETE**. The project is ready for **Phase 4: Build Engine & Transformation Pipeline**.
-> * **Active Workstream**: Workstream B (Runtime Host Subsystem) $\rightarrow$ Transitioning to Build Engine implementation.
-> * **Accomplished in Phase 3 (AxmlMutator implementation)**:
->   1. **Part 2.1 — Skeleton & NativeCore Contracts**: [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt), [`RetroKey.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt), [`EmulationState.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationState.kt), [`ScaleMode.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/ScaleMode.kt), [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt).
->   2. **Part 2.2 — Save Durability & POSIX fsync**: [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt) with dirty-gated flush, backup rotation (`.bak`), and atomic `renameTo` replacement.
->   3. **Part 2.3 — 16 KB CMake & mGBA C Bridge**: Untouched canonical mGBA v0.10.5 submodule, 16 KB page-size linker flags (`-Wl,-z,max-page-size=16384`), audio ring buffer ([`ringbuffer.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/ringbuffer.c)), and JNI bridge ([`mgba-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/mgba-jni.c)).
->   4. **Part 2.4 — Video & Audio Subsystems**: OpenGL ES 2.0/3.0 SurfaceView renderer with bilinear aspect-fit & integer-fit ([`RetroGlRenderer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt), [`RetroGlShader.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlShader.kt)), 44.1 kHz stereo audio player with dynamic drift compensation ([`RetroAudioPlayer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/RetroAudioPlayer.kt), [`AudioDriftController.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/AudioDriftController.kt)).
->   5. **Part 2.5 — Virtual Touch & HID Gamepad Mapper**: Responsive touch geometry & multi-touch overlay view with haptic feedback ([`TouchLayout.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt), [`TouchOverlayView.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchOverlayView.kt)), Bluetooth/USB HID gamepad mapper ([`GamepadMapper.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/GamepadMapper.kt)), and unified input coordinator with auto-hiding virtual controls ([`InputCoordinator.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/InputCoordinator.kt)).
->   6. **Part 2.6 — Runtime Host Bedrock Integration**: Atomic first-boot ROM stager ([`RomStager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/RomStager.kt)), 60 FPS emulation loop thread ([`EmulationLoop.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationLoop.kt)), and central bedrock coordinator ([`EmulationHost.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationHost.kt)) guaranteeing synchronous SRAM flush on pause/stop.
-> * **Test Status**: **100% passing repository-wide** across `:core` and `:runtime:retropack-runtime-mgba`.
-> * **Next Task**: **Phase 3: Generic Standalone Template APK (`template-mgba.apk`)**.
+> * **Current Phase**: **Phase 4 (Build Engine & 15-Step Transformation Pipeline) is 100% COMPLETE**. The project is ready for **Phase 5: Modern Jetpack Compose UI Experience (`app/`)**.
+> * **Active Workstream**: Workstream B (UI & Manager Subsystem) $\rightarrow$ Modern Jetpack Compose Material 3 Stepper, Dark Cards, Floating Dock, and Real-Time Build Log Sheet.
+> * **Accomplished in Phase 4 (Build Engine & Transformation Pipeline)**:
+>   1. **Part 4.1 — 16 KB Alignment Verification Engine**: [`AlignmentVerifier.kt`](core/src/main/kotlin/com/retropack/packaging/AlignmentVerifier.kt) reads central directory records and local file headers, extracting payload byte offsets and mathematically asserting `(payloadOffset % 16384 == 0)` for uncompressed native libraries (`.so`).
+>   2. **Part 4.2 — Native Zipflinger Archive Reassembly**: [`ZipArchiveTransformer.kt`](core/src/main/kotlin/com/retropack/packaging/ZipArchiveTransformer.kt) consumes precompiled generic template APKs, strips stale `META-INF/` signatures/signing blocks, injects mutated AXML, ROMs, configs, and icons, and writes uncompressed `.so` libraries with 16 KB physical page alignment.
+>   3. **Part 4.3 — Single-Pass Multi-Scheme Signing**: [`ApkSignerService.kt`](core/src/main/kotlin/com/retropack/packaging/ApkSignerService.kt) applies APK Signature Schemes v1 (JAR), v2 (APK Signing Block), and v3 (Key rotation support) simultaneously in a single deterministic pass using `HybridKeystore` keys.
+>   4. **Part 4.4 — Programmatic Integrity Verification**: [`ApkVerificationService.kt`](core/src/main/kotlin/com/retropack/packaging/ApkVerificationService.kt) verifies signature validity across v1, v2, and v3 schemes via `com.android.apksig.ApkVerifier`.
+>   5. **Part 4.5 — 15-Step Verified Transformation Pipeline Orchestrator**: [`BuildEngine.kt`](core/src/main/kotlin/com/retropack/packaging/BuildEngine.kt) orchestrates the end-to-end on-device packaging pipeline (ROM checksums $\rightarrow$ template assertion $\rightarrow$ pre-flight check $\rightarrow$ scratch allocation $\rightarrow$ signature stripping $\rightarrow$ asset injection $\rightarrow$ AXML mutation $\rightarrow$ icon injection $\rightarrow$ protected entry verification $\rightarrow$ 16 KB alignment $\rightarrow$ offset assertion $\rightarrow$ v1/v2/v3 signing $\rightarrow$ ApkVerifier assertion $\rightarrow$ atomic rename $\rightarrow$ BuildResult).
+>   6. **Part 4.6 — Remote GitHub Actions CI**: [`.github/workflows/ci.yml`](.github/workflows/ci.yml) configured to run all test suites on push/PR.
+> * **Next Task**: **Phase 5: Modern Jetpack Compose UI Experience (`app/`)**.
 
 ### 📋 Copy-Paste Prompt for the Next Session
 Copy and paste the block below into your AI coding assistant or session prompt to resume work immediately:
@@ -33,30 +42,24 @@ Read context.md, masterplan.md, and roadmap.md first.
 Current Status:
 - Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE.
 - Phase 1 (Domain Core & ROM Engine) is COMPLETE.
-- Phase 2 (Low-Level Runtime Bedrock & mGBA C Bridge, Parts 2.1 - 2.6) is COMPLETE.
-- All unit tests passing repository-wide (:core and :runtime:retropack-runtime-mgba).
+- Phase 2 (Low-Level Runtime Bedrock & mGBA C Bridge) is COMPLETE.
+- Phase 3 (Generic Standalone Template APK, Packaging Mutators & Trust Registry) is COMPLETE.
+- Phase 4 (Build Engine & 15-Step Transformation Pipeline) is COMPLETE.
+- GitHub Actions CI workflow is configured in .github/workflows/ci.yml.
 
-Key Operating Invariants:
-1. APK & NDK compilation is handled via CI/CD (GitHub Actions), NOT locally on the host machine. Local workflow is pure Kotlin/JVM test-driven.
-2. Maximize reuse: adapt battle-tested code directly from staging/ (ksupatcher, retra, garnacha-boy) rather than writing code from scratch.
-3. Constitutional Law 7 & Invariant 5: Zero-loss battery save durability with atomic POSIX fsync file swapping.
-4. Android 15/16 16 KB Page Alignment: 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) and extractNativeLibs="false".
+TOP PRIORITY MANDATE:
+DO NOT RUN VERIFICATION TESTS OR HEAVY GRADLE RUNS ON THE LOCAL LAPTOP (Host is a low-end 2011 Pentium).
+All test suites run in GitHub Actions CI when commits are pushed. We will analyze CI test logs after all phases are complete.
 
 Your Task:
-Proceed with Phase 3 (Generic Standalone Template APK: template-mgba.apk):
-1. Build the minimal Android application skeleton template-apk/ embedding retropack-runtime-mgba.aar.
-2. Configure AndroidManifest.xml:
-   - Explicitly declare <activity android:name="com.retropack.runtime.GameActivity" ... /> (fully-qualified class name to prevent ClassNotFoundException during package rewriting).
-   - Explicitly declare <application android:extractNativeLibs="false" ... />.
-   - Declare android:theme="@android:style/Theme.NoTitleBar.Fullscreen".
-3. Set up adaptive icon drawables in res/mipmap-anydpi-v26/ic_launcher.xml and default PNGs in res/drawable-nodpi/ (to permit pure-file replacement without touching resources.arsc).
-4. Implement GameActivity.kt:
-   - Reads assets/retropack.json (schema_version: 1).
-   - Atomic ROM staging via RomStager: checks filesDir/game.rom; streams assets/game.rom -> filesDir/game.rom.tmp; verifies SHA-256; renames atomically.
-   - Wires TouchOverlayView, GamepadMapper, RetroSurfaceView, RetroAudioPlayer, and SaveManager into EmulationHost.
-   - Enforces synchronous SaveManager.flushNow() on onPause() and onStop().
-5. Wire template build artifact into RuntimeRegistry.kt with SHA-256 verification fingerprints.
+Proceed with Phase 5 (Modern Jetpack Compose UI Experience):
+Implement the manager application UI in app/ adapted from AkuaTech/ksupatcher:
+- Part 5.1: Material 3 dark theme with custom palette, typography, glassmorphism, and responsive edge-to-edge layout.
+- Part 5.2: 3-Step Vertical Stepper (Step 1: Select ROM file with header auto-detection; Step 2: Configure Package Identity & Runtime Settings; Step 3: Select Signing Key & Output Path).
+- Part 5.3: Floating Action Dock with live Build Button and progress states.
+- Part 5.4: Real-time Live Terminal Log Sheet (ModalBottomSheet / Surface) receiving streaming BuildStageRecord callbacks from BuildEngine during APK packaging.
 ```
+
 
 ---
 
@@ -108,9 +111,12 @@ retro manager/
 ├── core/                       # Shared Domain & Transformation Engine
 │   └── src/main/kotlin/com/retropack/
 │       ├── domain/model/       # BuildRequest, BuildResult contracts
-│       ├── security/           # HybridKeystore (AES-GCM at rest, RSA/EC, .p12 export)
-│       └── ...
+│       ├── domain/runtime/     # RuntimeRegistry, RuntimeTemplate, RuntimeDescriptor
+│       ├── packaging/          # AxmlMutator, IconInjector, RomAssetInjector, etc.
+│       └── security/           # HybridKeystore (AES-GCM at rest, RSA/EC, .p12 export)
 ├── runtime/                    # Standalone Game Runtime Host & NDK Bridge (mGBA 0.10.x)
+├── runtimes/                   # Pinned Runtime Bundles & Verified Templates (template.apk)
+├── template-apk/               # Generic Standalone Template APK Skeleton (GameActivity)
 ├── staging/                    # Pristine reference clones (ksupatcher, retra, garnacha-boy)
 ├── context.md                  # Vision, philosophies & objectives
 ├── roadmap.md                  # Phased roadmap & collaborative workstreams
@@ -131,13 +137,16 @@ retro manager/
 * Git
 
 ### Building & Testing Core
+> [!NOTE]
+> **Host System Note**: The user's system is a low-end Pentium from 2011, so verification tests and Gradle runs take more time (~3+ minutes).
+
 ```bash
 # Clone the repository
 git clone https://github.com/Zoro-15/retro-manager.git
 cd retro-manager
 
-# Run core unit tests (including HybridKeystore encryption & export tests)
-./gradlew :core:test
+# Run all unit tests (pure JVM suite across core, runtime, and template-apk)
+./gradlew :core:test :runtime:retropack-runtime-mgba:test :template-apk:test
 
 # Build the Manager application
 ./gradlew :app:assembleDebug
