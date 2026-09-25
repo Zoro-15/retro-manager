@@ -204,4 +204,24 @@ class SaveManager(
         }
         return dirty.get()
     }
+
+    /**
+     * Immediately flushes SRAM to disk, bypassing dirty gating.
+     */
+    fun flushNow(): Boolean = flush(force = true)
+
+    /**
+     * Restores saved cartridge state from disk into active emulator memory.
+     */
+    fun restoreToSram(): Boolean = restore()
+
+    /**
+     * Periodically flushes modified SRAM to disk if dirty or data has drifted.
+     */
+    fun periodicFlush(currentTimeMs: Long = System.currentTimeMillis()): Boolean {
+        if (checkAndMarkDirty()) {
+            return flush(force = false)
+        }
+        return false
+    }
 }

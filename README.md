@@ -10,13 +10,17 @@
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Part 2.2 is COMPLETE**. The project is ready for **Part 2.3: 16 KB CMake & mGBA C Bridge**.
-> * **Active Workstream**: Workstream B (Runtime Host Subsystem).
-> * **Last Completed Work (Part 2.2 — Save Durability & POSIX fsync)**:
->   1. Implemented [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt): Enforces atomic POSIX fsync replacement sequence: `write tmp` $\rightarrow$ `stream.flush()` $\rightarrow$ `stream.fd.sync()` $\rightarrow$ `tmp.renameTo(game.sav)`.
->   2. Implemented dirty-gated flush logic comparing SRAM buffer hashes to eliminate redundant NAND flash writes.
->   3. Implemented automatic backup rotation (`game.sav.bak`) and corrupt temporary file pruning on restore.
->   4. Added unit test suite [`SaveManagerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/save/SaveManagerTest.kt) with 7/7 tests passing (53/53 tests passing repository-wide).
+> * **Current Phase**: **Phase 2 is 100% COMPLETE**. The project is ready for **Phase 3: Generic Standalone Template APK (`template-mgba.apk`)**.
+> * **Active Workstream**: Workstream B (Runtime Host Subsystem) $\rightarrow$ Transitioning to Standalone Template APK.
+> * **Accomplished in Phase 2 (Runtime Bedrock `retropack-runtime-mgba.aar`)**:
+>   1. **Part 2.1 — Skeleton & NativeCore Contracts**: [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt), [`RetroKey.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt), [`EmulationState.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationState.kt), [`ScaleMode.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/ScaleMode.kt), [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt).
+>   2. **Part 2.2 — Save Durability & POSIX fsync**: [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt) with dirty-gated flush, backup rotation (`.bak`), and atomic `renameTo` replacement.
+>   3. **Part 2.3 — 16 KB CMake & mGBA C Bridge**: Untouched canonical mGBA v0.10.5 submodule, 16 KB page-size linker flags (`-Wl,-z,max-page-size=16384`), audio ring buffer ([`ringbuffer.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/ringbuffer.c)), and JNI bridge ([`mgba-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/mgba-jni.c)).
+>   4. **Part 2.4 — Video & Audio Subsystems**: OpenGL ES 2.0/3.0 SurfaceView renderer with bilinear aspect-fit & integer-fit ([`RetroGlRenderer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt), [`RetroGlShader.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlShader.kt)), 44.1 kHz stereo audio player with dynamic drift compensation ([`RetroAudioPlayer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/RetroAudioPlayer.kt), [`AudioDriftController.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/AudioDriftController.kt)).
+>   5. **Part 2.5 — Virtual Touch & HID Gamepad Mapper**: Responsive touch geometry & multi-touch overlay view with haptic feedback ([`TouchLayout.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt), [`TouchOverlayView.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchOverlayView.kt)), Bluetooth/USB HID gamepad mapper ([`GamepadMapper.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/GamepadMapper.kt)), and unified input coordinator with auto-hiding virtual controls ([`InputCoordinator.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/InputCoordinator.kt)).
+>   6. **Part 2.6 — Runtime Host Bedrock Integration**: Atomic first-boot ROM stager ([`RomStager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/RomStager.kt)), 60 FPS emulation loop thread ([`EmulationLoop.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationLoop.kt)), and central bedrock coordinator ([`EmulationHost.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationHost.kt)) guaranteeing synchronous SRAM flush on pause/stop.
+> * **Test Status**: **100% passing repository-wide** across `:core` and `:runtime:retropack-runtime-mgba`.
+> * **Next Task**: **Phase 3: Generic Standalone Template APK (`template-mgba.apk`)**.
 
 ### 📋 Copy-Paste Prompt for the Next Session
 Copy and paste the block below into your AI coding assistant or session prompt to resume work immediately:
@@ -29,19 +33,29 @@ Read context.md, masterplan.md, and roadmap.md first.
 Current Status:
 - Phase 0 (Infrastructure, Staging & Hybrid Keystore) is COMPLETE.
 - Phase 1 (Domain Core & ROM Engine) is COMPLETE.
-- Phase 2, Part 2.1 (Skeleton & NativeCore Contracts) is COMPLETE.
-- Phase 2, Part 2.2 (Save Durability & POSIX fsync) is COMPLETE.
-- 53/53 unit tests passing repository-wide (:core and :runtime:retropack-runtime-mgba).
+- Phase 2 (Low-Level Runtime Bedrock & mGBA C Bridge, Parts 2.1 - 2.6) is COMPLETE.
+- All unit tests passing repository-wide (:core and :runtime:retropack-runtime-mgba).
 
 Key Operating Invariants:
 1. APK & NDK compilation is handled via CI/CD (GitHub Actions), NOT locally on the host machine. Local workflow is pure Kotlin/JVM test-driven.
 2. Maximize reuse: adapt battle-tested code directly from staging/ (ksupatcher, retra, garnacha-boy) rather than writing code from scratch.
+3. Constitutional Law 7 & Invariant 5: Zero-loss battery save durability with atomic POSIX fsync file swapping.
+4. Android 15/16 16 KB Page Alignment: 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) and extractNativeLibs="false".
 
 Your Task:
-Proceed with Phase 2, Part 2.3 (16 KB CMake & mGBA C Bridge):
-1. Vendor canonical mGBA (v0.10.5+) as an untouched Git submodule under runtime/retropack-runtime-mgba/submodules/mgba/.
-2. Configure CMakeLists.txt with mandatory 16 KB page-size linker flags (-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384) targeting NDK r28b+.
-3. Implement JNI bridge mgba-jni.c and ringbuffer.c in runtime/retropack-runtime-mgba/src/main/cpp/ adapted from staging/garnacha-boy and binding to NativeCore.kt JNI methods.
+Proceed with Phase 3 (Generic Standalone Template APK: template-mgba.apk):
+1. Build the minimal Android application skeleton template-apk/ embedding retropack-runtime-mgba.aar.
+2. Configure AndroidManifest.xml:
+   - Explicitly declare <activity android:name="com.retropack.runtime.GameActivity" ... /> (fully-qualified class name to prevent ClassNotFoundException during package rewriting).
+   - Explicitly declare <application android:extractNativeLibs="false" ... />.
+   - Declare android:theme="@android:style/Theme.NoTitleBar.Fullscreen".
+3. Set up adaptive icon drawables in res/mipmap-anydpi-v26/ic_launcher.xml and default PNGs in res/drawable-nodpi/ (to permit pure-file replacement without touching resources.arsc).
+4. Implement GameActivity.kt:
+   - Reads assets/retropack.json (schema_version: 1).
+   - Atomic ROM staging via RomStager: checks filesDir/game.rom; streams assets/game.rom -> filesDir/game.rom.tmp; verifies SHA-256; renames atomically.
+   - Wires TouchOverlayView, GamepadMapper, RetroSurfaceView, RetroAudioPlayer, and SaveManager into EmulationHost.
+   - Enforces synchronous SaveManager.flushNow() on onPause() and onStop().
+5. Wire template build artifact into RuntimeRegistry.kt with SHA-256 verification fingerprints.
 ```
 
 ---

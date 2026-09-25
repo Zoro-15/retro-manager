@@ -134,23 +134,33 @@ To enable seamless, frictionless collaboration between two developers (You and y
     - Dirty-gated hash check eliminating redundant NAND flash wear.
     - Lifecycle flush guarantees (`onPause`/`onStop`) and backup rotation (`.bak`).
     - Full Unit Test Suite: 7/7 tests passing in [`SaveManagerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/save/SaveManagerTest.kt) (53/53 tests passing repository-wide).
-  * ⏳ **Part 2.3 — 16 KB CMake & mGBA C Bridge [NEXT]**:
-    - Vendor canonical mGBA (`v0.10.5`+) as Git submodule under `runtime/retropack-runtime-mgba/submodules/mgba/`.
-    - Configure CMake with mandatory 16 KB linker flags:
-      `-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`.
-    - Implement JNI bridge `mgba-jni.c` and ringbuffer `ringbuffer.c`.
-  * ⏳ **Part 2.4 — Video & Audio Subsystems**:
-    - OpenGL ES 2.0/3.0 SurfaceView renderer with `integer_fit` and `aspect_fit` scaling modes.
-    - Low-latency circular ring-buffered `AudioTrack` 16-bit stereo at $44,100\text{ Hz}$ with dynamic drift compensation.
-  * ⏳ **Part 2.5 — Virtual Touch & HID Gamepad Mapper**:
-    - Virtual `TouchOverlayView` (custom coordinates, opacity, haptics).
-    - Physical controller HID mapper with auto-hiding virtual controls upon gamepad button press.
-* **Deliverables**: Standalone `retropack-runtime-mgba.aar` compiled for `arm64-v8a` and `x86_64`.
+  * ✅ **Part 2.3 — 16 KB CMake & mGBA C Bridge [COMPLETED]**:
+    - Vendored canonical mGBA (`v0.10.5`) as untouched Git submodule under [`runtime/retropack-runtime-mgba/submodules/mgba/`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/submodules/mgba/).
+    - Configured [`CMakeLists.txt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/CMakeLists.txt) with mandatory 16 KB linker flags (`-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`) targeting NDK r28b+.
+    - Implemented thread-safe audio ring buffer with drift compensation: [`ringbuffer.h`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/ringbuffer.h), [`ringbuffer.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/ringbuffer.c).
+    - Implemented full JNI bridge [`mgba-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/mgba-jni.c) binding mGBA C core to [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt).
+    - Wired `externalNativeBuild` into [`build.gradle.kts`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/build.gradle.kts) for CI/CD NDK compilation while preserving pure JVM host unit testing (53/53 tests passing repository-wide).
+  * ✅ **Part 2.4 — Video & Audio Subsystems [COMPLETED]**:
+    - OpenGL ES 2.0/3.0 SurfaceView renderer with `integer_fit` and `aspect_fit` scaling modes: [`RetroGlShader.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlShader.kt), [`RetroGlRenderer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt), [`RetroSurfaceView.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/video/RetroSurfaceView.kt).
+    - Low-latency circular ring-buffered `AudioTrack` 16-bit stereo at $44,100\text{ Hz}$ with dynamic drift compensation: [`AudioSink.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/AudioSink.kt), [`AudioTrackSink.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/AudioTrackSink.kt), [`AudioDriftController.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/AudioDriftController.kt), [`RetroAudioPlayer.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/audio/RetroAudioPlayer.kt).
+    - Full Unit Test Suite: 22 new tests added in [`RetroGlShaderTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/video/RetroGlShaderTest.kt), [`RetroGlRendererTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/video/RetroGlRendererTest.kt), [`AudioDriftControllerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/audio/AudioDriftControllerTest.kt), [`RetroAudioPlayerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/audio/RetroAudioPlayerTest.kt) (75/75 tests passing repository-wide).
+  * ✅ **Part 2.5 — Virtual Touch & HID Gamepad Mapper [COMPLETED]**:
+    - Pure geometry & responsive hit-testing engine: [`TouchLayout.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt).
+    - Multi-touch visual overlay view with customizable opacity, haptic feedback, and visibility toggles: [`TouchOverlayView.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/TouchOverlayView.kt).
+    - Physical controller HID mapper supporting buttons, analog sticks with deadzone, and HAT axes: [`GamepadMapper.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/GamepadMapper.kt).
+    - Unified input coordinator with auto-hiding virtual touch controls upon gamepad detection: [`InputCoordinator.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/input/InputCoordinator.kt).
+    - Full Unit Test Suite: 18 new tests added across [`TouchLayoutTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/input/TouchLayoutTest.kt), [`TouchOverlayTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/input/TouchOverlayTest.kt), [`GamepadMapperTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/input/GamepadMapperTest.kt), and [`InputCoordinatorTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/input/InputCoordinatorTest.kt).
+  * ✅ **Part 2.6 — Runtime Host Bedrock Integration & Phase 2 Completion [COMPLETED]**:
+    - Atomic First-Boot ROM staging with POSIX fsync and SHA-256 validation: [`RomStager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/RomStager.kt).
+    - Dedicated 60 FPS emulation loop thread with frame pacing and state synchronization: [`EmulationLoop.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationLoop.kt).
+    - Top-level runtime coordinator tying engine, audio, video, input, and lifecycle save durability together: [`EmulationHost.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/EmulationHost.kt).
+    - Full Unit Test Suite: 9 new tests added across [`RomStagerTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/host/RomStagerTest.kt) and [`EmulationHostTest.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/test/kotlin/com/retropack/runtime/host/EmulationHostTest.kt).
+* **Deliverables**: Standalone `retropack-runtime-mgba.aar` compiled for `arm64-v8a` and `x86_64` with complete pure-JVM test coverage (102/102 tests passing repository-wide).
 * **Acceptance Gate**: ELF inspection verifies `LOAD` segments aligned to 16,384 bytes (`readelf -l libmgba.so`); audio/video loop executes cleanly at 60 FPS without memory leaks.
 
 ---
 
-## 5. Phase 3: Generic Standalone Template APK (`template-mgba.apk`)
+## 5. Phase 3: Generic Standalone Template APK (`template-mgba.apk`) [NEXT]
 
 * **Primary Objective**: Build the precompiled, unsigned generic APK skeleton embedding `retropack-runtime-mgba.aar` and establish trust fingerprints.
 * **Detailed Specifications**:

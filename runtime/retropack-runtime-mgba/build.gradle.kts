@@ -20,6 +20,19 @@ if (hasAndroidSdk) {
             ndk {
                 abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
             }
+
+            externalNativeBuild {
+                cmake {
+                    arguments("-DANDROID_STL=c++_static")
+                }
+            }
+        }
+
+        externalNativeBuild {
+            cmake {
+                path = file("CMakeLists.txt")
+                version = "3.22.1"
+            }
         }
 
         compileOptions {
@@ -40,6 +53,10 @@ if (hasAndroidSdk) {
     configure<JavaPluginExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+
+        sourceSets.named("main") {
+            java.srcDirs("src/main/kotlin", "src/stub/java")
+        }
     }
 
     tasks.withType<Test> {
