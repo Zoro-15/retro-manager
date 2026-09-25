@@ -1,0 +1,191 @@
+﻿2026-09-25T20:32:24.5754470Z ##[group]Run MANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"
+2026-09-25T20:32:24.5755214Z [36;1mMANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"[0m
+2026-09-25T20:32:24.5755724Z [36;1mecho "Inspecting $MANAGER_APK"[0m
+2026-09-25T20:32:24.5756185Z [36;1munzip -l "$MANAGER_APK" > /tmp/manager-apk-entries.txt[0m
+2026-09-25T20:32:24.5756653Z [36;1mcat /tmp/manager-apk-entries.txt[0m
+2026-09-25T20:32:24.5756994Z [36;1mfor REQUIRED in \[0m
+2026-09-25T20:32:24.5757319Z [36;1m  "assets/mgba-unified/template.apk" \[0m
+2026-09-25T20:32:24.5757689Z [36;1m  "assets/mgba-unified/runtime.json" \[0m
+2026-09-25T20:32:24.5758094Z [36;1m  "assets/mgba-unified/licenses/LICENSE.txt" ; do[0m
+2026-09-25T20:32:24.5758617Z [36;1m  if ! grep -q "$REQUIRED" /tmp/manager-apk-entries.txt ; then[0m
+2026-09-25T20:32:24.5759794Z [36;1m    echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded. Restore runtimes/mgba-unified/template.apk (see scripts/rotate-trust-anchors.sh) and rebuild."[0m
+2026-09-25T20:32:24.5760918Z [36;1m    exit 1[0m
+2026-09-25T20:32:24.5761198Z [36;1m  fi[0m
+2026-09-25T20:32:24.5761449Z [36;1mdone[0m
+2026-09-25T20:32:24.5761838Z [36;1mecho "Pinned runtime bundle verified inside Manager APK."[0m
+2026-09-25T20:32:24.5840336Z shell: /usr/bin/bash -e {0}
+2026-09-25T20:32:24.5840707Z env:
+2026-09-25T20:32:24.5841127Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-25T20:32:24.5841801Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-25T20:32:24.5842537Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-25T20:32:24.5842953Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-25T20:32:24.5843335Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-25T20:32:24.5843732Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-25T20:32:24.5844312Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-25T20:32:24.5844959Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-25T20:32:24.5845646Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-25T20:32:24.5846038Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-09-25T20:32:24.5846431Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-09-25T20:32:24.5846910Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-09-25T20:32:24.5847345Z ##[endgroup]
+2026-09-25T20:32:24.6001814Z Inspecting app/build/outputs/apk/debug/app-debug.apk
+2026-09-25T20:32:24.6030115Z Archive:  app/build/outputs/apk/debug/app-debug.apk
+2026-09-25T20:32:24.6048730Z   Length      Date    Time    Name
+2026-09-25T20:32:24.6069069Z ---------  ---------- -----   ----
+2026-09-25T20:32:24.6070094Z        56  1981-01-01 01:01   META-INF/com/android/build/gradle/app-metadata.properties
+2026-09-25T20:32:24.6070967Z  44746892  1981-01-01 01:01   classes.dex
+2026-09-25T20:32:24.6071565Z     19156  1981-01-01 01:01   classes10.dex
+2026-09-25T20:32:24.6072315Z    194628  1981-01-01 01:01   classes11.dex
+2026-09-25T20:32:24.6072992Z     74508  1981-01-01 01:01   classes12.dex
+2026-09-25T20:32:24.6073578Z  11676612  1981-01-01 01:01   classes13.dex
+2026-09-25T20:32:24.6074154Z   8276860  1981-01-01 01:01   classes14.dex
+2026-09-25T20:32:24.6074714Z     43076  1981-01-01 01:01   classes2.dex
+2026-09-25T20:32:24.6075287Z     51472  1981-01-01 01:01   classes3.dex
+2026-09-25T20:32:24.6075854Z     59812  1981-01-01 01:01   classes4.dex
+2026-09-25T20:32:24.6076421Z     29180  1981-01-01 01:01   classes5.dex
+2026-09-25T20:32:24.6077002Z     81224  1981-01-01 01:01   classes6.dex
+2026-09-25T20:32:24.6077579Z     38484  1981-01-01 01:01   classes7.dex
+2026-09-25T20:32:24.6078161Z    204384  1981-01-01 01:01   classes8.dex
+2026-09-25T20:32:24.6078724Z      7948  1981-01-01 01:01   classes9.dex
+2026-09-25T20:32:24.6079441Z     10096  1981-01-01 01:01   lib/arm64-v8a/libandroidx.graphics.path.so
+2026-09-25T20:32:24.6080345Z      7252  1981-01-01 01:01   lib/armeabi-v7a/libandroidx.graphics.path.so
+2026-09-25T20:32:24.6081473Z      9284  1981-01-01 01:01   lib/x86/libandroidx.graphics.path.so
+2026-09-25T20:32:24.6085787Z     10760  1981-01-01 01:01   lib/x86_64/libandroidx.graphics.path.so
+2026-09-25T20:32:24.6094008Z       465  1981-01-01 01:01   assets/mgba-unified/licenses/LICENSE.txt
+2026-09-25T20:32:24.6094864Z       781  1981-01-01 01:01   assets/mgba-unified/runtime.json
+2026-09-25T20:32:24.6095715Z   4436552  1981-01-01 01:01   assets/mgba-unified/template.apk
+2026-09-25T20:32:24.6096404Z      6632  1981-01-01 01:01   AndroidManifest.xml
+2026-09-25T20:32:24.6097114Z       340  1981-01-01 01:01   res/color/vector_tint_color.xml
+2026-09-25T20:32:24.6097843Z       340  1981-01-01 01:01   res/color/vector_tint_theme_color.xml
+2026-09-25T20:32:24.6098718Z       212  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_low_normal.9.png
+2026-09-25T20:32:24.6099596Z       225  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_low_pressed.9.png
+2026-09-25T20:32:24.6100620Z       212  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_normal.9.png
+2026-09-25T20:32:24.6101575Z       225  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-25T20:32:24.6117474Z       909  1981-01-01 01:01   res/drawable-hdpi-v4/notification_oversize_large_icon_bg.png
+2026-09-25T20:32:24.6118447Z       107  1981-01-01 01:01   res/drawable-hdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-25T20:32:24.6119289Z       215  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_low_normal.9.png
+2026-09-25T20:32:24.6120077Z       223  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_low_pressed.9.png
+2026-09-25T20:32:24.6120841Z       215  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_normal.9.png
+2026-09-25T20:32:24.6121641Z       223  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-25T20:32:24.6122733Z        98  1981-01-01 01:01   res/drawable-mdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-25T20:32:24.6123561Z      1180  1981-01-01 01:01   res/drawable-v21/notification_action_background.xml
+2026-09-25T20:32:24.6124590Z       221  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_low_normal.9.png
+2026-09-25T20:32:24.6125428Z       252  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_low_pressed.9.png
+2026-09-25T20:32:24.6126190Z       221  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_normal.9.png
+2026-09-25T20:32:24.6126980Z       247  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-25T20:32:24.6127805Z       138  1981-01-01 01:01   res/drawable-xhdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-25T20:32:24.6128509Z      1356  1981-01-01 01:01   res/drawable/ic_call_answer.xml
+2026-09-25T20:32:24.6129110Z      1320  1981-01-01 01:01   res/drawable/ic_call_answer_low.xml
+2026-09-25T20:32:24.6129717Z       772  1981-01-01 01:01   res/drawable/ic_call_answer_video.xml
+2026-09-25T20:32:24.6130358Z       736  1981-01-01 01:01   res/drawable/ic_call_answer_video_low.xml
+2026-09-25T20:32:24.6131054Z      1528  1981-01-01 01:01   res/drawable/ic_call_decline.xml
+2026-09-25T20:32:24.6131668Z      1492  1981-01-01 01:01   res/drawable/ic_call_decline_low.xml
+2026-09-25T20:32:24.6132396Z       532  1981-01-01 01:01   res/drawable/notification_bg.xml
+2026-09-25T20:32:24.6133008Z       532  1981-01-01 01:01   res/drawable/notification_bg_low.xml
+2026-09-25T20:32:24.6133671Z       372  1981-01-01 01:01   res/drawable/notification_icon_background.xml
+2026-09-25T20:32:24.6134334Z       304  1981-01-01 01:01   res/drawable/notification_tile_bg.xml
+2026-09-25T20:32:24.6134968Z      1052  1981-01-01 01:01   res/layout-v21/notification_action.xml
+2026-09-25T20:32:24.6135649Z      1228  1981-01-01 01:01   res/layout-v21/notification_action_tombstone.xml
+2026-09-25T20:32:24.6136391Z      2456  1981-01-01 01:01   res/layout-v21/notification_template_custom_big.xml
+2026-09-25T20:32:24.6137131Z       988  1981-01-01 01:01   res/layout-v21/notification_template_icon_group.xml
+2026-09-25T20:32:24.6137776Z       612  1981-01-01 01:01   res/layout/custom_dialog.xml
+2026-09-25T20:32:24.6138586Z       364  1981-01-01 01:01   res/layout/ime_base_split_test_activity.xml
+2026-09-25T20:32:24.6139288Z       876  1981-01-01 01:01   res/layout/ime_secondary_split_test_activity.xml
+2026-09-25T20:32:24.6140036Z       440  1981-01-01 01:01   res/layout/notification_template_part_chronometer.xml
+2026-09-25T20:32:24.6140769Z       440  1981-01-01 01:01   res/layout/notification_template_part_time.xml
+2026-09-25T20:32:24.6141368Z       712  1981-01-01 01:01   res/xml/file_paths.xml
+2026-09-25T20:32:24.6141845Z    417448  1981-01-01 01:01   resources.arsc
+2026-09-25T20:32:24.6143590Z      1728  1981-01-01 01:01   DebugProbesKt.bin
+2026-09-25T20:32:24.6144256Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity-compose.version
+2026-09-25T20:32:24.6144984Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity-ktx.version
+2026-09-25T20:32:24.6145678Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity.version
+2026-09-25T20:32:24.6146459Z         6  1981-01-01 01:01   META-INF/androidx.annotation_annotation-experimental.version
+2026-09-25T20:32:24.6147248Z        67  1981-01-01 01:01   META-INF/androidx.arch.core_core-runtime.version
+2026-09-25T20:32:24.6147952Z         6  1981-01-01 01:01   META-INF/androidx.autofill_autofill.version
+2026-09-25T20:32:24.6148731Z         6  1981-01-01 01:01   META-INF/androidx.compose.animation_animation-core.version
+2026-09-25T20:32:24.6149564Z         6  1981-01-01 01:01   META-INF/androidx.compose.animation_animation.version
+2026-09-25T20:32:24.6150417Z         6  1981-01-01 01:01   META-INF/androidx.compose.foundation_foundation-layout.version
+2026-09-25T20:32:24.6151261Z         6  1981-01-01 01:01   META-INF/androidx.compose.foundation_foundation.version
+2026-09-25T20:32:24.6152029Z         6  1981-01-01 01:01   META-INF/androidx.compose.material3_material3.version
+2026-09-25T20:32:24.6153094Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-icons-core.version
+2026-09-25T20:32:24.6154227Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-icons-extended.version
+2026-09-25T20:32:24.6155115Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-ripple.version
+2026-09-25T20:32:24.6155907Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material.version
+2026-09-25T20:32:24.6156692Z         6  1981-01-01 01:01   META-INF/androidx.compose.runtime_runtime-saveable.version
+2026-09-25T20:32:24.6157472Z         6  1981-01-01 01:01   META-INF/androidx.compose.runtime_runtime.version
+2026-09-25T20:32:24.6158204Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-geometry.version
+2026-09-25T20:32:24.6158926Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-graphics.version
+2026-09-25T20:32:24.6159670Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-test-manifest.version
+2026-09-25T20:32:24.6160435Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-text.version
+2026-09-25T20:32:24.6161183Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling-data.version
+2026-09-25T20:32:24.6161961Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling-preview.version
+2026-09-25T20:32:24.6162824Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling.version
+2026-09-25T20:32:24.6163518Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-unit.version
+2026-09-25T20:32:24.6164198Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-util.version
+2026-09-25T20:32:24.6164851Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui.version
+2026-09-25T20:32:24.6165490Z         7  1981-01-01 01:01   META-INF/androidx.core_core-ktx.version
+2026-09-25T20:32:24.6166100Z         7  1981-01-01 01:01   META-INF/androidx.core_core.version
+2026-09-25T20:32:24.6166871Z         6  1981-01-01 01:01   META-INF/androidx.customview_customview-poolingcontainer.version
+2026-09-25T20:32:24.6167693Z         6  1981-01-01 01:01   META-INF/androidx.documentfile_documentfile.version
+2026-09-25T20:32:24.6168528Z         6  1981-01-01 01:01   META-INF/androidx.emoji2_emoji2.version
+2026-09-25T20:32:24.6169209Z         6  1981-01-01 01:01   META-INF/androidx.graphics_graphics-path.version
+2026-09-25T20:32:24.6169946Z         6  1981-01-01 01:01   META-INF/androidx.interpolator_interpolator.version
+2026-09-25T20:32:24.6170746Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-livedata-core.version
+2026-09-25T20:32:24.6171549Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-process.version
+2026-09-25T20:32:24.6172484Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime-compose.version
+2026-09-25T20:32:24.6173325Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime-ktx.version
+2026-09-25T20:32:24.6174110Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime.version
+2026-09-25T20:32:24.6174950Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel-compose.version
+2026-09-25T20:32:24.6175818Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel-ktx.version
+2026-09-25T20:32:24.6176707Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel-savedstate.version
+2026-09-25T20:32:24.6177554Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel.version
+2026-09-25T20:32:24.6178341Z         6  1981-01-01 01:01   META-INF/androidx.navigation_navigation-common-ktx.version
+2026-09-25T20:32:24.6179138Z         6  1981-01-01 01:01   META-INF/androidx.navigation_navigation-common.version
+2026-09-25T20:32:24.6179909Z         6  1981-01-01 01:01   META-INF/androidx.navigation_navigation-compose.version
+2026-09-25T20:32:24.6180720Z         6  1981-01-01 01:01   META-INF/androidx.navigation_navigation-runtime-ktx.version
+2026-09-25T20:32:24.6181535Z         6  1981-01-01 01:01   META-INF/androidx.navigation_navigation-runtime.version
+2026-09-25T20:32:24.6182798Z         6  1981-01-01 01:01   META-INF/androidx.profileinstaller_profileinstaller.version
+2026-09-25T20:32:24.6183596Z         6  1981-01-01 01:01   META-INF/androidx.savedstate_savedstate-ktx.version
+2026-09-25T20:32:24.6184319Z         6  1981-01-01 01:01   META-INF/androidx.savedstate_savedstate.version
+2026-09-25T20:32:24.6185043Z         6  1981-01-01 01:01   META-INF/androidx.startup_startup-runtime.version
+2026-09-25T20:32:24.6185722Z         6  1981-01-01 01:01   META-INF/androidx.tracing_tracing.version
+2026-09-25T20:32:24.6186530Z         6  1981-01-01 01:01   META-INF/androidx.versionedparcelable_versionedparcelable.version
+2026-09-25T20:32:24.6187316Z         5  1981-01-01 01:01   META-INF/kotlinx_coroutines_android.version
+2026-09-25T20:32:24.6187964Z         5  1981-01-01 01:01   META-INF/kotlinx_coroutines_core.version
+2026-09-25T20:32:24.6188634Z       112  1981-01-01 01:01   META-INF/services/java.security.Provider
+2026-09-25T20:32:24.6189431Z        54  1981-01-01 01:01   META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler
+2026-09-25T20:32:24.6190385Z        52  1981-01-01 01:01   META-INF/services/kotlinx.coroutines.internal.MainDispatcherFactory
+2026-09-25T20:32:24.6191179Z      1252  1981-01-01 01:01   META-INF/versions/11/OSGI-INF/MANIFEST.MF
+2026-09-25T20:32:24.6191834Z      1252  1981-01-01 01:01   META-INF/versions/15/OSGI-INF/MANIFEST.MF
+2026-09-25T20:32:24.6192595Z      1252  1981-01-01 01:01   META-INF/versions/21/OSGI-INF/MANIFEST.MF
+2026-09-25T20:32:24.6193156Z       141  1981-01-01 01:01   arsclib.properties
+2026-09-25T20:32:24.6193717Z    134514  1981-01-01 01:01   frameworks/android/android-22.apk
+2026-09-25T20:32:24.6194321Z    132735  1981-01-01 01:01   frameworks/android/android-23.apk
+2026-09-25T20:32:24.6194922Z    141273  1981-01-01 01:01   frameworks/android/android-24.apk
+2026-09-25T20:32:24.6195515Z    143184  1981-01-01 01:01   frameworks/android/android-25.apk
+2026-09-25T20:32:24.6196110Z    150430  1981-01-01 01:01   frameworks/android/android-26.apk
+2026-09-25T20:32:24.6196870Z    153078  1981-01-01 01:01   frameworks/android/android-27.apk
+2026-09-25T20:32:24.6197481Z    159728  1981-01-01 01:01   frameworks/android/android-28.apk
+2026-09-25T20:32:24.6198095Z    174763  1981-01-01 01:01   frameworks/android/android-29.apk
+2026-09-25T20:32:24.6198719Z    179149  1981-01-01 01:01   frameworks/android/android-30.apk
+2026-09-25T20:32:24.6199327Z    188812  1981-01-01 01:01   frameworks/android/android-31.apk
+2026-09-25T20:32:24.6199924Z    192052  1981-01-01 01:01   frameworks/android/android-32.apk
+2026-09-25T20:32:24.6200534Z    236952  1981-01-01 01:01   frameworks/android/android-33.apk
+2026-09-25T20:32:24.6201141Z    237832  1981-01-01 01:01   frameworks/android/android-34.apk
+2026-09-25T20:32:24.6201802Z       865  1981-01-01 01:01   kotlin/annotation/annotation.kotlin_builtins
+2026-09-25T20:32:24.6202603Z      3635  1981-01-01 01:01   kotlin/collections/collections.kotlin_builtins
+2026-09-25T20:32:24.6203270Z       137  1981-01-01 01:01   kotlin/coroutines/coroutines.kotlin_builtins
+2026-09-25T20:32:24.6203910Z       583  1981-01-01 01:01   kotlin/internal/internal.kotlin_builtins
+2026-09-25T20:32:24.6204493Z     18653  1981-01-01 01:01   kotlin/kotlin.kotlin_builtins
+2026-09-25T20:32:24.6205089Z      3349  1981-01-01 01:01   kotlin/ranges/ranges.kotlin_builtins
+2026-09-25T20:32:24.6205693Z      2370  1981-01-01 01:01   kotlin/reflect/reflect.kotlin_builtins
+2026-09-25T20:32:24.6206431Z     42868  1981-01-01 01:01   org/bouncycastle/pkix/CertPathReviewerMessages.properties
+2026-09-25T20:32:24.6207296Z     49608  1981-01-01 01:01   org/bouncycastle/pkix/CertPathReviewerMessages_de.properties
+2026-09-25T20:32:24.6208163Z    118306  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL1.bin.properties
+2026-09-25T20:32:24.6209005Z    350101  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL3.bin.properties
+2026-09-25T20:32:24.6209829Z    752652  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL5.bin.properties
+2026-09-25T20:32:24.6210845Z     42868  1981-01-01 01:01   org/bouncycastle/x509/CertPathReviewerMessages.properties
+2026-09-25T20:32:24.6211707Z     49608  1981-01-01 01:01   org/bouncycastle/x509/CertPathReviewerMessages_de.properties
+2026-09-25T20:32:24.6212620Z ---------                     -------
+2026-09-25T20:32:24.6213035Z  74093822                     154 files
+2026-09-25T20:32:24.6213531Z Pinned runtime bundle verified inside Manager APK.
