@@ -27,7 +27,7 @@ object ApkVerificationService {
      */
     fun verifyApk(
         apkFile: File,
-        minSdkVersion: Int? = ApkSignerService.DEFAULT_MIN_SDK,
+        minSdkVersion: Int? = null,
         maxSdkVersion: Int? = null
     ): VerificationResult {
         require(apkFile.exists()) { "Target APK file does not exist: ${apkFile.absolutePath}" }
