@@ -46,8 +46,8 @@ data class RuntimeDescriptor(
                 biosOptional = true
             ),
             protectedEntries = mapOf(
-                "classes.dex" to "sha256:798a89a984f3e83964c19e681336ce6dacf4d948bd4253dfb895c55b82ef243d",
-                "lib/arm64-v8a/libmgba.so" to "sha256:79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
+                "classes.dex" to "sha256:b2533f8585723081e9d2bda0038eb8b0d550a7dbc9c4a52a0a66a2bf3901010f",
+                "lib/arm64-v8a/libretropack-runtime.so" to "sha256:2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
             )
         )
 

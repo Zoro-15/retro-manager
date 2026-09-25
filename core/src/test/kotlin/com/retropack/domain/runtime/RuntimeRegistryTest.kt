@@ -33,7 +33,10 @@ class RuntimeRegistryTest {
 
     @Test
     fun `isTrustedTemplate validates compiled bytecode fingerprint`() {
-        val trustedHash = "52498f863e0efb3c05fd9fcf4ebaade5c0a03db4f725e5ac264150fad132f566"
+        // Hardcoded (NOT read from RuntimeRegistry) so an accidental anchor
+        // rotation is caught here; RuntimeBundleIntegrityTest separately pins
+        // the anchor to the committed template.apk bytes.
+        val trustedHash = "391b8bc1cb323f4a4d07784af3778cebe1ecd366f702fb0605bb63a1b6d9d8e0"
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, trustedHash))
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, "sha256:$trustedHash"))
 
@@ -44,14 +47,14 @@ class RuntimeRegistryTest {
     @Test
     fun `verifyProtectedEntries validates classes dex and native library against bytecode trust anchors`() {
         val validEntries = mapOf(
-            "classes.dex" to "798a89a984f3e83964c19e681336ce6dacf4d948bd4253dfb895c55b82ef243d",
-            "lib/arm64-v8a/libmgba.so" to "79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
+            "classes.dex" to "b2533f8585723081e9d2bda0038eb8b0d550a7dbc9c4a52a0a66a2bf3901010f",
+            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
         )
         assertTrue(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, validEntries))
 
         val tamperedDex = mapOf(
             "classes.dex" to "badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb",
-            "lib/arm64-v8a/libmgba.so" to "79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
+            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
         )
         assertFalse(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, tamperedDex))
     }

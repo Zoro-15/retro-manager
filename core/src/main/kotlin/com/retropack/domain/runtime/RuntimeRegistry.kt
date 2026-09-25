@@ -21,22 +21,25 @@ object RuntimeRegistry {
      * TRUST ANCHORS: Hardcoded SHA-256 fingerprints compiled directly into Kotlin bytecode.
      * Invariant: Never loaded from mutable disk or `.sha256` text files.
      *
-     * TODO(Phase 3-artifact): these are placeholder hashes — runtimes/mgba-unified/
-     * currently ships only runtime.json + licenses/ (template.apk is unbuilt and
-     * *.apk is gitignored). Rotating to the real template hashes must update this
-     * map, TRUSTED_PROTECTED_ENTRIES, and the fixture-gated tests in lockstep.
+     * Pinned to runtimes/mgba-unified/template.apk (whole-APK digest). Rotate in
+     * lockstep with TRUSTED_PROTECTED_ENTRIES, RuntimeDescriptor.MGBA_UNIFIED and
+     * runtimes/mgba-unified/runtime.json via scripts/rotate-trust-anchors.sh.
+     * RuntimeBundleIntegrityTest fails the build when any of them drift.
      */
     val TRUSTED_TEMPLATES: Map<String, String> = mapOf(
-        RUNTIME_MGBA_UNIFIED to "52498f863e0efb3c05fd9fcf4ebaade5c0a03db4f725e5ac264150fad132f566"
+        RUNTIME_MGBA_UNIFIED to "391b8bc1cb323f4a4d07784af3778cebe1ecd366f702fb0605bb63a1b6d9d8e0"
     )
 
     /**
      * Protected entries bytecode trust anchors for Step 9 integrity validation.
+     * Entry names must match the REAL template contents: the NDK build produces
+     * libretropack-runtime.so (System.loadLibrary("retropack-runtime")), NOT
+     * libmgba.so.
      */
     val TRUSTED_PROTECTED_ENTRIES: Map<String, Map<String, String>> = mapOf(
         RUNTIME_MGBA_UNIFIED to mapOf(
-            "classes.dex" to "798a89a984f3e83964c19e681336ce6dacf4d948bd4253dfb895c55b82ef243d",
-            "lib/arm64-v8a/libmgba.so" to "79eca5e1ea4df26b67ea6c23839173de1ba465baf0713c3198c1d6f61a2d1bf1"
+            "classes.dex" to "b2533f8585723081e9d2bda0038eb8b0d550a7dbc9c4a52a0a66a2bf3901010f",
+            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
         )
     )
 

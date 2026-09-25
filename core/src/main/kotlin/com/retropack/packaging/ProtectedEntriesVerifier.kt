@@ -28,7 +28,7 @@ object ProtectedEntriesVerifier {
                     ?: throw SecurityException("Protected entry missing from APK archive: $entryPath")
 
                 val actualHash = zip.getInputStream(entry).use { computeSha256(it) }
-                if (!actualHash.equals(expectedHash, ignoreCase = true)) {
+                if (!matchesDigest(actualHash, expectedHash)) {
                     throw SecurityException(
                         "Protected entry integrity violation for '$entryPath'! " +
                             "Expected: $expectedHash, Actual: $actualHash"
@@ -47,13 +47,31 @@ object ProtectedEntriesVerifier {
                 ?: throw SecurityException("Protected entry missing from staged entries: $entryPath")
 
             val actualHash = computeSha256(bytes)
-            if (!actualHash.equals(expectedHash, ignoreCase = true)) {
+            if (!matchesDigest(actualHash, expectedHash)) {
                 throw SecurityException(
                     "Protected entry integrity violation for '$entryPath'! " +
                         "Expected: $expectedHash, Actual: $actualHash"
                 )
             }
         }
+    }
+
+    /**
+     * Compares a computed bare-hex digest against a declared expected digest.
+     *
+     * Descriptor files (runtime.json) canonically declare digests with an optional
+     * "sha256:" URI-style prefix, while computed digests are bare lowercase hex.
+     * Without normalizing the prefix (and whitespace and casing), every comparison
+     * against a prefixed declaration fails, which would abort every build at Step 9
+     * even when the template is byte-perfect.
+     */
+    internal fun matchesDigest(actualHex: String, expectedDigest: String): Boolean {
+        val normalizedExpected = expectedDigest
+            .trim()
+            .removePrefix("sha256:")
+            .removePrefix("SHA256:")
+            .trim()
+        return actualHex.equals(normalizedExpected, ignoreCase = true)
     }
 
     private fun computeSha256(inputStream: InputStream): String {
