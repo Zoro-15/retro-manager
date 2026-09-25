@@ -64,6 +64,16 @@ class PackageIdentityTest {
     }
 
     @Test
+    fun `createWithHash reuses precomputed digest without rehashing rom`() {
+        val full = PackageIdentity.create("Metroid Fusion", sampleRomBytes)
+        val sha = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(sampleRomBytes).let { HexUtils.run { it.toHexString() } }
+
+        val viaHash = PackageIdentity.createWithHash("Metroid Fusion", sha, full.versionCode, full.versionName)
+        assertEquals(full, viaHash)
+    }
+
+    @Test
     fun `validatePackageName accepts valid Android package identifiers`() {
         PackageIdentity.validatePackageName("com.retropack.game.test_1234567890")
         PackageIdentity.validatePackageName("a.b.c")
