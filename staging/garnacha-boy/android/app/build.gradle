@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+}
+
+def keystorePropertiesFile = file('keystore.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+    def missing = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].findAll {
+        !keystoreProperties.getProperty(it)
+    }
+    if (!missing.isEmpty()) {
+        throw new GradleException("Missing release signing properties: ${missing.join(', ')}")
+    }
+}
+
+android {
+    namespace 'com.trebuchetdynamics.emulator.app'
+    compileSdk 35
+    buildToolsVersion '35.0.0'
+
+    defaultConfig {
+        applicationId 'com.trebuchetdynamics.garnacha'
+        minSdk 24
+        targetSdk 35
+        // A tag push (refs/tags/v0.1.0) sets these in CI. Local builds fall
+        // back to a dev marker so they can never be mistaken for a release.
+        versionCode Integer.parseInt(System.getenv('GARNACHA_VERSION_CODE') ?: '1')
+        versionName System.getenv('GARNACHA_VERSION_NAME') ?: '0.1.0-dev'
+    }
+
+    signingConfigs {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                storeFile file(keystoreProperties.getProperty('storeFile'))
+                storePassword keystoreProperties.getProperty('storePassword')
+                keyAlias keystoreProperties.getProperty('keyAlias')
+                keyPassword keystoreProperties.getProperty('keyPassword')
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            if (keystorePropertiesFile.exists()) {
+                signingConfig signingConfigs.release
+            }
+        }
+        benchmark {
+            initWith release
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
+        }
+    }
+}
+
+dependencies {
+    implementation project(':core')
+    testImplementation 'junit:junit:4.13.2'
+}
