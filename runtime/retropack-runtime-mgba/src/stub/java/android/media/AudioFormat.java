@@ -1,6 +1,8 @@
 package android.media;
 
 public class AudioFormat {
+    // AOSP values (AudioFormat.CHANNEL_OUT_MONO = 0x4, STEREO = 0xC).
+    public static final int CHANNEL_OUT_MONO = 4;
     public static final int CHANNEL_OUT_STEREO = 12;
     public static final int ENCODING_PCM_16BIT = 2;
 

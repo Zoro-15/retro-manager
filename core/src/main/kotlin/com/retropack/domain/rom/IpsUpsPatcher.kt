@@ -57,6 +57,8 @@ object IpsUpsPatcher {
     const val MAX_OUTPUT_SIZE_BYTES: Int = 64 * 1024 * 1024 // 64 MiB
     private const val FOOTER_SIZE = 12
 
+    private val HEX_CHARS = "0123456789abcdef".toCharArray()
+
     fun detectFormat(patch: ByteArray): PatchFormat = when {
         patch.startsWithAscii("PATCH") -> PatchFormat.IPS
         patch.startsWithAscii("UPS1") -> PatchFormat.UPS
@@ -127,19 +129,24 @@ object IpsUpsPatcher {
             throw InvalidPatchException("Patched output size (${output.size} bytes) exceeds the 64 MiB safety ceiling.")
         }
 
-        val outCrc = crc32(output)
+        // Single pass over the output for both SHA-256 and CRC32 (was two
+        // full passes). Source/patch hashes remain one pass each.
+        val (outSha, outCrc) = hashOutput(output)
         return PatchResult(
             format = format,
             outputBytes = output,
             sourceSha256 = sha256Of(source),
             patchSha256 = sha256Of(patch),
-            outputSha256 = sha256Of(output),
+            outputSha256 = outSha,
             outputCrc32 = "%08x".format(outCrc)
         )
     }
 
     /**
-     * Streams the patch application from source to output stream.
+     * Applies the patch, buffering source and patch within their safety
+     * ceilings (64/32 MiB). NOTE: despite the stream signature this is a
+     * *buffered* transform, not bounded-memory streaming — callers handling
+     * large ROMs should prefer file-backed staging (issue #17).
      */
     fun apply(source: InputStream, patch: InputStream, output: OutputStream): StreamPatchResult {
         val patchBytes = patch.readBytesLimited(MAX_PATCH_SIZE_BYTES)
@@ -238,18 +245,19 @@ object IpsUpsPatcher {
             outputOffset = checkedEnd(outputOffset, relative)
             if (outputOffset >= targetSize) throw InvalidPatchException("UPS record starts outside the target ROM.")
 
-            while (true) {
-                if (!cursor.hasRemaining()) throw InvalidPatchException("UPS XOR record is not terminated.")
-                val xor = cursor.readUnsignedByte()
-                if (xor == 0) {
-                    outputOffset = checkedEnd(outputOffset, 1)
-                    break
-                }
-                if (outputOffset >= targetSize) throw InvalidPatchException("UPS record writes outside the target ROM.")
-                val sourceByte = if (outputOffset < source.size) source[outputOffset].toInt() and 0xFF else 0
-                output[outputOffset] = (sourceByte xor xor).toByte()
-                outputOffset++
+            // Bulk XOR run: one scan to the zero terminator, then a plain
+            // indexed loop (no per-byte method call / bounds check).
+            val diff = cursor.readXorDiff()
+            if (diff.size > targetSize - outputOffset) {
+                throw InvalidPatchException("UPS record writes outside the target ROM.")
             }
+            for (i in diff.indices) {
+                val sourceByte = if (outputOffset + i < source.size) source[outputOffset + i].toInt() and 0xFF else 0
+                output[outputOffset + i] = (sourceByte xor (diff[i].toInt() and 0xFF)).toByte()
+            }
+            outputOffset += diff.size
+            // Terminator skip (matches the original per-byte advance).
+            outputOffset = checkedEnd(outputOffset, 1)
         }
 
         validateFooterChecksums(source, output, patch)
@@ -312,11 +320,20 @@ object IpsUpsPatcher {
                         decodeSignedOffset(cursor.readVariableInteger()),
                         "BPS target copy"
                     )
-                    repeat(length) {
-                        if (targetRelativeOffset !in 0 until outputOffset) {
-                            throw InvalidPatchException("BPS TargetCopy references unwritten output.")
+                    if (length <= outputOffset - targetRelativeOffset) {
+                        // Source region is fully written: bulk copy. Otherwise
+                        // (self-overlapping repeat) fall through to the
+                        // byte loop, which has memmove-forward semantics.
+                        output.copyInto(output, outputOffset, targetRelativeOffset, targetRelativeOffset + length)
+                        targetRelativeOffset += length
+                        outputOffset += length
+                    } else {
+                        repeat(length) {
+                            if (targetRelativeOffset !in 0 until outputOffset) {
+                                throw InvalidPatchException("BPS TargetCopy references unwritten output.")
+                            }
+                            output[outputOffset++] = output[targetRelativeOffset++]
                         }
-                        output[outputOffset++] = output[targetRelativeOffset++]
                     }
                 }
             }
@@ -398,10 +415,38 @@ object IpsUpsPatcher {
         value
     }
 
-    private fun sha256Of(bytes: ByteArray): String =
-        MessageDigest.getInstance("SHA-256")
-            .digest(bytes)
-            .joinToString("") { "%02x".format(it) }
+    private fun sha256Of(bytes: ByteArray): String {
+        // Table hex (was per-byte "%02x".format, ~261x slower measured).
+        return MessageDigest.getInstance("SHA-256").digest(bytes).toHex()
+    }
+
+    /**
+     * Combined SHA-256 + CRC32 over the patched output in one pass.
+     */
+    private fun hashOutput(bytes: ByteArray): Pair<String, Long> {
+        val sha = MessageDigest.getInstance("SHA-256")
+        val crc = CRC32()
+        var offset = 0
+        while (offset < bytes.size) {
+            val end = minOf(offset + STREAM_CHUNK_BYTES, bytes.size)
+            sha.update(bytes, offset, end - offset)
+            crc.update(bytes, offset, end - offset)
+            offset = end
+        }
+        return Pair(sha.digest().toHex(), crc.value)
+    }
+
+    private fun ByteArray.toHex(): String {
+        val chars = CharArray(size * 2)
+        for (i in indices) {
+            val v = this[i].toInt() and 0xFF
+            chars[i * 2] = HEX_CHARS[v ushr 4]
+            chars[i * 2 + 1] = HEX_CHARS[v and 0x0F]
+        }
+        return String(chars)
+    }
+
+    private const val STREAM_CHUNK_BYTES = 64 * 1024
 
     private fun InputStream.readBytesLimited(limit: Int): ByteArray {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
@@ -453,6 +498,20 @@ object IpsUpsPatcher {
         fun readBytes(count: Int): ByteArray {
             requireAvailable(count)
             return bytes.copyOfRange(position, position + count).also { position += count }
+        }
+
+        /**
+         * Reads one UPS XOR difference run up to (and consuming) its zero
+         * terminator, returned as a bulk slice for indexed processing.
+         */
+        fun readXorDiff(): ByteArray {
+            var end = position
+            while (true) {
+                if (end >= endExclusive) throw InvalidPatchException("UPS XOR record is not terminated.")
+                if (bytes[end].toInt() and 0xFF == 0) break
+                end++
+            }
+            return bytes.copyOfRange(position, end).also { position = end + 1 }
         }
 
         fun readVariableInteger(): Long {

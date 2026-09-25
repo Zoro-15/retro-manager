@@ -20,7 +20,7 @@ class AudioTrackSink(
     private val track: AudioTrack?
 
     init {
-        val channelMask = if (channelCount == 1) AudioFormat.CHANNEL_OUT_STEREO else AudioFormat.CHANNEL_OUT_STEREO
+        val channelMask = if (channelCount == 1) AudioFormat.CHANNEL_OUT_MONO else AudioFormat.CHANNEL_OUT_STEREO
         val encoding = AudioFormat.ENCODING_PCM_16BIT
         val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelMask, encoding)
         val finalBufferSize = maxOf(minBufferSize, bufferSizeBytes)

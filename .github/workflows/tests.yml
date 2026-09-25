@@ -1,0 +1,216 @@
+name: Tests
+
+# Regression + performance-loss guard. Triggers exactly on pushes to main
+# and pull requests (plus manual dispatch). See issue #7.
+# - core-tests + runtime-tests: fail-closed module suites on PARALLEL runners
+#   (was one serial job; wall time roughly halves). Shipping the workflow
+#   in-branch is also what makes checks appear on the PR itself: GitHub only
+#   runs workflow files present in the PR head, which is why PRs opened before
+#   #8 merged showed no checks.
+# - perf-budget: parses JUnit XML durations; fails on suite/class wall-time
+#   blowup so throughput collapse (StreamChecksum, IpsUpsPatcher, SaveManager)
+#   is visible without flaky micro-benchmarks.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Budgets in seconds. Tune only with measured justification (see #7).
+  PERF_TOTAL_BUDGET_SEC: "600"
+  PERF_CLASS_BUDGET_SEC: "120"
+
+jobs:
+  core-tests:
+    name: Core tests (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run core unit tests
+        # Sanitized like runtime-tests so module configuration resolves
+        # identically on runners with a preinstalled Android SDK.
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test --no-daemon --stacktrace
+
+      - name: Upload JUnit XML results (core)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-core
+          path: |
+            core/build/test-results/test/*.xml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload HTML test reports (core)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-core
+          path: |
+            core/build/reports/tests
+          if-no-files-found: warn
+          retention-days: 30
+
+  runtime-tests:
+    name: Runtime tests (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Pure Kotlin/JVM path: the unit tests are authored against the
+      # src/stub/java doubles (MotionEvent.createTouch/createJoystick etc.),
+      # which only compile in the hasAndroidSdk==false java-library variant.
+      # Hosted runners preinstall an Android SDK, which would flip the module
+      # to the android-library variant (real android.jar: abstract MotionEvent,
+      # no stub helpers) and fail compilation. Unset the SDK markers so CI
+      # exercises the same JVM variant as local runs; Android-variant
+      # compilation stays covered by the Android CI workflow's assembleDebug.
+      # --no-daemon pins the sanitized environment (no reused SDK daemon).
+      - name: Run runtime unit tests (JVM stub variant)
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
+
+      - name: Upload JUnit XML results (runtime)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-runtime
+          path: |
+            runtime/retropack-runtime-mgba/build/test-results/test/*.xml
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload HTML test reports (runtime)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-runtime
+          path: |
+            runtime/retropack-runtime-mgba/build/reports/tests
+          if-no-files-found: warn
+          retention-days: 30
+
+  perf-budget:
+    name: Perf budget (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [core-tests, runtime-tests]
+    # Run even if module suites failed so timing data is still evaluated when
+    # reports exist; the job itself stays gated (fails on budget breach).
+    if: always()
+    steps:
+      - name: Download JUnit XML results (both modules)
+        uses: actions/download-artifact@v4
+        with:
+          pattern: junit-*
+          merge-multiple: true
+          path: junit-xml
+
+      - name: Enforce suite/class wall-time budgets
+        env:
+          PERF_TOTAL_BUDGET_SEC: ${{ env.PERF_TOTAL_BUDGET_SEC }}
+          PERF_CLASS_BUDGET_SEC: ${{ env.PERF_CLASS_BUDGET_SEC }}
+        run: |
+          python3 - <<'PY'
+          import glob, os, xml.etree.ElementTree as ET
+
+          total_budget = float(os.environ.get("PERF_TOTAL_BUDGET_SEC", "600"))
+          class_budget = float(os.environ.get("PERF_CLASS_BUDGET_SEC", "120"))
+
+          files = sorted(glob.glob("junit-xml/**/TEST-*.xml", recursive=True))
+          if not files:
+              # Fall back to flat layout (download-artifact may flatten paths)
+              files = sorted(glob.glob("junit-xml/TEST-*.xml"))
+          if not files:
+              print("::error::No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?")
+              raise SystemExit(1)
+
+          rows = []
+          for f in files:
+              try:
+                  root = ET.parse(f).getroot()
+              except ET.ParseError as e:
+                  print(f"::error::Unparseable JUnit XML: {f}: {e}")
+                  raise SystemExit(1)
+              # Gradle emits <testsuite name=.. tests=.. failures=.. errors=.. skipped=.. time=..>
+              suites = [root] if root.tag == "testsuite" else root.findall("testsuite")
+              if not suites:
+                  suites = [root]
+              for s in suites:
+                  name = s.get("name", f)
+                  try:
+                      t = float(s.get("time", "0") or 0)
+                  except ValueError:
+                      t = 0.0
+                  failures = int(s.get("failures", "0") or 0)
+                  errors = int(s.get("errors", "0") or 0)
+                  skipped = int(s.get("skipped", "0") or 0)
+                  tests = int(s.get("tests", "0") or 0)
+                  rows.append((name, f, t, tests, failures, errors, skipped))
+
+          total = sum(r[2] for r in rows)
+          print(f"Parsed {len(files)} XML files, {len(rows)} suites, total time {total:.2f}s "
+                f"(budget {total_budget:.0f}s, class budget {class_budget:.0f}s)")
+
+          lines = ["| Suite | Time (s) | Tests | Failures | Errors | Skipped |",
+                   "| --- | ---: | ---: | ---: | ---: | ---: |"]
+          for name, f, t, tests, failures, errors, skipped in sorted(rows, key=lambda r: -r[2]):
+              flag = " ❌" if t > class_budget else ""
+              lines.append(f"| `{name}` | {t:.2f}{flag} | {tests} | {failures} | {errors} | {skipped} |")
+          lines.append(f"| **TOTAL** | **{total:.2f}** |  |  |  |  |")
+          summary = "\n".join(lines) + "\n"
+          with open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as fh:
+              fh.write("## Perf budget report\n\n" + summary)
+          print(summary)
+
+          failed = False
+          for name, f, t, *_ in rows:
+              if t > class_budget:
+                  print(f"::error::Perf budget breached: class `{name}` took {t:.2f}s > {class_budget:.0f}s ({f})")
+                  failed = True
+          if total > total_budget:
+              print(f"::error::Perf budget breached: total suite {total:.2f}s > {total_budget:.0f}s")
+              failed = True
+          if failed:
+              raise SystemExit(1)
+          print("Perf budgets OK.")
+          PY

@@ -59,10 +59,27 @@ class EmulationLoop(
 
     /**
      * Starts the background emulation loop thread.
+     * If a previous worker is still alive (e.g. a stuck native frame outlived
+     * [stop]), it is joined first so two steppers can never run concurrently.
      */
     fun start() {
         lock.withLock {
             if (isRunning) return
+            workerThread?.let { stale ->
+                if (stale.isAlive) {
+                    // Best effort: do not hold the loop lock while joining.
+                    lock.unlock()
+                    try {
+                        stale.join(2000)
+                    } catch (_: InterruptedException) {
+                        Thread.currentThread().interrupt()
+                    } finally {
+                        lock.lock()
+                    }
+                    if (stale.isAlive) return
+                }
+                workerThread = null
+            }
             isRunning = true
             isPaused = false
             workerThread = Thread(this, "RetroPack-EmulationThread").apply {
@@ -95,20 +112,42 @@ class EmulationLoop(
 
     /**
      * Halts the emulation loop and joins the worker thread.
+     * Escalates from interrupt to a bounded second join instead of dropping
+     * the handle after 500ms (which leaked stuck workers and allowed a second
+     * stepper on restart). The handle is cleared only once the thread is dead;
+     * otherwise it is retained so a later [start] can join it first.
      */
     fun stop() {
+        val worker: Thread?
         lock.withLock {
             isRunning = false
             isPaused = false
             pauseCondition.signalAll()
+            worker = workerThread
         }
-        workerThread?.interrupt()
+        worker?.interrupt()
         try {
-            workerThread?.join(500)
+            worker?.join(2000)
         } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         }
-        workerThread = null
+        if (worker == null) return
+        if (worker.isAlive) {
+            // Native frame still holding out: interrupt once more and wait.
+            worker.interrupt()
+            try {
+                worker.join(2000)
+            } catch (_: InterruptedException) {
+                Thread.currentThread().interrupt()
+            }
+        }
+        lock.withLock {
+            if (workerThread === worker && !worker.isAlive) {
+                workerThread = null
+            }
+            // Otherwise: a stuck worker keeps its handle so start() joins it
+            // first, and a concurrently started worker is left alone.
+        }
     }
 
     override fun run() {

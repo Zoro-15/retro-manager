@@ -86,6 +86,21 @@ object NativeCore {
     external fun nativeGetAudioSamples(outSamples: ShortArray, maxSamples: Int): Int
 
     /**
+     * Returns the number of samples currently buffered for playback without
+     * draining. Lets the drift controller evaluate true ringbuffer occupancy
+     * instead of the drained batch size (issue #13). Returns 0 when native
+     * is unavailable; callers must fall back to the drained count.
+     */
+    external fun nativeGetAudioAvailable(): Int
+
+    /**
+     * Returns the active frame dimensions as int[width, height], or null when
+     * no ROM is loaded, so the GL renderer syncs instead of assuming 240x160
+     * for GB/GBC titles (issue #13).
+     */
+    external fun nativeGetVideoSize(): IntArray?
+
+    /**
      * Returns the size in bytes of the cartridge battery SRAM/Flash/EEPROM save area.
      *
      * @return Non-negative byte count, or 0 if the cartridge has no battery backup.
