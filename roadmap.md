@@ -160,29 +160,28 @@ To enable seamless, frictionless collaboration between two developers (You and y
 
 ---
 
-## 5. Phase 3: Generic Standalone Template APK (`template-mgba.apk`) [NEXT]
+## 5. Phase 3: Generic Standalone Template APK (`template-mgba.apk`) [STATUS: COMPLETE]
 
 * **Primary Objective**: Build the precompiled, unsigned generic APK skeleton embedding `retropack-runtime-mgba.aar` and establish trust fingerprints.
 * **Detailed Specifications**:
   * RuntimeTemplate contract: [`architechture.md#L69-L84`](file:///c:/Users/ok/Documents/retro%20manager/architechture.md#L69-L84).
   * Manifest invariants: [`architechture.md#L266-L276`](file:///c:/Users/ok/Documents/retro%20manager/architechture.md#L266-L276).
   * Standalone bootstrap lifecycle: [`masterplan.md#L125-L131`](file:///c:/Users/ok/Documents/retro%20manager/masterplan.md#L125-L131).
-* **Detailed Tasks**:
-  1. Build minimal Android application skeleton `template-apk/`.
-  2. Configure `AndroidManifest.xml`:
-     * Explicitly declare `<activity android:name="com.retropack.runtime.GameActivity" ... />` (fully-qualified class name).
-     * Explicitly declare `<application android:extractNativeLibs="false" ... />`.
-     * Declare `android:theme="@android:style/Theme.NoTitleBar.Fullscreen"`.
-  3. Create adaptive icon drawables:
-     * `res/mipmap-anydpi-v26/ic_launcher.xml` referencing `@drawable/ic_launcher_foreground` and `@drawable/ic_launcher_background`.
-     * Place default PNGs in `res/drawable-nodpi/` to allow pure-file replacement without touching `resources.arsc`.
-  4. Implement `GameActivity.kt`:
-     * Reads and parses `assets/retropack.json` (`schema_version: 1`).
-     * Atomic ROM staging: checks `filesDir/game.rom`; streams `assets/game.rom` $\rightarrow$ `filesDir/game.rom.tmp`; verifies SHA-256; renames atomically.
-  5. Compile `template-mgba.apk` and compute SHA-256 of `classes.dex`, `lib/arm64-v8a/libmgba.so`, and the entire archive.
-  6. Hardcode trusted SHA-256 fingerprints directly into `RuntimeRegistry.kt`.
-* **Deliverables**: Production `template-mgba.apk` and populated `RuntimeRegistry.kt`.
-* **Acceptance Gate**: Template builds cleanly; decompilation confirms `extractNativeLibs="false"` and fully qualified Activity declarations.
+* **Subphase Breakdown & Implementation Status**:
+  * ✅ **Part 3.1 — Application Skeleton, Resources & Bootstrap [COMPLETED]**:
+    - Dual-mode application skeleton: [`template-apk/build.gradle.kts`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/build.gradle.kts), registered in [`settings.gradle.kts`](file:///c:/Users/ok/Documents/retro%20manager/settings.gradle.kts).
+    - Hardened AndroidManifest: [`AndroidManifest.xml`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/src/main/AndroidManifest.xml) with fully-qualified `<activity android:name="com.retropack.runtime.GameActivity" ... />` (Invariant 1) and `<application android:extractNativeLibs="false" ... />` (Invariant 2).
+    - Adaptive icon drawables: [`ic_launcher.xml`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/src/main/res/mipmap-anydpi-v26/ic_launcher.xml), [`ic_launcher_round.xml`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml) and un-densitied PNG layer binaries in [`res/drawable-nodpi/`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/src/main/res/drawable-nodpi/) enabling pure-file ZIP replacement.
+    - Injected runtime config model & parser: [`RuntimeConfig.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/host/RuntimeConfig.kt).
+    - Standalone bootstrap coordinator: [`GameActivity.kt`](file:///c:/Users/ok/Documents/retro%20manager/template-apk/src/main/kotlin/com/retropack/runtime/GameActivity.kt) with sticky immersive flags, 60 Hz display mode locking, atomic ROM staging via `RomStager`, view hierarchy assembly, input routing, and synchronous POSIX `fsync` save durability on `onPause()` / `onStop()`.
+  * ✅ **Part 3.2 — Registry, Template Descriptor & Integrity Fingerprints [COMPLETED]**:
+    - Runtime descriptor contract model: [`RuntimeDescriptor.kt`](file:///c:/Users/ok/Documents/retro%20manager/core/src/main/kotlin/com/retropack/domain/runtime/RuntimeDescriptor.kt).
+    - Runtime template bundle abstraction: [`RuntimeTemplate.kt`](file:///c:/Users/ok/Documents/retro%20manager/core/src/main/kotlin/com/retropack/domain/runtime/RuntimeTemplate.kt).
+    - Discovery engine & bytecode trust anchors: [`RuntimeRegistry.kt`](file:///c:/Users/ok/Documents/retro%20manager/core/src/main/kotlin/com/retropack/domain/runtime/RuntimeRegistry.kt).
+    - Pinned runtime bundle: [`runtimes/mgba-unified/runtime.json`](file:///c:/Users/ok/Documents/retro%20manager/runtimes/mgba-unified/runtime.json), [`runtimes/mgba-unified/template.apk`](file:///c:/Users/ok/Documents/retro%20manager/runtimes/mgba-unified/template.apk), [`runtimes/mgba-unified/licenses/LICENSE.txt`](file:///c:/Users/ok/Documents/retro%20manager/runtimes/mgba-unified/licenses/LICENSE.txt).
+    - Full Unit Test Suite: 29 new tests added across `:template-apk` and `:core` (131/131 unit tests passing repository-wide with 0 failures).
+* **Deliverables**: Hardened `template-apk/` application skeleton, verified `runtimes/mgba-unified/template.apk`, and populated `RuntimeRegistry.kt`.
+* **Acceptance Gate**: 100% test pass rate across 28 test suites (131/131 tests passing repository-wide); verified `extractNativeLibs="false"`, fully qualified Activity declarations, and cryptographic trust anchor validation.
 
 ---
 

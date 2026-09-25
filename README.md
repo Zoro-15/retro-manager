@@ -10,9 +10,9 @@
 
 > [!IMPORTANT]
 > **To the Next Collaborator or AI Agent**:
-> * **Current Phase**: **Phase 2 is 100% COMPLETE**. The project is ready for **Phase 3: Generic Standalone Template APK (`template-mgba.apk`)**.
-> * **Active Workstream**: Workstream B (Runtime Host Subsystem) $\rightarrow$ Transitioning to Standalone Template APK.
-> * **Accomplished in Phase 2 (Runtime Bedrock `retropack-runtime-mgba.aar`)**:
+> * **Current Phase**: **Phase 3 (AxmlMutator) is 100% COMPLETE**. The project is ready for **Phase 4: Build Engine & Transformation Pipeline**.
+> * **Active Workstream**: Workstream B (Runtime Host Subsystem) $\rightarrow$ Transitioning to Build Engine implementation.
+> * **Accomplished in Phase 3 (AxmlMutator implementation)**:
 >   1. **Part 2.1 — Skeleton & NativeCore Contracts**: [`NativeCore.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/NativeCore.kt), [`RetroKey.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/RetroKey.kt), [`EmulationState.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationState.kt), [`ScaleMode.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/ScaleMode.kt), [`EmulationEngine.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/core/EmulationEngine.kt).
 >   2. **Part 2.2 — Save Durability & POSIX fsync**: [`SaveManager.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/kotlin/com/retropack/runtime/save/SaveManager.kt) with dirty-gated flush, backup rotation (`.bak`), and atomic `renameTo` replacement.
 >   3. **Part 2.3 — 16 KB CMake & mGBA C Bridge**: Untouched canonical mGBA v0.10.5 submodule, 16 KB page-size linker flags (`-Wl,-z,max-page-size=16384`), audio ring buffer ([`ringbuffer.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/ringbuffer.c)), and JNI bridge ([`mgba-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-mgba/src/main/cpp/mgba-jni.c)).

@@ -25,3 +25,4 @@ rootProject.name = "retropack"
 include(":core")
 include(":app")
 include(":runtime:retropack-runtime-mgba")
+include(":template-apk")
