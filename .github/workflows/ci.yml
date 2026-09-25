@@ -32,8 +32,17 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Run Multi-Module Test Suite
-        run: ./gradlew :core:test :runtime:retropack-runtime-mgba:test :template-apk:test :app:test --continue --stacktrace
+      - name: Core Module Unit & Conformance Tests
+        run: ./gradlew :core:test --info --stacktrace
+
+      - name: Runtime Bedrock Tests
+        run: ./gradlew :runtime:retropack-runtime-mgba:test --info --stacktrace
+
+      - name: Template APK Invariant Tests
+        run: ./gradlew :template-apk:test --info --stacktrace
+
+      - name: Manager App UI & ViewModel Tests
+        run: ./gradlew :app:test --info --stacktrace
 
       - name: Upload Test Results & Reports
         if: always()
