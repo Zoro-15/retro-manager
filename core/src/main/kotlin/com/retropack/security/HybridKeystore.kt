@@ -8,6 +8,7 @@ import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.security.spec.ECGenParameterSpec
+import java.util.UUID
 
 enum class KeyType {
     RSA_2048,
@@ -69,12 +70,16 @@ object HybridKeystore {
         val encryptedPayload = masterProvider.encrypt(serializedBytes)
         val payloadBytes = encryptedPayload.toBytes()
 
-        val parentDir = targetFile.parentFile
+        val parentDir = targetFile.parentFile ?: targetFile.absoluteFile.parentFile
         if (parentDir != null && !parentDir.exists()) {
             parentDir.mkdirs()
         }
 
-        val tmpFile = File(parentDir, "${targetFile.name}.${System.currentTimeMillis()}.tmp")
+        val tmpFile = if (parentDir != null) {
+            File(parentDir, "${targetFile.name}.${UUID.randomUUID()}.tmp")
+        } else {
+            File("${targetFile.name}.${UUID.randomUUID()}.tmp")
+        }
         tmpFile.outputStream().use { fos ->
             fos.write(payloadBytes)
             fos.flush()

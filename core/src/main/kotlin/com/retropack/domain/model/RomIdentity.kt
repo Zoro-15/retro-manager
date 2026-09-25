@@ -47,14 +47,21 @@ data class RomIdentity(
     /**
      * Generates a deterministic package name according to architechture.md:
      * com.retropack.game.<slug>_<hash10>
+     * slug = lowercase ASCII [a-z0-9], max 16 chars, prefixed with g_ if it
+     * would otherwise start with a digit (Android package segments must start
+     * with a letter).
      */
     fun derivePackageName(customSlug: String? = null): String {
-        val slug = (customSlug ?: gameTitle)
+        var slug = (customSlug ?: gameTitle)
             .lowercase()
             .replace(Regex("[^a-z0-9]"), "")
-            .take(20)
+            .take(16)
             .ifBlank { "game" }
+        if (slug.first().isDigit()) {
+            slug = "g_$slug"
+        }
         val hash10 = checksums.sha256.take(10)
+        require(hash10.length == 10) { "SHA-256 checksum must provide 10 hex chars for package name" }
         return "com.retropack.game.${slug}_${hash10}"
     }
 }
