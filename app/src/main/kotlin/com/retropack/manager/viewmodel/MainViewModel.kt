@@ -18,7 +18,10 @@ import com.retropack.domain.model.StoragePayload
 import com.retropack.domain.model.TouchControlsSettings
 import com.retropack.domain.model.VideoSettings
 import com.retropack.domain.rom.RomParser
+import com.retropack.domain.runtime.RuntimeProvisionResult
+import com.retropack.domain.runtime.RuntimeProvisioner
 import com.retropack.domain.runtime.RuntimeRegistry
+import com.retropack.manager.runtime.AndroidAssetSource
 import com.retropack.packaging.BuildEngine
 import com.retropack.security.AesGcmMasterKeyProvider
 import com.retropack.security.HybridKeystore
@@ -386,7 +389,7 @@ class MainViewModel : ViewModel() {
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
-                    ensureRuntimesLoaded(context)
+                    ensureRuntimesLoaded(context) { line -> appendLog(line) }
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -481,31 +484,52 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun ensureRuntimesLoaded(context: Context) {
-        try {
-            val targetRuntimesDir = File(context.filesDir, "runtimes").also { it.mkdirs() }
-            val assetManager = context.assets
-            val assetList = assetManager.list("") ?: emptyArray()
+    /**
+     * Provisions the pinned runtime bundle (assets -> filesDir) and registers it
+     * in RuntimeRegistry. Failures are REPORTED through [appendLog] — never
+     * silently swallowed — so the terminal sheet shows the true root cause
+     * (missing bundle asset, stale trust anchor, corrupt descriptor) BEFORE
+     * the pipeline records its Stage 2 failure.
+     *
+     * Returns true when a usable template is registered.
+     */
+    private fun ensureRuntimesLoaded(context: Context, appendLog: (String) -> Unit): Boolean {
+        val assets = try {
+            context.assets
+        } catch (_: Throwable) {
+            null
+        }
+        if (assets == null) {
+            appendLog("[i] Runtime provisioning skipped: asset manager unavailable (headless/unit-test environment)")
+            return false
+        }
 
-            if (assetList.contains("mgba-unified") || assetManager.list("mgba-unified")?.isNotEmpty() == true) {
-                val mgbaTarget = File(targetRuntimesDir, "mgba-unified").also { it.mkdirs() }
-                val files = assetManager.list("mgba-unified") ?: emptyArray()
-                for (f in files) {
-                    val outFile = File(mgbaTarget, f)
-                    if (!outFile.exists() || outFile.length() == 0L) {
-                        assetManager.open("mgba-unified/$f").use { input ->
-                            outFile.outputStream().use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                    }
-                }
-                if (File(mgbaTarget, "runtime.json").exists() && File(mgbaTarget, "template.apk").exists()) {
-                    RuntimeRegistry.loadFromDirectory(mgbaTarget)
-                }
+        val targetRuntimesDir = File(context.filesDir, RuntimeProvisioner.BUNDLE_ROOT_DIRNAME)
+        val outcome = RuntimeProvisioner.provision(
+            targetRoot = targetRuntimesDir,
+            source = AndroidAssetSource(assets),
+            log = appendLog
+        )
+        return when (outcome) {
+            is RuntimeProvisionResult.Provisioned -> {
+                appendLog(
+                    "[✓] Runtime template ready: ${outcome.template.templateApk.name} " +
+                        "(${outcome.template.templateApk.length()} bytes)"
+                )
+                true
             }
-        } catch (_: Exception) {
-            // Ignored in headless/unit-test environments
+            is RuntimeProvisionResult.MissingTemplate -> {
+                appendLog("[✗] Runtime template MISSING: ${outcome.guidance}")
+                false
+            }
+            is RuntimeProvisionResult.IntegrityMismatch -> {
+                appendLog("[✗] Runtime template INTEGRITY FAILURE: ${outcome.details}")
+                false
+            }
+            is RuntimeProvisionResult.ExtractionFailure -> {
+                appendLog("[✗] Runtime bundle provisioning failed: ${outcome.cause}")
+                false
+            }
         }
     }
 
