@@ -37,8 +37,8 @@ jobs:
         run: chmod +x gradlew
 
       # Pure Kotlin/JVM path: test stubs without Android SDK markers
-      - name: Run JVM tests across all modules
-        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test :template-apk:test :app:test --no-daemon --stacktrace
+      - name: Run JVM tests
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 
   android-build:
     name: Android APK/AAR Build
@@ -88,6 +88,9 @@ jobs:
 
       - name: Init mGBA submodule
         run: git submodule update --init --recursive
+
+      - name: Run Android Module Tests
+        run: ./gradlew :template-apk:test :app:test --stacktrace
 
       - name: Assemble runtime AAR (NDK/CMake/mGBA compile gate)
         run: ./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace

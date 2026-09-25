@@ -99,8 +99,8 @@ jobs:
 
       # Pure Kotlin/JVM path: the unit tests are authored against the
       # src/stub/java doubles, which only compile in the hasAndroidSdk==false java-library variant.
-      - name: Run runtime & app unit tests (JVM stub variant)
-        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test :template-apk:test :app:test --no-daemon --stacktrace
+      - name: Run runtime unit tests (JVM stub variant)
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-mgba:test --no-daemon --stacktrace
 
       - name: Upload JUnit XML results (runtime)
         if: always()
@@ -109,8 +109,6 @@ jobs:
           name: junit-runtime
           path: |
             runtime/retropack-runtime-mgba/build/test-results/test/*.xml
-            template-apk/build/test-results/test/*.xml
-            app/build/test-results/test/*.xml
           if-no-files-found: error
           retention-days: 30
 
@@ -121,8 +119,6 @@ jobs:
           name: test-reports-runtime
           path: |
             runtime/retropack-runtime-mgba/build/reports/tests
-            template-apk/build/reports/tests
-            app/build/reports/tests
           if-no-files-found: warn
           retention-days: 30
 
