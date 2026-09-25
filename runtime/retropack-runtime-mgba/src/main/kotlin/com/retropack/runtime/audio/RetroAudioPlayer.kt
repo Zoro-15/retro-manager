@@ -100,13 +100,28 @@ class RetroAudioPlayer(
             Arrays.fill(scratchBuffer, 0, pulled, 0.toShort())
         }
 
-        val decision = driftController.evaluate(pulled)
+        // Evaluate against true ringbuffer occupancy, not the drained batch:
+        // the batch size (~1470) can never trip the watermark thresholds, so
+        // latency grew unbounded while the controller reported healthy.
+        // Falls back to the drained count when native is unavailable (tests).
+        val occupancy = try {
+            NativeCore.nativeGetAudioAvailable()
+        } catch (_: UnsatisfiedLinkError) {
+            pulled
+        }
+        val decision = driftController.evaluate(if (occupancy >= 0) occupancy else pulled)
         val samplesToWrite = when (decision.action) {
             AudioDriftController.DriftAction.PASS_THROUGH -> pulled
             AudioDriftController.DriftAction.DROP_EXCESS -> decision.adjustedSampleCount.coerceAtMost(pulled)
         }
 
-        return sink.write(scratchBuffer, 0, samplesToWrite)
+        val written = sink.write(scratchBuffer, 0, samplesToWrite)
+        if (written < samplesToWrite) {
+            // Dead/full sink (e.g. AudioTrack init failed and writes return 0):
+            // record it instead of silently discarding drained samples.
+            driftController.recordUnderrun()
+        }
+        return written
     }
 
     private fun applyVolume() {

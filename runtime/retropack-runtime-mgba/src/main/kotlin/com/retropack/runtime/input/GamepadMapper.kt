@@ -49,10 +49,11 @@ class GamepadMapper(
             map[KeyEvent.KEYCODE_DPAD_RIGHT] = RetroKey.RIGHT
 
             // Hardware Keyboard Fallback Controls
+            // NOTE: KEYCODE_DEL is deliberately unmapped — consuming system
+            // back/backspace as SELECT breaks UI navigation (issue #14).
             map[KeyEvent.KEYCODE_X] = RetroKey.A
             map[KeyEvent.KEYCODE_Z] = RetroKey.B
             map[KeyEvent.KEYCODE_ENTER] = RetroKey.START
-            map[KeyEvent.KEYCODE_DEL] = RetroKey.SELECT
             map[KeyEvent.KEYCODE_SPACE] = RetroKey.SELECT
 
             return map
@@ -86,8 +87,14 @@ class GamepadMapper(
     @Volatile
     private var axisMask: Int = RetroKey.NO_KEYS_MASK
 
+    // Single guard for read-modify-write composites: without it a key event
+    // racing a motion event could interleave into a torn mask (issue #14).
+    private val maskLock = Any()
+
     val currentKeyMask: Int
-        get() = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+        get() = synchronized(maskLock) {
+            (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+        }
 
     /**
      * Processes Android [KeyEvent] input (e.g. from Bluetooth/USB controller or keyboard).
@@ -102,18 +109,20 @@ class GamepadMapper(
             onGamepadDetected?.invoke()
         }
 
-        val oldMask = currentKeyMask
-        val newButtonMask = when (event.action) {
-            KeyEvent.ACTION_DOWN -> buttonMask or retroKey.mask
-            KeyEvent.ACTION_UP -> buttonMask and retroKey.mask.inv()
-            else -> buttonMask
-        }
+        synchronized(maskLock) {
+            val oldMask = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+            val newButtonMask = when (event.action) {
+                KeyEvent.ACTION_DOWN -> buttonMask or retroKey.mask
+                KeyEvent.ACTION_UP -> buttonMask and retroKey.mask.inv()
+                else -> buttonMask
+            }
 
-        if (newButtonMask != buttonMask) {
-            buttonMask = newButtonMask
-            val newComposite = currentKeyMask
-            if (newComposite != oldMask) {
-                onKeyMaskChanged?.invoke(newComposite)
+            if (newButtonMask != buttonMask) {
+                buttonMask = newButtonMask
+                val newComposite = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+                if (newComposite != oldMask) {
+                    onKeyMaskChanged?.invoke(newComposite)
+                }
             }
         }
 
@@ -161,14 +170,16 @@ class GamepadMapper(
             onGamepadDetected?.invoke()
         }
 
-        val oldMask = currentKeyMask
-        if (newAxisMask != axisMask) {
-            axisMask = newAxisMask
-            val newComposite = currentKeyMask
-            if (newComposite != oldMask) {
-                onKeyMaskChanged?.invoke(newComposite)
+        synchronized(maskLock) {
+            val oldMask = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+            if (newAxisMask != axisMask) {
+                axisMask = newAxisMask
+                val newComposite = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+                if (newComposite != oldMask) {
+                    onKeyMaskChanged?.invoke(newComposite)
+                }
+                return true
             }
-            return true
         }
 
         return newAxisMask != RetroKey.NO_KEYS_MASK
@@ -178,11 +189,13 @@ class GamepadMapper(
      * Resets all pressed button and axis states to neutral.
      */
     fun reset() {
-        val oldMask = currentKeyMask
-        buttonMask = RetroKey.NO_KEYS_MASK
-        axisMask = RetroKey.NO_KEYS_MASK
-        if (oldMask != RetroKey.NO_KEYS_MASK) {
-            onKeyMaskChanged?.invoke(RetroKey.NO_KEYS_MASK)
+        synchronized(maskLock) {
+            val oldMask = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
+            buttonMask = RetroKey.NO_KEYS_MASK
+            axisMask = RetroKey.NO_KEYS_MASK
+            if (oldMask != RetroKey.NO_KEYS_MASK) {
+                onKeyMaskChanged?.invoke(RetroKey.NO_KEYS_MASK)
+            }
         }
     }
 }

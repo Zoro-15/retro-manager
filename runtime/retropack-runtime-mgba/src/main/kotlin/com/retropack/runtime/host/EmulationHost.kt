@@ -55,7 +55,9 @@ class EmulationHost(
         saveFile: File? = null
     ): Boolean {
         require(romFile.exists()) { "ROM file does not exist: ${romFile.absolutePath}" }
-        internalStorageDir.mkdirs()
+        if (!internalStorageDir.exists() && !internalStorageDir.mkdirs()) {
+            return false
+        }
 
         if (!engine.initialize(internalStorageDir.absolutePath)) {
             return false
@@ -65,11 +67,22 @@ class EmulationHost(
             return false
         }
 
+        // Sync GL dimensions from the core: GB/GBC frames are 160x144, not
+        // the renderer's 240x160 default (issue #13). Best effort — failures
+        // keep the default rather than failing the load.
+        try {
+            val dims = com.retropack.runtime.core.NativeCore.nativeGetVideoSize()
+            if (dims != null && dims.size == 2 && dims[0] > 0 && dims[1] > 0) {
+                renderer?.setNativeDimensions(dims[0], dims[1])
+            }
+        } catch (_: UnsatisfiedLinkError) {
+        }
+
         if (saveFile != null) {
             val sm = SaveManager(saveFile = saveFile)
-            if (saveFile.exists() && saveFile.length() > 0L) {
-                sm.restoreToSram()
-            }
+            // Always restore through the manager: it falls back to .bak when
+            // the primary is missing (issue #14), instead of orphaning it.
+            sm.restoreToSram()
             this.saveManager = sm
         }
 

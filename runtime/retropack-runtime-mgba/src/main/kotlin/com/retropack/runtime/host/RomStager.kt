@@ -16,6 +16,9 @@ import java.security.MessageDigest
 object RomStager {
 
     private const val BUFFER_SIZE = 8192
+    const val MAX_ROM_SIZE_BYTES: Long = 64L * 1024L * 1024L
+
+    private val HEX_CHARS = "0123456789abcdef".toCharArray()
 
     /**
      * Checks if the ROM is already staged at [destination] and optionally validates its SHA-256 checksum.
@@ -49,15 +52,28 @@ object RomStager {
         expectedSha256: String? = null
     ): Boolean {
         destination.parentFile?.mkdirs()
-        val tempFile = File(destination.parentFile, "${destination.name}.tmp")
+        // Null-safe sibling (CWD-relative destinations) + resume: a stale .tmp
+        // from a killed prior stage must not linger or be mistaken for data.
+        val parentDir = destination.parentFile ?: destination.absoluteFile.parentFile
+        val tempFile = if (parentDir != null) File(parentDir, "${destination.name}.tmp")
+                       else File("${destination.name}.tmp")
+        if (tempFile.exists()) {
+            tempFile.delete()
+        }
 
         try {
             val digest = MessageDigest.getInstance("SHA-256")
             val buffer = ByteArray(BUFFER_SIZE)
+            var totalBytes = 0L
 
             FileOutputStream(tempFile).use { fos ->
                 var bytesRead: Int
                 while (sourceStream.read(buffer).also { bytesRead = it } != -1) {
+                    totalBytes += bytesRead
+                    if (totalBytes > MAX_ROM_SIZE_BYTES) {
+                        tempFile.delete()
+                        return false
+                    }
                     fos.write(buffer, 0, bytesRead)
                     digest.update(buffer, 0, bytesRead)
                 }
@@ -71,14 +87,19 @@ object RomStager {
                 return false
             }
 
-            // Atomic filesystem rename
-            if (destination.exists()) {
-                destination.delete()
-            }
+            // Atomic rename OVER the destination (no pre-delete: a crash
+            // between delete and rename used to lose both files). Falls back
+            // to copy+fsync+delete across filesystems.
             val renamed = tempFile.renameTo(destination)
             if (!renamed) {
-                tempFile.delete()
-                return false
+                try {
+                    tempFile.copyTo(destination, overwrite = true)
+                    FileOutputStream(destination, true).use { it.fd.sync() }
+                    tempFile.delete()
+                } catch (_: IOException) {
+                    tempFile.delete()
+                    return false
+                }
             }
             return true
         } catch (_: IOException) {
@@ -102,10 +123,12 @@ object RomStager {
     }
 
     private fun bytesToHex(bytes: ByteArray): String {
-        val sb = StringBuilder(bytes.size * 2)
-        for (b in bytes) {
-            sb.append(String.format("%02x", b.toInt() and 0xFF))
+        val chars = CharArray(bytes.size * 2)
+        for (i in bytes.indices) {
+            val v = bytes[i].toInt() and 0xFF
+            chars[i * 2] = HEX_CHARS[v ushr 4]
+            chars[i * 2 + 1] = HEX_CHARS[v and 0x0F]
         }
-        return sb.toString()
+        return String(chars)
     }
 }

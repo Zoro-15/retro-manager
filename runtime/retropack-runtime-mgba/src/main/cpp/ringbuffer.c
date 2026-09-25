@@ -71,10 +71,18 @@ size_t ringbuffer_write(RingBuffer* rb, const int16_t* data, size_t count) {
         rb->size -= overflow;
     }
 
-    for (size_t i = 0; i < count; ++i) {
-        rb->data[rb->head] = data[i];
-        rb->head = (rb->head + 1) % rb->capacity;
+    // Bulk copy with at most one wrap split instead of per-sample modulo
+    // (issue #12: 44.1kHz stereo paid a division per sample).
+    size_t first = rb->capacity - rb->head;
+    if (first > count) {
+        first = count;
     }
+    memcpy(rb->data + rb->head, data, first * sizeof(int16_t));
+    size_t second = count - first;
+    if (second > 0) {
+        memcpy(rb->data, data + first, second * sizeof(int16_t));
+    }
+    rb->head = (rb->head + count) % rb->capacity;
     rb->size += count;
 
     pthread_mutex_unlock(&rb->lock);
@@ -88,10 +96,16 @@ size_t ringbuffer_read(RingBuffer* rb, int16_t* out_data, size_t max_count) {
     pthread_mutex_lock(&rb->lock);
 
     size_t to_read = (max_count < rb->size) ? max_count : rb->size;
-    for (size_t i = 0; i < to_read; ++i) {
-        out_data[i] = rb->data[rb->tail];
-        rb->tail = (rb->tail + 1) % rb->capacity;
+    size_t first = rb->capacity - rb->tail;
+    if (first > to_read) {
+        first = to_read;
     }
+    memcpy(out_data, rb->data + rb->tail, first * sizeof(int16_t));
+    size_t second = to_read - first;
+    if (second > 0) {
+        memcpy(out_data + first, rb->data, second * sizeof(int16_t));
+    }
+    rb->tail = (rb->tail + to_read) % rb->capacity;
     rb->size -= to_read;
 
     pthread_mutex_unlock(&rb->lock);
