@@ -8,6 +8,17 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
+// Pin Kotlin JVM target to match the Java target above. Without this, the Kotlin
+// compiler defaults to the host JDK's bytecode version (e.g. 21), which breaks
+// `:core:compileKotlin` on any machine running Gradle with a JDK newer than 17:
+//   "Inconsistent JVM-target compatibility detected for tasks 'compileJava' (17)
+//    and 'compileKotlin' (21)."
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
     // Packaging & Transformation Stack
     api("io.github.reandroid:ARSCLib:1.3.1")

@@ -60,6 +60,14 @@ if (hasAndroidSdk) {
         }
     }
 
+    // Pin Kotlin JVM target to the Java target so host-JDK version (17/21+) never
+    // causes "Inconsistent JVM-target compatibility" failures in JVM-only mode.
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }
