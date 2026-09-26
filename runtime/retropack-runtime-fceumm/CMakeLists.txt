@@ -17,11 +17,6 @@ set(FCEUMM_SRCS
 if(EXISTS "${FCEUMM_SOURCE_DIR}/src/fceu.h" OR EXISTS "${FCEUMM_SOURCE_DIR}/fceu.h" OR EXISTS "${FCEUMM_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream FCEUmm submodule at ${FCEUMM_SOURCE_DIR}")
     add_definitions(-DHAVE_FCEUMM_CORE=1)
-    
-    if(EXISTS "${FCEUMM_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${FCEUMM_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/fceumm" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-fceumm SHARED

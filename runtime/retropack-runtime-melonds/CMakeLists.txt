@@ -17,15 +17,6 @@ set(MELONDS_SRCS
 if(EXISTS "${MELONDS_SOURCE_DIR}/src/NDS.cpp" OR EXISTS "${MELONDS_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream melonDS submodule at ${MELONDS_SOURCE_DIR}")
     add_definitions(-DHAVE_MELONDS_CORE=1)
-    
-    # Add melonDS sources or submodule
-    if(EXISTS "${MELONDS_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        set(ENABLE_QT OFF CACHE BOOL "Disable Qt" FORCE)
-        set(ENABLE_SDL OFF CACHE BOOL "Disable SDL" FORCE)
-        set(BUILD_STATIC ON CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${MELONDS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/melonds" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-melonds SHARED

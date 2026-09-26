@@ -18,11 +18,6 @@ if(EXISTS "${PCSX_SOURCE_DIR}/libpcsxcore/psxcommon.h" OR EXISTS "${PCSX_SOURCE_
     message(STATUS "Found upstream PCSX ReARMed submodule at ${PCSX_SOURCE_DIR}")
     add_definitions(-DHAVE_PCSX_CORE=1)
     add_definitions(-DUSE_LIBRETRO_VFS=1)
-    
-    if(EXISTS "${PCSX_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${PCSX_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/pcsx_rearmed" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-pcsx SHARED

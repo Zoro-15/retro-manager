@@ -17,11 +17,6 @@ set(PCE_SRCS
 if(EXISTS "${PCE_SOURCE_DIR}/mednafen/pce_fast/pce.h" OR EXISTS "${PCE_SOURCE_DIR}/pce.h" OR EXISTS "${PCE_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream Beetle PCE Fast submodule at ${PCE_SOURCE_DIR}")
     add_definitions(-DHAVE_BEETLE_PCE_CORE=1)
-    
-    if(EXISTS "${PCE_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${PCE_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/beetle-pce-fast" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-pce SHARED

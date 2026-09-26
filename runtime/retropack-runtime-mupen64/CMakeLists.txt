@@ -17,11 +17,6 @@ set(MUPEN_SRCS
 if(EXISTS "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/api/m64p_types.h" OR EXISTS "${MUPEN_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream Mupen64Plus submodule at ${MUPEN_SOURCE_DIR}")
     add_definitions(-DHAVE_MUPEN64_CORE=1)
-    
-    if(EXISTS "${MUPEN_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${MUPEN_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/mupen64plus-next" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-mupen64 SHARED

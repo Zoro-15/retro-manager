@@ -17,11 +17,6 @@ set(GENESIS_SRCS
 if(EXISTS "${GENESIS_SOURCE_DIR}/shared.h" OR EXISTS "${GENESIS_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream Genesis Plus GX submodule at ${GENESIS_SOURCE_DIR}")
     add_definitions(-DHAVE_GENESIS_CORE=1)
-    
-    if(EXISTS "${GENESIS_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${GENESIS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/genesis" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-genesis SHARED

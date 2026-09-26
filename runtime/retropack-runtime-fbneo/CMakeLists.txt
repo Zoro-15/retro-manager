@@ -17,11 +17,6 @@ set(FBNEO_SRCS
 if(EXISTS "${FBNEO_SOURCE_DIR}/src/burner/burner.h" OR EXISTS "${FBNEO_SOURCE_DIR}/CMakeLists.txt" OR EXISTS "${FBNEO_SOURCE_DIR}/makefile-libretro")
     message(STATUS "Found upstream FBNeo submodule at ${FBNEO_SOURCE_DIR}")
     add_definitions(-DHAVE_FBNEO_CORE=1)
-    
-    if(EXISTS "${FBNEO_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${FBNEO_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/fbneo" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-fbneo SHARED

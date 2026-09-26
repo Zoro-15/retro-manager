@@ -110,7 +110,7 @@ static void init_jni_cache(JNIEnv* env) {
             jobject order_local = (*env)->CallStaticObjectMethod(env, bo_class, bo_native);
             if (order_local) {
                 g_fceu.byte_order_native = (*env)->NewGlobalRef(env, order_local);
-                (*env)->DeleteLocalRef(order_local);
+                (*env)->DeleteLocalRef(env, order_local);
             }
         }
         (*env)->DeleteLocalRef(env, bo_class);

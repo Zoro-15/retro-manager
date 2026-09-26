@@ -17,11 +17,6 @@ set(PPSSPP_SRCS
 if(EXISTS "${PPSSPP_SOURCE_DIR}/Core/System.h" OR EXISTS "${PPSSPP_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream PPSSPP submodule at ${PPSSPP_SOURCE_DIR}")
     add_definitions(-DHAVE_PPSSPP_CORE=1)
-    
-    if(EXISTS "${PPSSPP_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${PPSSPP_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/ppsspp" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-ppsspp SHARED

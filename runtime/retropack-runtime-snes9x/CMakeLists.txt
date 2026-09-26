@@ -17,11 +17,6 @@ set(SNES9X_SRCS
 if(EXISTS "${SNES9X_SOURCE_DIR}/snes9x.h" OR EXISTS "${SNES9X_SOURCE_DIR}/CMakeLists.txt")
     message(STATUS "Found upstream Snes9x submodule at ${SNES9X_SOURCE_DIR}")
     add_definitions(-DHAVE_SNES9X_CORE=1)
-    
-    if(EXISTS "${SNES9X_SOURCE_DIR}/CMakeLists.txt")
-        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
-        add_subdirectory("${SNES9X_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/snes9x" EXCLUDE_FROM_ALL)
-    endif()
 endif()
 
 add_library(retropack-runtime-snes9x SHARED
