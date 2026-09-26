@@ -42,7 +42,7 @@ object ZipArchiveTransformer {
 
         // Open zero-copy ZipSource from the template APK
         val zipSource = ZipSource(templateApk.toPath())
-        for ((name, _) in zipSource.entries) {
+        for ((name, _) in zipSource.entries()) {
             // Step 5: Strip stale signature residue (META-INF/*.SF, *.RSA, *.DSA, *.EC, MANIFEST.MF)
             if (ScratchAllocator.isSignatureResidue(name)) {
                 continue
