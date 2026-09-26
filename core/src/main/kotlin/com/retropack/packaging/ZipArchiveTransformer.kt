@@ -53,17 +53,20 @@ object ZipArchiveTransformer {
                 continue
             }
 
-            val entry = zipSource.select(name)
             val lowerName = name.lowercase()
             when {
                 // Uncompressed 16 KB Page Aligned Native Libraries (Android 15 / Invariant 3)
                 lowerName.endsWith(".so") -> {
-                    entry.align(ALIGNMENT_16KB)
+                    zipSource.select(name, name, Deflater.NO_COMPRESSION, ALIGNMENT_16KB)
                 }
 
                 // Uncompressed 4-Byte Aligned DEX bytecode and Resource Table
                 lowerName.endsWith(".dex") || lowerName == "resources.arsc" -> {
-                    entry.align(ALIGNMENT_4B)
+                    zipSource.select(name, name, Deflater.NO_COMPRESSION, ALIGNMENT_4B)
+                }
+
+                else -> {
+                    zipSource.select(name, name)
                 }
             }
         }
