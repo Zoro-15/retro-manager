@@ -348,7 +348,7 @@ object BuildEngine {
             "rom_sha256": "$romSha256"
           },
           "runtime": {
-            "core": "mgba",
+            "core": "${escapeJson(resolveCoreHint(request))}",
             "audio_sample_rate": ${runtime.audio.sampleRate},
             "audio_buffer_size": ${runtime.audio.bufferSize},
             "video_scale_mode": "${escapeJson(runtime.video.scaleMode)}"
@@ -368,6 +368,22 @@ object BuildEngine {
           }
         }
         """.trimIndent()
+    }
+
+    private fun resolveCoreHint(request: BuildRequest): String {
+        return when (request.content.platform.lowercase().trim().removePrefix(".")) {
+            "gba", "gbc", "gb" -> "mgba"
+            "snes", "sfc", "smc" -> "snes9x"
+            "genesis", "md", "smd", "gen", "sms", "gg" -> "genesis"
+            "nes", "fds", "unf" -> "fceumm"
+            "pce", "tg16", "sgx" -> "pce"
+            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "fbneo"
+            "psx", "ps1", "ps" -> "pcsx"
+            "n64", "z64", "v64" -> "mupen64"
+            "psp" -> "ppsspp"
+            "nds", "dsi" -> "melonds"
+            else -> request.runtime.templateId.removeSuffix("-unified")
+        }
     }
 
     private fun escapeJson(str: String): String {

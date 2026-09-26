@@ -129,6 +129,16 @@ object RuntimeProvisioner {
         val templateApk = File(bundleRoot, RuntimeTemplate.TEMPLATE_APK_FILENAME)
 
         if (!templateApk.isFile || templateApk.length() == 0L) {
+            if (runtimeId != RuntimeRegistry.RUNTIME_MGBA_UNIFIED) {
+                log("[i] Dedicated bundle '$runtimeId' not found; resolving universal multi-core runtime (${RuntimeRegistry.RUNTIME_MGBA_UNIFIED})")
+                return provision(
+                    targetRoot = targetRoot,
+                    source = source,
+                    runtimeId = RuntimeRegistry.RUNTIME_MGBA_UNIFIED,
+                    trustedTemplateSha256 = RuntimeRegistry.getTrustedFingerprint(RuntimeRegistry.RUNTIME_MGBA_UNIFIED),
+                    log = log
+                )
+            }
             val guidance =
                 "Runtime template '$runtimeId/template.apk' was not found. The manager APK " +
                     "was built WITHOUT the pinned runtime bundle embedded in its assets " +
@@ -139,6 +149,16 @@ object RuntimeProvisioner {
             return RuntimeProvisionResult.MissingTemplate(guidance)
         }
         if (!descriptorFile.isFile || descriptorFile.length() == 0L) {
+            if (runtimeId != RuntimeRegistry.RUNTIME_MGBA_UNIFIED) {
+                log("[i] Dedicated descriptor '$runtimeId' not found; resolving universal multi-core runtime (${RuntimeRegistry.RUNTIME_MGBA_UNIFIED})")
+                return provision(
+                    targetRoot = targetRoot,
+                    source = source,
+                    runtimeId = RuntimeRegistry.RUNTIME_MGBA_UNIFIED,
+                    trustedTemplateSha256 = RuntimeRegistry.getTrustedFingerprint(RuntimeRegistry.RUNTIME_MGBA_UNIFIED),
+                    log = log
+                )
+            }
             val guidance =
                 "Runtime descriptor '$runtimeId/runtime.json' was not extracted. The manager " +
                     "APK assets are incomplete or corrupted; reinstall the manager APK."
