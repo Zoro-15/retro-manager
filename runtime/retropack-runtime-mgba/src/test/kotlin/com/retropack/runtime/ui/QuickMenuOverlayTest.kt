@@ -32,9 +32,11 @@ class QuickMenuOverlayTest {
         var hapticTriggered = false
         menu.onHapticFeedbackRequested = { hapticTriggered = true }
 
-        // Touch FAB at top right (x=1036, y=48)
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 1036f, 48f)
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 1036f, 48f)
+        val fabCx = menu.getFabCenterX()
+        val fabCy = menu.getFabCenterY()
+
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, fabCx, fabCy)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, fabCx, fabCy)
 
         assertTrue(menu.onTouchEvent(downEvent))
         assertTrue(menu.onTouchEvent(upEvent))
@@ -52,9 +54,11 @@ class QuickMenuOverlayTest {
         var toggleInvoked = false
         menu.onToggleControls = { toggleInvoked = true }
 
-        // Satellite 1 is at cy = 48 + 56 = 104
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 1036f, 104f)
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 1036f, 104f)
+        val fabCx = menu.getFabCenterX()
+        val sat1Cy = menu.getFabCenterY() + menu.satelliteSpacing * 1f
+
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, fabCx, sat1Cy)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, fabCx, sat1Cy)
 
         assertTrue(menu.onTouchEvent(downEvent))
         assertTrue(menu.onTouchEvent(upEvent))
@@ -72,9 +76,11 @@ class QuickMenuOverlayTest {
         var speedReported = -1
         menu.onFastForwardSpeedChanged = { speedReported = it }
 
-        // Satellite 2 is at cy = 48 + 56 * 2 = 160
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 1036f, 160f)
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 1036f, 160f)
+        val fabCx = menu.getFabCenterX()
+        val sat2Cy = menu.getFabCenterY() + menu.satelliteSpacing * 2f
+
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, fabCx, sat2Cy)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, fabCx, sat2Cy)
 
         assertTrue(menu.onTouchEvent(downEvent))
         assertTrue(menu.onTouchEvent(upEvent))
@@ -97,9 +103,11 @@ class QuickMenuOverlayTest {
         var settingsInvoked = false
         menu.onOpenSettings = { settingsInvoked = true }
 
-        // Satellite 3 is at cy = 48 + 56 * 3 = 216
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 1036f, 216f)
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 1036f, 216f)
+        val fabCx = menu.getFabCenterX()
+        val sat3Cy = menu.getFabCenterY() + menu.satelliteSpacing * 3f
+
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, fabCx, sat3Cy)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, fabCx, sat3Cy)
 
         assertTrue(menu.onTouchEvent(downEvent))
         assertTrue(menu.onTouchEvent(upEvent))
@@ -116,9 +124,11 @@ class QuickMenuOverlayTest {
         var moreInvoked = false
         menu.onOpenMore = { moreInvoked = true }
 
-        // Satellite 4 is at cy = 48 + 56 * 4 = 272
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 1036f, 272f)
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 1036f, 272f)
+        val fabCx = menu.getFabCenterX()
+        val sat4Cy = menu.getFabCenterY() + menu.satelliteSpacing * 4f
+
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, fabCx, sat4Cy)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, fabCx, sat4Cy)
 
         assertTrue(menu.onTouchEvent(downEvent))
         assertTrue(menu.onTouchEvent(upEvent))

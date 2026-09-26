@@ -55,10 +55,10 @@ class QuickMenuOverlay @JvmOverloads constructor(
     var onOpenMore: (() -> Unit)? = null
     var onHapticFeedbackRequested: (() -> Unit)? = null
 
-    // FAB Coordinates and Dimensions
-    val fabRadius: Float = 26f
-    val satelliteRadius: Float = 22f
-    val satelliteSpacing: Float = 56f
+    // FAB Coordinates and Dimensions (1.5x scaled for mobile ergonomics)
+    val fabRadius: Float = 39f
+    val satelliteRadius: Float = 33f
+    val satelliteSpacing: Float = 84f
 
     // Hit Testing Rectangles & Coordinates
     val fabHitRect = RectF()
@@ -72,27 +72,34 @@ class QuickMenuOverlay @JvmOverloads constructor(
     }
     private val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 2.5f
+        strokeWidth = 3.5f
     }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         color = Color.WHITE
     }
-    private val pillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
-    private val pillTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textAlign = Paint.Align.RIGHT
+    private val badgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
         color = Color.WHITE
+        isFakeBoldText = true
     }
-    private val tempRect = RectF()
 
+    /**
+     * FAB Center positioned at 60:40 screen ratio (60% X, 40% Y)
+     * Provides natural thumb reach in both landscape and portrait orientations without corner crowding.
+     */
     fun getFabCenterX(): Float {
         val viewW = if (width > 0) width.toFloat() else 1080f
-        return viewW - 44f
+        return viewW * 0.60f
     }
 
-    fun getFabCenterY(): Float = 48f
+    fun getFabCenterY(): Float {
+        val viewH = if (height > 0) height.toFloat() else 1920f
+        return viewH * 0.40f
+    }
 
     fun cycleFastForwardSpeed(): Int {
         val nextSpeed = when (fastForwardSpeed) {
@@ -119,7 +126,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
         if (!isExpanded) {
             // Collapsed: only consume touches within the FAB
-            if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 14f)) {
+            if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 18f)) {
                 if (event.actionMasked == MotionEvent.ACTION_UP) {
                     triggerHaptic()
                     isExpanded = true
@@ -133,7 +140,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> return true
             MotionEvent.ACTION_UP -> {
-                if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 10f)) {
+                if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 16f)) {
                     // Tap main FAB -> collapse
                     triggerHaptic()
                     isExpanded = false
@@ -142,8 +149,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
                 // Sat 1: Controls Toggle
                 val sat1Cy = fabCy + satelliteSpacing * 1f
-                if (isInsideCircle(x, y, fabCx, sat1Cy, satelliteRadius + 14f) ||
-                    satControlsHitRect.contains(x, y)) {
+                if (isInsideCircle(x, y, fabCx, sat1Cy, satelliteRadius + 16f)) {
                     triggerHaptic()
                     isControlsActive = !isControlsActive
                     onToggleControls?.invoke()
@@ -153,8 +159,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
                 // Sat 2: Fast-Forward Speed Cycle
                 val sat2Cy = fabCy + satelliteSpacing * 2f
-                if (isInsideCircle(x, y, fabCx, sat2Cy, satelliteRadius + 14f) ||
-                    satFastForwardHitRect.contains(x, y)) {
+                if (isInsideCircle(x, y, fabCx, sat2Cy, satelliteRadius + 16f)) {
                     triggerHaptic()
                     cycleFastForwardSpeed()
                     return true
@@ -162,8 +167,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
                 // Sat 3: Settings Dialog
                 val sat3Cy = fabCy + satelliteSpacing * 3f
-                if (isInsideCircle(x, y, fabCx, sat3Cy, satelliteRadius + 14f) ||
-                    satSettingsHitRect.contains(x, y)) {
+                if (isInsideCircle(x, y, fabCx, sat3Cy, satelliteRadius + 16f)) {
                     triggerHaptic()
                     isExpanded = false
                     onOpenSettings?.invoke()
@@ -172,8 +176,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
                 // Sat 4: More Features Full Sheet Hub
                 val sat4Cy = fabCy + satelliteSpacing * 4f
-                if (isInsideCircle(x, y, fabCx, sat4Cy, satelliteRadius + 14f) ||
-                    satMoreHitRect.contains(x, y)) {
+                if (isInsideCircle(x, y, fabCx, sat4Cy, satelliteRadius + 16f)) {
                     triggerHaptic()
                     isExpanded = false
                     onOpenMore?.invoke()
@@ -192,16 +195,16 @@ class QuickMenuOverlay @JvmOverloads constructor(
         fabHitRect.set(fabCx - fabRadius, fabCy - fabRadius, fabCx + fabRadius, fabCy + fabRadius)
 
         val sat1Cy = fabCy + satelliteSpacing * 1f
-        satControlsHitRect.set(fabCx - 160f, sat1Cy - 18f, fabCx + satelliteRadius + 10f, sat1Cy + 18f)
+        satControlsHitRect.set(fabCx - satelliteRadius, sat1Cy - satelliteRadius, fabCx + satelliteRadius, sat1Cy + satelliteRadius)
 
         val sat2Cy = fabCy + satelliteSpacing * 2f
-        satFastForwardHitRect.set(fabCx - 160f, sat2Cy - 18f, fabCx + satelliteRadius + 10f, sat2Cy + 18f)
+        satFastForwardHitRect.set(fabCx - satelliteRadius, sat2Cy - satelliteRadius, fabCx + satelliteRadius, sat2Cy + satelliteRadius)
 
         val sat3Cy = fabCy + satelliteSpacing * 3f
-        satSettingsHitRect.set(fabCx - 150f, sat3Cy - 18f, fabCx + satelliteRadius + 10f, sat3Cy + 18f)
+        satSettingsHitRect.set(fabCx - satelliteRadius, sat3Cy - satelliteRadius, fabCx + satelliteRadius, sat3Cy + satelliteRadius)
 
         val sat4Cy = fabCy + satelliteSpacing * 4f
-        satMoreHitRect.set(fabCx - 140f, sat4Cy - 18f, fabCx + satelliteRadius + 10f, sat4Cy + 18f)
+        satMoreHitRect.set(fabCx - satelliteRadius, sat4Cy - satelliteRadius, fabCx + satelliteRadius, sat4Cy + satelliteRadius)
     }
 
     private fun triggerHaptic() {
@@ -231,124 +234,94 @@ class QuickMenuOverlay @JvmOverloads constructor(
         val currentAlpha = if (isExpanded) expandedAlpha else idleAlpha
         val alphaInt = (currentAlpha * 255).toInt().coerceIn(0, 255)
 
-        // 1. Draw Expanded Satellite Buttons
+        // 1. Draw Expanded Satellite Buttons (No text brackets, 1.5x scaled)
         if (isExpanded) {
             drawSatelliteButtons(canvas, fabCx, fabCy)
         }
 
         // 2. Draw Main Floating Gamepad FAB
-        bgPaint.color = Color.argb(alphaInt, 18, 22, 32)
+        bgPaint.color = Color.argb(alphaInt, 11, 13, 20)
         canvas.drawCircle(fabCx, fabCy, fabRadius, bgPaint)
 
-        ringPaint.color = if (isExpanded) Color.argb(255, 0, 229, 255)
-                          else Color.argb((alphaInt * 0.9f).toInt(), 80, 140, 220)
+        ringPaint.color = if (isExpanded) Color.argb(255, 168, 85, 247) // Purple glow when expanded
+                          else Color.argb((alphaInt * 0.95f).toInt(), 99, 102, 241) // Indigo glow
         canvas.drawCircle(fabCx, fabCy, fabRadius, ringPaint)
 
-        textPaint.textSize = if (isExpanded) 22f else 18f
+        textPaint.textSize = if (isExpanded) 32f else 28f
         textPaint.alpha = alphaInt
         val iconText = if (isExpanded) "✕" else "🎮"
         canvas.drawText(iconText, fabCx, fabCy + textPaint.textSize * 0.35f, textPaint)
     }
 
     private fun drawSatelliteButtons(canvas: Canvas, fabCx: Float, fabCy: Float) {
-        pillTextPaint.textSize = 14f
-
         // ─── SATELLITE 1: Joystick / Controls Toggle ───
         val sat1Cy = fabCy + satelliteSpacing * 1f
-        val sat1BgColor = if (isControlsActive) Color.argb(245, 14, 38, 54) else Color.argb(230, 28, 32, 42)
-        val sat1RingColor = if (isControlsActive) Color.argb(255, 0, 229, 255) else Color.argb(160, 90, 100, 120)
-
-        val label1Text = if (isControlsActive) "Controls: ON" else "Controls: OFF"
-        pillTextPaint.color = if (isControlsActive) Color.argb(255, 0, 229, 255) else Color.argb(220, 160, 170, 185)
-        val label1W = pillTextPaint.measureText(label1Text) + 20f
-
-        tempRect.set(fabCx - satelliteRadius - label1W - 8f, sat1Cy - 15f, fabCx - satelliteRadius - 8f, sat1Cy + 15f)
-        pillPaint.color = Color.argb(230, 16, 20, 30)
-        canvas.drawRoundRect(tempRect, 10f, 10f, pillPaint)
-        canvas.drawText(label1Text, tempRect.right - 10f, sat1Cy + 5f, pillTextPaint)
+        val sat1BgColor = if (isControlsActive) Color.argb(245, 49, 46, 129) else Color.argb(230, 24, 24, 34)
+        val sat1RingColor = if (isControlsActive) Color.argb(255, 129, 140, 248) else Color.argb(160, 100, 116, 139)
 
         bgPaint.color = sat1BgColor
         canvas.drawCircle(fabCx, sat1Cy, satelliteRadius, bgPaint)
         ringPaint.color = sat1RingColor
         canvas.drawCircle(fabCx, sat1Cy, satelliteRadius, ringPaint)
 
-        textPaint.textSize = 16f
+        textPaint.textSize = 24f
         textPaint.alpha = 255
-        canvas.drawText("🕹️", fabCx, sat1Cy + 5f, textPaint)
+        canvas.drawText("🕹️", fabCx, sat1Cy + 8f, textPaint)
 
         // ─── SATELLITE 2: Fast-Forward Speed Floater ───
         val sat2Cy = fabCy + satelliteSpacing * 2f
         val isFastForwarding = fastForwardSpeed > 1
-        val sat2BgColor = if (isFastForwarding) Color.argb(245, 54, 42, 14) else Color.argb(230, 28, 32, 42)
-        val sat2RingColor = if (isFastForwarding) Color.argb(255, 255, 180, 0) else Color.argb(160, 120, 130, 150)
-
-        val speedLabel = when {
-            fastForwardSpeed <= 1 -> "Speed: 1x"
-            fastForwardSpeed >= 16 -> "Speed: Max"
-            else -> "Speed: ${fastForwardSpeed}x"
-        }
-        pillTextPaint.color = if (isFastForwarding) Color.argb(255, 255, 200, 50) else Color.argb(220, 180, 190, 210)
-        val label2W = pillTextPaint.measureText(speedLabel) + 20f
-
-        tempRect.set(fabCx - satelliteRadius - label2W - 8f, sat2Cy - 15f, fabCx - satelliteRadius - 8f, sat2Cy + 15f)
-        pillPaint.color = Color.argb(230, 16, 20, 30)
-        canvas.drawRoundRect(tempRect, 10f, 10f, pillPaint)
-        canvas.drawText(speedLabel, tempRect.right - 10f, sat2Cy + 5f, pillTextPaint)
+        val sat2BgColor = if (isFastForwarding) Color.argb(245, 88, 28, 135) else Color.argb(230, 24, 24, 34)
+        val sat2RingColor = if (isFastForwarding) Color.argb(255, 192, 132, 252) else Color.argb(160, 100, 116, 139)
 
         bgPaint.color = sat2BgColor
         canvas.drawCircle(fabCx, sat2Cy, satelliteRadius, bgPaint)
         ringPaint.color = sat2RingColor
         canvas.drawCircle(fabCx, sat2Cy, satelliteRadius, ringPaint)
 
-        textPaint.textSize = 16f
+        textPaint.textSize = 24f
         textPaint.alpha = 255
-        canvas.drawText("⚡", fabCx, sat2Cy + 5f, textPaint)
+        canvas.drawText("⚡", fabCx, sat2Cy + 8f, textPaint)
+
+        // Draw speed badge indicator
+        if (isFastForwarding) {
+            badgePaint.color = Color.argb(255, 192, 132, 252)
+            val badgeX = fabCx + satelliteRadius * 0.65f
+            val badgeY = sat2Cy - satelliteRadius * 0.65f
+            canvas.drawCircle(badgeX, badgeY, 12f, badgePaint)
+            badgeTextPaint.textSize = 10f
+            badgeTextPaint.color = Color.argb(255, 15, 17, 26)
+            val badgeText = if (fastForwardSpeed >= 16) "M" else "${fastForwardSpeed}x"
+            canvas.drawText(badgeText, badgeX, badgeY + 3.5f, badgeTextPaint)
+        }
 
         // ─── SATELLITE 3: Quick Settings Floater ───
         val sat3Cy = fabCy + satelliteSpacing * 3f
-        val sat3BgColor = Color.argb(235, 20, 26, 38)
-        val sat3RingColor = Color.argb(200, 100, 160, 240)
-
-        val label3Text = "Settings"
-        pillTextPaint.color = Color.argb(240, 220, 230, 250)
-        val label3W = pillTextPaint.measureText(label3Text) + 20f
-
-        tempRect.set(fabCx - satelliteRadius - label3W - 8f, sat3Cy - 15f, fabCx - satelliteRadius - 8f, sat3Cy + 15f)
-        pillPaint.color = Color.argb(230, 16, 20, 30)
-        canvas.drawRoundRect(tempRect, 10f, 10f, pillPaint)
-        canvas.drawText(label3Text, tempRect.right - 10f, sat3Cy + 5f, pillTextPaint)
+        val sat3BgColor = Color.argb(235, 30, 27, 75)
+        val sat3RingColor = Color.argb(220, 129, 140, 248)
 
         bgPaint.color = sat3BgColor
         canvas.drawCircle(fabCx, sat3Cy, satelliteRadius, bgPaint)
         ringPaint.color = sat3RingColor
         canvas.drawCircle(fabCx, sat3Cy, satelliteRadius, ringPaint)
 
-        textPaint.textSize = 16f
+        textPaint.textSize = 24f
         textPaint.alpha = 255
-        canvas.drawText("⚙️", fabCx, sat3Cy + 5f, textPaint)
+        canvas.drawText("⚙️", fabCx, sat3Cy + 8f, textPaint)
 
         // ─── SATELLITE 4: More Features Hub Floater ───
         val sat4Cy = fabCy + satelliteSpacing * 4f
-        val sat4BgColor = Color.argb(240, 28, 20, 48)
-        val sat4RingColor = Color.argb(220, 180, 120, 255)
-
-        val label4Text = "More Hub"
-        pillTextPaint.color = Color.argb(255, 200, 160, 255)
-        val label4W = pillTextPaint.measureText(label4Text) + 20f
-
-        tempRect.set(fabCx - satelliteRadius - label4W - 8f, sat4Cy - 15f, fabCx - satelliteRadius - 8f, sat4Cy + 15f)
-        pillPaint.color = Color.argb(230, 16, 20, 30)
-        canvas.drawRoundRect(tempRect, 10f, 10f, pillPaint)
-        canvas.drawText(label4Text, tempRect.right - 10f, sat4Cy + 5f, pillTextPaint)
+        val sat4BgColor = Color.argb(240, 59, 7, 100)
+        val sat4RingColor = Color.argb(255, 192, 132, 252)
 
         bgPaint.color = sat4BgColor
         canvas.drawCircle(fabCx, sat4Cy, satelliteRadius, bgPaint)
         ringPaint.color = sat4RingColor
         canvas.drawCircle(fabCx, sat4Cy, satelliteRadius, ringPaint)
 
-        textPaint.textSize = 16f
+        textPaint.textSize = 24f
         textPaint.alpha = 255
-        canvas.drawText("⋯", fabCx, sat4Cy + 5f, textPaint)
+        canvas.drawText("⋯", fabCx, sat4Cy + 8f, textPaint)
     }
 }
 

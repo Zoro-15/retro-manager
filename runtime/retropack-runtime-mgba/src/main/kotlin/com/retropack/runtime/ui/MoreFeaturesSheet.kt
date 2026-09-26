@@ -219,109 +219,109 @@ class MoreFeaturesSheet @JvmOverloads constructor(
     fun isShowing(): Boolean = visibility == VISIBLE
 
     fun updateLayoutGeometry(viewW: Float, viewH: Float) {
-        val cardW = Math.min(viewW * 0.94f, 600f)
-        val cardH = Math.min(viewH * 0.96f, 920f)
+        val cardW = Math.min(viewW * 0.92f, 760f)
+        val cardH = Math.min(viewH * 0.96f, 960f)
         val cardLeft = (viewW - cardW) * 0.5f
         val cardTop = (viewH - cardH) * 0.5f
         cardRect.set(cardLeft, cardTop, cardLeft + cardW, cardTop + cardH)
 
-        closeBtnRect.set(cardRect.right - 44f, cardTop + 14f, cardRect.right - 14f, cardTop + 44f)
+        closeBtnRect.set(cardRect.right - 54f, cardTop + 16f, cardRect.right - 16f, cardTop + 54f)
 
-        val contentLeft = cardLeft + 20f
-        val contentW = cardW - 40f
-        var cursorY = cardTop + 50f
+        val contentLeft = cardLeft + 24f
+        val contentW = cardW - 48f
+        var cursorY = cardTop + 56f
 
         // ─── 1. Save States Hub ───
-        cursorY += 16f
-        val slotSpacing = 6f
+        cursorY += 18f
+        val slotSpacing = 8f
         val slotW = (contentW - (slotSpacing * 5)) / 6f
-        val slotH = 42f
+        val slotH = 50f
         for (i in 0 until 6) {
             val sLeft = contentLeft + i * (slotW + slotSpacing)
             slotCardRects[i].set(sLeft, cursorY, sLeft + slotW, cursorY + slotH)
         }
 
-        cursorY += slotH + 8f
-        val stateBtnW = (contentW - 12f) * 0.5f
-        val stateBtnH = 32f
+        cursorY += slotH + 10f
+        val stateBtnW = (contentW - 14f) * 0.5f
+        val stateBtnH = 38f
         saveStateBtnRect.set(contentLeft, cursorY, contentLeft + stateBtnW, cursorY + stateBtnH)
-        loadStateBtnRect.set(contentLeft + stateBtnW + 12f, cursorY, contentLeft + contentW, cursorY + stateBtnH)
+        loadStateBtnRect.set(contentLeft + stateBtnW + 14f, cursorY, contentLeft + contentW, cursorY + stateBtnH)
 
         // ─── 2. Emulation Speed & Audio ───
         cursorY += stateBtnH + 20f
-        val speedSpacing = 6f
+        val speedSpacing = 8f
         val speedW = (contentW - (speedSpacing * 4)) / 5f
-        val speedH = 26f
+        val speedH = 32f
         for (i in 0 until 5) {
             val spLeft = contentLeft + i * (speedW + speedSpacing)
             speedRects[i].set(spLeft, cursorY, spLeft + speedW, cursorY + speedH)
         }
 
-        cursorY += speedH + 8f
-        val toggleW = 64f
-        val toggleH = 24f
-        muteFfToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
+        cursorY += speedH + 10f
+        val toggleW = 74f
+        val toggleH = 28f
+        muteFfToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
 
         // ─── 3. Controls & Superpowers ───
         cursorY += toggleH + 18f
-        floatingDpadToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
-
-        cursorY += toggleH + 6f
-        gesturesToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
-
-        cursorY += toggleH + 6f
-        turboToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
-
-        cursorY += toggleH + 6f
-        comboMacroToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
+        floatingDpadToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
 
         cursorY += toggleH + 8f
-        val themeSpacing = 6f
+        gesturesToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
+
+        cursorY += toggleH + 8f
+        turboToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
+
+        cursorY += toggleH + 8f
+        comboMacroToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
+
+        cursorY += toggleH + 10f
+        val themeSpacing = 8f
         val themeW = (contentW - (themeSpacing * 3)) / 4f
-        val themeH = 24f
+        val themeH = 30f
         for (i in 0 until 4) {
             val thLeft = contentLeft + i * (themeW + themeSpacing)
             themeRects[i].set(thLeft, cursorY, thLeft + themeW, cursorY + themeH)
         }
 
-        cursorY += themeH + 8f
-        val dualBtnW = (contentW - 8f) * 0.5f
-        val dualBtnH = 30f
+        cursorY += themeH + 10f
+        val dualBtnW = (contentW - 10f) * 0.5f
+        val dualBtnH = 36f
         gamepadRemapBtnRect.set(contentLeft, cursorY, contentLeft + dualBtnW, cursorY + dualBtnH)
-        editControlsBtnRect.set(contentLeft + dualBtnW + 8f, cursorY, contentLeft + contentW, cursorY + dualBtnH)
+        editControlsBtnRect.set(contentLeft + dualBtnW + 10f, cursorY, contentLeft + contentW, cursorY + dualBtnH)
 
         // ─── 4. Motion Sensors & Gyro ───
         cursorY += dualBtnH + 18f
-        val sensorSpacing = 6f
+        val sensorSpacing = 8f
         val sensorW = (contentW - (sensorSpacing * 2)) / 3f
-        val sensorH = 26f
+        val sensorH = 32f
         for (i in 0 until 3) {
             val smLeft = contentLeft + i * (sensorW + sensorSpacing)
             sensorModeRects[i].set(smLeft, cursorY, smLeft + sensorW, cursorY + sensorH)
         }
 
-        cursorY += sensorH + 6f
-        sensorCalibrateBtnRect.set(contentLeft, cursorY, contentLeft + contentW, cursorY + 28f)
+        cursorY += sensorH + 8f
+        sensorCalibrateBtnRect.set(contentLeft, cursorY, contentLeft + contentW, cursorY + 34f)
 
         // ─── 5. Display & Shaders ───
-        cursorY += 28f + 18f
-        lcdGridToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
+        cursorY += 34f + 18f
+        lcdGridToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
 
-        cursorY += toggleH + 6f
-        gbaColorToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
+        cursorY += toggleH + 8f
+        gbaColorToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
 
-        cursorY += toggleH + 6f
-        bezelToggleRect.set(cardRect.right - 20f - toggleW, cursorY, cardRect.right - 20f, cursorY + toggleH)
+        cursorY += toggleH + 8f
+        bezelToggleRect.set(cardRect.right - 24f - toggleW, cursorY, cardRect.right - 24f, cursorY + toggleH)
 
-        cursorY += toggleH + 6f
-        val segW = (contentW - 8f) * 0.5f
-        val segH = 26f
+        cursorY += toggleH + 8f
+        val segW = (contentW - 10f) * 0.5f
+        val segH = 32f
         scaleAspectRect.set(contentLeft, cursorY, contentLeft + segW, cursorY + segH)
-        scaleIntegerRect.set(contentLeft + segW + 8f, cursorY, contentLeft + contentW, cursorY + segH)
+        scaleIntegerRect.set(contentLeft + segW + 10f, cursorY, contentLeft + contentW, cursorY + segH)
 
         // ─── Footer Done Button ───
-        val doneH = 34f
-        doneBtnRect.set(contentLeft, cardRect.bottom - doneH - 12f, contentLeft + contentW, cardRect.bottom - 12f)
+        val doneH = 44f
+        doneBtnRect.set(contentLeft, cardRect.bottom - doneH - 16f, contentLeft + contentW, cardRect.bottom - 16f)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -533,40 +533,45 @@ class MoreFeaturesSheet @JvmOverloads constructor(
         val viewH = if (height > 0) height.toFloat() else 1920f
         updateLayoutGeometry(viewW, viewH)
 
-        // 1. Scrim Backdrop
-        bgPaint.color = Color.argb(195, 6, 9, 14)
+        // 1. Scrim Backdrop (Deep pitch black)
+        bgPaint.color = Color.argb(215, 6, 7, 12)
         canvas.drawRect(0f, 0f, viewW, viewH, bgPaint)
 
-        // 2. Card Glass Background
-        bgPaint.color = Color.argb(248, 16, 20, 30)
-        canvas.drawRoundRect(cardRect, 20f, 20f, bgPaint)
-        cardBorderPaint.color = Color.argb(180, 50, 70, 105)
-        canvas.drawRoundRect(cardRect, 20f, 20f, cardBorderPaint)
+        // 2. Card Glass Background (Black / Deep Indigo slate)
+        bgPaint.color = Color.argb(252, 12, 13, 20)
+        canvas.drawRoundRect(cardRect, 24f, 24f, bgPaint)
+        cardBorderPaint.color = Color.argb(140, 99, 102, 241) // Sleek Indigo border
+        cardBorderPaint.strokeWidth = 2.5f
+        canvas.drawRoundRect(cardRect, 24f, 24f, cardBorderPaint)
 
         val cardLeft = cardRect.left
-        val contentLeft = cardLeft + 20f
+        val contentLeft = cardLeft + 24f
 
         // 3. Header
-        var cursorY = cardRect.top + 28f
-        textPaint.textSize = 17f
+        var cursorY = cardRect.top + 34f
+        textPaint.textSize = 22f
         textPaint.color = Color.WHITE
+        textPaint.isFakeBoldText = true
         canvas.drawText("🎮 RetroPack Hub", contentLeft, cursorY, textPaint)
 
-        cursorY += 14f
-        textPaint.textSize = 11f
-        textPaint.color = Color.argb(200, 140, 160, 190)
+        cursorY += 18f
+        textPaint.textSize = 14f
+        textPaint.color = Color.argb(220, 203, 213, 225) // Grey-white
+        textPaint.isFakeBoldText = false
         canvas.drawText(gameTitle, contentLeft, cursorY, textPaint)
 
         // Close button (X)
-        centerTextPaint.textSize = 17f
-        centerTextPaint.color = Color.argb(220, 170, 185, 210)
-        canvas.drawText("✕", closeBtnRect.centerX(), closeBtnRect.centerY() + 6f, centerTextPaint)
+        centerTextPaint.textSize = 22f
+        centerTextPaint.color = Color.argb(230, 226, 232, 240)
+        canvas.drawText("✕", closeBtnRect.centerX(), closeBtnRect.centerY() + 7f, centerTextPaint)
 
         // ─── 4. Section: Save States Hub ───
-        cursorY = cardRect.top + 60f
-        textPaint.textSize = 10.5f
-        textPaint.color = Color.argb(220, 0, 229, 255)
+        cursorY = cardRect.top + 70f
+        textPaint.textSize = 13.5f
+        textPaint.color = Color.argb(240, 165, 180, 252) // Indigo accent
+        textPaint.isFakeBoldText = true
         canvas.drawText("SAVE STATES HUB", contentLeft, cursorY, textPaint)
+        textPaint.isFakeBoldText = false
 
         val slotInfos = saveStateManager?.getAllSlots()
         for (i in 0 until 6) {
@@ -576,187 +581,234 @@ class MoreFeaturesSheet @JvmOverloads constructor(
             val hasData = slotInfo?.exists == true
 
             bgPaint.color = when {
-                isSelected -> Color.argb(255, 24, 48, 76)
-                hasData -> Color.argb(220, 28, 36, 52)
-                else -> Color.argb(180, 22, 26, 36)
+                isSelected -> Color.argb(245, 49, 46, 129) // Deep Indigo active
+                hasData -> Color.argb(200, 36, 32, 58) // Purple tint
+                else -> Color.argb(160, 22, 24, 34) // Dark transparent
             }
-            canvas.drawRoundRect(slotRect, 8f, 8f, bgPaint)
+            canvas.drawRoundRect(slotRect, 10f, 10f, bgPaint)
 
-            cardBorderPaint.color = if (isSelected) Color.argb(255, 0, 229, 255)
-                                    else if (hasData) Color.argb(160, 80, 120, 170)
-                                    else Color.argb(100, 45, 55, 75)
-            canvas.drawRoundRect(slotRect, 8f, 8f, cardBorderPaint)
+            cardBorderPaint.color = if (isSelected) Color.argb(255, 129, 140, 248)
+                                    else if (hasData) Color.argb(160, 139, 92, 246)
+                                    else Color.argb(90, 71, 85, 105)
+            canvas.drawRoundRect(slotRect, 10f, 10f, cardBorderPaint)
 
-            centerTextPaint.textSize = 10f
-            centerTextPaint.color = if (isSelected) Color.argb(255, 0, 229, 255) else Color.WHITE
+            centerTextPaint.textSize = 13.5f
+            centerTextPaint.color = if (isSelected) Color.argb(255, 224, 231, 255) else Color.WHITE
+            centerTextPaint.isFakeBoldText = isSelected
             val slotLabel = if (i == 0) "Auto" else "Slot $i"
-            canvas.drawText(slotLabel, slotRect.centerX(), slotRect.top + 16f, centerTextPaint)
+            canvas.drawText(slotLabel, slotRect.centerX(), slotRect.top + 20f, centerTextPaint)
 
-            centerTextPaint.textSize = 8.5f
-            centerTextPaint.color = if (hasData) Color.argb(220, 160, 210, 255) else Color.argb(140, 120, 130, 150)
+            centerTextPaint.textSize = 11f
+            centerTextPaint.isFakeBoldText = false
+            centerTextPaint.color = if (hasData) Color.argb(240, 192, 132, 252) else Color.argb(160, 148, 163, 184)
             val subLabel = if (hasData) "Saved" else "Empty"
-            canvas.drawText(subLabel, slotRect.centerX(), slotRect.bottom - 8f, centerTextPaint)
+            canvas.drawText(subLabel, slotRect.centerX(), slotRect.bottom - 10f, centerTextPaint)
         }
 
-        // Save State Button
-        bgPaint.color = Color.argb(240, 0, 130, 200)
-        canvas.drawRoundRect(saveStateBtnRect, 8f, 8f, bgPaint)
-        centerTextPaint.textSize = 11.5f
+        // Save State Button (Indigo primary)
+        bgPaint.color = Color.argb(250, 79, 70, 229)
+        canvas.drawRoundRect(saveStateBtnRect, 10f, 10f, bgPaint)
+        centerTextPaint.textSize = 15f
         centerTextPaint.color = Color.WHITE
-        canvas.drawText("💾 Save State", saveStateBtnRect.centerX(), saveStateBtnRect.centerY() + 4f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = true
+        canvas.drawText("💾 Save State", saveStateBtnRect.centerX(), saveStateBtnRect.centerY() + 5f, centerTextPaint)
 
-        // Load State Button
+        // Load State Button (Purple accent)
         val activeInfo = slotInfos?.getOrNull(selectedSlot)
         val canLoad = activeInfo?.exists == true
-        bgPaint.color = if (canLoad) Color.argb(240, 40, 110, 80) else Color.argb(160, 30, 38, 48)
-        canvas.drawRoundRect(loadStateBtnRect, 8f, 8f, bgPaint)
-        centerTextPaint.color = if (canLoad) Color.argb(255, 120, 255, 180) else Color.argb(120, 140, 150, 165)
-        canvas.drawText("📂 Load State", loadStateBtnRect.centerX(), loadStateBtnRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = if (canLoad) Color.argb(250, 124, 58, 237) else Color.argb(140, 30, 32, 44)
+        canvas.drawRoundRect(loadStateBtnRect, 10f, 10f, bgPaint)
+        centerTextPaint.color = if (canLoad) Color.WHITE else Color.argb(140, 148, 163, 184)
+        canvas.drawText("📂 Load State", loadStateBtnRect.centerX(), loadStateBtnRect.centerY() + 5f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = false
 
         // ─── 5. Section: Emulation Speed & Audio ───
-        cursorY = saveStateBtnRect.bottom + 18f
-        textPaint.textSize = 10.5f
-        textPaint.color = Color.argb(220, 255, 190, 0)
+        cursorY = saveStateBtnRect.bottom + 20f
+        textPaint.textSize = 13.5f
+        textPaint.color = Color.argb(240, 165, 180, 252)
+        textPaint.isFakeBoldText = true
         canvas.drawText("EMULATION SPEED & AUDIO", contentLeft, cursorY, textPaint)
+        textPaint.isFakeBoldText = false
 
         for (i in speedRects.indices) {
             val isSelected = (fastForwardSpeed == speedMultipliers[i])
             val sRect = speedRects[i]
-            bgPaint.color = if (isSelected) Color.argb(255, 180, 110, 0) else Color.argb(190, 28, 34, 48)
-            canvas.drawRoundRect(sRect, 6f, 6f, bgPaint)
-            centerTextPaint.textSize = 10.5f
-            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(200, 170, 185, 205)
-            canvas.drawText(speedLabels[i], sRect.centerX(), sRect.centerY() + 4f, centerTextPaint)
+            bgPaint.color = if (isSelected) Color.argb(255, 99, 102, 241) else Color.argb(180, 24, 26, 38)
+            canvas.drawRoundRect(sRect, 8f, 8f, bgPaint)
+            cardBorderPaint.color = if (isSelected) Color.argb(255, 165, 180, 252) else Color.argb(80, 71, 85, 105)
+            canvas.drawRoundRect(sRect, 8f, 8f, cardBorderPaint)
+
+            centerTextPaint.textSize = 14f
+            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(220, 226, 232, 240)
+            centerTextPaint.isFakeBoldText = isSelected
+            canvas.drawText(speedLabels[i], sRect.centerX(), sRect.centerY() + 5f, centerTextPaint)
         }
+        centerTextPaint.isFakeBoldText = false
 
         // Mute Audio Toggle
-        textPaint.textSize = 11f
-        textPaint.color = Color.WHITE
-        canvas.drawText("Mute Audio on Fast-Forward", contentLeft, muteFfToggleRect.centerY() + 4f, textPaint)
+        textPaint.textSize = 15f
+        textPaint.color = Color.argb(255, 241, 245, 249)
+        canvas.drawText("Mute Audio on Fast-Forward", contentLeft, muteFfToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, muteFfToggleRect, muteAudioOnFastForward)
 
         // ─── 6. Section: Controls & Superpowers ───
-        cursorY = muteFfToggleRect.bottom + 16f
-        textPaint.textSize = 10.5f
-        textPaint.color = Color.argb(220, 180, 120, 255)
+        cursorY = muteFfToggleRect.bottom + 18f
+        textPaint.textSize = 13.5f
+        textPaint.color = Color.argb(240, 192, 132, 252) // Purple accent
+        textPaint.isFakeBoldText = true
         canvas.drawText("CONTROLS & SUPERPOWERS", contentLeft, cursorY, textPaint)
+        textPaint.isFakeBoldText = false
 
         // Floating Dynamic D-Pad Toggle
-        textPaint.textSize = 11f
-        textPaint.color = Color.WHITE
-        canvas.drawText("Floating Dynamic D-Pad", contentLeft, floatingDpadToggleRect.centerY() + 4f, textPaint)
+        textPaint.textSize = 15f
+        textPaint.color = Color.argb(255, 241, 245, 249)
+        canvas.drawText("Floating Dynamic D-Pad", contentLeft, floatingDpadToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, floatingDpadToggleRect, floatingDpadEnabled)
 
         // Multi-Touch Gestures Toggle
-        canvas.drawText("Multi-Touch Gesture Shortcuts", contentLeft, gesturesToggleRect.centerY() + 4f, textPaint)
+        canvas.drawText("Multi-Touch Gesture Shortcuts", contentLeft, gesturesToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, gesturesToggleRect, gesturesEnabled)
 
         // Turbo Buttons Toggle
-        canvas.drawText("Turbo Auto-Fire (Hold A/B)", contentLeft, turboToggleRect.centerY() + 4f, textPaint)
+        canvas.drawText("Turbo Auto-Fire (Hold A/B)", contentLeft, turboToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, turboToggleRect, turboButtonsEnabled)
 
         // A+B Macro Toggle
-        canvas.drawText("A+B Combo Macro Pill", contentLeft, comboMacroToggleRect.centerY() + 4f, textPaint)
+        canvas.drawText("A+B Combo Macro Pill", contentLeft, comboMacroToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, comboMacroToggleRect, comboMacroEnabled)
 
         // Touch Theme Selector
         for (i in themeRects.indices) {
             val isSelected = (touchTheme == themeNames[i])
             val thRect = themeRects[i]
-            bgPaint.color = if (isSelected) Color.argb(255, 120, 45, 190) else Color.argb(190, 28, 34, 48)
-            canvas.drawRoundRect(thRect, 6f, 6f, bgPaint)
-            centerTextPaint.textSize = 10.5f
-            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(200, 170, 185, 205)
-            canvas.drawText(themeLabels[i], thRect.centerX(), thRect.centerY() + 4f, centerTextPaint)
+            bgPaint.color = if (isSelected) Color.argb(255, 124, 58, 237) else Color.argb(180, 24, 26, 38)
+            canvas.drawRoundRect(thRect, 8f, 8f, bgPaint)
+            cardBorderPaint.color = if (isSelected) Color.argb(255, 192, 132, 252) else Color.argb(80, 71, 85, 105)
+            canvas.drawRoundRect(thRect, 8f, 8f, cardBorderPaint)
+
+            centerTextPaint.textSize = 13.5f
+            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(220, 226, 232, 240)
+            centerTextPaint.isFakeBoldText = isSelected
+            canvas.drawText(themeLabels[i], thRect.centerX(), thRect.centerY() + 5f, centerTextPaint)
         }
+        centerTextPaint.isFakeBoldText = false
 
         // Gamepad Remapping Button
-        bgPaint.color = Color.argb(220, 40, 36, 68)
-        canvas.drawRoundRect(gamepadRemapBtnRect, 8f, 8f, bgPaint)
-        cardBorderPaint.color = Color.argb(180, 160, 120, 240)
-        canvas.drawRoundRect(gamepadRemapBtnRect, 8f, 8f, cardBorderPaint)
-        centerTextPaint.textSize = 11f
-        centerTextPaint.color = Color.argb(255, 190, 160, 255)
-        canvas.drawText("🎮 Gamepad Remap", gamepadRemapBtnRect.centerX(), gamepadRemapBtnRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = Color.argb(220, 55, 28, 90)
+        canvas.drawRoundRect(gamepadRemapBtnRect, 10f, 10f, bgPaint)
+        cardBorderPaint.color = Color.argb(180, 168, 85, 247)
+        canvas.drawRoundRect(gamepadRemapBtnRect, 10f, 10f, cardBorderPaint)
+        centerTextPaint.textSize = 15f
+        centerTextPaint.color = Color.argb(255, 233, 213, 255)
+        canvas.drawText("🎮 Gamepad Remap", gamepadRemapBtnRect.centerX(), gamepadRemapBtnRect.centerY() + 5f, centerTextPaint)
 
         // Edit Controls Placement Button
-        bgPaint.color = Color.argb(220, 28, 44, 70)
-        canvas.drawRoundRect(editControlsBtnRect, 8f, 8f, bgPaint)
-        cardBorderPaint.color = Color.argb(180, 0, 190, 240)
-        canvas.drawRoundRect(editControlsBtnRect, 8f, 8f, cardBorderPaint)
-        centerTextPaint.color = Color.argb(255, 0, 229, 255)
-        canvas.drawText("📐 Layout Editor", editControlsBtnRect.centerX(), editControlsBtnRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = Color.argb(220, 30, 27, 75)
+        canvas.drawRoundRect(editControlsBtnRect, 10f, 10f, bgPaint)
+        cardBorderPaint.color = Color.argb(180, 99, 102, 241)
+        canvas.drawRoundRect(editControlsBtnRect, 10f, 10f, cardBorderPaint)
+        centerTextPaint.color = Color.argb(255, 224, 231, 255)
+        canvas.drawText("📐 Layout Editor", editControlsBtnRect.centerX(), editControlsBtnRect.centerY() + 5f, centerTextPaint)
 
         // ─── 7. Section: Motion Sensors & Gyro ───
-        cursorY = gamepadRemapBtnRect.bottom + 16f
-        textPaint.textSize = 10.5f
-        textPaint.color = Color.argb(220, 255, 140, 80)
+        cursorY = gamepadRemapBtnRect.bottom + 18f
+        textPaint.textSize = 13.5f
+        textPaint.color = Color.argb(240, 165, 180, 252)
+        textPaint.isFakeBoldText = true
         canvas.drawText("MOTION SENSORS & TILT STEERING", contentLeft, cursorY, textPaint)
+        textPaint.isFakeBoldText = false
 
         for (i in sensorModeRects.indices) {
             val isSelected = (sensorMode == sensorModes[i])
             val smRect = sensorModeRects[i]
-            bgPaint.color = if (isSelected) Color.argb(255, 200, 80, 20) else Color.argb(190, 28, 34, 48)
-            canvas.drawRoundRect(smRect, 6f, 6f, bgPaint)
-            centerTextPaint.textSize = 10.5f
-            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(200, 170, 185, 205)
-            canvas.drawText(sensorModeLabels[i], smRect.centerX(), smRect.centerY() + 4f, centerTextPaint)
+            bgPaint.color = if (isSelected) Color.argb(255, 79, 70, 229) else Color.argb(180, 24, 26, 38)
+            canvas.drawRoundRect(smRect, 8f, 8f, bgPaint)
+            cardBorderPaint.color = if (isSelected) Color.argb(255, 165, 180, 252) else Color.argb(80, 71, 85, 105)
+            canvas.drawRoundRect(smRect, 8f, 8f, cardBorderPaint)
+
+            centerTextPaint.textSize = 13.5f
+            centerTextPaint.color = if (isSelected) Color.WHITE else Color.argb(220, 226, 232, 240)
+            centerTextPaint.isFakeBoldText = isSelected
+            canvas.drawText(sensorModeLabels[i], smRect.centerX(), smRect.centerY() + 5f, centerTextPaint)
         }
+        centerTextPaint.isFakeBoldText = false
 
         // Calibrate Zero-Point Button
-        bgPaint.color = Color.argb(200, 36, 42, 56)
-        canvas.drawRoundRect(sensorCalibrateBtnRect, 6f, 6f, bgPaint)
-        centerTextPaint.textSize = 11f
-        centerTextPaint.color = Color.argb(255, 255, 180, 120)
-        canvas.drawText("🎯 Calibrate Neutral Resting Position", sensorCalibrateBtnRect.centerX(), sensorCalibrateBtnRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = Color.argb(200, 30, 34, 52)
+        canvas.drawRoundRect(sensorCalibrateBtnRect, 8f, 8f, bgPaint)
+        cardBorderPaint.color = Color.argb(160, 99, 102, 241)
+        canvas.drawRoundRect(sensorCalibrateBtnRect, 8f, 8f, cardBorderPaint)
+        centerTextPaint.textSize = 14.5f
+        centerTextPaint.color = Color.argb(255, 224, 231, 255)
+        canvas.drawText("🎯 Calibrate Neutral Resting Position", sensorCalibrateBtnRect.centerX(), sensorCalibrateBtnRect.centerY() + 5f, centerTextPaint)
 
         // ─── 8. Section: Display & Shaders ───
-        cursorY = sensorCalibrateBtnRect.bottom + 16f
-        textPaint.textSize = 10.5f
-        textPaint.color = Color.argb(220, 100, 210, 255)
+        cursorY = sensorCalibrateBtnRect.bottom + 18f
+        textPaint.textSize = 13.5f
+        textPaint.color = Color.argb(240, 192, 132, 252)
+        textPaint.isFakeBoldText = true
         canvas.drawText("DISPLAY & SHADERS", contentLeft, cursorY, textPaint)
+        textPaint.isFakeBoldText = false
 
         // LCD Grid Filter
-        textPaint.textSize = 11f
-        textPaint.color = Color.WHITE
-        canvas.drawText("LCD Pixel Grid Filter", contentLeft, lcdGridToggleRect.centerY() + 4f, textPaint)
+        textPaint.textSize = 15f
+        textPaint.color = Color.argb(255, 241, 245, 249)
+        canvas.drawText("LCD Pixel Grid Filter", contentLeft, lcdGridToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, lcdGridToggleRect, lcdGridEnabled)
 
         // GBA Color Correction
-        canvas.drawText("GBA Color Correction", contentLeft, gbaColorToggleRect.centerY() + 4f, textPaint)
+        canvas.drawText("GBA Color Correction", contentLeft, gbaColorToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, gbaColorToggleRect, gbaColorCorrectionEnabled)
 
         // Handheld Screen Bezel
-        canvas.drawText("Handheld Screen Bezel", contentLeft, bezelToggleRect.centerY() + 4f, textPaint)
+        canvas.drawText("Handheld Screen Bezel", contentLeft, bezelToggleRect.centerY() + 5f, textPaint)
         drawToggleSwitch(canvas, bezelToggleRect, bezelEnabled)
 
         // Display Scaling Tabs
         val isAspect = (scaleMode == ScaleMode.ASPECT_FIT)
-        bgPaint.color = if (isAspect) Color.argb(255, 0, 140, 220) else Color.argb(190, 28, 34, 48)
-        canvas.drawRoundRect(scaleAspectRect, 6f, 6f, bgPaint)
-        centerTextPaint.textSize = 10.5f
-        centerTextPaint.color = if (isAspect) Color.WHITE else Color.argb(200, 160, 175, 195)
-        canvas.drawText("Aspect Fit", scaleAspectRect.centerX(), scaleAspectRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = if (isAspect) Color.argb(255, 99, 102, 241) else Color.argb(180, 24, 26, 38)
+        canvas.drawRoundRect(scaleAspectRect, 8f, 8f, bgPaint)
+        cardBorderPaint.color = if (isAspect) Color.argb(255, 165, 180, 252) else Color.argb(80, 71, 85, 105)
+        canvas.drawRoundRect(scaleAspectRect, 8f, 8f, cardBorderPaint)
+        centerTextPaint.textSize = 14f
+        centerTextPaint.color = if (isAspect) Color.WHITE else Color.argb(220, 226, 232, 240)
+        centerTextPaint.isFakeBoldText = isAspect
+        canvas.drawText("Aspect Fit", scaleAspectRect.centerX(), scaleAspectRect.centerY() + 5f, centerTextPaint)
 
-        bgPaint.color = if (!isAspect) Color.argb(255, 0, 140, 220) else Color.argb(190, 28, 34, 48)
-        canvas.drawRoundRect(scaleIntegerRect, 6f, 6f, bgPaint)
-        centerTextPaint.color = if (!isAspect) Color.WHITE else Color.argb(200, 160, 175, 195)
-        canvas.drawText("Integer Fit (1:1)", scaleIntegerRect.centerX(), scaleIntegerRect.centerY() + 4f, centerTextPaint)
+        bgPaint.color = if (!isAspect) Color.argb(255, 99, 102, 241) else Color.argb(180, 24, 26, 38)
+        canvas.drawRoundRect(scaleIntegerRect, 8f, 8f, bgPaint)
+        cardBorderPaint.color = if (!isAspect) Color.argb(255, 165, 180, 252) else Color.argb(80, 71, 85, 105)
+        canvas.drawRoundRect(scaleIntegerRect, 8f, 8f, cardBorderPaint)
+        centerTextPaint.color = if (!isAspect) Color.WHITE else Color.argb(220, 226, 232, 240)
+        centerTextPaint.isFakeBoldText = !isAspect
+        canvas.drawText("Integer Fit (1:1)", scaleIntegerRect.centerX(), scaleIntegerRect.centerY() + 5f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = false
 
         // ─── 9. Footer: Done Button ───
-        bgPaint.color = Color.argb(255, 0, 140, 220)
-        canvas.drawRoundRect(doneBtnRect, 10f, 10f, bgPaint)
-        centerTextPaint.textSize = 13f
+        bgPaint.color = Color.argb(255, 79, 70, 229) // Indigo primary
+        canvas.drawRoundRect(doneBtnRect, 12f, 12f, bgPaint)
+        centerTextPaint.textSize = 17f
         centerTextPaint.color = Color.WHITE
-        canvas.drawText("Done", doneBtnRect.centerX(), doneBtnRect.centerY() + 5f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = true
+        canvas.drawText("Done", doneBtnRect.centerX(), doneBtnRect.centerY() + 6f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = false
     }
 
     private fun drawToggleSwitch(canvas: Canvas, rect: RectF, isOn: Boolean) {
-        bgPaint.color = if (isOn) Color.argb(255, 0, 160, 220) else Color.argb(200, 42, 48, 62)
+        bgPaint.color = if (isOn) Color.argb(255, 99, 102, 241) // Indigo active
+                        else Color.argb(180, 28, 30, 44) // Transparent dark inactive
         canvas.drawRoundRect(rect, rect.height() * 0.5f, rect.height() * 0.5f, bgPaint)
-        centerTextPaint.textSize = 10f
-        centerTextPaint.color = Color.WHITE
+
+        cardBorderPaint.color = if (isOn) Color.argb(255, 165, 180, 252)
+                                else Color.argb(100, 71, 85, 105)
+        cardBorderPaint.strokeWidth = 1.5f
+        canvas.drawRoundRect(rect, rect.height() * 0.5f, rect.height() * 0.5f, cardBorderPaint)
+
+        centerTextPaint.textSize = 13f
+        centerTextPaint.color = if (isOn) Color.WHITE else Color.argb(200, 148, 163, 184)
+        centerTextPaint.isFakeBoldText = true
         val toggleText = if (isOn) "ON" else "OFF"
-        canvas.drawText(toggleText, rect.centerX(), rect.centerY() + 3.5f, centerTextPaint)
+        canvas.drawText(toggleText, rect.centerX(), rect.centerY() + 4.5f, centerTextPaint)
+        centerTextPaint.isFakeBoldText = false
     }
 }
