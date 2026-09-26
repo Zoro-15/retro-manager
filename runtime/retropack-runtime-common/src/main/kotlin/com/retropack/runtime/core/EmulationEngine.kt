@@ -89,17 +89,22 @@ interface EmulationEngine : AutoCloseable {
     fun resume()
 
     /**
+     * Returns the active frame dimensions as int[width, height], or null if uninitialized/unsupported.
+     */
+    fun getVideoSize(): IntArray? = null
+
+    /**
      * Completely shuts down the engine and releases all native resources.
      */
     override fun close()
 }
 
 /**
- * Standard production implementation of [EmulationEngine] driving [NativeCore]
+ * Standard production implementation of [EmulationEngine] driving [NativeCoreBridge]
  * with thread synchronization and state machine validation.
  */
 class NativeEmulationEngine(
-    private val core: NativeCore = NativeCore
+    val core: NativeCoreBridge = NativeCore
 ) : EmulationEngine {
 
     private val lock = Any()
@@ -176,6 +181,14 @@ class NativeEmulationEngine(
     override fun getVideoBuffer(): IntBuffer? = synchronized(lock) {
         return try {
             core.nativeGetVideoBuffer()
+        } catch (e: UnsatisfiedLinkError) {
+            null
+        }
+    }
+
+    override fun getVideoSize(): IntArray? = synchronized(lock) {
+        return try {
+            core.nativeGetVideoSize()
         } catch (e: UnsatisfiedLinkError) {
             null
         }

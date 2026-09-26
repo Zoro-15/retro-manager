@@ -71,11 +71,9 @@ class EmulationHost(
             return false
         }
 
-        // Sync GL dimensions from the core: GB/GBC frames are 160x144, not
-        // the renderer's 240x160 default (issue #13). Best effort — failures
-        // keep the default rather than failing the load.
+        // Sync GL dimensions from the active engine/core (GB 160x144, SNES 256x224, etc.)
         try {
-            val dims = com.retropack.runtime.core.NativeCore.nativeGetVideoSize()
+            val dims = engine.getVideoSize()
             if (dims != null && dims.size == 2 && dims[0] > 0 && dims[1] > 0) {
                 renderer?.setNativeDimensions(dims[0], dims[1])
             }

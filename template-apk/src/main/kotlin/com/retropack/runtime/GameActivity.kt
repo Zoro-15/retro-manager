@@ -36,6 +36,8 @@ import com.retropack.runtime.ui.GamepadRemapOverlay
 import com.retropack.runtime.ui.InGameSettingsOverlay
 import com.retropack.runtime.ui.MoreFeaturesSheet
 import com.retropack.runtime.ui.QuickMenuOverlay
+import com.retropack.runtime.factory.NativeCoreFactory
+import com.retropack.runtime.video.RetroGlRenderer
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
 import kotlin.math.abs
@@ -525,12 +527,10 @@ open class GameActivity : Activity() {
                 RuntimeLogger.i("Bootstrap", "EmulationHost active loop started successfully")
             } else {
                 val errorDetails = buildString {
-                    appendLine("Failed to initialize or parse ROM in mGBA core.")
+                    val activeCore = (engine as? NativeEmulationEngine)?.core ?: NativeCore
+                    appendLine("Failed to initialize or parse ROM in ${config.runtime.core} (${config.game.platform}) core.")
                     appendLine("• Engine State: ${engine.state}")
-                    appendLine("• NativeCore loaded: ${NativeCore.isLoaded()} (${NativeCore.loadedLibraryName ?: "none"})")
-                    if (NativeCore.loadError != null) {
-                        appendLine("• Native Library Error: ${NativeCore.loadError}")
-                    }
+                    appendLine("• NativeCore loaded: ${activeCore.isLoaded()}")
                 }
                 RuntimeLogger.e("Bootstrap", errorDetails)
                 showDiagnosticAlert(root, errorDetails)
@@ -763,8 +763,19 @@ open class GameActivity : Activity() {
     }
 
     // Factory methods for dependency injection and test isolation
-    protected open fun createEngine(): EmulationEngine = NativeEmulationEngine()
-    protected open fun createSurfaceView(): RetroSurfaceView = RetroSurfaceView(this)
+    protected open fun createEngine(): EmulationEngine {
+        val core = NativeCoreFactory.createCore(config)
+        return NativeEmulationEngine(core = core)
+    }
+
+    protected open fun createSurfaceView(): RetroSurfaceView =
+        RetroSurfaceView(
+            context = this,
+            renderer = RetroGlRenderer(
+                initialScaleMode = config.runtime.videoScaleMode,
+                frameBufferSupplier = { host?.engine?.getVideoBuffer() ?: NativeCore.nativeGetVideoBuffer() }
+            )
+        )
     protected open fun createBezelOverlay(): BezelOverlayView = BezelOverlayView(this)
     protected open fun createTouchOverlay(): TouchOverlayView = TouchOverlayView(this)
     protected open fun createAudioPlayer(cfg: RuntimeConfig): RetroAudioPlayer =

@@ -84,4 +84,38 @@ class RuntimeDescriptorTest {
         assertEquals(original.capabilities, reparsed.capabilities)
         assertEquals(original.protectedEntries, reparsed.protectedEntries)
     }
+
+    @Test
+    fun `all 10 canonical runtime descriptors have valid configurations`() {
+        val descriptors = listOf(
+            RuntimeDescriptor.MGBA_UNIFIED,
+            RuntimeDescriptor.SNES9X_UNIFIED,
+            RuntimeDescriptor.GENESIS_UNIFIED,
+            RuntimeDescriptor.FCEUMM_UNIFIED,
+            RuntimeDescriptor.PCE_UNIFIED,
+            RuntimeDescriptor.FBNEO_UNIFIED,
+            RuntimeDescriptor.PCSX_UNIFIED,
+            RuntimeDescriptor.MUPEN64_UNIFIED,
+            RuntimeDescriptor.PPSSPP_UNIFIED,
+            RuntimeDescriptor.MELONDS_UNIFIED
+        )
+
+        assertEquals(10, descriptors.size)
+        for (desc in descriptors) {
+            assertTrue(desc.id.isNotBlank())
+            assertTrue(desc.version.isNotBlank())
+            assertTrue(desc.supportedPlatforms.isNotEmpty())
+            assertTrue(desc.supportedAbis.isNotEmpty())
+            assertTrue(desc.romExtensions.isNotEmpty())
+            assertEquals(1, desc.runtimeApi)
+            assertEquals(26, desc.minSdk)
+            assertEquals(35, desc.targetSdk)
+
+            // Test toJson -> fromJson roundtrip for each descriptor
+            val json = desc.toJson()
+            val reparsed = RuntimeDescriptor.fromJson(json)
+            assertEquals(desc.id, reparsed.id)
+            assertEquals(desc.supportedPlatforms, reparsed.supportedPlatforms)
+        }
+    }
 }

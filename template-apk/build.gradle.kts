@@ -89,7 +89,17 @@ if (hasAndroidSdk) {
 }
 
 dependencies {
+    "implementation"(project(":runtime:retropack-runtime-common"))
     "implementation"(project(":runtime:retropack-runtime-mgba"))
+    "implementation"(project(":runtime:retropack-runtime-snes9x"))
+    "implementation"(project(":runtime:retropack-runtime-genesis"))
+    "implementation"(project(":runtime:retropack-runtime-fceumm"))
+    "implementation"(project(":runtime:retropack-runtime-pce"))
+    "implementation"(project(":runtime:retropack-runtime-fbneo"))
+    "implementation"(project(":runtime:retropack-runtime-pcsx"))
+    "implementation"(project(":runtime:retropack-runtime-mupen64"))
+    "implementation"(project(":runtime:retropack-runtime-ppsspp"))
+    "implementation"(project(":runtime:retropack-runtime-melonds"))
 
     // Testing
     "testImplementation"(platform("org.junit:junit-bom:5.10.2"))

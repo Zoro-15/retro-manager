@@ -105,6 +105,8 @@ class MainViewModel : ViewModel() {
 
             parseResult.onSuccess { identity ->
                 val derivedPkg = identity.derivePackageName()
+                val matchedRuntime = RuntimeRegistry.findRuntimeForPlatform(identity.platform)
+                val templateId = matchedRuntime?.id ?: RuntimeRegistry.RUNTIME_MGBA_UNIFIED
                 _uiState.update { current ->
                     current.copy(
                         romState = current.romState.copy(
@@ -119,6 +121,9 @@ class MainViewModel : ViewModel() {
                         identityState = current.identityState.copy(
                             gameTitle = identity.gameTitle,
                             derivedPackageName = derivedPkg
+                        ),
+                        runtimeState = current.runtimeState.copy(
+                            templateId = templateId
                         )
                     )
                 }
@@ -482,7 +487,7 @@ class MainViewModel : ViewModel() {
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
-                    ensureRuntimesLoaded(context) { line -> appendLog(line) }
+                    ensureRuntimesLoaded(context, buildRequest.runtime.templateId) { line -> appendLog(line) }
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -580,7 +585,11 @@ class MainViewModel : ViewModel() {
      *
      * Returns true when a usable template is registered.
      */
-    private fun ensureRuntimesLoaded(context: Context, appendLog: (String) -> Unit): Boolean {
+    private fun ensureRuntimesLoaded(
+        context: Context,
+        runtimeId: String = RuntimeRegistry.RUNTIME_MGBA_UNIFIED,
+        appendLog: (String) -> Unit
+    ): Boolean {
         val assets = try {
             context.assets
         } catch (_: Throwable) {
@@ -595,26 +604,27 @@ class MainViewModel : ViewModel() {
         val outcome = RuntimeProvisioner.provision(
             targetRoot = targetRuntimesDir,
             source = AndroidAssetSource(assets),
+            runtimeId = runtimeId,
             log = appendLog
         )
         return when (outcome) {
             is RuntimeProvisionResult.Provisioned -> {
                 appendLog(
-                    "[✓] Runtime template ready: ${outcome.template.templateApk.name} " +
+                    "[✓] Runtime template ready ($runtimeId): ${outcome.template.templateApk.name} " +
                         "(${outcome.template.templateApk.length()} bytes)"
                 )
                 true
             }
             is RuntimeProvisionResult.MissingTemplate -> {
-                appendLog("[✗] Runtime template MISSING: ${outcome.guidance}")
+                appendLog("[✗] Runtime template MISSING ($runtimeId): ${outcome.guidance}")
                 false
             }
             is RuntimeProvisionResult.IntegrityMismatch -> {
-                appendLog("[✗] Runtime template INTEGRITY FAILURE: ${outcome.details}")
+                appendLog("[✗] Runtime template INTEGRITY FAILURE ($runtimeId): ${outcome.details}")
                 false
             }
             is RuntimeProvisionResult.ExtractionFailure -> {
-                appendLog("[✗] Runtime bundle provisioning failed: ${outcome.cause}")
+                appendLog("[✗] Runtime bundle provisioning failed ($runtimeId): ${outcome.cause}")
                 false
             }
         }

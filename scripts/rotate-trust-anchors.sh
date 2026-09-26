@@ -1,77 +1,102 @@
 #!/usr/bin/env bash
 #
-# rotate-trust-anchors.sh — lockstep trust-anchor rotation for the pinned
-# runtime template bundle.
+# rotate-trust-anchors.sh — lockstep trust-anchor rotation for pinned
+# runtime template bundles.
 #
-# Run this AFTER replacing runtimes/mgba-unified/template.apk (e.g. with a
-# freshly built :template-apk output). It re-computes the real SHA-256 digests
-# from the binary and rewrites, in lockstep:
-#   1. runtimes/mgba-unified/runtime.json           (protected_entries)
-#   2. core/.../RuntimeRegistry.kt                  (TRUSTED_TEMPLATES,
-#                                                    TRUSTED_PROTECTED_ENTRIES)
-#   3. core/.../RuntimeDescriptor.kt                (MGBA_UNIFIED.protectedEntries)
+# Usage:
+#   ./scripts/rotate-trust-anchors.sh [runtime_dir]
 #
-# The whole-APK template hash (TRUSTED_TEMPLATES) and the entry hashes must
-# always describe the same binary; RuntimeBundleIntegrityTest enforces this
-# in CI and fails the build when the three files drift apart.
-#
-# Usage:  ./scripts/rotate-trust-anchors.sh
+# If runtime_dir is provided, only that bundle is rotated.
+# Otherwise, all bundles in runtimes/ with template.apk and runtime.json are rotated.
 #
 set -euo pipefail
 
-TEMPLATE="runtimes/mgba-unified/template.apk"
-RUNTIME_JSON="runtimes/mgba-unified/runtime.json"
 REGISTRY="core/src/main/kotlin/com/retropack/domain/runtime/RuntimeRegistry.kt"
 DESCRIPTOR="core/src/main/kotlin/com/retropack/domain/runtime/RuntimeDescriptor.kt"
 
 die() { echo "::error:: $*" >&2; exit 1; }
 
-[[ -f "$TEMPLATE" ]] || die "pinned template not found: $TEMPLATE"
-[[ -f "$RUNTIME_JSON" ]] || die "runtime descriptor not found: $RUNTIME_JSON"
 [[ -f "$REGISTRY" ]] || die "RuntimeRegistry source not found: $REGISTRY"
 [[ -f "$DESCRIPTOR" ]] || die "RuntimeDescriptor source not found: $DESCRIPTOR"
 
 command -v sha256sum >/dev/null || die "sha256sum is required"
 command -v unzip >/dev/null || die "unzip is required"
 
-APK_HASH="$(sha256sum "$TEMPLATE" | cut -d' ' -f1)"
-DEX_HASH="$(unzip -p "$TEMPLATE" classes.dex | sha256sum | cut -d' ' -f1)"
-SO_NAME="libretropack-runtime.so"
-SO_HASH="$(unzip -p "$TEMPLATE" "lib/arm64-v8a/${SO_NAME}" | sha256sum | cut -d' ' -f1)"
+rotate_bundle() {
+  local bundle_dir="$1"
+  local template="${bundle_dir}/template.apk"
+  local runtime_json="${bundle_dir}/runtime.json"
 
-echo "template.apk      sha256: ${APK_HASH}"
-echo "classes.dex       sha256: ${DEX_HASH}"
-echo "lib/arm64-v8a/${SO_NAME} sha256: ${SO_HASH}"
+  [[ -f "$template" ]] || { echo "Skipping $bundle_dir: template.apk not found"; return 0; }
+  [[ -f "$runtime_json" ]] || { echo "Skipping $bundle_dir: runtime.json not found"; return 0; }
 
-# --- 1. runtime.json ---------------------------------------------------------
-python3 - "$RUNTIME_JSON" "$APK_HASH" "$DEX_HASH" "$SO_HASH" "$SO_NAME" <<'PY'
+  echo "=== Rotating trust anchors for $bundle_dir ==="
+
+  local apk_hash="$(sha256sum "$template" | cut -d' ' -f1)"
+  local dex_hash="$(unzip -p "$template" classes.dex | sha256sum | cut -d' ' -f1)"
+
+  # Detect native library name inside APK (e.g. libretropack-runtime.so or libretropack-runtime-*.so)
+  local so_path="$(unzip -l "$template" | grep -oE 'lib/arm64-v8a/lib[^ ]+\.so' | head -n 1 || true)"
+  local so_name=""
+  local so_hash=""
+  if [[ -n "$so_path" ]]; then
+    so_name="$(basename "$so_path")"
+    so_hash="$(unzip -p "$template" "$so_path" | sha256sum | cut -d' ' -f1)"
+  fi
+
+  echo "  template.apk: $apk_hash"
+  echo "  classes.dex:  $dex_hash"
+  if [[ -n "$so_name" ]]; then
+    echo "  $so_name: $so_hash"
+  fi
+
+  # --- 1. runtime.json ---
+  python3 - "$runtime_json" "$dex_hash" "$so_hash" "$so_name" <<'PY'
 import json, sys, collections
 path = sys.argv[1]
-dex, so, so_name = sys.argv[3:6]
+dex = sys.argv[2]
+so = sys.argv[3] if len(sys.argv) > 3 else ""
+so_name = sys.argv[4] if len(sys.argv) > 4 else ""
+
 with open(path) as f:
     doc = json.load(f, object_pairs_hook=collections.OrderedDict)
-doc["protected_entries"] = collections.OrderedDict([
-    ("classes.dex", f"sha256:{dex}"),
-    (f"lib/arm64-v8a/{so_name}", f"sha256:{so}"),
-])
+
+entries = [("classes.dex", f"sha256:{dex}")]
+if so_name and so:
+    entries.append((f"lib/arm64-v8a/{so_name}", f"sha256:{so}"))
+
+doc["protected_entries"] = collections.OrderedDict(entries)
+
 with open(path, "w") as f:
     json.dump(doc, f, indent=2)
     f.write("\n")
-print(f"updated {path}")
+print(f"  updated {path}")
 PY
 
-# --- 2. RuntimeRegistry.kt ---------------------------------------------------
-# TRUSTED_TEMPLATES whole-APK hash (bare hex constant)
-perl -0pi -e "s/(RUNTIME_MGBA_UNIFIED to \")[0-9a-fA-F]{64}(\")/\${1}${APK_HASH}\${2}/" "$REGISTRY"
-# TRUSTED_PROTECTED_ENTRIES + old-name entries -> canonical new-name entries
-perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime)\.so)\" to \"[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${SO_NAME}\" to \"${SO_HASH}\"/g" "$REGISTRY"
-perl -0pi -e "s/(\"classes\.dex\" to \")[0-9a-fA-F]{64}(\")/\${1}${DEX_HASH}\${2}/g" "$REGISTRY"
-echo "updated $REGISTRY"
+  # If this is mgba-unified, update compiled-in anchors in RuntimeRegistry.kt and RuntimeDescriptor.kt
+  local runtime_id="$(basename "$bundle_dir")"
+  if [[ "$runtime_id" == "mgba-unified" ]]; then
+    # TRUSTED_TEMPLATES whole-APK hash
+    perl -0pi -e "s/(RUNTIME_MGBA_UNIFIED to \")[0-9a-fA-F]{64}(\")/\${1}${apk_hash}\${2}/" "$REGISTRY"
+    if [[ -n "$so_name" ]]; then
+      perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"${so_hash}\"/g" "$REGISTRY"
+      perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"sha256:[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"sha256:${so_hash}\"/g" "$DESCRIPTOR"
+    fi
+    perl -0pi -e "s/(\"classes\.dex\" to \")[0-9a-fA-F]{64}(\")/\${1}${dex_hash}\${2}/g" "$REGISTRY"
+    perl -0pi -e "s/(\"classes\.dex\" to \"sha256:)[0-9a-fA-F]{64}(\")/\${1}${dex_hash}\${2}/g" "$DESCRIPTOR"
+    echo "  updated $REGISTRY & $DESCRIPTOR"
+  fi
+}
 
-# --- 3. RuntimeDescriptor.kt -------------------------------------------------
-perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime)\.so)\" to \"sha256:[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${SO_NAME}\" to \"sha256:${SO_HASH}\"/g" "$DESCRIPTOR"
-perl -0pi -e "s/(\"classes\.dex\" to \"sha256:)[0-9a-fA-F]{64}(\")/\${1}${DEX_HASH}\${2}/g" "$DESCRIPTOR"
-echo "updated $DESCRIPTOR"
+if [[ $# -ge 1 ]]; then
+  rotate_bundle "$1"
+else
+  for dir in runtimes/*; do
+    if [[ -d "$dir" ]]; then
+      rotate_bundle "$dir"
+    fi
+  done
+fi
 
 echo ""
 echo "Trust anchors rotated. Verify with:"

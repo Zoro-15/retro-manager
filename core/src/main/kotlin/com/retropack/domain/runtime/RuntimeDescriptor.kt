@@ -51,6 +51,204 @@ data class RuntimeDescriptor(
             )
         )
 
+        val SNES9X_UNIFIED = RuntimeDescriptor(
+            id = "snes9x-unified",
+            version = "1.62.3",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("snes", "sfc", "smc"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".sfc", ".smc", ".snes"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val GENESIS_UNIFIED = RuntimeDescriptor(
+            id = "genesis-unified",
+            version = "1.7.5",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("genesis", "md", "smd", "gen", "sms", "gg"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".md", ".smd", ".gen", ".sms", ".gg", ".bin"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val FCEUMM_UNIFIED = RuntimeDescriptor(
+            id = "fceumm-unified",
+            version = "2.6.5",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("nes", "fds", "unf"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".nes", ".fds", ".unf"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val PCE_UNIFIED = RuntimeDescriptor(
+            id = "pce-unified",
+            version = "1.31.0",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("pce", "tg16", "sgx"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".pce", ".sgx", ".cue", ".iso"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val FBNEO_UNIFIED = RuntimeDescriptor(
+            id = "fbneo-unified",
+            version = "1.0.0.3",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".zip", ".7z"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val PCSX_UNIFIED = RuntimeDescriptor(
+            id = "pcsx-unified",
+            version = "1.0.0",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("psx", "ps1", "ps"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".cue", ".iso", ".chd", ".pbp", ".bin"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val MUPEN64_UNIFIED = RuntimeDescriptor(
+            id = "mupen64-unified",
+            version = "2.5.0",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("n64", "z64", "v64"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".z64", ".n64", ".v64"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val PPSSPP_UNIFIED = RuntimeDescriptor(
+            id = "ppsspp-unified",
+            version = "1.17.1",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("psp"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".iso", ".cso", ".pbp"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
+        val MELONDS_UNIFIED = RuntimeDescriptor(
+            id = "melonds-unified",
+            version = "0.9.5",
+            runtimeApi = 1,
+            supportedPlatforms = listOf("nds", "dsi"),
+            supportedAbis = listOf("arm64-v8a", "x86_64"),
+            minSdk = 26,
+            targetSdk = 35,
+            romExtensions = listOf(".nds", ".srl", ".dsi"),
+            romAssetPath = "assets/game.rom",
+            configAssetPath = "assets/retropack.json",
+            configSchemaVersion = 1,
+            capabilities = RuntimeCapabilities(
+                saveStates = 4,
+                rewind = true,
+                fastForward = true,
+                touchControls = true,
+                physicalGamepad = true,
+                biosOptional = true
+            )
+        )
+
         /**
          * Parses a JSON string into a validated [RuntimeDescriptor].
          */

@@ -16,6 +16,15 @@ object RuntimeRegistry {
      * Canonical Runtime Identifiers
      */
     const val RUNTIME_MGBA_UNIFIED = "mgba-unified"
+    const val RUNTIME_SNES9X_UNIFIED = "snes9x-unified"
+    const val RUNTIME_GENESIS_UNIFIED = "genesis-unified"
+    const val RUNTIME_FCEUMM_UNIFIED = "fceumm-unified"
+    const val RUNTIME_PCE_UNIFIED = "pce-unified"
+    const val RUNTIME_FBNEO_UNIFIED = "fbneo-unified"
+    const val RUNTIME_PCSX_UNIFIED = "pcsx-unified"
+    const val RUNTIME_MUPEN64_UNIFIED = "mupen64-unified"
+    const val RUNTIME_PPSSPP_UNIFIED = "ppsspp-unified"
+    const val RUNTIME_MELONDS_UNIFIED = "melonds-unified"
 
     /**
      * TRUST ANCHORS: Hardcoded SHA-256 fingerprints compiled directly into Kotlin bytecode.
@@ -68,13 +77,61 @@ object RuntimeRegistry {
             registeredTemplates.clear()
             platformMappings.clear()
 
-            // Register default mgba-unified descriptor
+            // Register canonical descriptors for all 10 cores
             registerDescriptor(RuntimeDescriptor.MGBA_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.SNES9X_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.GENESIS_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.FCEUMM_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.PCE_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.FBNEO_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.PCSX_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.MUPEN64_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.PPSSPP_UNIFIED)
+            registerDescriptor(RuntimeDescriptor.MELONDS_UNIFIED)
 
             // Register canonical platform associations
             registerPlatformMapping("gb", RUNTIME_MGBA_UNIFIED)
             registerPlatformMapping("gbc", RUNTIME_MGBA_UNIFIED)
             registerPlatformMapping("gba", RUNTIME_MGBA_UNIFIED)
+
+            registerPlatformMapping("snes", RUNTIME_SNES9X_UNIFIED)
+            registerPlatformMapping("sfc", RUNTIME_SNES9X_UNIFIED)
+            registerPlatformMapping("smc", RUNTIME_SNES9X_UNIFIED)
+
+            registerPlatformMapping("genesis", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("md", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("smd", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("gen", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("sms", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("gg", RUNTIME_GENESIS_UNIFIED)
+
+            registerPlatformMapping("nes", RUNTIME_FCEUMM_UNIFIED)
+            registerPlatformMapping("fds", RUNTIME_FCEUMM_UNIFIED)
+            registerPlatformMapping("unf", RUNTIME_FCEUMM_UNIFIED)
+
+            registerPlatformMapping("pce", RUNTIME_PCE_UNIFIED)
+            registerPlatformMapping("tg16", RUNTIME_PCE_UNIFIED)
+            registerPlatformMapping("sgx", RUNTIME_PCE_UNIFIED)
+
+            registerPlatformMapping("arcade", RUNTIME_FBNEO_UNIFIED)
+            registerPlatformMapping("neogeo", RUNTIME_FBNEO_UNIFIED)
+            registerPlatformMapping("cps1", RUNTIME_FBNEO_UNIFIED)
+            registerPlatformMapping("cps2", RUNTIME_FBNEO_UNIFIED)
+            registerPlatformMapping("cps3", RUNTIME_FBNEO_UNIFIED)
+            registerPlatformMapping("fbneo", RUNTIME_FBNEO_UNIFIED)
+
+            registerPlatformMapping("psx", RUNTIME_PCSX_UNIFIED)
+            registerPlatformMapping("ps1", RUNTIME_PCSX_UNIFIED)
+            registerPlatformMapping("ps", RUNTIME_PCSX_UNIFIED)
+
+            registerPlatformMapping("n64", RUNTIME_MUPEN64_UNIFIED)
+            registerPlatformMapping("z64", RUNTIME_MUPEN64_UNIFIED)
+            registerPlatformMapping("v64", RUNTIME_MUPEN64_UNIFIED)
+
+            registerPlatformMapping("psp", RUNTIME_PPSSPP_UNIFIED)
+
+            registerPlatformMapping("nds", RUNTIME_MELONDS_UNIFIED)
+            registerPlatformMapping("dsi", RUNTIME_MELONDS_UNIFIED)
         }
     }
 

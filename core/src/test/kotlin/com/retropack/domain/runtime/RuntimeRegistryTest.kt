@@ -17,18 +17,68 @@ class RuntimeRegistryTest {
     }
 
     @Test
-    fun `discovers mgba-unified runtime for gb gbc and gba platforms`() {
-        val gbRuntime = RuntimeRegistry.findRuntimeForPlatform("gb")
-        val gbcRuntime = RuntimeRegistry.findRuntimeForPlatform("gbc")
-        val gbaRuntime = RuntimeRegistry.findRuntimeForPlatform("gba")
+    fun `discovers canonical runtimes for all 10 retro console systems`() {
+        // GBA / GB / GBC
+        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gba")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gbc")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gb")?.id)
 
-        assertNotNull(gbRuntime)
-        assertNotNull(gbcRuntime)
-        assertNotNull(gbaRuntime)
+        // SNES / Super Famicom
+        assertEquals(RuntimeRegistry.RUNTIME_SNES9X_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("snes")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_SNES9X_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("sfc")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_SNES9X_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("smc")?.id)
 
-        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, gbRuntime!!.id)
-        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, gbcRuntime!!.id)
-        assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, gbaRuntime!!.id)
+        // Genesis / Mega Drive / SMS / GG
+        assertEquals(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("genesis")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("md")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("smd")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("sms")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gg")?.id)
+
+        // NES / Famicom
+        assertEquals(RuntimeRegistry.RUNTIME_FCEUMM_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("nes")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FCEUMM_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("fds")?.id)
+
+        // PC Engine / TG-16
+        assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("pce")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("tg16")?.id)
+
+        // Arcade / Neo Geo / CPS
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("arcade")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("neogeo")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps1")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps2")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps3")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("fbneo")?.id)
+
+        // PS1
+        assertEquals(RuntimeRegistry.RUNTIME_PCSX_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("psx")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_PCSX_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("ps1")?.id)
+
+        // N64
+        assertEquals(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("n64")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("z64")?.id)
+
+        // PSP
+        assertEquals(RuntimeRegistry.RUNTIME_PPSSPP_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("psp")?.id)
+
+        // NDS
+        assertEquals(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("nds")?.id)
+        assertEquals(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("dsi")?.id)
+    }
+
+    @Test
+    fun `registers and retrieves all 10 canonical descriptors by ID`() {
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MGBA_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_SNES9X_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_FCEUMM_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PCE_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PCSX_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PPSSPP_UNIFIED))
+        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED))
     }
 
     @Test
