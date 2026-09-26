@@ -295,7 +295,7 @@ class TouchOverlayTest {
         // Touch down at center (deadzone)
         overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, cx, cy))
         assertTrue(overlay.joystick.isActive)
-        assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
+        assertEquals(RetroKey.NO_KEYS_MASK, overlay.activeKeyMask)
 
         // Move right 50px
         overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_MOVE, cx + 50f, cy))
