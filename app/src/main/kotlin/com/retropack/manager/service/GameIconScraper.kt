@@ -135,8 +135,8 @@ object GameIconScraper {
      */
     fun sanitizeTitle(raw: String): String {
         var clean = raw
-        // Strip common extensions
-        clean = clean.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin)$", RegexOption.IGNORE_CASE), "")
+        // Strip common extensions across all 10 console platforms
+        clean = clean.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx|n64|z64|v64|nds|srl|dsi|iso|cso|pbp|cue|chd)$", RegexOption.IGNORE_CASE), "")
         // Strip parentheses tags e.g. (USA), (Europe, USA), (Rev 1), (v1.1)
         clean = clean.replace(Regex("\\s*\\([^)]*\\)"), "")
         // Strip bracket tags e.g. [!], [b1], [t1]
@@ -163,7 +163,7 @@ object GameIconScraper {
 
         // 2. Exact stripped filename (No-Intro style with regions)
         if (!rawFileName.isNullOrBlank()) {
-            val fileWithoutExt = rawFileName.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin)$", RegexOption.IGNORE_CASE), "")
+            val fileWithoutExt = rawFileName.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx|n64|z64|v64|nds|srl|dsi|iso|cso|pbp|cue|chd)$", RegexOption.IGNORE_CASE), "")
             if (fileWithoutExt.isNotBlank()) {
                 candidates.add(fileWithoutExt.trim())
             }
@@ -174,6 +174,7 @@ object GameIconScraper {
                 candidates.add("$sanitizedFile (USA)")
                 candidates.add("$sanitizedFile (USA, Europe)")
                 candidates.add("$sanitizedFile (Europe)")
+                candidates.add("$sanitizedFile (Japan)")
             }
         }
 
@@ -184,6 +185,8 @@ object GameIconScraper {
                 candidates.add(sanitizedTitle)
                 candidates.add("$sanitizedTitle (USA)")
                 candidates.add("$sanitizedTitle (USA, Europe)")
+                candidates.add("$sanitizedTitle (Europe)")
+                candidates.add("$sanitizedTitle (Japan)")
             }
         }
 
@@ -195,7 +198,25 @@ object GameIconScraper {
             "gba" -> listOf("Nintendo_-_Game_Boy_Advance")
             "gbc" -> listOf("Nintendo_-_Game_Boy_Color", "Nintendo_-_Game_Boy")
             "gb" -> listOf("Nintendo_-_Game_Boy", "Nintendo_-_Game_Boy_Color")
-            else -> listOf("Nintendo_-_Game_Boy_Advance", "Nintendo_-_Game_Boy_Color", "Nintendo_-_Game_Boy")
+            "snes", "sfc", "smc" -> listOf("Nintendo_-_Super_Nintendo_Entertainment_System", "Nintendo_-_Super_Famicom")
+            "nes", "fds", "unf" -> listOf("Nintendo_-_Nintendo_Entertainment_System", "Nintendo_-_Famicom")
+            "genesis", "md", "smd", "gen" -> listOf("Sega_-_Mega_Drive_-_Genesis")
+            "sms" -> listOf("Sega_-_Master_System_-_Mark_III")
+            "gg" -> listOf("Sega_-_Game_Gear")
+            "pce", "tg16", "sgx" -> listOf("NEC_-_PC_Engine_-_TurboGrafx_16", "NEC_-_PC_Engine_SuperGrafx")
+            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> listOf("FBNeo_-_Arcade_Games", "MAME")
+            "psx", "ps1", "ps" -> listOf("Sony_-_PlayStation")
+            "n64", "z64", "v64" -> listOf("Nintendo_-_Nintendo_64")
+            "psp" -> listOf("Sony_-_PlayStation_Portable")
+            "nds", "dsi" -> listOf("Nintendo_-_Nintendo_DS")
+            else -> listOf(
+                "Nintendo_-_Game_Boy_Advance",
+                "Nintendo_-_Super_Nintendo_Entertainment_System",
+                "Nintendo_-_Nintendo_Entertainment_System",
+                "Sega_-_Mega_Drive_-_Genesis",
+                "Nintendo_-_Nintendo_64",
+                "Sony_-_PlayStation"
+            )
         }
     }
 

@@ -102,4 +102,25 @@ class MultiPlatformRomParserTest {
         assertEquals("MARIO KART", identity.gameTitle)
         assertEquals("AMCE", identity.gameCode)
     }
+
+    @Test
+    fun `test extension fallback for unheadered homebrews and disc formats`() {
+        val dummyBytes = ByteArray(1024) { 0x11 }
+
+        val pspIdentity = RomParser.parse(dummyBytes, "Crisis_Core_FFVII.iso")
+        assertEquals("psp", pspIdentity.platform)
+        assertEquals("Crisis Core FFVII", pspIdentity.gameTitle)
+
+        val arcadeIdentity = RomParser.parse(dummyBytes, "kof98.zip")
+        assertEquals("arcade", arcadeIdentity.platform)
+        assertEquals("kof98", arcadeIdentity.gameTitle)
+
+        val snesIdentity = RomParser.parse(dummyBytes, "Chrono_Trigger.sfc")
+        assertEquals("snes", snesIdentity.platform)
+        assertEquals("Chrono Trigger", snesIdentity.gameTitle)
+
+        val n64Identity = RomParser.parse(dummyBytes, "Zelda_Ocarina_of_Time.z64")
+        assertEquals("n64", n64Identity.platform)
+        assertEquals("Zelda Ocarina of Time", n64Identity.gameTitle)
+    }
 }

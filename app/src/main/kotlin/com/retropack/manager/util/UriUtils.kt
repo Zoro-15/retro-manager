@@ -59,9 +59,20 @@ object UriUtils {
         }
     }
 
+    val SUPPORTED_ROM_EXTENSIONS = setOf(
+        ".gba", ".gbc", ".gb",
+        ".sfc", ".smc", ".snes", ".fig",
+        ".nes", ".fds", ".unf",
+        ".md", ".smd", ".gen", ".sms", ".gg", ".bin",
+        ".pce", ".sgx", ".cue", ".iso", ".chd", ".pbp",
+        ".z64", ".n64", ".v64",
+        ".nds", ".srl", ".dsi",
+        ".cso"
+    )
+
     /**
-     * Inspects incoming byte array. If it is a ZIP archive containing a retro ROM
-     * (.gba, .gbc, .gb), extracts the inner ROM bytes, fileName, and size.
+     * Inspects incoming byte array. If it is a ZIP archive containing a retro ROM,
+     * extracts the inner ROM bytes, fileName, and size.
      */
     fun extractRomIfZip(rawBytes: ByteArray, rawFileName: String): Triple<ByteArray, String, Long> {
         if (!rawFileName.endsWith(".zip", ignoreCase = true) &&
@@ -77,7 +88,7 @@ object UriUtils {
                     if (!entry.isDirectory) {
                         val name = entry.name.substringAfterLast('/').substringAfterLast('\\')
                         val lower = name.lowercase(java.util.Locale.US)
-                        if (lower.endsWith(".gba") || lower.endsWith(".gbc") || lower.endsWith(".gb")) {
+                        if (SUPPORTED_ROM_EXTENSIONS.any { lower.endsWith(it) }) {
                             val extracted = zis.readBytes()
                             return Triple(extracted, name, extracted.size.toLong())
                         }

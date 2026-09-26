@@ -194,13 +194,26 @@ fun MainScreen(
                 }
 
                 // Core Badge
+                val activeCoreLabel = when (uiState.runtimeState.templateId) {
+                    "snes9x-unified" -> "Snes9x 1.62"
+                    "genesis-unified" -> "Genesis Plus GX"
+                    "fceumm-unified" -> "FCEUmm 2.6.5"
+                    "pce-unified" -> "Beetle PCE 1.31"
+                    "fbneo-unified" -> "FBNeo 1.0.0"
+                    "pcsx-unified" -> "PCSX ReARMed"
+                    "mupen64-unified" -> "Mupen64Plus 2.5"
+                    "ppsspp-unified" -> "PPSSPP 1.17"
+                    "melonds-unified" -> "melonDS 0.9.5"
+                    else -> if (uiState.romState.romIdentity != null) "mGBA 0.10.5" else "10 Cores Ready"
+                }
+
                 Box(
                     modifier = Modifier
                         .background(RetroPrimary.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "mGBA 0.10.5",
+                        text = activeCoreLabel,
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.Monospace
@@ -218,7 +231,7 @@ fun MainScreen(
             StepHeader(
                 number = "01",
                 title = "Select ROM File",
-                subtitle = "GB / GBC / GBA with real-time header inspection",
+                subtitle = "Multi-platform auto-detection & header inspection",
                 isCompleted = uiState.romState.romIdentity != null
             )
 
@@ -228,17 +241,18 @@ fun MainScreen(
                 label = "ROM Content File",
                 fileName = uiState.romState.fileName,
                 fileSizeFormatted = uiState.romState.romIdentity?.fileSize?.let { com.retropack.manager.util.UriUtils.formatFileSize(it) },
-                placeholder = "Tap to choose .gb, .gbc, or .gba ROM",
+                placeholder = "Tap to choose ROM (.gba, .sfc, .nes, .md, .n64, .nds, .iso, .zip...)",
                 badge = uiState.romState.romIdentity?.platform?.uppercase(),
                 icon = Icons.Default.Gamepad,
                 onSelect = {
                     romPickerLauncher.launch(
                         arrayOf(
+                            "*/*",
                             "application/octet-stream",
                             "application/x-gameboy-rom",
                             "application/x-gba-rom",
                             "application/zip",
-                            "*/*"
+                            "application/x-zip-compressed"
                         )
                     )
                 }

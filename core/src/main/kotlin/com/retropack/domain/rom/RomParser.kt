@@ -23,9 +23,9 @@ object RomParser {
     /**
      * Inspects a ROM byte array and resolves its complete [RomIdentity].
      */
-    fun parse(bytes: ByteArray): RomIdentity {
+    fun parse(bytes: ByteArray, fileName: String? = null): RomIdentity {
         val checksumResult = StreamChecksum.calculate(bytes)
-        return parseWithChecksums(bytes, checksumResult, bytes.size.toLong())
+        return parseWithChecksums(bytes, checksumResult, bytes.size.toLong(), fileName)
     }
 
     /**
@@ -35,13 +35,14 @@ object RomParser {
     fun parse(file: File): RomIdentity {
         val (checksumResult, prefix) =
             StreamChecksum.calculateWithPrefix(file, MAX_HEADER_PROBE_SIZE)
-        return parseWithChecksums(prefix, checksumResult, checksumResult.totalBytes)
+        return parseWithChecksums(prefix, checksumResult, checksumResult.totalBytes, file.name)
     }
 
     private fun parseWithChecksums(
         headerBytes: ByteArray,
         checksumResult: StreamChecksumResult,
-        fileSize: Long
+        fileSize: Long,
+        fileName: String? = null
     ): RomIdentity {
         // 1. Attempt GBA detection
         if (headerBytes.size >= GbaRomParser.MIN_HEADER_SIZE) {
@@ -212,6 +213,42 @@ object RomParser {
                     logoOrFixedValid = true,
                     hasBattery = false,
                     pceHeader = pceHeader
+                )
+            }
+        }
+
+        // 10. Extension-based fallback for unheadered homebrews, disc images, and arcade archives
+        if (!fileName.isNullOrBlank()) {
+            val ext = fileName.substringAfterLast('.', "").lowercase()
+            val fallbackPlatform = when (ext) {
+                "gba" -> "gba"
+                "gbc" -> "gbc"
+                "gb" -> "gb"
+                "sfc", "smc", "snes", "fig" -> "snes"
+                "nes", "fds", "unf" -> "nes"
+                "md", "smd", "gen" -> "genesis"
+                "sms" -> "sms"
+                "gg" -> "gg"
+                "pce", "tg16", "sgx" -> "pce"
+                "n64", "z64", "v64" -> "n64"
+                "nds", "srl", "dsi" -> "nds"
+                "iso", "cso" -> "psp"
+                "pbp" -> "psp"
+                "cue", "chd" -> "psx"
+                "zip", "7z" -> "arcade"
+                "bin" -> "genesis"
+                else -> null
+            }
+            if (fallbackPlatform != null) {
+                val cleanTitle = fileName.substringBeforeLast('.').replace('_', ' ').trim()
+                return RomIdentity(
+                    platform = fallbackPlatform,
+                    gameTitle = cleanTitle.ifBlank { "Unknown Game" },
+                    fileSize = fileSize,
+                    checksums = checksumResult.checksums,
+                    headerChecksumValid = true,
+                    logoOrFixedValid = true,
+                    hasBattery = true
                 )
             }
         }

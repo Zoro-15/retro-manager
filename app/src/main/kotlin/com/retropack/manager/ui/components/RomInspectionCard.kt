@@ -40,9 +40,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.retropack.domain.model.RomIdentity
+import com.retropack.manager.ui.theme.PlatformArcade
 import com.retropack.manager.ui.theme.PlatformGameBoy
 import com.retropack.manager.ui.theme.PlatformGameBoyAdvance
 import com.retropack.manager.ui.theme.PlatformGameBoyColor
+import com.retropack.manager.ui.theme.PlatformGenesis
+import com.retropack.manager.ui.theme.PlatformN64
+import com.retropack.manager.ui.theme.PlatformNds
+import com.retropack.manager.ui.theme.PlatformNes
+import com.retropack.manager.ui.theme.PlatformPce
+import com.retropack.manager.ui.theme.PlatformPsp
+import com.retropack.manager.ui.theme.PlatformPsx
+import com.retropack.manager.ui.theme.PlatformSnes
 import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
 import com.retropack.manager.ui.theme.RetroError
@@ -61,13 +70,36 @@ fun RomInspectionCard(
     val platformColor = when (identity.platform.lowercase()) {
         "gba" -> PlatformGameBoyAdvance
         "gbc" -> PlatformGameBoyColor
+        "gb" -> PlatformGameBoy
+        "snes", "sfc", "smc" -> PlatformSnes
+        "genesis", "md", "smd", "gen" -> PlatformGenesis
+        "sms", "gg" -> PlatformGenesis
+        "nes", "fds", "unf" -> PlatformNes
+        "pce", "tg16", "sgx" -> PlatformPce
+        "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> PlatformArcade
+        "psx", "ps1", "ps" -> PlatformPsx
+        "n64", "z64", "v64" -> PlatformN64
+        "psp" -> PlatformPsp
+        "nds", "dsi" -> PlatformNds
         else -> PlatformGameBoy
     }
 
     val platformLabel = when (identity.platform.lowercase()) {
         "gba" -> "GAME BOY ADVANCE"
         "gbc" -> "GAME BOY COLOR"
-        else -> "GAME BOY"
+        "gb" -> "GAME BOY"
+        "snes", "sfc", "smc" -> "SUPER NINTENDO"
+        "genesis", "md", "smd", "gen" -> "SEGA GENESIS"
+        "sms" -> "MASTER SYSTEM"
+        "gg" -> "GAME GEAR"
+        "nes", "fds", "unf" -> "NES / FAMICOM"
+        "pce", "tg16", "sgx" -> "PC ENGINE / TG-16"
+        "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "ARCADE / FBNEO"
+        "psx", "ps1", "ps" -> "PLAYSTATION 1"
+        "n64", "z64", "v64" -> "NINTENDO 64"
+        "psp" -> "PLAYSTATION PORTABLE"
+        "nds", "dsi" -> "NINTENDO DS"
+        else -> identity.platform.uppercase()
     }
 
     RetroCard(

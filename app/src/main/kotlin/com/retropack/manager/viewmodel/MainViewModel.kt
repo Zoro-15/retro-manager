@@ -100,7 +100,7 @@ class MainViewModel : ViewModel() {
             val (romBytes, fileName, fileSize) = UriUtils.extractRomIfZip(rawBytes, rawFileName)
 
             val parseResult = withContext(Dispatchers.Default) {
-                runCatching { RomParser.parse(romBytes) }
+                runCatching { RomParser.parse(romBytes, fileName) }
             }
 
             parseResult.onSuccess { identity ->
