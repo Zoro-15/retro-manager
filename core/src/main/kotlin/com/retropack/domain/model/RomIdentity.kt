@@ -1,5 +1,14 @@
 package com.retropack.domain.model
 
+import com.retropack.domain.rom.GbRomHeader
+import com.retropack.domain.rom.GbaRomHeader
+import com.retropack.domain.rom.GenesisRomHeader
+import com.retropack.domain.rom.N64RomHeader
+import com.retropack.domain.rom.NdsRomHeader
+import com.retropack.domain.rom.NesRomHeader
+import com.retropack.domain.rom.PceRomHeader
+import com.retropack.domain.rom.PsxRomHeader
+import com.retropack.domain.rom.SnesRomHeader
 import com.retropack.packaging.PackageIdentity
 
 /**
@@ -7,7 +16,7 @@ import com.retropack.packaging.PackageIdentity
  * Serves as the domain anchor for creating declarative BuildRequests.
  */
 data class RomIdentity(
-    val platform: String, // "gb", "gbc", "gba"
+    val platform: String, // "gb", "gbc", "gba", "snes", "genesis", "sms", "gg", "nes", "psx", "n64", "nds", "pce"
     val gameTitle: String,
     val gameCode: String? = null,
     val makerCode: String? = null,
@@ -19,7 +28,16 @@ data class RomIdentity(
     val cgbFlag: Int? = null,
     val cartridgeType: Int? = null,
     val mbcType: String? = null,
-    val hasBattery: Boolean = false
+    val hasBattery: Boolean = false,
+    val gbHeader: GbRomHeader? = null,
+    val gbaHeader: GbaRomHeader? = null,
+    val snesHeader: SnesRomHeader? = null,
+    val genesisHeader: GenesisRomHeader? = null,
+    val nesHeader: NesRomHeader? = null,
+    val psxHeader: PsxRomHeader? = null,
+    val n64Header: N64RomHeader? = null,
+    val ndsHeader: NdsRomHeader? = null,
+    val pceHeader: PceRomHeader? = null
 ) {
     /**
      * Converts this RomIdentity into a ContentPayload suitable for BuildRequest.

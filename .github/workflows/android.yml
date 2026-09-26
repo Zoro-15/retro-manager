@@ -71,14 +71,14 @@ jobs:
         run: chmod +x gradlew
 
       - name: Assemble runtime AAR (NDK/CMake/mGBA compile gate)
-        run: ./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace
+        run: ./gradlew :runtime:retropack-runtime-common:assembleDebug :runtime:retropack-runtime-mgba:assembleDebug :runtime:retropack-runtime-snes9x:assembleDebug :runtime:retropack-runtime-genesis:assembleDebug :runtime:retropack-runtime-fceumm:assembleDebug :runtime:retropack-runtime-pce:assembleDebug :runtime:retropack-runtime-fbneo:assembleDebug :runtime:retropack-runtime-pcsx:assembleDebug :runtime:retropack-runtime-mupen64:assembleDebug :runtime:retropack-runtime-ppsspp:assembleDebug :runtime:retropack-runtime-melonds:assembleDebug --stacktrace
 
       - name: Upload runtime AAR artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: runtime-aar-debug
-          path: runtime/retropack-runtime-mgba/build/outputs/aar/*.aar
+          path: runtime/*/build/outputs/aar/*.aar
           if-no-files-found: warn
 
       - name: Assemble Template APK

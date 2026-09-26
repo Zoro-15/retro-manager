@@ -9,7 +9,7 @@ if (hasAndroidSdk) {
     apply(plugin = "org.jetbrains.kotlin.android")
 
     configure<LibraryExtension> {
-        namespace = "com.retropack.runtime"
+        namespace = "com.retropack.runtime.mgba"
         compileSdk = 35
 
         defaultConfig {
@@ -74,6 +74,8 @@ if (hasAndroidSdk) {
 }
 
 dependencies {
+    "api"(project(":runtime:retropack-runtime-common"))
+
     // Testing
     "testImplementation"(platform("org.junit:junit-bom:5.10.2"))
     "testImplementation"("org.junit.jupiter:junit-jupiter")

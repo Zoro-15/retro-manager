@@ -70,7 +70,7 @@ if (hasAndroidSdk) {
         sourceSets.named("main") {
             java.srcDirs(
                 "src/main/kotlin",
-                "${project(":runtime:retropack-runtime-mgba").projectDir}/src/stub/java"
+                "${project(":runtime:retropack-runtime-common").projectDir}/src/stub/java"
             )
         }
     }
