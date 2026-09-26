@@ -68,10 +68,10 @@ object AxmlMutator {
     }
 
     private fun isLauncherActivity(activity: ResXmlElement): Boolean {
-        val intentFilters = activity.listElementsByTag("intent-filter") ?: return false
+        val intentFilters = activity.listElements("intent-filter") ?: return false
         for (filter in intentFilters) {
-            val actions = filter.listElementsByTag("action") ?: emptyList()
-            val categories = filter.listElementsByTag("category") ?: emptyList()
+            val actions = filter.listElements("action") ?: emptyList()
+            val categories = filter.listElements("category") ?: emptyList()
 
             val hasMain = actions.any { action ->
                 val name = (action.searchAttributeByName(ATTR_NAME) ?: action.searchAttributeByName("android:$ATTR_NAME"))?.valueAsString
