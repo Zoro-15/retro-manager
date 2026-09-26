@@ -33,7 +33,7 @@ class BezelOverlayView @JvmOverloads constructor(
             invalidate()
         }
 
-    var bezelEnabled: Boolean = true
+    var bezelEnabled: Boolean = false
         set(value) {
             field = value
             invalidate()
