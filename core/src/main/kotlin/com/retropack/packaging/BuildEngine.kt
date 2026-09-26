@@ -343,15 +343,7 @@ object BuildEngine {
     }
 
     private fun computeFileSha256(file: File): String {
-        val md = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { stream ->
-            val buffer = ByteArray(8192)
-            var read: Int
-            while (stream.read(buffer).also { read = it } != -1) {
-                md.update(buffer, 0, read)
-            }
-        }
-        return md.digest().joinToString("") { "%02x".format(it).lowercase(Locale.ROOT) }
+        return StreamChecksum.calculate(file).checksums.sha256
     }
 
     fun computeCertificateFingerprint(cert: X509Certificate): String {

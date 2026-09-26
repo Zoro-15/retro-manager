@@ -15,7 +15,7 @@ import java.security.MessageDigest
  */
 object RomStager {
 
-    private const val BUFFER_SIZE = 8192
+    private const val BUFFER_SIZE = 64 * 1024 // 64 KB chunk size for flash storage throughput
     const val MAX_ROM_SIZE_BYTES: Long = 64L * 1024L * 1024L
 
     private val HEX_CHARS = "0123456789abcdef".toCharArray()

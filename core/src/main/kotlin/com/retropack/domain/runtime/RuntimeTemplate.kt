@@ -17,7 +17,7 @@ data class RuntimeTemplate(
 ) {
     companion object {
         const val TEMPLATE_APK_FILENAME = "template.apk"
-        private const val BUFFER_SIZE = 8192
+        private const val BUFFER_SIZE = 64 * 1024 // 64 KB chunk size
 
         fun computeSha256(file: File): String {
             require(file.exists() && file.isFile) { "File does not exist: ${file.absolutePath}" }

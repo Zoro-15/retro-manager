@@ -76,7 +76,7 @@ object ProtectedEntriesVerifier {
 
     private fun computeSha256(inputStream: InputStream): String {
         val md = MessageDigest.getInstance("SHA-256")
-        val buffer = ByteArray(8192)
+        val buffer = ByteArray(com.retropack.domain.rom.StreamChecksum.BUFFER_SIZE)
         var read: Int
         while (inputStream.read(buffer).also { read = it } != -1) {
             md.update(buffer, 0, read)
