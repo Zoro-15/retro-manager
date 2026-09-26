@@ -4,11 +4,14 @@ import com.retropack.runtime.core.NativeCore
 import com.retropack.runtime.core.NativeCoreBridge
 import java.nio.IntBuffer
 
-/**
- * Low-level JNI bridge to the canonical mGBA 0.10.x C core compiled as `libretropack-runtime.so`.
- */
 object MgbaNativeCore : NativeCoreBridge {
     override fun isLoaded(): Boolean = NativeCore.isLoaded()
+
+    val loadedLibraryName: String?
+        get() = NativeCore.loadedLibraryName
+
+    val loadError: String?
+        get() = NativeCore.loadError
 
     override fun nativeInit(internalStoragePath: String): Boolean = NativeCore.nativeInit(internalStoragePath)
     override fun nativeLoadRom(romPath: String): Boolean = NativeCore.nativeLoadRom(romPath)

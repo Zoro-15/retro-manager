@@ -198,32 +198,62 @@ object RuntimeRegistry {
         return runtimeIds.mapNotNull { registeredDescriptors[it] }
     }
 
+    val CANONICAL_RUNTIME_IDS: Set<String> = setOf(
+        RUNTIME_MGBA_UNIFIED,
+        RUNTIME_SNES9X_UNIFIED,
+        RUNTIME_GENESIS_UNIFIED,
+        RUNTIME_FCEUMM_UNIFIED,
+        RUNTIME_PCE_UNIFIED,
+        RUNTIME_FBNEO_UNIFIED,
+        RUNTIME_PCSX_UNIFIED,
+        RUNTIME_MUPEN64_UNIFIED,
+        RUNTIME_PPSSPP_UNIFIED,
+        RUNTIME_MELONDS_UNIFIED
+    )
+
     /**
      * Retrieves a registered descriptor by [runtimeId].
      */
     fun getDescriptor(runtimeId: String): RuntimeDescriptor? {
-        return registeredDescriptors[runtimeId] ?: registeredDescriptors[RUNTIME_MGBA_UNIFIED]
+        val direct = registeredDescriptors[runtimeId]
+        if (direct != null) return direct
+        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+            return registeredDescriptors[RUNTIME_MGBA_UNIFIED]
+        }
+        return null
     }
 
     /**
      * Retrieves a registered template by [runtimeId].
      */
     fun getTemplate(runtimeId: String): RuntimeTemplate? {
-        return registeredTemplates[runtimeId] ?: registeredTemplates[RUNTIME_MGBA_UNIFIED]
+        val direct = registeredTemplates[runtimeId]
+        if (direct != null) return direct
+        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+            return registeredTemplates[RUNTIME_MGBA_UNIFIED]
+        }
+        return null
     }
 
     /**
      * Retrieves the compiled bytecode trust anchor for [runtimeId].
      */
     fun getTrustedFingerprint(runtimeId: String): String? {
-        return TRUSTED_TEMPLATES[runtimeId] ?: TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED]
+        val direct = TRUSTED_TEMPLATES[runtimeId]
+        if (direct != null) return direct
+        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+            return TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED]
+        }
+        return null
     }
 
     /**
      * Validates whether [actualSha256] matches the bytecode-anchored trusted fingerprint for [runtimeId].
      */
     fun isTrustedTemplate(runtimeId: String, actualSha256: String): Boolean {
-        val trusted = TRUSTED_TEMPLATES[runtimeId] ?: TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED] ?: return false
+        val trusted = TRUSTED_TEMPLATES[runtimeId]
+            ?: (if (runtimeId in CANONICAL_RUNTIME_IDS) TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED] else null)
+            ?: return false
         val normalizedActual = actualSha256.removePrefix("sha256:").trim()
         val normalizedTrusted = trusted.removePrefix("sha256:").trim()
         return normalizedActual.equals(normalizedTrusted, ignoreCase = true)
@@ -234,7 +264,9 @@ object RuntimeRegistry {
      * Enforces BuildEngine Step 9 (Allowlist Policy).
      */
     fun verifyProtectedEntries(runtimeId: String, actualEntries: Map<String, String>): Boolean {
-        val trustedMap = TRUSTED_PROTECTED_ENTRIES[runtimeId] ?: TRUSTED_PROTECTED_ENTRIES[RUNTIME_MGBA_UNIFIED] ?: return false
+        val trustedMap = TRUSTED_PROTECTED_ENTRIES[runtimeId]
+            ?: (if (runtimeId in CANONICAL_RUNTIME_IDS) TRUSTED_PROTECTED_ENTRIES[RUNTIME_MGBA_UNIFIED] else null)
+            ?: return false
         for ((entryName, trustedHash) in trustedMap) {
             val actualHash = actualEntries[entryName] ?: return false
             val normalizedActual = actualHash.removePrefix("sha256:").trim()
