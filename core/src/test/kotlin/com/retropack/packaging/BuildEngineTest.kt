@@ -190,6 +190,104 @@ class BuildEngineTest {
     }
 
     @Test
+    fun `test precomputed checksums path matches default build outputs`() {
+        val templateFile = createMockTemplateApk(File(tempDir, "template-precomputed.apk"))
+        val romBytes = GbaTestRomFactory.create(title = "MARIO KART", gameCode = "AMKE", makerCode = "01")
+        val checksums = StreamChecksum.calculate(ByteArrayInputStream(romBytes)).checksums
+
+        fun freshRequest() = BuildRequest(
+            identity = GameIdentity(
+                gameId = "kart-01",
+                gameTitle = "Mario Kart",
+                packageName = "com.retropack.game.placeholder",
+                versionCode = 3,
+                versionName = "3.0.0"
+            ),
+            content = ContentPayload(sourceRom = "kart.gba", platform = "gba"),
+            runtime = RuntimeConfigPayload(templateId = "mgba-unified")
+        )
+        val signingIdentity = HybridKeystore.generateIdentity("game_precomputed", KeyType.RSA_2048)
+
+        val baseline = BuildEngine.build(
+            request = freshRequest(),
+            romBytes = romBytes,
+            signingIdentity = signingIdentity,
+            outputDir = File(tempDir, "output-precomputed-baseline"),
+            templateOverride = templateFile
+        )
+        val optimized = BuildEngine.build(
+            request = freshRequest(),
+            romBytes = romBytes,
+            signingIdentity = signingIdentity,
+            outputDir = File(tempDir, "output-precomputed-fast"),
+            templateOverride = templateFile,
+            precomputedChecksums = checksums
+        )
+
+        assertTrue(baseline.success, "Baseline failed: ${baseline.errorMessage}")
+        assertTrue(optimized.success, "Optimized failed: ${optimized.errorMessage}")
+        assertEquals(baseline.packageName, optimized.packageName)
+        assertEquals(baseline.versionCode, optimized.versionCode)
+        assertTrue(optimized.stageProvenance.all { it.passed })
+
+        ZipFile(baseline.artifactFile!!).use { baseZip ->
+            ZipFile(optimized.artifactFile!!).use { fastZip ->
+                val baseRom = baseZip.getInputStream(baseZip.getEntry("assets/game.rom")).use { it.readBytes() }
+                val fastRom = fastZip.getInputStream(fastZip.getEntry("assets/game.rom")).use { it.readBytes() }
+                assertArrayEquals(baseRom, fastRom)
+                val baseJson = baseZip.getInputStream(baseZip.getEntry("assets/retropack.json")).use { it.readBytes() }
+                val fastJson = fastZip.getInputStream(fastZip.getEntry("assets/retropack.json")).use { it.readBytes() }
+                // Same inputs except wall-clock provenance timestamp.
+                assertEquals(
+                    String(baseJson).replace(Regex("\"build_timestamp_utc\": \"[^\"]*\""), ""),
+                    String(fastJson).replace(Regex("\"build_timestamp_utc\": \"[^\"]*\""), "")
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `test template hash skip decision honors identity match only`() {
+        val templateFile = createMockTemplateApk(File(tempDir, "template-skip.apk"))
+        val matching = BuildEngine.VerifiedTemplate(
+            file = templateFile,
+            sha256 = "abc123",
+            lastModified = templateFile.lastModified(),
+            length = templateFile.length()
+        )
+        assertTrue(BuildEngine.shouldSkipTemplateHash(matching, templateFile))
+
+        assertFalse(
+            BuildEngine.shouldSkipTemplateHash(null, templateFile),
+            "Absent verification must hash"
+        )
+        assertFalse(
+            BuildEngine.shouldSkipTemplateHash(
+                matching.copy(lastModified = matching.lastModified + 1), templateFile
+            ),
+            "Stale mtime must re-hash"
+        )
+        assertFalse(
+            BuildEngine.shouldSkipTemplateHash(
+                matching.copy(length = matching.length + 1), templateFile
+            ),
+            "Size drift must re-hash"
+        )
+        assertFalse(
+            BuildEngine.shouldSkipTemplateHash(
+                matching.copy(sha256 = ""), templateFile
+            ),
+            "Empty digest must re-hash"
+        )
+        assertFalse(
+            BuildEngine.shouldSkipTemplateHash(
+                matching.copy(file = File(tempDir, "other.apk")), templateFile
+            ),
+            "Path mismatch must re-hash"
+        )
+    }
+
+    @Test
     fun `test build fails cleanly on empty ROM`() {
         val templateFile = createMockTemplateApk(File(tempDir, "template2.apk"))
         val outputDir = File(tempDir, "output2")

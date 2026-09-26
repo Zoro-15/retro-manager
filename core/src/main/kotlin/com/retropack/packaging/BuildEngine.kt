@@ -3,6 +3,7 @@ package com.retropack.packaging
 import com.retropack.domain.model.BuildRequest
 import com.retropack.domain.model.BuildResult
 import com.retropack.domain.model.BuildStageRecord
+import com.retropack.domain.model.ChecksumRecords
 import com.retropack.domain.rom.GbRomParser
 import com.retropack.domain.rom.GbaRomParser
 import com.retropack.domain.rom.StreamChecksum
@@ -31,7 +32,26 @@ object BuildEngine {
     const val MANAGER_VERSION = "0.1.0"
 
     /**
+     * Template already verified by provisioning: file identity plus the digest
+     * provision computed. Step 2 skips its file re-hash on identity match but
+     * ALWAYS re-applies the trust-anchor string compare (security invariant).
+     */
+    data class VerifiedTemplate(
+        val file: File,
+        val sha256: String,
+        val lastModified: Long,
+        val length: Long
+    )
+
+    /**
      * Executes the complete 15-step transformation pipeline.
+     *
+     * @param precomputedChecksums ROM digests the caller already computed
+     * (e.g. `RomIdentity.checksums` from ingest). Step 1 skips its 4-digest
+     * re-hash when supplied; header re-parse always runs (cheap + proves
+     * [romBytes] still match the request).
+     * @param verifiedTemplate provision's fresh verification of the template
+     * file; Step 2 skips its file re-hash on identity match only.
      */
     fun build(
         request: BuildRequest,
@@ -41,7 +61,9 @@ object BuildEngine {
         iconForegroundBytes: ByteArray? = null,
         iconBackgroundBytes: ByteArray? = null,
         templateOverride: File? = null,
-        stageListener: ((BuildStageRecord) -> Unit)? = null
+        stageListener: ((BuildStageRecord) -> Unit)? = null,
+        precomputedChecksums: ChecksumRecords? = null,
+        verifiedTemplate: VerifiedTemplate? = null
     ): BuildResult {
         val totalStartTime = System.currentTimeMillis()
         val stageRecords = mutableListOf<BuildStageRecord>()
@@ -88,7 +110,13 @@ object BuildEngine {
             lateinit var checksumResult: StreamChecksumResult
             recordStage(1, "Checksums & Header Analysis", "Calculating streamed checksums and validating ROM headers", System.currentTimeMillis()) {
                 require(romBytes.isNotEmpty()) { "ROM bytes cannot be empty" }
-                checksumResult = StreamChecksum.calculate(ByteArrayInputStream(romBytes))
+                // Skip the 4-digest re-hash when the caller already hashed
+                // these exact bytes at ingest; headers always re-parse.
+                checksumResult = if (precomputedChecksums != null) {
+                    StreamChecksumResult(precomputedChecksums, romBytes.size.toLong())
+                } else {
+                    StreamChecksum.calculate(ByteArrayInputStream(romBytes))
+                }
 
                 when (request.content.platform.lowercase(Locale.ROOT)) {
                     "gb", "gbc" -> {
@@ -120,10 +148,18 @@ object BuildEngine {
                     templateFile = template.templateApk
                     require(templateFile.exists()) { "Runtime template APK not found at: ${templateFile.absolutePath}" }
 
-                    // Assert bytecode-compiled trust anchor
+                    // Assert bytecode-compiled trust anchor. Skips the file
+                    // re-hash only when provisioning freshly verified these
+                    // exact bytes (same path + length + mtime); the compare
+                    // itself always runs.
                     val expectedHash = RuntimeRegistry.TRUSTED_TEMPLATES[templateId]
                     if (expectedHash != null) {
-                        val actualHash = computeFileSha256(templateFile)
+                        val actualHash =
+                            if (shouldSkipTemplateHash(verifiedTemplate, templateFile)) {
+                                verifiedTemplate!!.sha256
+                            } else {
+                                computeFileSha256(templateFile)
+                            }
                         if (!actualHash.equals(expectedHash, ignoreCase = true)) {
                             throw SecurityException(
                                 "Runtime template integrity failure for '$templateId'! " +
@@ -137,9 +173,10 @@ object BuildEngine {
             // STEP 3: Pre-Flight Package & Signer Check
             lateinit var packageIdentity: PackageIdentity
             recordStage(3, "Pre-Flight Package & Signer Check", "Deriving deterministic package ID and validating signing identity", System.currentTimeMillis()) {
-                packageIdentity = PackageIdentity.create(
+                // Reuses Step 1's digest (or the caller's) — no second ROM hash.
+                packageIdentity = PackageIdentity.createWithHash(
                     gameTitle = request.identity.gameTitle,
-                    romBytes = romBytes,
+                    romSha256Hex = checksumResult.checksums.sha256,
                     versionCode = request.identity.versionCode,
                     versionName = request.identity.versionName
                 )
@@ -342,8 +379,20 @@ object BuildEngine {
             .replace("\t", "\\t")
     }
 
-    private fun computeFileSha256(file: File): String {
-        return StreamChecksum.calculate(file).checksums.sha256
+    /**
+     * Decides whether Step 2 may reuse provisioning's digest instead of
+     * re-hashing: same absolute path, length, and mtime, with a non-empty
+     * digest. Any drift falls back to hashing (never to trusting blindly).
+     */
+    internal fun shouldSkipTemplateHash(verifiedTemplate: VerifiedTemplate?, templateFile: File): Boolean {
+        if (verifiedTemplate == null || verifiedTemplate.sha256.isEmpty()) return false
+        if (verifiedTemplate.file.absoluteFile != templateFile.absoluteFile) return false
+        if (verifiedTemplate.length != templateFile.length()) return false
+        if (verifiedTemplate.lastModified != templateFile.lastModified()) return false
+        return true
+    }
+
+    private fun computeFileSha256(file: File): String {        return StreamChecksum.calculate(file).checksums.sha256
     }
 
     fun computeCertificateFingerprint(cert: X509Certificate): String {

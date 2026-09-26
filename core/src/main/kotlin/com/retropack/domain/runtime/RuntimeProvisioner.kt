@@ -34,7 +34,14 @@ sealed class RuntimeProvisionResult {
     data class Provisioned(
         val template: RuntimeTemplate,
         val extractedFiles: Int,
-        val alreadyPresent: Boolean
+        val alreadyPresent: Boolean,
+        /**
+         * Whole-APK digest provision just verified (null when no trust anchor
+         * was configured). Lets the build skip its own file re-hash on
+         * identity match; the trust-anchor compare always re-runs there.
+         */
+        val templateSha256: String? = null,
+        val templateLastModified: Long = -1L
     ) : RuntimeProvisionResult()
 
     /** The template APK is not present in the asset container at all. */
@@ -140,6 +147,9 @@ object RuntimeProvisioner {
         }
 
         // Fail-fast whole-APK trust check (Stage 2 remains the authoritative gate).
+        // The verified digest is returned so the build can skip its own
+        // file re-hash on identity match (null when unverified).
+        var verifiedSha: String? = null
         if (trustedTemplateSha256 != null) {
             val actual = RuntimeTemplate.computeSha256(templateApk)
             val expected = trustedTemplateSha256.removePrefix("sha256:").trim()
@@ -152,6 +162,7 @@ object RuntimeProvisioner {
                 log("[!] $details")
                 return RuntimeProvisionResult.IntegrityMismatch(details)
             }
+            verifiedSha = actual
         }
 
         // Register (also re-registers cached bundles after process restarts).
@@ -177,7 +188,13 @@ object RuntimeProvisioner {
                 (if (alreadyPresent) "verified from cache" else "extracted ($extractedCount files)") +
                 " and registered (template ${templateApk.length()} bytes)"
         )
-        return RuntimeProvisionResult.Provisioned(template, extractedCount, alreadyPresent)
+        return RuntimeProvisionResult.Provisioned(
+            template,
+            extractedCount,
+            alreadyPresent,
+            templateSha256 = verifiedSha,
+            templateLastModified = templateApk.lastModified()
+        )
     }
 
     /**
