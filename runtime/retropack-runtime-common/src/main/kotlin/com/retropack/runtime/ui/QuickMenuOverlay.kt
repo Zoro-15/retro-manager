@@ -44,6 +44,12 @@ class QuickMenuOverlay @JvmOverloads constructor(
             invalidate()
         }
 
+    var isMultiDisc: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var idleAlpha: Float = 0.40f
     var expandedAlpha: Float = 0.95f
     var hapticFeedbackEnabledState: Boolean = true
@@ -52,6 +58,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
     var onFastForwardSpeedChanged: ((Int) -> Unit)? = null
     var onOpenSettings: (() -> Unit)? = null
     var onOpenMore: (() -> Unit)? = null
+    var onSwitchDisc: (() -> Unit)? = null
+    var onPauseEmulation: (() -> Unit)? = null
     var onHapticFeedbackRequested: (() -> Unit)? = null
 
     // FAB Coordinates and Dimensions (1.5x scaled for mobile ergonomics)
@@ -65,6 +73,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
     val satFastForwardHitRect = RectF()
     val satSettingsHitRect = RectF()
     val satMoreHitRect = RectF()
+    val satDiscHitRect = RectF()
 
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -181,6 +190,17 @@ class QuickMenuOverlay @JvmOverloads constructor(
                     return true
                 }
 
+                // Sat 5: Disc Switcher (When multi-disc game active)
+                if (isMultiDisc) {
+                    val sat5Cy = fabCy + satelliteSpacing * 5f
+                    if (isInsideCircle(x, y, fabCx, sat5Cy, satelliteRadius + 16f)) {
+                        triggerHaptic()
+                        isExpanded = false
+                        onSwitchDisc?.invoke()
+                        return true
+                    }
+                }
+
                 // Tap outside -> collapse menu
                 isExpanded = false
                 return true
@@ -203,6 +223,11 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
         val sat4Cy = fabCy + satelliteSpacing * 4f
         satMoreHitRect.set(fabCx - satelliteRadius, sat4Cy - satelliteRadius, fabCx + satelliteRadius, sat4Cy + satelliteRadius)
+
+        if (isMultiDisc) {
+            val sat5Cy = fabCy + satelliteSpacing * 5f
+            satDiscHitRect.set(fabCx - satelliteRadius, sat5Cy - satelliteRadius, fabCx + satelliteRadius, sat5Cy + satelliteRadius)
+        }
     }
 
     private fun triggerHaptic() {
@@ -319,6 +344,22 @@ class QuickMenuOverlay @JvmOverloads constructor(
         textPaint.textSize = 24f
         textPaint.alpha = 255
         canvas.drawText("⋯", fabCx, sat4Cy + 8f, textPaint)
+
+        // ─── SATELLITE 5: Virtual Disc Switcher Floater (When multi-disc) ───
+        if (isMultiDisc) {
+            val sat5Cy = fabCy + satelliteSpacing * 5f
+            val sat5BgColor = Color.argb(240, 14, 116, 144)
+            val sat5RingColor = Color.argb(255, 34, 211, 238)
+
+            bgPaint.color = sat5BgColor
+            canvas.drawCircle(fabCx, sat5Cy, satelliteRadius, bgPaint)
+            ringPaint.color = sat5RingColor
+            canvas.drawCircle(fabCx, sat5Cy, satelliteRadius, ringPaint)
+
+            textPaint.textSize = 24f
+            textPaint.alpha = 255
+            canvas.drawText("💿", fabCx, sat5Cy + 8f, textPaint)
+        }
     }
 }
 

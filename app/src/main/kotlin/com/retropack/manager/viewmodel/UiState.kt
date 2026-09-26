@@ -22,6 +22,16 @@ data class BuildStageDisplay(
     val errorMessage: String? = null
 )
 
+data class DiscUiItem(
+    val discIndex: Int,
+    val label: String,
+    val fileName: String,
+    val uri: Uri? = null,
+    val bytes: ByteArray? = null,
+    val fileSize: Long = 0L,
+    val sha256: String = ""
+)
+
 data class RomUiState(
     val selectedUri: Uri? = null,
     val fileName: String? = null,
@@ -32,7 +42,8 @@ data class RomUiState(
     val errorMessage: String? = null,
     val patchUri: Uri? = null,
     val patchFileName: String? = null,
-    val patchBytes: ByteArray? = null
+    val patchBytes: ByteArray? = null,
+    val discItems: List<DiscUiItem> = emptyList()
 )
 
 data class IdentityUiState(
@@ -51,7 +62,9 @@ data class IdentityUiState(
 data class RuntimeUiState(
     val templateId: String = "mgba-unified",
     val templateName: String = "mGBA Unified Core (v0.10.5)",
-    val scaleMode: String = "integer_fit", // "integer_fit" or "aspect_fit"
+    val scaleMode: String = "integer_fit", // "integer_fit", "aspect_fit", or "stretch_full"
+    val shaderMode: String = "none", // "none", "crt_scanlines", "lcd_dotmatrix", "color_boost", "sharp_bilinear", "dmg_pea_green"
+    val bezelMode: String = "auto", // "none_oled_black", "auto", "gba_indigo", "gba_sp_platinum", "dmg_retro_offwhite", "gbc_atomic_purple", "crt_trinitron_90s"
     val touchEnabled: Boolean = true,
     val touchOpacity: Float = 0.65f,
     val touchHaptics: Boolean = true,

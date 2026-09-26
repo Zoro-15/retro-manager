@@ -72,6 +72,7 @@ import com.retropack.manager.ui.components.AdvancedOptionsSection
 import com.retropack.manager.ui.components.FileSelectorCard
 import com.retropack.manager.ui.components.FloatingDock
 import com.retropack.manager.ui.components.IconPreviewCard
+import com.retropack.manager.ui.components.MultiDiscManagerSection
 import com.retropack.manager.ui.components.RetroCard
 import com.retropack.manager.ui.components.RomInspectionCard
 import com.retropack.manager.ui.components.StepConnector
@@ -99,6 +100,11 @@ fun MainScreen(
     val romPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { uri -> uri?.let { viewModel.onSelectRom(context, it) } }
+    )
+
+    val addDiscPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { uri -> uri?.let { viewModel.onAddDisc(context, it) } }
     )
 
     val patchPickerLauncher = rememberLauncherForActivityResult(
@@ -330,6 +336,29 @@ fun MainScreen(
                     Column(modifier = Modifier.padding(top = 12.dp)) {
                         RomInspectionCard(identity = identity)
 
+                        // Multi-Disc CD Manager (PS1 & PC Engine CD)
+                        val isCdOrMultiDisc = uiState.romState.discItems.isNotEmpty() ||
+                                com.retropack.domain.rom.RomParser.isCdRomPlatform(identity.platform)
+                        if (isCdOrMultiDisc) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            MultiDiscManagerSection(
+                                discItems = uiState.romState.discItems,
+                                onAddDisc = {
+                                    addDiscPickerLauncher.launch(
+                                        arrayOf(
+                                            "*/*",
+                                            "application/octet-stream",
+                                            "application/x-iso9660-image",
+                                            "application/zip"
+                                        )
+                                    )
+                                },
+                                onRemoveDisc = { viewModel.onRemoveDisc(it) },
+                                onMoveDiscUp = { viewModel.onMoveDiscUp(it) },
+                                onMoveDiscDown = { viewModel.onMoveDiscDown(it) }
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(10.dp))
 
                         // Optional Patch Slot
@@ -474,6 +503,10 @@ fun MainScreen(
             AdvancedOptionsSection(
                 scaleMode = uiState.runtimeState.scaleMode,
                 onScaleModeChange = { viewModel.onScaleModeChanged(it) },
+                shaderMode = uiState.runtimeState.shaderMode,
+                onShaderModeChange = { viewModel.onShaderModeChanged(it) },
+                bezelMode = uiState.runtimeState.bezelMode,
+                onBezelModeChange = { viewModel.onBezelModeChanged(it) },
                 touchEnabled = uiState.runtimeState.touchEnabled,
                 onTouchEnabledChange = { viewModel.onTouchEnabledChanged(it) },
                 touchOpacity = uiState.runtimeState.touchOpacity,

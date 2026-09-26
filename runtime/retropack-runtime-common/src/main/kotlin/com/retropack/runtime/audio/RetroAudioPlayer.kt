@@ -12,7 +12,7 @@ import java.util.Arrays
  * - roadmap.md Part 2.4.
  */
 class RetroAudioPlayer(
-    private val sink: AudioSink = AudioTrackSink(SAMPLE_RATE, CHANNEL_COUNT),
+    private val sink: AudioSink = OboeAudioSink(SAMPLE_RATE, CHANNEL_COUNT),
     private val sampleProvider: (ShortArray, Int) -> Int = { buf, max -> NativeCore.nativeGetAudioSamples(buf, max) },
     val driftController: AudioDriftController = AudioDriftController(SAMPLE_RATE, CHANNEL_COUNT)
 ) {
@@ -23,6 +23,23 @@ class RetroAudioPlayer(
     }
 
     private val scratchBuffer = ShortArray(PUMP_BUFFER_SIZE)
+    private val stretchBuffer = ShortArray(PUMP_BUFFER_SIZE)
+
+    val timeStretcher: WsolaTimeStretcher = WsolaTimeStretcher(SAMPLE_RATE, CHANNEL_COUNT)
+
+    @Volatile
+    var speedMultiplier: Int = 1
+        set(value) {
+            field = value.coerceIn(1, 32)
+            timeStretcher.speedRatio = value.toFloat().coerceIn(1.0f, 4.0f)
+        }
+
+    @Volatile
+    var wsolaEnabled: Boolean = true
+        set(value) {
+            field = value
+            timeStretcher.isEnabled = value
+        }
 
     @Volatile
     var volume: Float = 1.0f
@@ -41,6 +58,11 @@ class RetroAudioPlayer(
     @Volatile
     var isPlaying: Boolean = false
         private set
+
+    /**
+     * Optional callback for audio frequency analysis and audio-reactive haptics.
+     */
+    var onAudioSamplesProcessed: ((samples: ShortArray, count: Int) -> Unit)? = null
 
     init {
         applyVolume()
@@ -115,11 +137,27 @@ class RetroAudioPlayer(
             AudioDriftController.DriftAction.DROP_EXCESS -> decision.adjustedSampleCount.coerceAtMost(pulled)
         }
 
-        val written = sink.write(scratchBuffer, 0, samplesToWrite)
-        if (written < samplesToWrite) {
+        // Bypass audio for ultra-high fast-forward (> 4x) to conserve CPU
+        if (speedMultiplier > 4) {
+            return 0
+        }
+
+        val written = if (speedMultiplier > 1 && wsolaEnabled) {
+            timeStretcher.process(scratchBuffer, 0, samplesToWrite)
+            val drained = timeStretcher.drain(stretchBuffer, 0, stretchBuffer.size)
+            if (drained > 0) {
+                sink.write(stretchBuffer, 0, drained)
+            } else 0
+        } else {
+            sink.write(scratchBuffer, 0, samplesToWrite)
+        }
+
+        if (written < samplesToWrite && speedMultiplier == 1) {
             // Dead/full sink (e.g. AudioTrack init failed and writes return 0):
             // record it instead of silently discarding drained samples.
             driftController.recordUnderrun()
+        } else if (written > 0 && !isMuted) {
+            onAudioSamplesProcessed?.invoke(if (speedMultiplier > 1 && wsolaEnabled) stretchBuffer else scratchBuffer, written)
         }
         return written
     }

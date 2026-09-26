@@ -82,9 +82,9 @@ class SaveStateManager(
 ) {
     companion object {
         const val AUTO_SAVE_SLOT = 0
-        const val MAX_USER_SLOT = 5
-        const val THUMBNAIL_WIDTH = 120
-        const val THUMBNAIL_HEIGHT = 80
+        const val MAX_USER_SLOT = 9 // 10 slots total: Slot 0 (Auto) + Slots 1..9
+        const val THUMBNAIL_WIDTH = 256
+        const val THUMBNAIL_HEIGHT = 144
 
         /**
          * Computes a human-readable relative time string from an epoch timestamp.

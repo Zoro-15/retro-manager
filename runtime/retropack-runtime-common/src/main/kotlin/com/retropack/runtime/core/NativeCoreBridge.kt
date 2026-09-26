@@ -25,4 +25,9 @@ interface NativeCoreBridge {
     fun nativeWriteSram(inBuffer: ByteArray): Boolean
     fun nativeSaveState(slot: Int, filePath: String): Boolean
     fun nativeLoadState(slot: Int, filePath: String): Boolean
+    fun nativeEjectDisc(): Boolean = false
+    fun nativeInsertDisc(discIndex: Int, discPath: String): Boolean = false
+    fun nativeGetDiscCount(): Int = 1
+    fun nativeGetCurrentDisc(): Int = 0
+    fun nativeSetRumbleCallback(callback: ((motorIndex: Int, strengthPercent: Int, durationMs: Int) -> Unit)?) {}
 }

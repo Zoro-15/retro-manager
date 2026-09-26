@@ -21,7 +21,12 @@ enum class ScaleMode(val configValue: String, val displayName: String) {
      * Scales the frame to the maximum bounds preserving original aspect ratio (3:2 for GBA, 10:9 for GB/GBC).
      * Employs bilinear texture filtering to prevent aliasing.
      */
-    ASPECT_FIT("aspect_fit", "Aspect Ratio Fit (Smooth)");
+    ASPECT_FIT("aspect_fit", "Aspect Ratio Fit (Smooth)"),
+
+    /**
+     * Stretches the frame to fill the entire display viewport ignoring original aspect ratio.
+     */
+    STRETCH_FULL("stretch_full", "Full Screen Stretch");
 
     /**
      * Represents the computed target viewport rectangle within a display surface.
@@ -82,6 +87,16 @@ enum class ScaleMode(val configValue: String, val displayName: String) {
                     width = vpWidth,
                     height = vpHeight,
                     scaleFactor = floatScale
+                )
+            }
+            STRETCH_FULL -> {
+                val scaleFactor = max(surfaceWidth.toFloat() / nativeWidth, surfaceHeight.toFloat() / nativeHeight)
+                ViewportRect(
+                    x = 0,
+                    y = 0,
+                    width = surfaceWidth,
+                    height = surfaceHeight,
+                    scaleFactor = scaleFactor
                 )
             }
         }

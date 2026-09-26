@@ -21,10 +21,20 @@ data class GameIdentity(
     val versionName: String = "1.0.0"
 )
 
+data class DiscInfo(
+    val index: Int,
+    val label: String, // "Disc 1", "Disc 2", "Disc 3", etc.
+    val fileName: String,
+    val fileSize: Long = 0L,
+    val sha256: String = ""
+)
+
 data class ContentPayload(
     val sourceRom: String,
-    val platform: String, // "gb", "gbc", "gba"
-    val header: RomHeaderData? = null
+    val platform: String, // "gb", "gbc", "gba", "psx", "pce", etc.
+    val header: RomHeaderData? = null,
+    val discImages: List<DiscInfo> = emptyList(),
+    val m3uPlaylist: String? = null
 )
 
 data class ChecksumRecords(
@@ -53,11 +63,14 @@ data class AudioSettings(
 )
 
 data class VideoSettings(
-    val scaleMode: String = "integer_fit" // "integer_fit", "aspect_fit"
+    val scaleMode: String = "integer_fit", // "integer_fit", "aspect_fit", "stretch_full"
+    val shaderMode: String = "none", // "none", "crt_scanlines", "lcd_dotmatrix", "color_boost", "sharp_bilinear", "dmg_pea_green"
+    val bezelMode: String = "auto" // "none_oled_black", "auto", "gba_indigo", "gba_sp_platinum", "dmg_retro_offwhite", "gbc_atomic_purple", "crt_trinitron_90s"
 )
 
 data class ControlsPayload(
-    val touch: TouchControlsSettings = TouchControlsSettings()
+    val touch: TouchControlsSettings = TouchControlsSettings(),
+    val gamepad: ControllerProfile? = null
 )
 
 data class TouchControlsSettings(

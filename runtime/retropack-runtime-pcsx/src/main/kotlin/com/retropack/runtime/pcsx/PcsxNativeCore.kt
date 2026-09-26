@@ -59,6 +59,10 @@ object PcsxNativeCore : NativeCoreBridge {
     override fun nativeWriteSram(inBuffer: ByteArray): Boolean = pcsxWriteSram(inBuffer)
     override fun nativeSaveState(slot: Int, filePath: String): Boolean = pcsxSaveState(slot, filePath)
     override fun nativeLoadState(slot: Int, filePath: String): Boolean = pcsxLoadState(slot, filePath)
+    override fun nativeEjectDisc(): Boolean = pcsxEjectDisc()
+    override fun nativeInsertDisc(discIndex: Int, discPath: String): Boolean = pcsxInsertDisc(discIndex, discPath)
+    override fun nativeGetDiscCount(): Int = pcsxGetDiscCount()
+    override fun nativeGetCurrentDisc(): Int = pcsxGetCurrentDisc()
 
     private external fun pcsxInit(internalStoragePath: String): Boolean
     private external fun pcsxLoadRom(romPath: String): Boolean
@@ -75,4 +79,8 @@ object PcsxNativeCore : NativeCoreBridge {
     private external fun pcsxWriteSram(inBuffer: ByteArray): Boolean
     private external fun pcsxSaveState(slot: Int, filePath: String): Boolean
     private external fun pcsxLoadState(slot: Int, filePath: String): Boolean
+    private external fun pcsxEjectDisc(): Boolean
+    private external fun pcsxInsertDisc(discIndex: Int, discPath: String): Boolean
+    private external fun pcsxGetDiscCount(): Int
+    private external fun pcsxGetCurrentDisc(): Int
 }

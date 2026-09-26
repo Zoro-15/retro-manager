@@ -59,6 +59,10 @@ object PceNativeCore : NativeCoreBridge {
     override fun nativeWriteSram(inBuffer: ByteArray): Boolean = pceWriteSram(inBuffer)
     override fun nativeSaveState(slot: Int, filePath: String): Boolean = pceSaveState(slot, filePath)
     override fun nativeLoadState(slot: Int, filePath: String): Boolean = pceLoadState(slot, filePath)
+    override fun nativeEjectDisc(): Boolean = pceEjectDisc()
+    override fun nativeInsertDisc(discIndex: Int, discPath: String): Boolean = pceInsertDisc(discIndex, discPath)
+    override fun nativeGetDiscCount(): Int = pceGetDiscCount()
+    override fun nativeGetCurrentDisc(): Int = pceGetCurrentDisc()
 
     private external fun pceInit(internalStoragePath: String): Boolean
     private external fun pceLoadRom(romPath: String): Boolean
@@ -75,4 +79,8 @@ object PceNativeCore : NativeCoreBridge {
     private external fun pceWriteSram(inBuffer: ByteArray): Boolean
     private external fun pceSaveState(slot: Int, filePath: String): Boolean
     private external fun pceLoadState(slot: Int, filePath: String): Boolean
+    private external fun pceEjectDisc(): Boolean
+    private external fun pceInsertDisc(discIndex: Int, discPath: String): Boolean
+    private external fun pceGetDiscCount(): Int
+    private external fun pceGetCurrentDisc(): Int
 }

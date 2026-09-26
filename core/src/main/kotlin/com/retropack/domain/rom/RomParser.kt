@@ -283,4 +283,54 @@ object RomParser {
 
         throw InvalidRomException("Unrecognized ROM format: file size $fileSize bytes does not match any known retro console header specification.")
     }
+
+    private val DISC_PATTERNS = listOf(
+        Regex("""(?i)[(_\[](?:disc|disk|cd)\s*([0-9]+)[)\]]"""),
+        Regex("""(?i)[._-](?:disc|disk|cd)\s*([0-9]+)"""),
+        Regex("""(?i)\b(?:disc|disk|cd)\s*([0-9]+)\s*of\s*[0-9]+"""),
+        Regex("""(?i)\b(?:disc|disk|cd)\s*([0-9]+)\b""")
+    )
+
+    /**
+     * Detects 1-indexed disc number from filename (e.g., "Final Fantasy VII (Disc 2).chd" -> 2).
+     */
+    fun detectDiscIndex(fileName: String): Int? {
+        val nameWithoutExt = fileName.substringBeforeLast('.')
+        for (pattern in DISC_PATTERNS) {
+            val match = pattern.find(nameWithoutExt)
+            if (match != null) {
+                return match.groupValues[1].toIntOrNull()
+            }
+        }
+        return null
+    }
+
+    /**
+     * Extracts base clean game title by removing disc markers and extensions.
+     */
+    fun extractBaseGameTitle(fileName: String): String {
+        var base = fileName.substringBeforeLast('.')
+        for (pattern in DISC_PATTERNS) {
+            base = base.replace(pattern, "")
+        }
+        return base.replace('_', ' ').replace(Regex("""\s+"""), " ").trim()
+    }
+
+    /**
+     * Generates a standard .m3u playlist string for multi-disc CD games.
+     */
+    fun generateM3u(discFileNames: List<String>): String {
+        return discFileNames.joinToString("\n") { it.trim() }
+    }
+
+    /**
+     * Returns true if the platform architecture relies on CD/optical media.
+     */
+    fun isCdRomPlatform(platform: String): Boolean {
+        return when (platform.lowercase().trim().removePrefix(".")) {
+            "psx", "ps1", "ps", "pce", "tg16", "pcecd", "psp", "segacd" -> true
+            else -> false
+        }
+    }
 }
+

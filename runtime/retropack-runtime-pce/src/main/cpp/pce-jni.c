@@ -46,6 +46,9 @@ static struct {
     size_t sram_size;
     uint32_t key_mask;
     uint32_t turbo_counter;
+    bool tray_open;
+    int disc_count;
+    int current_disc;
     jclass byte_buffer_class;
     jmethodID byte_buffer_order;
     jmethodID byte_buffer_as_int_buffer;
@@ -63,6 +66,9 @@ static struct {
     .sram_size = PCE_BRAM_SIZE,
     .key_mask = 0,
     .turbo_counter = 0,
+    .tray_open = false,
+    .disc_count = 1,
+    .current_disc = 0,
     .byte_buffer_class = NULL,
     .byte_buffer_order = NULL,
     .byte_buffer_as_int_buffer = NULL,
@@ -466,3 +472,51 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceLoadState(
     (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_pce_PceNativeCore_pceEjectDisc(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    pthread_mutex_lock(&g_pce.lock);
+    g_pce.tray_open = true;
+    LOGI("Beetle PCE Fast CD-ROM tray opened / disc ejected");
+    pthread_mutex_unlock(&g_pce.lock);
+    return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_pce_PceNativeCore_pceInsertDisc(
+        JNIEnv* env, jobject thiz, jint discIndex, jstring discPath) {
+    (void) thiz;
+    if (!discPath) return JNI_FALSE;
+    const char* native_path = (*env)->GetStringUTFChars(env, discPath, NULL);
+    if (!native_path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_pce.lock);
+#ifdef HAVE_BEETLE_PCE_CORE
+    if (!PCE_Load(native_path)) {
+        LOGE("Beetle PCE Fast failed to mount disc %d: %s", discIndex, native_path);
+        pthread_mutex_unlock(&g_pce.lock);
+        (*env)->ReleaseStringUTFChars(env, discPath, native_path);
+        return JNI_FALSE;
+    }
+#endif
+    g_pce.current_disc = (int) discIndex;
+    g_pce.tray_open = false;
+    LOGI("Beetle PCE Fast mounted disc %d: %s (tray closed)", discIndex, native_path);
+    pthread_mutex_unlock(&g_pce.lock);
+    (*env)->ReleaseStringUTFChars(env, discPath, native_path);
+    return JNI_TRUE;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_pce_PceNativeCore_pceGetDiscCount(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    return (jint) g_pce.disc_count;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_pce_PceNativeCore_pceGetCurrentDisc(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    return (jint) g_pce.current_disc;
+}
+

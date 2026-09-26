@@ -16,7 +16,7 @@ import java.security.MessageDigest
 object RomStager {
 
     private const val BUFFER_SIZE = 64 * 1024 // 64 KB chunk size for flash storage throughput
-    const val MAX_ROM_SIZE_BYTES: Long = 64L * 1024L * 1024L
+    const val MAX_ROM_SIZE_BYTES: Long = 2L * 1024L * 1024L * 1024L // 2 GB supports full CD-ROM images (PS1, PC Engine CD)
 
     private val HEX_CHARS = "0123456789abcdef".toCharArray()
 

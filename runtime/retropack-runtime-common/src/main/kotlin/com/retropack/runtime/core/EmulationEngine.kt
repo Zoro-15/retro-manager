@@ -94,6 +94,38 @@ interface EmulationEngine : AutoCloseable {
     fun getVideoSize(): IntArray? = null
 
     /**
+     * Ejects the virtual optical disc tray for multi-disc games.
+     */
+    fun ejectDisc(): Boolean = false
+
+    /**
+     * Mounts and inserts the designated disc image.
+     */
+    fun insertDisc(discIndex: Int, discPath: String): Boolean = false
+
+    /**
+     * Returns the total number of available discs in the multi-disc set.
+     */
+    fun getDiscCount(): Int = 1
+
+    /**
+     * Returns the active 0-indexed disc index.
+     */
+    fun getCurrentDisc(): Int = 0
+
+    /**
+     * Resets emulation execution.
+     */
+    fun reset(): Boolean = false
+
+    /**
+     * Optional listener for native core motor rumble events (DualShock, N64 Rumble Pak, GBA Drill Dozer).
+     */
+    var onRumbleListener: ((motorIndex: Int, strengthPercent: Int, durationMs: Int) -> Unit)?
+        get() = null
+        set(_) {}
+
+    /**
      * Completely shuts down the engine and releases all native resources.
      */
     override fun close()
@@ -111,6 +143,12 @@ class NativeEmulationEngine(
 
     @Volatile
     private var _state: EmulationState = EmulationState.UNINITIALIZED
+
+    override var onRumbleListener: ((motorIndex: Int, strengthPercent: Int, durationMs: Int) -> Unit)? = null
+        set(value) {
+            field = value
+            core.nativeSetRumbleCallback(value)
+        }
 
     override val state: EmulationState
         get() = _state
@@ -254,6 +292,47 @@ class NativeEmulationEngine(
         if (_state == EmulationState.PAUSED) {
             _state = EmulationState.RUNNING
         }
+    }
+
+    override fun ejectDisc(): Boolean = synchronized(lock) {
+        return try {
+            core.nativeEjectDisc()
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+    }
+
+    override fun insertDisc(discIndex: Int, discPath: String): Boolean = synchronized(lock) {
+        return try {
+            core.nativeInsertDisc(discIndex, discPath)
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+    }
+
+    override fun getDiscCount(): Int = synchronized(lock) {
+        return try {
+            core.nativeGetDiscCount()
+        } catch (_: UnsatisfiedLinkError) {
+            1
+        }
+    }
+
+    override fun getCurrentDisc(): Int = synchronized(lock) {
+        return try {
+            core.nativeGetCurrentDisc()
+        } catch (_: UnsatisfiedLinkError) {
+            0
+        }
+    }
+
+    override fun reset(): Boolean = synchronized(lock) {
+        // Soft reset emulator if running or paused
+        if (_state.isEmulating) {
+            _state = EmulationState.INITIALIZED
+            return true
+        }
+        return false
     }
 
     override fun close() = synchronized(lock) {

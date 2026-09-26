@@ -23,6 +23,14 @@ object ControlsPreferences {
     private const val KEY_LCD_GRID = "lcd_grid_enabled"
     private const val KEY_GBA_COLOR = "gba_color_enabled"
     private const val KEY_BEZEL = "bezel_enabled"
+    private const val KEY_AUTO_RESUME_ENABLED = "auto_resume_enabled"
+    private const val KEY_SHADER_MODE = "shader_mode"
+    private const val KEY_BEZEL_MODE = "bezel_mode"
+    private const val KEY_HAPTIC_FEEDBACK_MODE = "haptic_feedback_mode"
+    private const val KEY_RUMBLE_STRENGTH = "rumble_strength"
+    private const val KEY_DISPLAY_VRR_ENABLED = "display_vrr_enabled"
+    private const val KEY_BFI_ENABLED = "bfi_enabled"
+    private const val KEY_WSOLA_ENABLED = "wsola_audio_stretch_enabled"
     private const val KEY_FLOATING_DPAD = "floating_dpad_enabled"
     private const val KEY_DPAD_TYPE = "dpad_type"
     private const val KEY_JOYSTICK_SNAP_MODE = "joystick_snap_mode"
@@ -247,6 +255,66 @@ object ControlsPreferences {
         } catch (_: Exception) {
             defaultScaleMode
         }
+    }
+
+    /**
+     * Persists GLSL retro display shader mode.
+     */
+    fun saveShaderMode(context: Context, mode: com.retropack.domain.model.ShaderMode) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_SHADER_MODE, mode.id)
+            .apply()
+    }
+
+    /**
+     * Loads GLSL retro display shader mode.
+     */
+    fun loadShaderMode(
+        context: Context,
+        defaultMode: com.retropack.domain.model.ShaderMode = com.retropack.domain.model.ShaderMode.NONE
+    ): com.retropack.domain.model.ShaderMode {
+        val id = context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_SHADER_MODE, defaultMode.id)
+        return com.retropack.domain.model.ShaderMode.fromId(id)
+    }
+
+    /**
+     * Persists console bezel frame mode.
+     */
+    fun saveBezelMode(context: Context, mode: com.retropack.domain.model.BezelMode) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_BEZEL_MODE, mode.id)
+            .apply()
+    }
+
+    /**
+     * Loads console bezel frame mode.
+     */
+    fun loadBezelMode(
+        context: Context,
+        defaultMode: com.retropack.domain.model.BezelMode = com.retropack.domain.model.BezelMode.AUTO
+    ): com.retropack.domain.model.BezelMode {
+        val id = context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_BEZEL_MODE, defaultMode.id)
+        return com.retropack.domain.model.BezelMode.fromId(id)
+    }
+
+    /**
+     * Persists instant background auto-resume snapshot preference.
+     */
+    fun saveAutoResumeEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_AUTO_RESUME_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads instant background auto-resume snapshot preference.
+     */
+    fun loadAutoResumeEnabled(context: Context, defaultEnabled: Boolean = true): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_AUTO_RESUME_ENABLED, defaultEnabled)
     }
 
     /**
@@ -530,6 +598,101 @@ object ControlsPreferences {
             .edit()
             .putBoolean(KEY_GESTURES_ENABLED, enabled)
             .apply()
+    }
+
+    /**
+     * Persists haptic feedback operational mode (Native Rumble, Audio-Reactive, Off).
+     */
+    fun saveHapticFeedbackMode(context: Context, mode: com.retropack.domain.model.HapticFeedbackMode) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_HAPTIC_FEEDBACK_MODE, mode.name)
+            .apply()
+    }
+
+    /**
+     * Loads haptic feedback operational mode.
+     */
+    fun loadHapticFeedbackMode(
+        context: Context,
+        defaultMode: com.retropack.domain.model.HapticFeedbackMode = com.retropack.domain.model.HapticFeedbackMode.AUDIO_REACTIVE
+    ): com.retropack.domain.model.HapticFeedbackMode {
+        val saved = context.getSharedPreferences(PREFS_NAME, 0)
+            .getString(KEY_HAPTIC_FEEDBACK_MODE, defaultMode.name)
+        return com.retropack.domain.model.HapticFeedbackMode.fromString(saved)
+    }
+
+    /**
+     * Persists hardware rumble strength multiplier (0.0 to 1.0).
+     */
+    fun saveRumbleStrength(context: Context, strength: Float) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putFloat(KEY_RUMBLE_STRENGTH, strength.coerceIn(0.0f, 1.0f))
+            .apply()
+    }
+
+    /**
+     * Loads hardware rumble strength multiplier.
+     */
+    fun loadRumbleStrength(context: Context, defaultStrength: Float = 1.0f): Float {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getFloat(KEY_RUMBLE_STRENGTH, defaultStrength)
+            .coerceIn(0.0f, 1.0f)
+    }
+
+    /**
+     * Persists Variable Refresh Rate (VRR) / High Refresh Rate synchronization toggle.
+     */
+    fun saveDisplayVrrEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_DISPLAY_VRR_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads Variable Refresh Rate (VRR) synchronization toggle.
+     */
+    fun loadDisplayVrrEnabled(context: Context, defaultEnabled: Boolean = true): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_DISPLAY_VRR_ENABLED, defaultEnabled)
+    }
+
+    /**
+     * Persists Black Frame Insertion (BFI) toggle.
+     */
+    fun saveBfiEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_BFI_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads Black Frame Insertion (BFI) toggle.
+     */
+    fun loadBfiEnabled(context: Context, defaultEnabled: Boolean = false): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_BFI_ENABLED, defaultEnabled)
+    }
+
+    /**
+     * Persists WSOLA pitch-preserving time-stretching audio toggle.
+     */
+    fun saveWsolaEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_WSOLA_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads WSOLA pitch-preserving time-stretching audio toggle.
+     */
+    fun loadWsolaEnabled(context: Context, defaultEnabled: Boolean = true): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_WSOLA_ENABLED, defaultEnabled)
     }
 
     /**

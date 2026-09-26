@@ -49,6 +49,9 @@ static struct {
     int16_t analog_ly;
     int16_t analog_rx;
     int16_t analog_ry;
+    bool tray_open;
+    int disc_count;
+    int current_disc;
     jclass byte_buffer_class;
     jmethodID byte_buffer_order;
     jmethodID byte_buffer_as_int_buffer;
@@ -69,6 +72,9 @@ static struct {
     .analog_ly = 0,
     .analog_rx = 0,
     .analog_ry = 0,
+    .tray_open = false,
+    .disc_count = 1,
+    .current_disc = 0,
     .byte_buffer_class = NULL,
     .byte_buffer_order = NULL,
     .byte_buffer_as_int_buffer = NULL,
@@ -452,3 +458,55 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxLoadState(
     (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxEjectDisc(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    pthread_mutex_lock(&g_pcsx.lock);
+    g_pcsx.tray_open = true;
+    LOGI("PCSX ReARMed CD-ROM tray opened / disc ejected");
+#ifdef HAVE_PCSX_CORE
+    CDR_close();
+#endif
+    pthread_mutex_unlock(&g_pcsx.lock);
+    return JNI_TRUE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxInsertDisc(
+        JNIEnv* env, jobject thiz, jint discIndex, jstring discPath) {
+    (void) thiz;
+    if (!discPath) return JNI_FALSE;
+    const char* native_path = (*env)->GetStringUTFChars(env, discPath, NULL);
+    if (!native_path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_pcsx.lock);
+#ifdef HAVE_PCSX_CORE
+    CDR_close();
+    if (psxLoad(native_path) != 0) {
+        LOGE("PCSX ReARMed failed to mount disc %d: %s", discIndex, native_path);
+        pthread_mutex_unlock(&g_pcsx.lock);
+        (*env)->ReleaseStringUTFChars(env, discPath, native_path);
+        return JNI_FALSE;
+    }
+#endif
+    g_pcsx.current_disc = (int) discIndex;
+    g_pcsx.tray_open = false;
+    LOGI("PCSX ReARMed mounted disc %d: %s (tray closed)", discIndex, native_path);
+    pthread_mutex_unlock(&g_pcsx.lock);
+    (*env)->ReleaseStringUTFChars(env, discPath, native_path);
+    return JNI_TRUE;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxGetDiscCount(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    return (jint) g_pcsx.disc_count;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxGetCurrentDisc(JNIEnv* env, jobject thiz) {
+    (void) env; (void) thiz;
+    return (jint) g_pcsx.current_disc;
+}
+

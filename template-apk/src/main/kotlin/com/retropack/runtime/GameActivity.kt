@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.retropack.domain.model.HapticFeedbackMode
 import com.retropack.runtime.audio.RetroAudioPlayer
 import com.retropack.runtime.core.EmulationEngine
 import com.retropack.runtime.core.NativeCore
@@ -24,19 +25,23 @@ import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.input.ControlsPreferences
 import com.retropack.runtime.input.DpadType
 import com.retropack.runtime.input.GamepadMapper
+import com.retropack.runtime.input.HapticManager
 import com.retropack.runtime.input.JoystickSnapMode
 import com.retropack.runtime.input.SensorController
 import com.retropack.runtime.input.TouchOverlayView
 import com.retropack.runtime.input.TouchTheme
 import com.retropack.runtime.logging.RuntimeLogger
+import com.retropack.runtime.save.AutoResumeManager
 import com.retropack.runtime.save.SaveManager
 import com.retropack.runtime.save.SaveStateManager
 import com.retropack.runtime.ui.BezelOverlayView
+import com.retropack.runtime.ui.DiscSwitcherOverlay
 import com.retropack.runtime.ui.GamepadRemapOverlay
 import com.retropack.runtime.ui.InGameSettingsOverlay
 import com.retropack.runtime.ui.MoreFeaturesSheet
 import com.retropack.runtime.ui.QuickMenuOverlay
 import com.retropack.runtime.factory.NativeCoreFactory
+import com.retropack.runtime.video.DisplaySyncManager
 import com.retropack.runtime.video.RetroGlRenderer
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
@@ -49,7 +54,8 @@ import kotlin.math.abs
  * - masterplan.md Section 5.1: "Architecture & Bootstrap (GameActivity.kt)"
  * - architechture.md Constitutional Invariant 1: Fully-qualified activity identifier
  * - architechture.md Constitutional Invariant 5: Zero-loss save durability across lifecycle events
- * - roadmap.md Phase 3.
+ * - Feature 1: Multi-Disc Game Management & Virtual Disc Switcher
+ * - Feature 2: In-Game Pause HUD & Savestate Quick Slots UI
  */
 open class GameActivity : Activity() {
 
@@ -89,10 +95,16 @@ open class GameActivity : Activity() {
     var moreFeaturesSheet: MoreFeaturesSheet? = null
         protected set
 
+    var discSwitcherOverlay: DiscSwitcherOverlay? = null
+        protected set
+
     var sensorController: SensorController? = null
         protected set
 
     var gamepadRemapOverlay: GamepadRemapOverlay? = null
+        protected set
+
+    var hapticManager: HapticManager? = null
         protected set
 
     var isGameLoaded: Boolean = false
@@ -127,10 +139,23 @@ open class GameActivity : Activity() {
         val effectiveMuteAudio = ControlsPreferences.loadMuteAudioOnFastForward(this, true)
         val effectiveTurbo = ControlsPreferences.loadTurboEnabled(this, false)
         val effectiveComboMacro = ControlsPreferences.loadComboMacroEnabled(this, false)
-        val effectiveTouchTheme = ControlsPreferences.loadTouchTheme(this, "classic_indigo")
         val effectiveLcdGrid = ControlsPreferences.loadLcdGridEnabled(this, false)
         val effectiveGbaColor = ControlsPreferences.loadGbaColorCorrectionEnabled(this, false)
-        val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, false)
+        val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, true)
+        val effectiveShaderMode = ControlsPreferences.loadShaderMode(this, config.runtime.videoShaderMode)
+        val effectiveBezelMode = ControlsPreferences.loadBezelMode(this, config.runtime.videoBezelMode)
+        val effectiveAutoResume = ControlsPreferences.loadAutoResumeEnabled(this, true)
+        val effectiveHapticMode = ControlsPreferences.loadHapticFeedbackMode(this, HapticFeedbackMode.AUDIO_REACTIVE)
+        val effectiveRumbleStrength = ControlsPreferences.loadRumbleStrength(this, 1.0f)
+        val effectiveVrr = ControlsPreferences.loadDisplayVrrEnabled(this, true)
+        val effectiveBfi = ControlsPreferences.loadBfiEnabled(this, false)
+        val effectiveWsola = ControlsPreferences.loadWsolaEnabled(this, true)
+
+        // Determine multi-disc support
+        val isMultiDisc = config.game.discs.size > 1 || config.game.m3uPath != null
+        val discLabels = if (config.game.discs.isNotEmpty()) {
+            config.game.discs.map { it.label }
+        } else listOf("Disc 1")
 
         // 3. Stage ROM atomically to storage/game.rom with SHA-256 verification
         val romFile = File(storageDirectory(), ROM_FILENAME)
@@ -156,6 +181,9 @@ open class GameActivity : Activity() {
 
         val sv = createSurfaceView()
         sv.scaleMode = effectiveScaleMode
+        sv.shaderMode = effectiveShaderMode
+        sv.bezelMode = effectiveBezelMode
+        sv.bfiEnabled = effectiveBfi
         sv.renderer.lcdGridEnabled = effectiveLcdGrid
         sv.renderer.colorCorrectionEnabled = effectiveGbaColor
         this.surfaceView = sv
@@ -164,9 +192,19 @@ open class GameActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
+        // Configure Dynamic Adaptive Display Sync (VRR / 90Hz / 120Hz / 144Hz)
+        DisplaySyncManager.configureDisplaySync(
+            activity = this,
+            surfaceView = sv,
+            vrrEnabled = effectiveVrr,
+            bfiEnabled = effectiveBfi
+        )
+
         // Handheld Screen Bezel & Borders
         val bezel = createBezelOverlay().apply {
             bezelEnabled = effectiveBezel
+            bezelMode = effectiveBezelMode
+            platform = config.game.platform
             scaleMode = effectiveScaleMode
         }
         this.bezelOverlay = bezel
@@ -256,7 +294,7 @@ open class GameActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
-        // In-Game "More" App Page / Feature Hub
+        // In-Game "More" App Page & Pause HUD
         val moreSheet = createMoreFeaturesSheet().apply {
             gameTitle = config.game.title
             scaleMode = effectiveScaleMode
@@ -273,12 +311,31 @@ open class GameActivity : Activity() {
             lcdGridEnabled = effectiveLcdGrid
             gbaColorCorrectionEnabled = effectiveGbaColor
             bezelEnabled = effectiveBezel
+            autoResumeEnabled = effectiveAutoResume
+            hapticFeedbackMode = effectiveHapticMode
+            rumbleStrength = effectiveRumbleStrength
+            vrrEnabled = effectiveVrr
+            bfiEnabled = effectiveBfi
+            wsolaEnabled = effectiveWsola
+            this.isMultiDisc = isMultiDisc
             hapticFeedbackEnabledState = effectiveHaptics
             hapticIntensity = effectiveHapticIntensity
             saveStateManager = ssm
         }
         this.moreFeaturesSheet = moreSheet
         root.addView(moreSheet, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Virtual Disc Switcher Modal Overlay
+        val discSwitcher = createDiscSwitcherOverlay().apply {
+            gameTitle = config.game.title
+            this.discLabels = discLabels
+            hapticFeedbackEnabledState = effectiveHaptics
+        }
+        this.discSwitcherOverlay = discSwitcher
+        root.addView(discSwitcher, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
@@ -299,6 +356,7 @@ open class GameActivity : Activity() {
         val qm = createQuickMenu().apply {
             isControlsActive = to?.isControlsVisible ?: true
             fastForwardSpeed = effectiveFastForwardSpeed
+            this.isMultiDisc = isMultiDisc
             hapticFeedbackEnabledState = effectiveHaptics
         }
         this.quickMenu = qm
@@ -320,10 +378,41 @@ open class GameActivity : Activity() {
             moreSheet.fastForwardSpeed = speed
         }
         qm.onOpenSettings = {
+            host?.pause()
             settings.show()
         }
         qm.onOpenMore = {
+            host?.pause()
             moreSheet.show()
+        }
+        qm.onSwitchDisc = {
+            host?.pause()
+            discSwitcher.show()
+        }
+
+        // Wire Disc Switcher Callbacks
+        discSwitcher.onDiscSelected = { discIndex, discLabel ->
+            RuntimeLogger.i("DiscSwitcher", "User requested switch to $discLabel (index $discIndex)")
+            host?.let { h ->
+                h.engine.ejectDisc()
+                val discEntry = config.game.discs.getOrNull(discIndex)
+                val targetPath = if (discEntry != null) {
+                    val discFile = File(storageDirectory(), discEntry.path)
+                    if (!discFile.exists() && discEntry.sha256.isNotBlank()) {
+                        stageRomIfNeeded(discFile, discEntry.sha256)
+                    }
+                    discFile.absolutePath
+                } else {
+                    romFile.absolutePath
+                }
+                h.engine.insertDisc(discIndex, targetPath)
+                RuntimeLogger.i("DiscSwitcher", "Mounted $targetPath for disc index $discIndex")
+            }
+        }
+        discSwitcher.onDismissed = {
+            if (isGameLoaded) {
+                host?.resume()
+            }
         }
 
         // Wire Settings Sheet Callbacks
@@ -346,6 +435,7 @@ open class GameActivity : Activity() {
             qm.hapticFeedbackEnabledState = haptics
             settings.hapticFeedbackEnabledState = haptics
             moreSheet.hapticFeedbackEnabledState = haptics
+            discSwitcher.hapticFeedbackEnabledState = haptics
             remapOverlay.hapticFeedbackEnabledState = haptics
             ControlsPreferences.saveHaptics(this, haptics)
         }
@@ -376,6 +466,11 @@ open class GameActivity : Activity() {
             qm.isControlsActive = to?.isControlsVisible ?: true
             qm.fastForwardSpeed = 1
             host?.setFastForwardMultiplier(1)
+        }
+        settings.onDismissed = {
+            if (isGameLoaded && moreSheet.visibility != View.VISIBLE && discSwitcher.visibility != View.VISIBLE) {
+                host?.resume()
+            }
         }
 
         // Wire More Features Sheet Callbacks
@@ -468,15 +563,79 @@ open class GameActivity : Activity() {
             bezel.bezelEnabled = enabled
             ControlsPreferences.saveBezelEnabled(this, enabled)
         }
+        moreSheet.onShaderModeChanged = { mode ->
+            sv.shaderMode = mode
+            ControlsPreferences.saveShaderMode(this, mode)
+        }
+        moreSheet.onBezelModeChanged = { mode ->
+            sv.bezelMode = mode
+            bezel.bezelMode = mode
+            ControlsPreferences.saveBezelMode(this, mode)
+        }
         moreSheet.onScaleModeChanged = { mode ->
             sv.scaleMode = mode
             bezel.scaleMode = mode
             settings.scaleMode = mode
             ControlsPreferences.saveScaleMode(this, mode)
         }
+        moreSheet.onAutoResumeChanged = { enabled ->
+            ControlsPreferences.saveAutoResumeEnabled(this, enabled)
+            RuntimeLogger.i("HUD", "Auto-Resume toggled: $enabled")
+        }
+        moreSheet.onHapticModeChanged = { mode ->
+            hapticManager?.hapticMode = mode
+            ControlsPreferences.saveHapticFeedbackMode(this, mode)
+            RuntimeLogger.i("HUD", "Haptic Mode set to: ${mode.displayName}")
+        }
+        moreSheet.onRumbleStrengthChanged = { strength ->
+            hapticManager?.rumbleStrength = strength
+            ControlsPreferences.saveRumbleStrength(this, strength)
+        }
+        moreSheet.onVrrChanged = { vrr ->
+            ControlsPreferences.saveDisplayVrrEnabled(this, vrr)
+            DisplaySyncManager.configureDisplaySync(
+                activity = this,
+                surfaceView = sv,
+                vrrEnabled = vrr,
+                bfiEnabled = moreSheet.bfiEnabled
+            )
+        }
+        moreSheet.onBfiChanged = { bfi ->
+            sv.bfiEnabled = bfi
+            ControlsPreferences.saveBfiEnabled(this, bfi)
+            DisplaySyncManager.configureDisplaySync(
+                activity = this,
+                surfaceView = sv,
+                vrrEnabled = moreSheet.vrrEnabled,
+                bfiEnabled = bfi
+            )
+        }
+        moreSheet.onWsolaChanged = { wsola ->
+            host?.setWsolaEnabled(wsola)
+            ControlsPreferences.saveWsolaEnabled(this, wsola)
+            RuntimeLogger.i("HUD", "WSOLA Audio Time-Stretching toggled: $wsola")
+        }
         moreSheet.onEditControlsClicked = {
             moreSheet.hide()
             to?.isEditMode = true
+        }
+        moreSheet.onSwitchDiscClicked = {
+            discSwitcher.show()
+        }
+        moreSheet.onResetGameClicked = {
+            RuntimeLogger.i("Action", "Reset Game triggered from Pause HUD")
+            host?.let { h ->
+                h.engine.reset()
+            }
+        }
+        moreSheet.onExitToLauncherClicked = {
+            RuntimeLogger.i("Action", "Exit to Launcher triggered from Pause HUD")
+            finish()
+        }
+        moreSheet.onDismissed = {
+            if (isGameLoaded && settings.visibility != View.VISIBLE && discSwitcher.visibility != View.VISIBLE) {
+                host?.resume()
+            }
         }
 
         to?.onEditModeChanged = { inEditMode ->
@@ -496,6 +655,23 @@ open class GameActivity : Activity() {
         val engine = createEngine()
         val audioPlayer = createAudioPlayer(config)
 
+        // Initialize Modern Haptic & Gamepad Vibration Manager
+        val hm = HapticManager(this).apply {
+            hapticMode = effectiveHapticMode
+            rumbleStrength = effectiveRumbleStrength
+        }
+        this.hapticManager = hm
+
+        // Route native core motor vibration to HapticManager
+        engine.onRumbleListener = { motorIndex, strength, durationMs ->
+            hm.triggerNativeRumble(motorIndex, strength, durationMs)
+        }
+
+        // Route audio samples to real-time AudioHapticEngine
+        audioPlayer.onAudioSamplesProcessed = { samples, count ->
+            hm.audioHapticEngine.processSamples(samples, count)
+        }
+
         gamepadMapper.onGamepadDetected = {
             to?.isControlsVisible = false
             qm.isControlsActive = false
@@ -512,6 +688,7 @@ open class GameActivity : Activity() {
         ).apply {
             setFastForwardMultiplier(effectiveFastForwardSpeed)
             setMuteAudioOnFastForward(effectiveMuteAudio)
+            setWsolaEnabled(effectiveWsola)
             onFrameRenderRequested = {
                 sv.requestRenderFrame()
             }
@@ -528,6 +705,20 @@ open class GameActivity : Activity() {
             )
             RuntimeLogger.i("Bootstrap", "EmulationHost.loadGame result: $isGameLoaded (engine state: ${engine.state})")
             if (isGameLoaded) {
+                // Instant Resume: Attempt frame 0 restoration from auto-resume snapshot
+                if (effectiveAutoResume) {
+                    val romSha = config.game.romSha256.ifEmpty { romFile.name }
+                    if (AutoResumeManager.hasValidAutoResume(storageDirectory(), romSha)) {
+                        val restored = AutoResumeManager.restoreAutoResume(
+                            storageDir = storageDirectory(),
+                            engine = emulationHost.engine,
+                            romSha256 = romSha
+                        )
+                        if (restored) {
+                            RuntimeLogger.i("Bootstrap", "Instant Resume: Restored exact frame 0 from background snapshot")
+                        }
+                    }
+                }
                 emulationHost.start()
                 RuntimeLogger.i("Bootstrap", "EmulationHost active loop started successfully")
             } else {
@@ -556,20 +747,49 @@ open class GameActivity : Activity() {
         }
         RuntimeLogger.i("Lifecycle", "onResume: isGameLoaded=$isGameLoaded")
         host?.let {
-            if (isGameLoaded) {
+            if (isGameLoaded && moreFeaturesSheet?.isShowing() != true && settingsOverlay?.isShowing() != true) {
                 it.resume()
             }
         }
     }
 
     override fun onPause() {
-        RuntimeLogger.i("Lifecycle", "onPause: pausing emulation and flushing SRAM")
+        RuntimeLogger.i("Lifecycle", "onPause: pausing emulation, capturing auto-snapshot and flushing SRAM")
         sensorController?.stop()
         host?.pause()
+        // Feature 1: Instant Resume background snapshot capture
+        if (isGameLoaded && host != null) {
+            val autoResumeEnabled = ControlsPreferences.loadAutoResumeEnabled(this, true)
+            if (autoResumeEnabled) {
+                val romSha = config.game.romSha256.ifEmpty { ROM_FILENAME }
+                AutoResumeManager.saveAutoSnapshot(
+                    storageDir = storageDirectory(),
+                    engine = host!!.engine,
+                    romSha256 = romSha,
+                    gameTitle = config.game.title
+                )
+            }
+        }
         // Invariant 5: Guarantees synchronous POSIX fsync cartridge SRAM flush to flash memory
         saveManager?.flushNow()
         surfaceView?.pause()
         super.onPause()
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_BACKGROUND && isGameLoaded && host != null) {
+            val autoResumeEnabled = ControlsPreferences.loadAutoResumeEnabled(this, true)
+            if (autoResumeEnabled) {
+                val romSha = config.game.romSha256.ifEmpty { ROM_FILENAME }
+                AutoResumeManager.saveAutoSnapshot(
+                    storageDir = storageDirectory(),
+                    engine = host!!.engine,
+                    romSha256 = romSha,
+                    gameTitle = config.game.title
+                )
+            }
+        }
     }
 
     override fun onStop() {
@@ -791,6 +1011,7 @@ open class GameActivity : Activity() {
     protected open fun createQuickMenu(): QuickMenuOverlay = QuickMenuOverlay(this)
     protected open fun createSettingsOverlay(): InGameSettingsOverlay = InGameSettingsOverlay(this)
     protected open fun createMoreFeaturesSheet(): MoreFeaturesSheet = MoreFeaturesSheet(this)
+    protected open fun createDiscSwitcherOverlay(): DiscSwitcherOverlay = DiscSwitcherOverlay(this)
     protected open fun createSensorController(): SensorController = SensorController()
     protected open fun createGamepadRemapOverlay(): GamepadRemapOverlay = GamepadRemapOverlay(this)
 }

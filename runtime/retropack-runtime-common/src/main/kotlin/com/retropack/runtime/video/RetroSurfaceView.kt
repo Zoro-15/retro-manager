@@ -27,6 +27,27 @@ class RetroSurfaceView @JvmOverloads constructor(
             requestRender()
         }
 
+    var shaderMode: com.retropack.domain.model.ShaderMode
+        get() = renderer.shaderMode
+        set(value) {
+            renderer.updateShaderMode(value)
+            requestRender()
+        }
+
+    var bezelMode: com.retropack.domain.model.BezelMode
+        get() = renderer.bezelMode
+        set(value) {
+            renderer.updateBezelMode(value)
+            requestRender()
+        }
+
+    var bfiEnabled: Boolean
+        get() = renderer.bfiEnabled
+        set(value) {
+            renderer.updateBfiEnabled(value)
+            requestRender()
+        }
+
     fun setFrameDimensions(width: Int, height: Int) {
         renderer.setNativeDimensions(width, height)
         requestRender()

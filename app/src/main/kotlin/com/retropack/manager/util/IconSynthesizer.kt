@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import com.retropack.manager.service.AdaptiveIconComposer
 import java.io.ByteArrayOutputStream
 
 object IconSynthesizer {
@@ -17,6 +18,10 @@ object IconSynthesizer {
      * Synthesizes foreground and background layer PNG bytes from an arbitrary user boxart image.
      */
     fun synthesizeLayers(sourceBytes: ByteArray): Pair<ByteArray, ByteArray>? {
+        val result = AdaptiveIconComposer.composeAdaptiveIcon(sourceBytes)
+        if (result != null) {
+            return Pair(result.foregroundPng, result.backgroundPng)
+        }
         return try {
             val originalBitmap = BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size) ?: return null
 

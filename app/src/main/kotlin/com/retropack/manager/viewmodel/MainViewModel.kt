@@ -115,6 +115,21 @@ class MainViewModel : ViewModel() {
                 val templateId = matchedRuntime?.id ?: RuntimeRegistry.RUNTIME_MGBA_UNIFIED
                 com.retropack.manager.util.AppLogger.i("ROM_PARSER", "Header analysis successful: Platform=${identity.platform}, Title='${identity.gameTitle}', Package=$derivedPkg, Template=$templateId, SHA-256=${identity.checksums.sha256}")
 
+                val isCd = RomParser.isCdRomPlatform(identity.platform)
+                val initialDiscs = if (isCd) {
+                    listOf(
+                        DiscUiItem(
+                            discIndex = 0,
+                            label = "Disc 1",
+                            fileName = fileName,
+                            uri = uri,
+                            bytes = romBytes,
+                            fileSize = fileSize.takeIf { it > 0 } ?: romBytes.size.toLong(),
+                            sha256 = identity.checksums.sha256
+                        )
+                    )
+                } else emptyList()
+
                 _uiState.update { current ->
                     current.copy(
                         romState = current.romState.copy(
@@ -123,6 +138,7 @@ class MainViewModel : ViewModel() {
                             fileSize = fileSize.takeIf { it > 0 } ?: romBytes.size.toLong(),
                             romBytes = romBytes,
                             romIdentity = identity,
+                            discItems = initialDiscs,
                             isLoading = false,
                             errorMessage = null
                         ),
@@ -183,7 +199,12 @@ class MainViewModel : ViewModel() {
             }
 
             val artBytes = runCatching {
-                GameIconScraper.fetchBoxArt(
+                com.retropack.manager.service.LibretroThumbnailsScraper.scrapeBoxart(
+                    context = context,
+                    platform = platform,
+                    gameTitle = gameTitle,
+                    rawFileName = rawFileName
+                ) ?: GameIconScraper.fetchBoxArt(
                     context = context,
                     platform = platform,
                     gameTitle = gameTitle,
@@ -256,6 +277,143 @@ class MainViewModel : ViewModel() {
                     patchBytes = null
                 )
             )
+        }
+    }
+
+    fun onAddDisc(context: Context, uri: Uri) {
+        viewModelScope.launch {
+            val (rawFileName, rawFileSize) = UriUtils.getFileNameAndSize(context, uri)
+            val rawBytes = withContext(Dispatchers.IO) {
+                UriUtils.readBytesFromUri(context, uri)
+            } ?: return@launch
+            val (discBytes, fileName, fileSize) = UriUtils.extractRomIfArchive(rawBytes, rawFileName)
+            val sha256 = withContext(Dispatchers.Default) {
+                val md = MessageDigest.getInstance("SHA-256")
+                md.digest(discBytes).joinToString("") { "%02x".format(it) }
+            }
+            _uiState.update { current ->
+                val currentDiscs = current.romState.discItems
+                val nextIndex = currentDiscs.size
+                val newDisc = DiscUiItem(
+                    discIndex = nextIndex,
+                    label = "Disc ${nextIndex + 1}",
+                    fileName = fileName,
+                    uri = uri,
+                    bytes = discBytes,
+                    fileSize = fileSize.takeIf { it > 0 } ?: discBytes.size.toLong(),
+                    sha256 = sha256
+                )
+                val updatedList = currentDiscs + newDisc
+                val updatedIdentity = current.romState.romIdentity?.copy(
+                    discImages = updatedList.map {
+                        com.retropack.domain.model.DiscInfo(
+                            index = it.discIndex,
+                            label = it.label,
+                            fileName = it.fileName,
+                            fileSize = it.fileSize,
+                            sha256 = it.sha256
+                        )
+                    }
+                )
+                current.copy(
+                    romState = current.romState.copy(
+                        discItems = updatedList,
+                        romIdentity = updatedIdentity
+                    )
+                )
+            }
+        }
+    }
+
+    fun onRemoveDisc(index: Int) {
+        _uiState.update { current ->
+            val currentDiscs = current.romState.discItems.toMutableList()
+            if (index in currentDiscs.indices) {
+                currentDiscs.removeAt(index)
+                val reindexed = currentDiscs.mapIndexed { idx, item ->
+                    item.copy(discIndex = idx, label = "Disc ${idx + 1}")
+                }
+                val updatedIdentity = current.romState.romIdentity?.copy(
+                    discImages = reindexed.map {
+                        com.retropack.domain.model.DiscInfo(
+                            index = it.discIndex,
+                            label = it.label,
+                            fileName = it.fileName,
+                            fileSize = it.fileSize,
+                            sha256 = it.sha256
+                        )
+                    }
+                )
+                current.copy(
+                    romState = current.romState.copy(
+                        discItems = reindexed,
+                        romIdentity = updatedIdentity
+                    )
+                )
+            } else current
+        }
+    }
+
+    fun onMoveDiscUp(index: Int) {
+        if (index <= 0) return
+        _uiState.update { current ->
+            val currentDiscs = current.romState.discItems.toMutableList()
+            if (index in currentDiscs.indices) {
+                val temp = currentDiscs[index]
+                currentDiscs[index] = currentDiscs[index - 1]
+                currentDiscs[index - 1] = temp
+                val reindexed = currentDiscs.mapIndexed { idx, item ->
+                    item.copy(discIndex = idx, label = "Disc ${idx + 1}")
+                }
+                val updatedIdentity = current.romState.romIdentity?.copy(
+                    discImages = reindexed.map {
+                        com.retropack.domain.model.DiscInfo(
+                            index = it.discIndex,
+                            label = it.label,
+                            fileName = it.fileName,
+                            fileSize = it.fileSize,
+                            sha256 = it.sha256
+                        )
+                    }
+                )
+                current.copy(
+                    romState = current.romState.copy(
+                        discItems = reindexed,
+                        romIdentity = updatedIdentity
+                    )
+                )
+            } else current
+        }
+    }
+
+    fun onMoveDiscDown(index: Int) {
+        _uiState.update { current ->
+            val currentDiscs = current.romState.discItems.toMutableList()
+            if (index in 0 until (currentDiscs.size - 1)) {
+                val temp = currentDiscs[index]
+                currentDiscs[index] = currentDiscs[index + 1]
+                currentDiscs[index + 1] = temp
+                val reindexed = currentDiscs.mapIndexed { idx, item ->
+                    item.copy(discIndex = idx, label = "Disc ${idx + 1}")
+                }
+                val updatedIdentity = current.romState.romIdentity?.copy(
+                    discImages = reindexed.map {
+                        com.retropack.domain.model.DiscInfo(
+                            index = it.discIndex,
+                            label = it.label,
+                            fileName = it.fileName,
+                            fileSize = it.fileSize,
+                            sha256 = it.sha256
+                        )
+                    }
+                )
+                current.copy(
+                    romState = current.romState.copy(
+                        discItems = reindexed,
+                        romIdentity = updatedIdentity
+                    )
+                )
+            } else current
         }
     }
 
@@ -337,6 +495,14 @@ class MainViewModel : ViewModel() {
 
     fun onScaleModeChanged(mode: String) {
         _uiState.update { it.copy(runtimeState = it.runtimeState.copy(scaleMode = mode)) }
+    }
+
+    fun onShaderModeChanged(mode: String) {
+        _uiState.update { it.copy(runtimeState = it.runtimeState.copy(shaderMode = mode)) }
+    }
+
+    fun onBezelModeChanged(mode: String) {
+        _uiState.update { it.copy(runtimeState = it.runtimeState.copy(bezelMode = mode)) }
     }
 
     fun onTouchEnabledChanged(enabled: Boolean) {
@@ -476,7 +642,34 @@ class MainViewModel : ViewModel() {
             appendLog("--> Initializing 15-Step Verified Transformation Engine (v${BuildEngine.MANAGER_VERSION})")
             appendLog("--> Ingesting ROM: ${state.identityState.gameTitle} (${romIdentity.checksums.sha256.take(16)}...)")
 
-            // Construct Declarative BuildRequest
+            // Construct Declarative BuildRequest with Multi-Disc support
+            val multiDiscItems = state.romState.discItems
+            val contentPayload = if (multiDiscItems.size > 1) {
+                val discInfoList = multiDiscItems.map {
+                    com.retropack.domain.model.DiscInfo(
+                        index = it.discIndex,
+                        label = it.label,
+                        fileName = it.fileName,
+                        fileSize = it.fileSize,
+                        sha256 = it.sha256
+                    )
+                }
+                val m3u = RomParser.generateM3u(
+                    baseGameTitle = state.identityState.gameTitle,
+                    discFilenames = multiDiscItems.map { it.fileName }
+                )
+                romIdentity.toContentPayload(
+                    sourceRomName = state.romState.fileName ?: "game.rom"
+                ).copy(
+                    discImages = discInfoList,
+                    m3uPlaylist = m3u
+                )
+            } else {
+                romIdentity.toContentPayload(
+                    sourceRomName = state.romState.fileName ?: "game.rom"
+                )
+            }
+
             val buildRequest = BuildRequest(
                 identity = GameIdentity(
                     gameId = romIdentity.checksums.sha256.take(16),
@@ -485,12 +678,14 @@ class MainViewModel : ViewModel() {
                     versionCode = state.identityState.versionCode,
                     versionName = state.identityState.versionName
                 ),
-                content = romIdentity.toContentPayload(
-                    sourceRomName = state.romState.fileName ?: "game.rom"
-                ),
+                content = contentPayload,
                 runtime = RuntimeConfigPayload(
                     templateId = state.runtimeState.templateId,
-                    video = VideoSettings(scaleMode = state.runtimeState.scaleMode)
+                    video = VideoSettings(
+                        scaleMode = state.runtimeState.scaleMode,
+                        shaderMode = state.runtimeState.shaderMode,
+                        bezelMode = state.runtimeState.bezelMode
+                    )
                 ),
                 controls = ControlsPayload(
                     touch = TouchControlsSettings(
@@ -507,6 +702,12 @@ class MainViewModel : ViewModel() {
             // Resolve target output directory
             val outputDir = state.signingState.outputDir
                 ?: File(context.getExternalFilesDir(null) ?: context.filesDir, "RetroPack").also { it.mkdirs() }
+
+            val additionalDiscs = if (multiDiscItems.size > 1) {
+                multiDiscItems.mapNotNull { disc ->
+                    disc.bytes?.let { disc.fileName to it }
+                }
+            } else emptyList()
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
@@ -527,6 +728,7 @@ class MainViewModel : ViewModel() {
                                 length = it.template.templateApk.length()
                             )
                         },
+                        additionalDiscBytes = additionalDiscs,
                         stageListener = { stageRecord ->
                             _uiState.update { current ->
                                 current.copy(

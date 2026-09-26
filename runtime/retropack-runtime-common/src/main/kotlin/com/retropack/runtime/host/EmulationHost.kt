@@ -140,9 +140,14 @@ class EmulationHost(
      */
     fun setFastForwardMultiplier(multiplier: Int) {
         emulationLoop.speedMultiplier = multiplier
+        audioPlayer?.speedMultiplier = multiplier
     }
 
     fun getFastForwardMultiplier(): Int = emulationLoop.speedMultiplier
+
+    fun setWsolaEnabled(enabled: Boolean) {
+        audioPlayer?.wsolaEnabled = enabled
+    }
 
     /**
      * Configures whether audio output is muted during fast-forward.

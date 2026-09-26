@@ -63,7 +63,8 @@ object BuildEngine {
         templateOverride: File? = null,
         stageListener: ((BuildStageRecord) -> Unit)? = null,
         precomputedChecksums: ChecksumRecords? = null,
-        verifiedTemplate: VerifiedTemplate? = null
+        verifiedTemplate: VerifiedTemplate? = null,
+        additionalDiscBytes: List<Pair<String, ByteArray>> = emptyList()
     ): BuildResult {
         val totalStartTime = System.currentTimeMillis()
         val stageRecords = mutableListOf<BuildStageRecord>()
@@ -203,7 +204,17 @@ object BuildEngine {
             lateinit var assetEntries: Map<String, ByteArray>
             recordStage(6, "Streamed Asset Injection", "Generating retropack.json config and preparing game.rom asset", System.currentTimeMillis()) {
                 val configJson = generateRuntimeConfigJson(request, checksumResult.checksums.sha256)
-                assetEntries = RomAssetInjector.prepareAssetEntries(romBytes, configJson)
+                val baseEntries = RomAssetInjector.prepareAssetEntries(romBytes, configJson).toMutableMap()
+                if (additionalDiscBytes.isNotEmpty() || !request.content.m3uPlaylist.isNullOrBlank()) {
+                    val discEntries = RomAssetInjector.prepareMultiDiscAssetEntries(
+                        discList = additionalDiscBytes,
+                        m3uContent = request.content.m3uPlaylist
+                    )
+                    discEntries.forEach { (path, data) ->
+                        baseEntries[path] = data
+                    }
+                }
+                assetEntries = baseEntries
             }
 
             // STEP 7: Structured AXML Mutation
@@ -337,6 +348,30 @@ object BuildEngine {
         val controls = request.controls
         val storage = request.storage
 
+        val discsJson = if (request.content.discImages.isNotEmpty()) {
+            val items = request.content.discImages.joinToString(",\n") { disc ->
+                """        { "index": ${disc.index}, "label": "${escapeJson(disc.label)}", "path": "discs/disc_${disc.index}.chd", "sha256": "${escapeJson(disc.sha256)}" }"""
+            }
+            """,
+            "discs": [
+$items
+            ],
+            "disc_count": ${request.content.discImages.size},
+            "m3u_path": "game.m3u""""
+        } else ""
+
+        val gamepadJson = if (controls.gamepad != null) {
+            val gp = controls.gamepad
+            val bindings = gp.buttonBindings.entries.joinToString(", ") { """"${it.key}": ${it.value}""" }
+            """,
+            "gamepad": {
+              "profile_name": "${escapeJson(gp.profileName)}",
+              "deadzone_percent": ${gp.deadzonePercent},
+              "trigger_threshold_percent": ${gp.triggerThresholdPercent},
+              "button_bindings": { $bindings }
+            }"""
+        } else ""
+
         return """
         {
           "${'$'}schema": "https://retropack.org/schemas/v1/runtime-config.json",
@@ -345,18 +380,20 @@ object BuildEngine {
             "id": "${escapeJson(game.gameId)}",
             "title": "${escapeJson(game.gameTitle)}",
             "platform": "${escapeJson(request.content.platform)}",
-            "rom_sha256": "$romSha256"
+            "rom_sha256": "$romSha256"$discsJson
           },
           "runtime": {
             "core": "${escapeJson(resolveCoreHint(request))}",
             "audio_sample_rate": ${runtime.audio.sampleRate},
             "audio_buffer_size": ${runtime.audio.bufferSize},
-            "video_scale_mode": "${escapeJson(runtime.video.scaleMode)}"
+            "video_scale_mode": "${escapeJson(runtime.video.scaleMode)}",
+            "video_shader_mode": "${escapeJson(runtime.video.shaderMode)}",
+            "video_bezel_mode": "${escapeJson(runtime.video.bezelMode)}"
           },
           "controls": {
             "touch_enabled": ${controls.touch.enabled},
             "touch_opacity": ${controls.touch.opacity},
-            "haptics": ${controls.touch.haptics}
+            "haptics": ${controls.touch.haptics}$gamepadJson
           },
           "storage": {
             "save_type": "${escapeJson(storage.saveType)}",

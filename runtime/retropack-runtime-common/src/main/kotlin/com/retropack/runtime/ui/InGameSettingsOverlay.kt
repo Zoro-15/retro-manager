@@ -15,8 +15,8 @@ import com.retropack.runtime.core.ScaleMode
  * In-Game Settings Modal Sheet for RetroPack.
  *
  * Provides a dark glassmorphic dialog with controls for:
- *  - "Edit Controls Placement" (triggers PPSSPP/Lemuroid-style layout editor)
- *  - "Display Scaling Mode" (Aspect Fit vs Integer Fit)
+ *  - "Edit Controls Placement" (triggers layout editor)
+ *  - "Display Scaling Mode" (Aspect Fit, Integer Fit 1:1, Full Screen Stretch)
  *  - "Touch Controls Opacity" (20% to 100%)
  *  - "Haptic Feedback" toggle
  *  - "Reset All Settings" to defaults
@@ -71,6 +71,7 @@ class InGameSettingsOverlay @JvmOverloads constructor(
     val editControlsBtnRect = RectF()
     val scaleAspectRect = RectF()
     val scaleIntegerRect = RectF()
+    val scaleStretchRect = RectF()
     val opacityRects = Array(5) { RectF() }
     val hapticsToggleRect = RectF()
     val resetAllBtnRect = RectF()
@@ -106,8 +107,8 @@ class InGameSettingsOverlay @JvmOverloads constructor(
     fun isShowing(): Boolean = visibility == VISIBLE
 
     fun updateCardLayout(viewW: Float, viewH: Float) {
-        val cardW = Math.min(viewW * 0.90f, 440f)
-        val cardH = Math.min(viewH * 0.85f, 480f)
+        val cardW = Math.min(viewW * 0.90f, 460f)
+        val cardH = Math.min(viewH * 0.85f, 490f)
         val cardLeft = (viewW - cardW) * 0.5f
         val cardTop = (viewH - cardH) * 0.5f
         cardRect.set(cardLeft, cardTop, cardLeft + cardW, cardTop + cardH)
@@ -116,16 +117,18 @@ class InGameSettingsOverlay @JvmOverloads constructor(
 
         var cursorY = cardTop + 34f + 20f + 26f
         val contentW = cardW - 48f
-        val btnH = 44f
+        val btnH = 42f
         editControlsBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + contentW, cursorY + btnH)
 
-        cursorY += btnH + 28f + 10f
-        val segW = (contentW - 8f) * 0.5f
-        val segH = 36f
+        cursorY += btnH + 26f + 10f
+        val segSpacing = 6f
+        val segW = (contentW - (segSpacing * 2)) / 3f
+        val segH = 34f
         scaleAspectRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + segW, cursorY + segH)
-        scaleIntegerRect.set(cardLeft + 24f + segW + 8f, cursorY, cardLeft + 24f + contentW, cursorY + segH)
+        scaleIntegerRect.set(cardLeft + 24f + segW + segSpacing, cursorY, cardLeft + 24f + segW * 2 + segSpacing, cursorY + segH)
+        scaleStretchRect.set(cardLeft + 24f + (segW + segSpacing) * 2, cursorY, cardLeft + 24f + contentW, cursorY + segH)
 
-        cursorY += segH + 26f + 10f
+        cursorY += segH + 24f + 10f
         val pillSpacing = 6f
         val pillW = (contentW - (pillSpacing * 4)) / 5f
         val pillH = 32f
@@ -134,12 +137,12 @@ class InGameSettingsOverlay @JvmOverloads constructor(
             opacityRects[i].set(pLeft, cursorY, pLeft + pillW, cursorY + pillH)
         }
 
-        cursorY += pillH + 26f
+        cursorY += pillH + 24f
         val toggleW = 76f
-        val toggleH = 32f
+        val toggleH = 30f
         hapticsToggleRect.set(cardRect.right - 24f - toggleW, cursorY + 2f, cardRect.right - 24f, cursorY + 2f + toggleH)
 
-        cursorY += 56f
+        cursorY += 52f
         val footBtnH = 38f
         val footBtnW = (contentW - 12f) * 0.5f
         resetAllBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + footBtnW, cursorY + footBtnH)
@@ -191,6 +194,12 @@ class InGameSettingsOverlay @JvmOverloads constructor(
                 onScaleModeChanged?.invoke(scaleMode)
                 return true
             }
+            if (scaleStretchRect.contains(x, y)) {
+                triggerHaptic()
+                scaleMode = ScaleMode.STRETCH_FULL
+                onScaleModeChanged?.invoke(scaleMode)
+                return true
+            }
 
             // 5. Opacity Stepped Pills
             val opacities = floatArrayOf(0.20f, 0.40f, 0.60f, 0.80f, 1.00f)
@@ -225,7 +234,7 @@ class InGameSettingsOverlay @JvmOverloads constructor(
                 return true
             }
         }
-        return true // Modal consumes all touches while active
+        return true
     }
 
     private fun triggerHaptic() {
@@ -286,28 +295,37 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         centerTextPaint.color = Color.argb(255, 0, 229, 255)
         canvas.drawText("📐 Edit Controls Placement", editControlsBtnRect.centerX(), editControlsBtnRect.centerY() + 5f, centerTextPaint)
 
-        // 5. Section: Display Scaling
-        cursorY = editControlsBtnRect.bottom + 28f
+        // 5. Section: Display Scaling (3-way)
+        cursorY = editControlsBtnRect.bottom + 26f
         textPaint.textSize = 11f
         textPaint.color = Color.argb(220, 130, 150, 180)
         canvas.drawText("DISPLAY SCALING MODE", cardLeft + 24f, cursorY, textPaint)
 
-        val isAspect = scaleMode == ScaleMode.ASPECT_FIT
+        val isAspect = (scaleMode == ScaleMode.ASPECT_FIT)
+        val isInteger = (scaleMode == ScaleMode.INTEGER_FIT)
+        val isStretch = (scaleMode == ScaleMode.STRETCH_FULL)
+
         // Aspect Tab
         bgPaint.color = if (isAspect) Color.argb(255, 0, 140, 220) else Color.argb(200, 28, 34, 48)
         canvas.drawRoundRect(scaleAspectRect, 10f, 10f, bgPaint)
-        centerTextPaint.textSize = 13f
+        centerTextPaint.textSize = 12.5f
         centerTextPaint.color = if (isAspect) Color.WHITE else Color.argb(200, 160, 175, 195)
-        canvas.drawText("Aspect Fit", scaleAspectRect.centerX(), scaleAspectRect.centerY() + 5f, centerTextPaint)
+        canvas.drawText("Aspect Fit", scaleAspectRect.centerX(), scaleAspectRect.centerY() + 4.5f, centerTextPaint)
 
         // Integer Tab
-        bgPaint.color = if (!isAspect) Color.argb(255, 0, 140, 220) else Color.argb(200, 28, 34, 48)
+        bgPaint.color = if (isInteger) Color.argb(255, 0, 140, 220) else Color.argb(200, 28, 34, 48)
         canvas.drawRoundRect(scaleIntegerRect, 10f, 10f, bgPaint)
-        centerTextPaint.color = if (!isAspect) Color.WHITE else Color.argb(200, 160, 175, 195)
-        canvas.drawText("Integer Fit (1:1)", scaleIntegerRect.centerX(), scaleIntegerRect.centerY() + 5f, centerTextPaint)
+        centerTextPaint.color = if (isInteger) Color.WHITE else Color.argb(200, 160, 175, 195)
+        canvas.drawText("Integer (1:1)", scaleIntegerRect.centerX(), scaleIntegerRect.centerY() + 4.5f, centerTextPaint)
+
+        // Stretch Tab
+        bgPaint.color = if (isStretch) Color.argb(255, 0, 140, 220) else Color.argb(200, 28, 34, 48)
+        canvas.drawRoundRect(scaleStretchRect, 10f, 10f, bgPaint)
+        centerTextPaint.color = if (isStretch) Color.WHITE else Color.argb(200, 160, 175, 195)
+        canvas.drawText("Full Stretch", scaleStretchRect.centerX(), scaleStretchRect.centerY() + 4.5f, centerTextPaint)
 
         // 6. Section: Touch Opacity Stepped Selector
-        cursorY = scaleAspectRect.bottom + 26f
+        cursorY = scaleAspectRect.bottom + 24f
         val opacityPercent = (touchOpacity * 100).toInt()
         textPaint.textSize = 11f
         textPaint.color = Color.argb(220, 130, 150, 180)
@@ -327,13 +345,13 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         }
 
         // 7. Section: Haptic Feedback Switch
-        cursorY = opacityRects[0].bottom + 26f
+        cursorY = opacityRects[0].bottom + 24f
         textPaint.textSize = 13f
         textPaint.color = Color.WHITE
         canvas.drawText("Haptic Feedback", cardLeft + 24f, cursorY + 18f, textPaint)
 
         bgPaint.color = if (hapticsEnabled) Color.argb(255, 0, 160, 220) else Color.argb(200, 42, 48, 62)
-        canvas.drawRoundRect(hapticsToggleRect, 16f, 16f, bgPaint)
+        canvas.drawRoundRect(hapticsToggleRect, 15f, 15f, bgPaint)
         centerTextPaint.textSize = 12f
         centerTextPaint.color = Color.WHITE
         val toggleText = if (hapticsEnabled) "ON" else "OFF"

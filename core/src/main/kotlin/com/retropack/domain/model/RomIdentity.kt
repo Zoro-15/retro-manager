@@ -37,8 +37,11 @@ data class RomIdentity(
     val psxHeader: PsxRomHeader? = null,
     val n64Header: N64RomHeader? = null,
     val ndsHeader: NdsRomHeader? = null,
-    val pceHeader: PceRomHeader? = null
+    val pceHeader: PceRomHeader? = null,
+    val discImages: List<DiscInfo> = emptyList()
 ) {
+    val isMultiDisc: Boolean get() = discImages.size > 1
+
     /**
      * Converts this RomIdentity into a ContentPayload suitable for BuildRequest.
      */
@@ -51,7 +54,9 @@ data class RomIdentity(
                 makerCode = makerCode,
                 cgbFlag = cgbFlag,
                 cartridgeType = cartridgeType
-            )
+            ),
+            discImages = discImages,
+            m3uPlaylist = if (isMultiDisc) discImages.joinToString("\n") { it.fileName } else null
         )
     }
 
