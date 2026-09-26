@@ -45,16 +45,14 @@ class QuickMenuOverlay @JvmOverloads constructor(
     var onHapticFeedbackRequested: (() -> Unit)? = null
 
     // FAB Coordinates and Dimensions
-    private var fabCx: Float = 0f
-    private var fabCy: Float = 0f
-    private val fabRadius: Float = 26f
-    private val satelliteRadius: Float = 22f
-    private val satelliteSpacing: Float = 60f
+    val fabRadius: Float = 26f
+    val satelliteRadius: Float = 22f
+    val satelliteSpacing: Float = 60f
 
     // Hit Testing Rectangles & Coordinates
-    private val fabHitRect = RectF()
-    private val satControlsHitRect = RectF()
-    private val satSettingsHitRect = RectF()
+    val fabHitRect = RectF()
+    val satControlsHitRect = RectF()
+    val satSettingsHitRect = RectF()
 
     private val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -76,13 +74,24 @@ class QuickMenuOverlay @JvmOverloads constructor(
     }
     private val tempRect = RectF()
 
+    fun getFabCenterX(): Float {
+        val viewW = if (width > 0) width.toFloat() else 1080f
+        return viewW - 44f
+    }
+
+    fun getFabCenterY(): Float = 48f
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
         val y = event.y
+        val fabCx = getFabCenterX()
+        val fabCy = getFabCenterY()
+
+        updateHitRects(fabCx, fabCy)
 
         if (!isExpanded) {
             // Collapsed: only consume touches within the FAB
-            if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 12f)) {
+            if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 14f)) {
                 if (event.actionMasked == MotionEvent.ACTION_UP) {
                     triggerHaptic()
                     isExpanded = true
@@ -96,7 +105,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> return true
             MotionEvent.ACTION_UP -> {
-                if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 8f)) {
+                if (isInsideCircle(x, y, fabCx, fabCy, fabRadius + 10f)) {
                     // Tap main FAB -> collapse
                     triggerHaptic()
                     isExpanded = false
@@ -104,8 +113,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
                 }
 
                 val sat1Cy = fabCy + satelliteSpacing
-                if (isInsideCircle(x, y, fabCx, sat1Cy, satelliteRadius + 12f) ||
-                    (satControlsHitRect.contains(x, y))) {
+                if (isInsideCircle(x, y, fabCx, sat1Cy, satelliteRadius + 14f) ||
+                    satControlsHitRect.contains(x, y)) {
                     // Tap Controls Toggle
                     triggerHaptic()
                     isControlsActive = !isControlsActive
@@ -115,8 +124,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
                 }
 
                 val sat2Cy = fabCy + satelliteSpacing * 2f
-                if (isInsideCircle(x, y, fabCx, sat2Cy, satelliteRadius + 12f) ||
-                    (satSettingsHitRect.contains(x, y))) {
+                if (isInsideCircle(x, y, fabCx, sat2Cy, satelliteRadius + 14f) ||
+                    satSettingsHitRect.contains(x, y)) {
                     // Tap Settings
                     triggerHaptic()
                     isExpanded = false
@@ -130,6 +139,16 @@ class QuickMenuOverlay @JvmOverloads constructor(
             }
         }
         return true
+    }
+
+    private fun updateHitRects(fabCx: Float, fabCy: Float) {
+        fabHitRect.set(fabCx - fabRadius, fabCy - fabRadius, fabCx + fabRadius, fabCy + fabRadius)
+
+        val sat1Cy = fabCy + satelliteSpacing
+        satControlsHitRect.set(fabCx - 160f, sat1Cy - 20f, fabCx + satelliteRadius + 10f, sat1Cy + 20f)
+
+        val sat2Cy = fabCy + satelliteSpacing * 2f
+        satSettingsHitRect.set(fabCx - 140f, sat2Cy - 20f, fabCx + satelliteRadius + 10f, sat2Cy + 20f)
     }
 
     private fun triggerHaptic() {
@@ -152,18 +171,16 @@ class QuickMenuOverlay @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val viewW = if (width > 0) width.toFloat() else 1080f
-        fabCx = viewW - 44f
-        fabCy = 48f
-
-        fabHitRect.set(fabCx - fabRadius, fabCy - fabRadius, fabCx + fabRadius, fabCy + fabRadius)
+        val fabCx = getFabCenterX()
+        val fabCy = getFabCenterY()
+        updateHitRects(fabCx, fabCy)
 
         val currentAlpha = if (isExpanded) expandedAlpha else idleAlpha
         val alphaInt = (currentAlpha * 255).toInt().coerceIn(0, 255)
 
         // 1. Draw Expanded Satellite Buttons
         if (isExpanded) {
-            drawSatelliteButtons(canvas)
+            drawSatelliteButtons(canvas, fabCx, fabCy)
         }
 
         // 2. Draw Main Floating Gamepad FAB
@@ -180,7 +197,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
         canvas.drawText(iconText, fabCx, fabCy + textPaint.textSize * 0.35f, textPaint)
     }
 
-    private fun drawSatelliteButtons(canvas: Canvas) {
+    private fun drawSatelliteButtons(canvas: Canvas, fabCx: Float, fabCy: Float) {
         // Satellite 1: Joystick / Controls Toggle
         val sat1Cy = fabCy + satelliteSpacing
         val sat1BgColor = if (isControlsActive) Color.argb(245, 14, 38, 54) else Color.argb(230, 28, 32, 42)
@@ -192,7 +209,6 @@ class QuickMenuOverlay @JvmOverloads constructor(
         pillTextPaint.color = if (isControlsActive) Color.argb(255, 0, 229, 255) else Color.argb(220, 160, 170, 185)
         val label1W = pillTextPaint.measureText(label1Text) + 20f
 
-        satControlsHitRect.set(fabCx - satelliteRadius - label1W - 8f, sat1Cy - 16f, fabCx + satelliteRadius, sat1Cy + 16f)
         tempRect.set(fabCx - satelliteRadius - label1W - 8f, sat1Cy - 16f, fabCx - satelliteRadius - 8f, sat1Cy + 16f)
 
         pillPaint.color = Color.argb(230, 16, 20, 30)
@@ -219,7 +235,6 @@ class QuickMenuOverlay @JvmOverloads constructor(
         pillTextPaint.color = Color.argb(240, 220, 230, 250)
         val label2W = pillTextPaint.measureText(label2Text) + 20f
 
-        satSettingsHitRect.set(fabCx - satelliteRadius - label2W - 8f, sat2Cy - 16f, fabCx + satelliteRadius, sat2Cy + 16f)
         tempRect.set(fabCx - satelliteRadius - label2W - 8f, sat2Cy - 16f, fabCx - satelliteRadius - 8f, sat2Cy + 16f)
 
         pillPaint.color = Color.argb(230, 16, 20, 30)

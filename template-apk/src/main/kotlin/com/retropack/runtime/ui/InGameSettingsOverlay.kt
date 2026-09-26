@@ -105,8 +105,53 @@ class InGameSettingsOverlay @JvmOverloads constructor(
 
     fun isShowing(): Boolean = visibility == VISIBLE
 
+    fun updateCardLayout(viewW: Float, viewH: Float) {
+        val cardW = Math.min(viewW * 0.90f, 440f)
+        val cardH = Math.min(viewH * 0.85f, 480f)
+        val cardLeft = (viewW - cardW) * 0.5f
+        val cardTop = (viewH - cardH) * 0.5f
+        cardRect.set(cardLeft, cardTop, cardLeft + cardW, cardTop + cardH)
+
+        closeBtnRect.set(cardRect.right - 44f, cardTop + 14f, cardRect.right - 14f, cardTop + 44f)
+
+        var cursorY = cardTop + 34f + 20f + 26f
+        val contentW = cardW - 48f
+        val btnH = 44f
+        editControlsBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + contentW, cursorY + btnH)
+
+        cursorY += btnH + 28f + 10f
+        val segW = (contentW - 8f) * 0.5f
+        val segH = 36f
+        scaleAspectRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + segW, cursorY + segH)
+        scaleIntegerRect.set(cardLeft + 24f + segW + 8f, cursorY, cardLeft + 24f + contentW, cursorY + segH)
+
+        cursorY += segH + 26f + 10f
+        val pillSpacing = 6f
+        val pillW = (contentW - (pillSpacing * 4)) / 5f
+        val pillH = 32f
+        for (i in 0 until 5) {
+            val pLeft = cardLeft + 24f + i * (pillW + pillSpacing)
+            opacityRects[i].set(pLeft, cursorY, pLeft + pillW, cursorY + pillH)
+        }
+
+        cursorY += pillH + 26f
+        val toggleW = 76f
+        val toggleH = 32f
+        hapticsToggleRect.set(cardRect.right - 24f - toggleW, cursorY + 2f, cardRect.right - 24f, cursorY + 2f + toggleH)
+
+        cursorY += 56f
+        val footBtnH = 38f
+        val footBtnW = (contentW - 12f) * 0.5f
+        resetAllBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + footBtnW, cursorY + footBtnH)
+        doneBtnRect.set(cardLeft + 24f + footBtnW + 12f, cursorY, cardLeft + 24f + contentW, cursorY + footBtnH)
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (visibility != VISIBLE) return false
+
+        val viewW = if (width > 0) width.toFloat() else 1080f
+        val viewH = if (height > 0) height.toFloat() else 1920f
+        updateCardLayout(viewW, viewH)
 
         val x = event.x
         val y = event.y
@@ -200,17 +245,11 @@ class InGameSettingsOverlay @JvmOverloads constructor(
 
         val viewW = if (width > 0) width.toFloat() else 1080f
         val viewH = if (height > 0) height.toFloat() else 1920f
+        updateCardLayout(viewW, viewH)
 
         // 1. Scrim Backdrop
         bgPaint.color = Color.argb(195, 6, 9, 14)
         canvas.drawRect(0f, 0f, viewW, viewH, bgPaint)
-
-        // 2. Card Dimensions
-        val cardW = Math.min(viewW * 0.90f, 440f)
-        val cardH = Math.min(viewH * 0.85f, 480f)
-        val cardLeft = (viewW - cardW) * 0.5f
-        val cardTop = (viewH - cardH) * 0.5f
-        cardRect.set(cardLeft, cardTop, cardLeft + cardW, cardTop + cardH)
 
         // Card Glass Background
         bgPaint.color = Color.argb(245, 18, 22, 32)
@@ -219,6 +258,8 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         canvas.drawRoundRect(cardRect, 20f, 20f, cardBorderPaint)
 
         // 3. Header
+        val cardLeft = cardRect.left
+        val cardTop = cardRect.top
         var cursorY = cardTop + 34f
         textPaint.textSize = 20f
         textPaint.color = Color.WHITE
@@ -231,17 +272,11 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         canvas.drawText(gameTitle, cardLeft + 24f, cursorY, textPaint)
 
         // Close Button (top-right)
-        closeBtnRect.set(cardRect.right - 44f, cardTop + 14f, cardRect.right - 14f, cardTop + 44f)
         centerTextPaint.textSize = 18f
         centerTextPaint.color = Color.argb(220, 170, 185, 210)
         canvas.drawText("✕", closeBtnRect.centerX(), closeBtnRect.centerY() + 6f, centerTextPaint)
 
         // 4. Section: Controls Placement Primary Button
-        cursorY += 26f
-        val contentW = cardW - 48f
-        val btnH = 44f
-        editControlsBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + contentW, cursorY + btnH)
-
         bgPaint.color = Color.argb(235, 28, 44, 70)
         canvas.drawRoundRect(editControlsBtnRect, 12f, 12f, bgPaint)
         cardBorderPaint.color = Color.argb(220, 0, 190, 240)
@@ -252,16 +287,10 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         canvas.drawText("📐 Edit Controls Placement", editControlsBtnRect.centerX(), editControlsBtnRect.centerY() + 5f, centerTextPaint)
 
         // 5. Section: Display Scaling
-        cursorY += btnH + 28f
+        cursorY = editControlsBtnRect.bottom + 28f
         textPaint.textSize = 11f
         textPaint.color = Color.argb(220, 130, 150, 180)
         canvas.drawText("DISPLAY SCALING MODE", cardLeft + 24f, cursorY, textPaint)
-
-        cursorY += 10f
-        val segW = (contentW - 8f) * 0.5f
-        val segH = 36f
-        scaleAspectRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + segW, cursorY + segH)
-        scaleIntegerRect.set(cardLeft + 24f + segW + 8f, cursorY, cardLeft + 24f + contentW, cursorY + segH)
 
         val isAspect = scaleMode == ScaleMode.ASPECT_FIT
         // Aspect Tab
@@ -278,23 +307,16 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         canvas.drawText("Integer Fit (1:1)", scaleIntegerRect.centerX(), scaleIntegerRect.centerY() + 5f, centerTextPaint)
 
         // 6. Section: Touch Opacity Stepped Selector
-        cursorY += segH + 26f
+        cursorY = scaleAspectRect.bottom + 26f
         val opacityPercent = (touchOpacity * 100).toInt()
         textPaint.textSize = 11f
         textPaint.color = Color.argb(220, 130, 150, 180)
         canvas.drawText("TOUCH CONTROLS OPACITY: $opacityPercent%", cardLeft + 24f, cursorY, textPaint)
 
-        cursorY += 10f
-        val pillSpacing = 6f
-        val pillW = (contentW - (pillSpacing * 4)) / 5f
-        val pillH = 32f
         val opacities = floatArrayOf(0.20f, 0.40f, 0.60f, 0.80f, 1.00f)
         val pillLabels = arrayOf("20%", "40%", "60%", "80%", "100%")
 
         for (i in 0 until 5) {
-            val pLeft = cardLeft + 24f + i * (pillW + pillSpacing)
-            opacityRects[i].set(pLeft, cursorY, pLeft + pillW, cursorY + pillH)
-
             val isSelected = Math.abs(touchOpacity - opacities[i]) < 0.05f
             bgPaint.color = if (isSelected) Color.argb(255, 0, 160, 240) else Color.argb(190, 28, 34, 48)
             canvas.drawRoundRect(opacityRects[i], 8f, 8f, bgPaint)
@@ -305,14 +327,10 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         }
 
         // 7. Section: Haptic Feedback Switch
-        cursorY += pillH + 26f
+        cursorY = opacityRects[0].bottom + 26f
         textPaint.textSize = 13f
         textPaint.color = Color.WHITE
         canvas.drawText("Haptic Feedback", cardLeft + 24f, cursorY + 18f, textPaint)
-
-        val toggleW = 76f
-        val toggleH = 32f
-        hapticsToggleRect.set(cardRect.right - 24f - toggleW, cursorY + 2f, cardRect.right - 24f, cursorY + 2f + toggleH)
 
         bgPaint.color = if (hapticsEnabled) Color.argb(255, 0, 160, 220) else Color.argb(200, 42, 48, 62)
         canvas.drawRoundRect(hapticsToggleRect, 16f, 16f, bgPaint)
@@ -322,13 +340,6 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         canvas.drawText(toggleText, hapticsToggleRect.centerX(), hapticsToggleRect.centerY() + 4f, centerTextPaint)
 
         // 8. Footer: Reset Defaults and Done Button
-        cursorY += 56f
-        val footBtnH = 38f
-        val footBtnW = (contentW - 12f) * 0.5f
-        resetAllBtnRect.set(cardLeft + 24f, cursorY, cardLeft + 24f + footBtnW, cursorY + footBtnH)
-        doneBtnRect.set(cardLeft + 24f + footBtnW + 12f, cursorY, cardLeft + 24f + contentW, cursorY + footBtnH)
-
-        // Reset Button
         bgPaint.color = Color.argb(200, 36, 42, 58)
         canvas.drawRoundRect(resetAllBtnRect, 10f, 10f, bgPaint)
         centerTextPaint.textSize = 13f
