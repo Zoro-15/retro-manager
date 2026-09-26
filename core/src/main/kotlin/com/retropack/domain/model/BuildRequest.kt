@@ -6,13 +6,11 @@ package com.retropack.domain.model
  * defined in architechture.md.
  */
 data class BuildRequest(
-    val version: Int = 1,
     val identity: GameIdentity,
     val content: ContentPayload,
     val runtime: RuntimeConfigPayload = RuntimeConfigPayload(),
     val controls: ControlsPayload = ControlsPayload(),
-    val storage: StoragePayload = StoragePayload(),
-    val signing: SigningPayload = SigningPayload()
+    val storage: StoragePayload = StoragePayload()
 )
 
 data class GameIdentity(
@@ -26,10 +24,7 @@ data class GameIdentity(
 data class ContentPayload(
     val sourceRom: String,
     val platform: String, // "gb", "gbc", "gba"
-    val fileSize: Long,
-    val checksums: ChecksumRecords,
-    val header: RomHeaderData? = null,
-    val appliedPatch: String? = null
+    val header: RomHeaderData? = null
 )
 
 data class ChecksumRecords(
@@ -42,7 +37,6 @@ data class ChecksumRecords(
 data class RomHeaderData(
     val gameCode: String? = null,
     val makerCode: String? = null,
-    val romVersion: Int = 0,
     val cgbFlag: Int? = null,
     val cartridgeType: Int? = null
 )
@@ -59,13 +53,11 @@ data class AudioSettings(
 )
 
 data class VideoSettings(
-    val scaleMode: String = "integer_fit", // "integer_fit", "aspect_fit"
-    val aspectRatio: String = "3:2"
+    val scaleMode: String = "integer_fit" // "integer_fit", "aspect_fit"
 )
 
 data class ControlsPayload(
-    val touch: TouchControlsSettings = TouchControlsSettings(),
-    val gamepad: GamepadSettings = GamepadSettings()
+    val touch: TouchControlsSettings = TouchControlsSettings()
 )
 
 data class TouchControlsSettings(
@@ -74,16 +66,7 @@ data class TouchControlsSettings(
     val haptics: Boolean = true
 )
 
-data class GamepadSettings(
-    val enabled: Boolean = true,
-    val autoHideTouch: Boolean = true
-)
-
 data class StoragePayload(
     val saveType: String = "battery_sram",
     val periodicFlushIntervalSec: Int = 60
-)
-
-data class SigningPayload(
-    val profileId: String = "default_managed"
 )

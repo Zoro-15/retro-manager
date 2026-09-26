@@ -13,8 +13,7 @@ import java.security.MessageDigest
  */
 data class RuntimeTemplate(
     val descriptor: RuntimeDescriptor,
-    val templateApk: File,
-    val licensesDir: File? = null
+    val templateApk: File
 ) {
     companion object {
         const val TEMPLATE_APK_FILENAME = "template.apk"

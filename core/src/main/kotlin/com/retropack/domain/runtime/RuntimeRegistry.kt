@@ -218,12 +218,9 @@ object RuntimeRegistry {
         val descriptorJson = descriptorFile.readText(Charsets.UTF_8)
         val descriptor = RuntimeDescriptor.fromJson(descriptorJson)
 
-        val licensesDir = File(runtimeDir, "licenses").takeIf { it.exists() && it.isDirectory }
-
         val template = RuntimeTemplate(
             descriptor = descriptor,
-            templateApk = apkFile,
-            licensesDir = licensesDir
+            templateApk = apkFile
         )
 
         registerTemplate(template)

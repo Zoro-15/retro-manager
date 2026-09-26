@@ -10,10 +10,8 @@ import com.retropack.domain.model.BuildResult
 import com.retropack.domain.model.BuildStageRecord
 import com.retropack.domain.model.ControlsPayload
 import com.retropack.domain.model.GameIdentity
-import com.retropack.domain.model.GamepadSettings
 import com.retropack.domain.model.RomIdentity
 import com.retropack.domain.model.RuntimeConfigPayload
-import com.retropack.domain.model.SigningPayload
 import com.retropack.domain.model.StoragePayload
 import com.retropack.domain.model.TouchControlsSettings
 import com.retropack.domain.model.VideoSettings
@@ -452,7 +450,6 @@ class MainViewModel : ViewModel() {
 
             // Construct Declarative BuildRequest
             val buildRequest = BuildRequest(
-                version = 1,
                 identity = GameIdentity(
                     gameId = romIdentity.checksums.sha256.take(16),
                     gameTitle = state.identityState.gameTitle,
@@ -461,8 +458,7 @@ class MainViewModel : ViewModel() {
                     versionName = state.identityState.versionName
                 ),
                 content = romIdentity.toContentPayload(
-                    sourceRomName = state.romState.fileName ?: "game.rom",
-                    appliedPatch = state.romState.patchFileName
+                    sourceRomName = state.romState.fileName ?: "game.rom"
                 ),
                 runtime = RuntimeConfigPayload(
                     templateId = state.runtimeState.templateId,
@@ -473,16 +469,11 @@ class MainViewModel : ViewModel() {
                         enabled = state.runtimeState.touchEnabled,
                         opacity = state.runtimeState.touchOpacity,
                         haptics = state.runtimeState.touchHaptics
-                    ),
-                    gamepad = GamepadSettings(
-                        enabled = state.runtimeState.gamepadEnabled,
-                        autoHideTouch = state.runtimeState.gamepadAutoHideTouch
                     )
                 ),
                 storage = StoragePayload(
                     saveType = if (romIdentity.hasBattery) "battery_sram" else "flash_auto"
-                ),
-                signing = SigningPayload(profileId = state.signingState.keyAlias)
+                )
             )
 
             // Resolve target output directory

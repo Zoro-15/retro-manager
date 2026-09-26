@@ -82,7 +82,6 @@ class SaveStateManager(
 ) {
     companion object {
         const val AUTO_SAVE_SLOT = 0
-        const val MIN_USER_SLOT = 1
         const val MAX_USER_SLOT = 5
         const val THUMBNAIL_WIDTH = 120
         const val THUMBNAIL_HEIGHT = 80

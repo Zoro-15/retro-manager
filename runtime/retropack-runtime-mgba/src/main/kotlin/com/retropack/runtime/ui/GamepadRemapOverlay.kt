@@ -58,8 +58,6 @@ class GamepadRemapOverlay @JvmOverloads constructor(
     )
 
     // Callbacks
-    var onDismissed: (() -> Unit)? = null
-    var onMappingSaved: (() -> Unit)? = null
     var onHapticFeedbackRequested: (() -> Unit)? = null
 
     // Hit Testing Rectangles
@@ -97,7 +95,6 @@ class GamepadRemapOverlay @JvmOverloads constructor(
             visibility = GONE
             isWizardMode = false
             activeListeningKey = null
-            onDismissed?.invoke()
             invalidate()
         }
     }
@@ -157,12 +154,10 @@ class GamepadRemapOverlay @JvmOverloads constructor(
                         isWizardMode = false
                         activeListeningKey = null
                         mapper.saveProfile(context)
-                        onMappingSaved?.invoke()
                     }
                 } else {
                     activeListeningKey = null
                     mapper.saveProfile(context)
-                    onMappingSaved?.invoke()
                 }
                 invalidate()
                 return true
@@ -279,7 +274,6 @@ class GamepadRemapOverlay @JvmOverloads constructor(
             if (saveBtnRect.contains(x, y)) {
                 triggerHaptic()
                 gamepadMapper?.saveProfile(context)
-                onMappingSaved?.invoke()
                 hide()
                 return true
             }

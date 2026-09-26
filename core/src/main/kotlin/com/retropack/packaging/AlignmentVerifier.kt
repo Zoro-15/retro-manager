@@ -21,10 +21,7 @@ object AlignmentVerifier {
     private const val END_OF_CENTRAL_DIR_MAGIC = 0x06054b50
 
     data class EntryAlignment(
-        val name: String,
-        val localHeaderOffset: Long,
         val dataOffset: Long,
-        val compressionMethod: Int,
         val isAligned16Kb: Boolean
     )
 
@@ -75,10 +72,7 @@ object AlignmentVerifier {
                     val isAligned = (dataOffset % requiredAlignment) == 0L
 
                     val entryAlignment = EntryAlignment(
-                        name = cdEntry.name,
-                        localHeaderOffset = cdEntry.localHeaderOffset,
                         dataOffset = dataOffset,
-                        compressionMethod = compressionMethod,
                         isAligned16Kb = isAligned
                     )
                     nativeLibs.add(entryAlignment)

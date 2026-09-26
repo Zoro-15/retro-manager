@@ -19,8 +19,7 @@ object ApkVerificationService {
         val isV2SchemeVerified: Boolean,
         val isV3SchemeVerified: Boolean,
         val signerCertificates: List<X509Certificate>,
-        val errors: List<String>,
-        val warnings: List<String>
+        val errors: List<String>
     )
 
     /**
@@ -64,26 +63,6 @@ object ApkVerificationService {
             }
         }
 
-        val warnings = mutableListOf<String>()
-        for (warning in result.warnings) {
-            warnings.add(warning.toString())
-        }
-        for (signer in result.v1SchemeSigners) {
-            for (warning in signer.warnings) {
-                warnings.add("v1 (${signer.name}): $warning")
-            }
-        }
-        for (signer in result.v2SchemeSigners) {
-            for (warning in signer.warnings) {
-                warnings.add("v2 (index ${signer.index}): $warning")
-            }
-        }
-        for (signer in result.v3SchemeSigners) {
-            for (warning in signer.warnings) {
-                warnings.add("v3 (index ${signer.index}): $warning")
-            }
-        }
-
         val signerCerts = result.signerCertificates.toList()
 
         // Check if v1 signature manifest files exist inside the APK archive
@@ -109,8 +88,7 @@ object ApkVerificationService {
             isV2SchemeVerified = v2Verified,
             isV3SchemeVerified = v3Verified,
             signerCertificates = signerCerts,
-            errors = errors,
-            warnings = warnings
+            errors = errors
         )
     }
 

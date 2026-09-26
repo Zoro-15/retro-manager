@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
-import android.view.Display
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
@@ -39,8 +38,6 @@ import com.retropack.runtime.ui.MoreFeaturesSheet
 import com.retropack.runtime.ui.QuickMenuOverlay
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
-import java.io.IOException
-import java.io.InputStream
 import kotlin.math.abs
 
 /**
@@ -266,7 +263,6 @@ open class GameActivity : Activity() {
             comboMacroEnabled = effectiveComboMacro
             touchTheme = effectiveTouchTheme
             sensorMode = effectiveSensorModeStr
-            sensorSensitivity = effectiveSensorSensitivity
             lcdGridEnabled = effectiveLcdGrid
             gbaColorCorrectionEnabled = effectiveGbaColor
             bezelEnabled = effectiveBezel

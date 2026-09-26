@@ -17,13 +17,6 @@ class EmulationLoop(
     var onFrameComplete: (() -> Unit)? = null
 ) : Runnable {
 
-    constructor(
-        engine: EmulationEngine,
-        audioPlayer: RetroAudioPlayer?,
-        saveManager: SaveManager?,
-        onFrameComplete: (() -> Unit)? = null
-    ) : this(engine, audioPlayer, { saveManager }, onFrameComplete)
-
     companion object {
         /** GBA hardware refresh rate: ~59.7275 Hz (16,742,706 nanoseconds per frame). */
         const val FRAME_DURATION_NANOS: Long = 16_742_706L
@@ -48,9 +41,6 @@ class EmulationLoop(
     var muteAudioOnFastForward: Boolean = true
 
     private var workerThread: Thread? = null
-
-    val running: Boolean get() = isRunning
-    val paused: Boolean get() = isPaused
 
     /**
      * Executes a single frame step synchronously.

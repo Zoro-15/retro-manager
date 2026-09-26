@@ -1,7 +1,5 @@
 package com.retropack.domain.model
 
-import com.retropack.domain.rom.GbRomHeader
-import com.retropack.domain.rom.GbaRomHeader
 import com.retropack.packaging.PackageIdentity
 
 /**
@@ -21,27 +19,21 @@ data class RomIdentity(
     val cgbFlag: Int? = null,
     val cartridgeType: Int? = null,
     val mbcType: String? = null,
-    val hasBattery: Boolean = false,
-    val gbHeader: GbRomHeader? = null,
-    val gbaHeader: GbaRomHeader? = null
+    val hasBattery: Boolean = false
 ) {
     /**
      * Converts this RomIdentity into a ContentPayload suitable for BuildRequest.
      */
-    fun toContentPayload(sourceRomName: String, appliedPatch: String? = null): ContentPayload {
+    fun toContentPayload(sourceRomName: String): ContentPayload {
         return ContentPayload(
             sourceRom = sourceRomName,
             platform = platform,
-            fileSize = fileSize,
-            checksums = checksums,
             header = RomHeaderData(
                 gameCode = gameCode,
                 makerCode = makerCode,
-                romVersion = softwareVersion,
                 cgbFlag = cgbFlag,
                 cartridgeType = cartridgeType
-            ),
-            appliedPatch = appliedPatch
+            )
         )
     }
 

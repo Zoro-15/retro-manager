@@ -14,7 +14,6 @@ import java.security.cert.X509Certificate
 object ApkSignerService {
 
     const val DEFAULT_MIN_SDK = 24
-    const val DEFAULT_TARGET_SDK = 35
     const val CREATED_BY = "RetroPack"
 
     /**
@@ -29,7 +28,6 @@ object ApkSignerService {
         privateKey: PrivateKey,
         certificateChain: List<X509Certificate>,
         minSdkVersion: Int = DEFAULT_MIN_SDK,
-        targetSdkVersion: Int = DEFAULT_TARGET_SDK,
         v1SigningEnabled: Boolean = true,
         v2SigningEnabled: Boolean = true,
         v3SigningEnabled: Boolean = true,

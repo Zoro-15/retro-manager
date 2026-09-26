@@ -49,7 +49,6 @@ class QuickMenuOverlay @JvmOverloads constructor(
     var hapticFeedbackEnabledState: Boolean = true
 
     var onToggleControls: (() -> Unit)? = null
-    var onCycleFastForward: (() -> Unit)? = null
     var onFastForwardSpeedChanged: ((Int) -> Unit)? = null
     var onOpenSettings: (() -> Unit)? = null
     var onOpenMore: (() -> Unit)? = null
@@ -111,7 +110,6 @@ class QuickMenuOverlay @JvmOverloads constructor(
         }
         fastForwardSpeed = nextSpeed
         onFastForwardSpeedChanged?.invoke(nextSpeed)
-        onCycleFastForward?.invoke()
         invalidate()
         return nextSpeed
     }

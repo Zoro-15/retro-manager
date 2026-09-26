@@ -20,8 +20,6 @@ data class RuntimeConfig(
     companion object {
         const val CURRENT_SCHEMA_VERSION = 1
         const val ASSET_PATH = "retropack.json"
-        const val DEFAULT_ROM_ASSET_PATH = "game.rom"
-        const val DEFAULT_SAVE_FILENAME = "game.sav"
 
         val DEFAULT = RuntimeConfig()
 

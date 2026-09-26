@@ -112,9 +112,6 @@ class GamepadMapper(
      */
     var onGamepadDetected: (() -> Unit)? = null
 
-    /** Callback triggered when a new controller device profile is activated. */
-    var onDeviceProfileChanged: ((name: String, descriptor: String) -> Unit)? = null
-
     @Volatile
     private var buttonMask: Int = RetroKey.NO_KEYS_MASK
 
@@ -138,7 +135,6 @@ class GamepadMapper(
         activeDeviceDescriptor = descriptor
         activeDeviceName = name
         loadProfile(context, descriptor, name)
-        onDeviceProfileChanged?.invoke(name, descriptor)
     }
 
     /**
@@ -170,13 +166,6 @@ class GamepadMapper(
         // Remove any existing binding that might map to this retroKey if desired,
         // or allow multiple keys to map to the same retroKey
         keyBindings[keyCode] = retroKey
-    }
-
-    /**
-     * Removes binding for [keyCode].
-     */
-    fun removeKeyBinding(keyCode: Int) {
-        keyBindings.remove(keyCode)
     }
 
     /**

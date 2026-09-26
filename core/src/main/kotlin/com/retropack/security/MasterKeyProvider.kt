@@ -5,13 +5,11 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.SecretKeySpec
 
 /**
  * Strategy interface providing master key encryption for software code-signing keys at rest.
  */
 interface MasterKeyProvider {
-    val providerName: String
     fun encrypt(plainBytes: ByteArray): EncryptedPayload
     fun decrypt(payload: EncryptedPayload): ByteArray
 }
@@ -24,10 +22,7 @@ class AesGcmMasterKeyProvider(
     private val secretKey: SecretKey
 ) : MasterKeyProvider {
 
-    override val providerName: String = "AesGcmMasterKeyProvider"
     private val secureRandom = SecureRandom()
-
-    constructor(rawKeyBytes: ByteArray) : this(SecretKeySpec(rawKeyBytes, "AES"))
 
     companion object {
         const val GCM_IV_LENGTH_BYTES = 12

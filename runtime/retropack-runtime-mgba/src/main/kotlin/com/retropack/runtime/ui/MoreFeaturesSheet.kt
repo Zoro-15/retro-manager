@@ -113,12 +113,6 @@ class MoreFeaturesSheet @JvmOverloads constructor(
             invalidate()
         }
 
-    var sensorSensitivity: Float = 1.0f
-        set(value) {
-            field = value
-            invalidate()
-        }
-
     var lcdGridEnabled: Boolean = false
         set(value) {
             field = value

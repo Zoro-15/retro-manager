@@ -16,9 +16,6 @@ class RuntimeLoggingService : Service() {
     companion object {
         private const val THREAD_NAME = "RetroPack-LogcatWorker"
 
-        @Volatile
-        private var isServiceRunning = false
-
         fun start(context: Context) {
             try {
                 val intent = Intent(context, RuntimeLoggingService::class.java)
@@ -44,7 +41,6 @@ class RuntimeLoggingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        isServiceRunning = true
         shouldRun = true
         startLogcatStream()
     }
@@ -90,7 +86,6 @@ class RuntimeLoggingService : Service() {
 
     override fun onDestroy() {
         shouldRun = false
-        isServiceRunning = false
         try {
             logcatProcess?.destroy()
             logcatProcess = null

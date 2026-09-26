@@ -155,23 +155,4 @@ object HybridKeystore {
             certificateChain = certChain
         )
     }
-
-    /**
-     * Exports a SigningIdentity to a standard JKS (.jks) password-protected keystore stream.
-     */
-    fun exportToJks(
-        identity: SigningIdentity,
-        password: CharArray,
-        outStream: OutputStream
-    ) {
-        val ks = KeyStore.getInstance("JKS")
-        ks.load(null, password)
-        ks.setKeyEntry(
-            identity.alias,
-            identity.privateKey,
-            password,
-            identity.certificateChain.toTypedArray()
-        )
-        ks.store(outStream, password)
-    }
 }
