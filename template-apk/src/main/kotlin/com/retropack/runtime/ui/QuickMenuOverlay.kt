@@ -145,6 +145,10 @@ class QuickMenuOverlay @JvmOverloads constructor(
         return (dx * dx + dy * dy) <= (radius * radius)
     }
 
+    fun renderForTesting(canvas: Canvas) {
+        onDraw(canvas)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 

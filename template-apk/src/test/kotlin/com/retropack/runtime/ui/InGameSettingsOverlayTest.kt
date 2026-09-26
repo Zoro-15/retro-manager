@@ -37,7 +37,7 @@ class InGameSettingsOverlayTest {
         overlay.show()
 
         // Trigger onDraw to populate hit rects
-        overlay.onDraw(Canvas())
+        overlay.renderForTesting(Canvas())
 
         var editClicked = false
         overlay.onEditControlsClicked = { editClicked = true }
@@ -57,7 +57,7 @@ class InGameSettingsOverlayTest {
         val overlay = InGameSettingsOverlay(Context())
         overlay.setDimensions(1080, 1920)
         overlay.show()
-        overlay.onDraw(Canvas())
+        overlay.renderForTesting(Canvas())
 
         var selectedMode: ScaleMode? = null
         overlay.onScaleModeChanged = { selectedMode = it }
@@ -77,7 +77,7 @@ class InGameSettingsOverlayTest {
         val overlay = InGameSettingsOverlay(Context())
         overlay.setDimensions(1080, 1920)
         overlay.show()
-        overlay.onDraw(Canvas())
+        overlay.renderForTesting(Canvas())
 
         var selectedOpacity = -1f
         overlay.onOpacityChanged = { selectedOpacity = it }
@@ -98,7 +98,7 @@ class InGameSettingsOverlayTest {
         overlay.setDimensions(1080, 1920)
         overlay.show()
         overlay.hapticsEnabled = true
-        overlay.onDraw(Canvas())
+        overlay.renderForTesting(Canvas())
 
         var hapticsReported: Boolean? = null
         overlay.onHapticsChanged = { hapticsReported = it }

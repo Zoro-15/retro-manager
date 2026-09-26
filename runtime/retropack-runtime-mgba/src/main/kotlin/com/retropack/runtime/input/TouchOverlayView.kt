@@ -336,6 +336,10 @@ class TouchOverlayView @JvmOverloads constructor(
         }
     }
 
+    fun renderForTesting(canvas: Canvas) {
+        onDraw(canvas)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (!isControlsVisible && !isEditMode) return

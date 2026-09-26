@@ -190,6 +190,10 @@ class InGameSettingsOverlay @JvmOverloads constructor(
         }
     }
 
+    fun renderForTesting(canvas: Canvas) {
+        onDraw(canvas)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         if (visibility != VISIBLE) return
