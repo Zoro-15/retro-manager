@@ -52,9 +52,13 @@ public class Paint {
     }
 
     private boolean fakeBoldText = false;
+    private Shader shader = null;
 
     public void setFakeBoldText(boolean fakeBoldText) { this.fakeBoldText = fakeBoldText; }
     public boolean isFakeBoldText() { return fakeBoldText; }
+
+    public Shader getShader() { return shader; }
+    public Shader setShader(Shader shader) { this.shader = shader; return shader; }
 
     public void setShadowLayer(float radius, float dx, float dy, int shadowColor) {}
 }

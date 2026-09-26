@@ -17,5 +17,6 @@ public interface WindowManager {
         public int flags = 0;
         public int layoutInDisplayCutoutMode = LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
         public int preferredDisplayModeId = 0;
+        public float preferredRefreshRate = 0.0f;
     }
 }

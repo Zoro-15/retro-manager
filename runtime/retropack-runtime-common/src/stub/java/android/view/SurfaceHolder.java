@@ -6,4 +6,5 @@ public interface SurfaceHolder {
         void surfaceChanged(SurfaceHolder holder, int format, int width, int height);
         void surfaceDestroyed(SurfaceHolder holder);
     }
+    Surface getSurface();
 }

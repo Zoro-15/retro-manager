@@ -7,12 +7,19 @@ public class Context {
     public static final String WINDOW_SERVICE = "window";
     public static final String SENSOR_SERVICE = "sensor";
     public static final String VIBRATOR_SERVICE = "vibrator";
+    public static final String VIBRATOR_MANAGER_SERVICE = "vibrator_manager";
     public static final String INPUT_SERVICE = "input";
 
     private java.io.File filesDir = new java.io.File(System.getProperty("java.io.tmpdir"), "retropack_test_files");
     private android.content.res.AssetManager assetManager = new android.content.res.AssetManager();
     private SensorManager sensorManager = new SensorManager();
     private Vibrator vibrator = new Vibrator();
+    private android.os.VibratorManager vibratorManager = new android.os.VibratorManager();
+    private android.view.Display display = new android.view.Display();
+
+    public android.view.Display getDisplay() {
+        return display;
+    }
 
     public java.io.File getFilesDir() {
         if (!filesDir.exists()) filesDir.mkdirs();
@@ -44,6 +51,7 @@ public class Context {
     public Object getSystemService(String name) {
         if (SENSOR_SERVICE.equals(name)) return sensorManager;
         if (VIBRATOR_SERVICE.equals(name)) return vibrator;
+        if (VIBRATOR_MANAGER_SERVICE.equals(name)) return vibratorManager;
         return null;
     }
 

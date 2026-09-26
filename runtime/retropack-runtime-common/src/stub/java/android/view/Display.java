@@ -28,4 +28,5 @@ public class Display {
 
     public Mode getMode() { return mode; }
     public Mode[] getSupportedModes() { return supportedModes; }
+    public float getRefreshRate() { return mode.getRefreshRate(); }
 }

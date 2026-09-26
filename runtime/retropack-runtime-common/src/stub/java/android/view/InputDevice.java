@@ -53,6 +53,14 @@ public class InputDevice {
         return false;
     }
 
+    public android.os.Vibrator getVibrator() {
+        return new android.os.Vibrator();
+    }
+
+    public android.os.VibratorManager getVibratorManager() {
+        return new android.os.VibratorManager();
+    }
+
     public static int[] getDeviceIds() {
         return new int[]{1};
     }

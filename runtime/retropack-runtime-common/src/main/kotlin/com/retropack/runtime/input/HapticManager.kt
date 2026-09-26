@@ -9,7 +9,6 @@ import android.os.VibratorManager
 import android.view.InputDevice
 import com.retropack.domain.model.HapticFeedbackMode
 import com.retropack.runtime.audio.AudioHapticEngine
-import com.retropack.runtime.logging.RuntimeLogger
 
 /**
  * Modern Android Haptic and Gamepad Rumble Manager for RetroPack.

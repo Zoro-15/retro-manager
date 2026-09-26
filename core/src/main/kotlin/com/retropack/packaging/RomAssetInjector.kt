@@ -37,11 +37,11 @@ object RomAssetInjector {
      * Prepares the asset entries map with multi-disc images and optional `.m3u` playlist.
      */
     fun prepareMultiDiscAssetEntries(
-        discEntries: Map<String, ByteArray>,
+        discEntries: Map<String, ByteArray> = emptyMap(),
         configJson: String,
         m3uContent: String? = null
     ): Map<String, ByteArray> {
-        require(discEntries.isNotEmpty()) { "Disc entries cannot be empty" }
+        require(discEntries.isNotEmpty() || !m3uContent.isNullOrBlank()) { "Disc entries or M3U playlist must be provided" }
         require(configJson.isNotBlank()) { "Runtime config JSON cannot be blank" }
 
         val map = mutableMapOf<String, ByteArray>()

@@ -1,7 +1,6 @@
 package com.retropack.runtime.save
 
 import com.retropack.runtime.core.EmulationEngine
-import com.retropack.runtime.logging.RuntimeLogger
 import java.io.File
 import java.io.FileOutputStream
 
@@ -42,7 +41,6 @@ object AutoResumeManager {
             val stateSaved = engine.saveState(slot = 99, filePath = scratchFile.absolutePath)
             if (!stateSaved || !scratchFile.exists() || scratchFile.length() == 0L) {
                 scratchFile.delete()
-                RuntimeLogger.w("AutoResume", "Engine failed to capture auto-resume snapshot")
                 return false
             }
 
@@ -70,10 +68,8 @@ object AutoResumeManager {
                 "fileSize=${targetFile.length()}\n"
             )
 
-            RuntimeLogger.i("AutoResume", "Successfully captured background auto-snapshot for '$gameTitle' (${targetFile.length()} bytes)")
             true
-        } catch (e: Throwable) {
-            RuntimeLogger.e("AutoResume", "Failed to capture auto-resume snapshot: ${e.message}", e)
+        } catch (_: Throwable) {
             false
         }
     }
@@ -113,15 +109,12 @@ object AutoResumeManager {
         return try {
             val loaded = engine.loadState(slot = 99, filePath = targetFile.absolutePath)
             if (loaded) {
-                RuntimeLogger.i("AutoResume", "Instant Resume succeeded: game progress restored from background snapshot")
                 true
             } else {
-                RuntimeLogger.w("AutoResume", "Auto-resume state restore returned false, purging stale state")
                 clearAutoResume(storageDir)
                 false
             }
-        } catch (e: Throwable) {
-            RuntimeLogger.e("AutoResume", "Exception during auto-resume restore, falling back to clean boot: ${e.message}", e)
+        } catch (_: Throwable) {
             clearAutoResume(storageDir)
             false
         }

@@ -206,8 +206,13 @@ object BuildEngine {
                 val configJson = generateRuntimeConfigJson(request, checksumResult.checksums.sha256)
                 val baseEntries = RomAssetInjector.prepareAssetEntries(romBytes, configJson).toMutableMap()
                 if (additionalDiscBytes.isNotEmpty() || !request.content.m3uPlaylist.isNullOrBlank()) {
+                    val discMap = mutableMapOf<String, ByteArray>()
+                    additionalDiscBytes.forEachIndexed { index, bytes ->
+                        discMap["assets/discs/disc_${index + 2}.bin"] = bytes
+                    }
                     val discEntries = RomAssetInjector.prepareMultiDiscAssetEntries(
-                        discList = additionalDiscBytes,
+                        discEntries = discMap,
+                        configJson = configJson,
                         m3uContent = request.content.m3uPlaylist
                     )
                     discEntries.forEach { (path, data) ->

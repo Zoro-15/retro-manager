@@ -9,7 +9,6 @@ import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.Window
 import android.view.WindowManager
-import com.retropack.runtime.logging.RuntimeLogger
 
 /**
  * Dynamic Device-Adaptive Variable Refresh Rate (VRR / 90Hz / 120Hz / 144Hz) & Motion Sync Manager.
@@ -94,8 +93,7 @@ object DisplaySyncManager {
                 isVrrSupported = isVrr,
                 recommendedRefreshRate = recommended
             )
-        } catch (e: Throwable) {
-            RuntimeLogger.w("DisplaySync", "Failed to query display capabilities: ${e.message}")
+        } catch (_: Throwable) {
             DisplayCapabilities(
                 currentRefreshRate = 60.0f,
                 supportedRefreshRates = listOf(60.0f),
@@ -118,7 +116,6 @@ object DisplaySyncManager {
         targetFps: Float = 60.0f
     ) {
         val caps = queryDisplayCapabilities(activity)
-        RuntimeLogger.i("DisplaySync", "Display detected: current=${caps.currentRefreshRate}Hz, supported=${caps.supportedRefreshRates}, 120Hz=${caps.is120HzSupported}")
 
         // 1. Window Mode negotiation
         try {
@@ -135,7 +132,6 @@ object DisplaySyncManager {
                 }
                 lp.preferredRefreshRate = 120.0f
                 window.attributes = lp
-                RuntimeLogger.i("DisplaySync", "Locked Window preferredRefreshRate to 120.0Hz for Black Frame Insertion")
             } else if (vrrEnabled && caps.isHighRefreshRateSupported) {
                 // Integer cadence optimization: 120Hz screen flips 60 FPS frames with 2:2 pulldown
                 if (caps.is120HzSupported) {
@@ -143,8 +139,7 @@ object DisplaySyncManager {
                     window.attributes = lp
                 }
             }
-        } catch (e: Throwable) {
-            RuntimeLogger.w("DisplaySync", "Window refresh rate configuration skipped: ${e.message}")
+        } catch (_: Throwable) {
         }
 
         // 2. Surface Frame Rate synchronization (Android 11+ / API 30+)
@@ -157,10 +152,8 @@ object DisplaySyncManager {
                         effectiveTarget,
                         Surface.FRAME_RATE_COMPATIBILITY_DEFAULT
                     )
-                    RuntimeLogger.i("DisplaySync", "Surface.setFrameRate configured to ${effectiveTarget}fps (FRAME_RATE_COMPATIBILITY_DEFAULT)")
                 }
-            } catch (e: Throwable) {
-                RuntimeLogger.w("DisplaySync", "Surface.setFrameRate skipped: ${e.message}")
+            } catch (_: Throwable) {
             }
         }
     }
