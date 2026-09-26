@@ -1,7 +1,5 @@
 package com.retropack.domain.rom
 
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 
 /**
  * Parsed Game Boy Advance ROM header data.
@@ -27,7 +25,6 @@ object GbaRomParser {
     const val MIN_HEADER_SIZE: Int = 0xC0 // 192 bytes
     const val MAX_ROM_SIZE_BYTES: Int = 64 * 1024 * 1024 // 64 MiB
 
-    fun parse(input: InputStream): GbaRomHeader = parse(input.readBytesLimited(MAX_ROM_SIZE_BYTES))
 
     fun parse(bytes: ByteArray): GbaRomHeader {
         if (bytes.size < MIN_HEADER_SIZE) {
@@ -87,19 +84,4 @@ object GbaRomParser {
             .trim()
     }
 
-    private fun InputStream.readBytesLimited(limit: Int): ByteArray {
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        val output = ByteArrayOutputStream()
-        var total = 0
-        while (true) {
-            val read = read(buffer)
-            if (read < 0) break
-            total += read
-            if (total > limit) {
-                throw InvalidRomException("The file exceeds the 64 MiB safety ceiling.")
-            }
-            output.write(buffer, 0, read)
-        }
-        return output.toByteArray()
-    }
 }

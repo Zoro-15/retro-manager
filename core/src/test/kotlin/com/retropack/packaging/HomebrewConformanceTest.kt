@@ -97,7 +97,6 @@ class HomebrewConformanceTest {
         val signingIdentity = HybridKeystore.generateIdentity("tobu_signer", KeyType.RSA_2048)
 
         val request = BuildRequest(
-            version = 1,
             identity = GameIdentity(
                 gameId = "tobu-01",
                 gameTitle = "Tobu Tobu Girl Deluxe",
@@ -149,7 +148,6 @@ class HomebrewConformanceTest {
         val signingIdentity = HybridKeystore.generateIdentity("dangan_signer", KeyType.EC_P256)
 
         val request = BuildRequest(
-            version = 1,
             identity = GameIdentity(
                 gameId = "dangan-01",
                 gameTitle = "Dangan GB",
@@ -200,7 +198,6 @@ class HomebrewConformanceTest {
         val signingIdentity = HybridKeystore.generateIdentity("anguna_signer", KeyType.RSA_2048)
 
         val request = BuildRequest(
-            version = 1,
             identity = GameIdentity(
                 gameId = "anguna-01",
                 gameTitle = "Anguna: Warriors of the Demis",

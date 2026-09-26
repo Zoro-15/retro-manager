@@ -84,7 +84,6 @@ class BuildEngineTest {
         val checksums = StreamChecksum.calculate(ByteArrayInputStream(romBytes))
 
         val request = BuildRequest(
-            version = 1,
             identity = GameIdentity(
                 gameId = "emerald-01",
                 gameTitle = "Pokemon Emerald Version",
@@ -94,14 +93,7 @@ class BuildEngineTest {
             ),
             content = ContentPayload(
                 sourceRom = "pokemon_emerald.gba",
-                platform = "gba",
-                fileSize = romBytes.size.toLong(),
-                checksums = ChecksumRecords(
-                    crc32 = checksums.checksums.crc32,
-                    md5 = checksums.checksums.md5,
-                    sha1 = checksums.checksums.sha1,
-                    sha256 = checksums.checksums.sha256
-                )
+                platform = "gba"
             ),
             runtime = RuntimeConfigPayload(
                 templateId = "mgba-unified",
@@ -211,9 +203,7 @@ class BuildEngineTest {
             ),
             content = ContentPayload(
                 sourceRom = "test.gba",
-                platform = "gba",
-                fileSize = 0,
-                checksums = ChecksumRecords("", "", "", "")
+                platform = "gba"
             )
         )
 
@@ -246,9 +236,7 @@ class BuildEngineTest {
             ),
             content = ContentPayload(
                 sourceRom = "test.gba",
-                platform = "gba",
-                fileSize = romBytes.size.toLong(),
-                checksums = ChecksumRecords("0", "0", "0", "0")
+                platform = "gba"
             ),
             runtime = RuntimeConfigPayload(templateId = "non_existent_template")
         )

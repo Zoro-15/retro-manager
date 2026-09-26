@@ -30,7 +30,6 @@ dependencies {
     api("org.bouncycastle:bcpkix-jdk18on:1.78.1")
 
     // Coroutines & Utilities
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
 
     // Testing
     testImplementation(platform("org.junit:junit-bom:5.10.2"))

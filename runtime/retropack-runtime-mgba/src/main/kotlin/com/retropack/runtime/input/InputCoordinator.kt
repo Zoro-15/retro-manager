@@ -88,16 +88,6 @@ class InputCoordinator(
     }
 
     /**
-     * Updates the motion sensor key mask directly.
-     */
-    fun updateSensorMask(mask: Int) {
-        synchronized(maskLock) {
-            sensorMask = mask
-            dispatchCompositeMask()
-        }
-    }
-
-    /**
      * Resets all touch, gamepad, and sensor key states with a single consolidated dispatch.
      */
     fun reset() {

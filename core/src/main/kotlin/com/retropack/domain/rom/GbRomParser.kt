@@ -1,7 +1,5 @@
 package com.retropack.domain.rom
 
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
 
 /**
  * Parsed Game Boy / Game Boy Color ROM cartridge header data.
@@ -10,19 +8,16 @@ data class GbRomHeader(
     val title: String,
     val platform: String, // "gb" or "gbc"
     val cgbFlag: Int,
-    val sgbFlag: Int,
     val cartridgeType: Int,
     val mbcType: String,
     val hasBattery: Boolean,
     val romSizeBytes: Long,
     val ramSizeBytes: Long,
-    val destinationCode: Int,
     val maskRomVersion: Int,
     val logoValid: Boolean,
     val headerChecksumValid: Boolean,
     val storedChecksum: Int,
-    val calculatedChecksum: Int,
-    val newLicenseeCode: String? = null
+    val calculatedChecksum: Int
 )
 
 /**
@@ -53,8 +48,6 @@ object GbRomParser {
         0xBB.toByte(), 0xB9.toByte(), 0x33.toByte(), 0x3E.toByte()
     )
 
-    fun parse(input: InputStream): GbRomHeader = parse(input.readBytesLimited(MAX_ROM_SIZE_BYTES))
-
     fun parse(bytes: ByteArray): GbRomHeader {
         if (bytes.size < MIN_HEADER_SIZE) {
             throw InvalidRomException("The file is too small (${bytes.size} bytes) to contain a GB/GBC header.")
@@ -79,12 +72,6 @@ object GbRomParser {
         val titleLength = if (isCgb) 15 else 16
         val title = bytes.ascii(0x0134, titleLength).ifBlank { "Untitled GB Game" }
 
-        // New Licensee Code at 0x0144 - 0x0145
-        val oldLicensee = bytes[0x014B].toInt() and 0xFF
-        val newLicenseeCode = if (oldLicensee == 0x33) bytes.ascii(0x0144, 2) else null
-
-        // SGB Flag at 0x0146: 0x03 = SGB functions supported, 0x00 = No SGB
-        val sgbFlag = bytes[0x0146].toInt() and 0xFF
 
         // Cartridge / Memory Bank Controller (MBC) type at 0x0147
         val cartridgeType = bytes[0x0147].toInt() and 0xFF
@@ -98,7 +85,6 @@ object GbRomParser {
         val ramSizeCode = bytes[0x0149].toInt() and 0xFF
         val ramSizeBytes = resolveRamSize(ramSizeCode)
 
-        val destinationCode = bytes[0x014A].toInt() and 0xFF
         val maskRomVersion = bytes[0x014C].toInt() and 0xFF
 
         // Header checksum at 0x014D
@@ -110,19 +96,16 @@ object GbRomParser {
             title = title,
             platform = if (isCgb) "gbc" else "gb",
             cgbFlag = cgbFlag,
-            sgbFlag = sgbFlag,
             cartridgeType = cartridgeType,
             mbcType = mbcType,
             hasBattery = hasBattery,
             romSizeBytes = romSizeBytes,
             ramSizeBytes = ramSizeBytes,
-            destinationCode = destinationCode,
             maskRomVersion = maskRomVersion,
             logoValid = logoValid,
             headerChecksumValid = headerChecksumValid,
             storedChecksum = storedChecksum,
-            calculatedChecksum = calculatedChecksum,
-            newLicenseeCode = newLicenseeCode
+            calculatedChecksum = calculatedChecksum
         )
     }
 
@@ -231,19 +214,4 @@ object GbRomParser {
             .trim()
     }
 
-    private fun InputStream.readBytesLimited(limit: Int): ByteArray {
-        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-        val output = ByteArrayOutputStream()
-        var total = 0
-        while (true) {
-            val read = read(buffer)
-            if (read < 0) break
-            total += read
-            if (total > limit) {
-                throw InvalidRomException("The file exceeds the 64 MiB safety ceiling.")
-            }
-            output.write(buffer, 0, read)
-        }
-        return output.toByteArray()
-    }
 }

@@ -32,7 +32,6 @@ sealed class RuntimeProvisionResult {
 
     /** Bundle extracted (or already cached) and registered in [RuntimeRegistry]. */
     data class Provisioned(
-        val runtimeId: String,
         val template: RuntimeTemplate,
         val extractedFiles: Int,
         val alreadyPresent: Boolean
@@ -40,19 +39,16 @@ sealed class RuntimeProvisionResult {
 
     /** The template APK is not present in the asset container at all. */
     data class MissingTemplate(
-        val runtimeId: String,
         val guidance: String
     ) : RuntimeProvisionResult()
 
     /** The template exists but does not match the compiled-in trust anchors. */
     data class IntegrityMismatch(
-        val runtimeId: String,
         val details: String
     ) : RuntimeProvisionResult()
 
     /** Extraction or registration failed (e.g. malformed descriptor). */
     data class ExtractionFailure(
-        val runtimeId: String,
         val cause: String
     ) : RuntimeProvisionResult()
 }
@@ -107,7 +103,6 @@ object RuntimeProvisioner {
         val bundleRoot = File(targetRoot, runtimeId)
         if (!bundleRoot.exists() && !bundleRoot.mkdirs()) {
             return RuntimeProvisionResult.ExtractionFailure(
-                runtimeId,
                 "Cannot create runtime bundle directory: ${bundleRoot.absolutePath}"
             )
         }
@@ -118,7 +113,7 @@ object RuntimeProvisioner {
         } catch (t: Throwable) {
             val cause = t.message ?: t.javaClass.simpleName
             log("[!] Runtime bundle extraction failed: $cause")
-            return RuntimeProvisionResult.ExtractionFailure(runtimeId, cause)
+            return RuntimeProvisionResult.ExtractionFailure(cause)
         }
         val extractedCount = countFiles(bundleRoot) - before
         val alreadyPresent = extractedCount == 0
@@ -134,14 +129,14 @@ object RuntimeProvisioner {
                     "manager from a checkout that contains runtimes/mgba-unified/template.apk " +
                     "(it is committed and hash-pinned) and reinstall."
             log("[!] $guidance")
-            return RuntimeProvisionResult.MissingTemplate(runtimeId, guidance)
+            return RuntimeProvisionResult.MissingTemplate(guidance)
         }
         if (!descriptorFile.isFile || descriptorFile.length() == 0L) {
             val guidance =
                 "Runtime descriptor '$runtimeId/runtime.json' was not extracted. The manager " +
                     "APK assets are incomplete or corrupted; reinstall the manager APK."
             log("[!] $guidance")
-            return RuntimeProvisionResult.ExtractionFailure(runtimeId, guidance)
+            return RuntimeProvisionResult.ExtractionFailure(guidance)
         }
 
         // Fail-fast whole-APK trust check (Stage 2 remains the authoritative gate).
@@ -155,7 +150,7 @@ object RuntimeProvisioner {
                         "clear app data or reinstall the manager APK built with the matching " +
                         "pinned bundle."
                 log("[!] $details")
-                return RuntimeProvisionResult.IntegrityMismatch(runtimeId, details)
+                return RuntimeProvisionResult.IntegrityMismatch(details)
             }
         }
 
@@ -165,7 +160,7 @@ object RuntimeProvisioner {
         } catch (t: Throwable) {
             val cause = t.message ?: t.javaClass.simpleName
             log("[!] Runtime bundle registration failed: $cause")
-            return RuntimeProvisionResult.ExtractionFailure(runtimeId, cause)
+            return RuntimeProvisionResult.ExtractionFailure(cause)
         }
 
         // Fail-fast protected-entry check (Stage 9 remains the authoritative gate).
@@ -174,7 +169,7 @@ object RuntimeProvisioner {
         } catch (t: Throwable) {
             val cause = t.message ?: t.javaClass.simpleName
             log("[!] $cause")
-            return RuntimeProvisionResult.IntegrityMismatch(runtimeId, cause)
+            return RuntimeProvisionResult.IntegrityMismatch(cause)
         }
 
         log(
@@ -182,7 +177,7 @@ object RuntimeProvisioner {
                 (if (alreadyPresent) "verified from cache" else "extracted ($extractedCount files)") +
                 " and registered (template ${templateApk.length()} bytes)"
         )
-        return RuntimeProvisionResult.Provisioned(runtimeId, template, extractedCount, alreadyPresent)
+        return RuntimeProvisionResult.Provisioned(template, extractedCount, alreadyPresent)
     }
 
     /**

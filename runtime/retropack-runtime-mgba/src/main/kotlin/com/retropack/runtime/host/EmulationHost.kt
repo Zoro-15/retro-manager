@@ -174,13 +174,6 @@ class EmulationHost(
         return engine.loadState(slot, sourcePath)
     }
 
-    /**
-     * Toggles visibility of on-screen virtual touch controls.
-     */
-    fun setVirtualControlsVisible(visible: Boolean) {
-        inputCoordinator.touchOverlay?.isControlsVisible = visible
-    }
-
     override fun close() {
         stop()
         audioPlayer?.release()

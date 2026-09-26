@@ -2,48 +2,30 @@ package com.retropack.domain.rom
 
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.io.InputStream
 import java.io.OutputStream
-import java.security.MessageDigest
 import java.util.zip.CRC32
 
-enum class PatchFormat(val extension: String) {
-    IPS("ips"),
-    UPS("ups"),
-    BPS("bps")
+enum class PatchFormat {
+    IPS,
+    UPS,
+    BPS
 }
 
 data class PatchDescriptor(
     val format: PatchFormat,
-    val patchSizeBytes: Int,
     val sourceSizeBytes: Long?,
     val targetSizeBytes: Long?,
-    val sourceCrc32: Long?,
-    val targetCrc32: Long?,
-    val patchCrc32: Long?,
-    val patchIntegrityValid: Boolean,
-    val patchSha256: String
+    val patchIntegrityValid: Boolean
 )
 
 data class PatchResult(
     val format: PatchFormat,
-    val outputBytes: ByteArray,
-    val sourceSha256: String,
-    val patchSha256: String,
-    val outputSha256: String,
-    val outputCrc32: String
+    val outputBytes: ByteArray
 )
 
 data class StreamPatchResult(
-    val format: PatchFormat,
-    val outputSizeBytes: Long,
-    val sourceSha256: String,
-    val patchSha256: String,
-    val outputSha256: String,
-    val outputCrc32: String
+    val outputSizeBytes: Long
 )
 
 /**
@@ -57,7 +39,6 @@ object IpsUpsPatcher {
     const val MAX_OUTPUT_SIZE_BYTES: Int = 64 * 1024 * 1024 // 64 MiB
     private const val FOOTER_SIZE = 12
 
-    private val HEX_CHARS = "0123456789abcdef".toCharArray()
 
     fun detectFormat(patch: ByteArray): PatchFormat = when {
         patch.startsWithAscii("PATCH") -> PatchFormat.IPS
@@ -71,19 +52,13 @@ object IpsUpsPatcher {
             throw InvalidPatchException("Patch exceeds the 32 MiB safety ceiling.")
         }
         val format = detectFormat(patch)
-        val patchSha256 = sha256Of(patch)
 
         return when (format) {
             PatchFormat.IPS -> PatchDescriptor(
                 format = format,
-                patchSizeBytes = patch.size,
                 sourceSizeBytes = null,
                 targetSizeBytes = null,
-                sourceCrc32 = null,
-                targetCrc32 = null,
-                patchCrc32 = null,
-                patchIntegrityValid = true,
-                patchSha256 = patchSha256
+                patchIntegrityValid = true
             )
             PatchFormat.UPS, PatchFormat.BPS -> {
                 if (patch.size < 4 + FOOTER_SIZE) throw InvalidPatchException("Patch is truncated.")
@@ -101,14 +76,9 @@ object IpsUpsPatcher {
                 }
                 PatchDescriptor(
                     format = format,
-                    patchSizeBytes = patch.size,
                     sourceSizeBytes = sourceSize,
                     targetSizeBytes = targetSize,
-                    sourceCrc32 = patch.readUnsigned32LittleEndian(patch.size - 12),
-                    targetCrc32 = patch.readUnsigned32LittleEndian(patch.size - 8),
-                    patchCrc32 = patch.readUnsigned32LittleEndian(patch.size - 4),
-                    patchIntegrityValid = patchCrcValid,
-                    patchSha256 = patchSha256
+                    patchIntegrityValid = patchCrcValid
                 )
             }
         }
@@ -129,16 +99,9 @@ object IpsUpsPatcher {
             throw InvalidPatchException("Patched output size (${output.size} bytes) exceeds the 64 MiB safety ceiling.")
         }
 
-        // Single pass over the output for both SHA-256 and CRC32 (was two
-        // full passes). Source/patch hashes remain one pass each.
-        val (outSha, outCrc) = hashOutput(output)
         return PatchResult(
             format = format,
-            outputBytes = output,
-            sourceSha256 = sha256Of(source),
-            patchSha256 = sha256Of(patch),
-            outputSha256 = outSha,
-            outputCrc32 = "%08x".format(outCrc)
+            outputBytes = output
         )
     }
 
@@ -156,26 +119,8 @@ object IpsUpsPatcher {
         output.flush()
 
         return StreamPatchResult(
-            format = result.format,
-            outputSizeBytes = result.outputBytes.size.toLong(),
-            sourceSha256 = result.sourceSha256,
-            patchSha256 = result.patchSha256,
-            outputSha256 = result.outputSha256,
-            outputCrc32 = result.outputCrc32
+            outputSizeBytes = result.outputBytes.size.toLong()
         )
-    }
-
-    /**
-     * Convenience method for file-to-file patching.
-     */
-    fun apply(sourceFile: File, patchFile: File, outputFile: File): StreamPatchResult {
-        return FileInputStream(sourceFile).use { src ->
-            FileInputStream(patchFile).use { pat ->
-                FileOutputStream(outputFile).use { out ->
-                    apply(src, pat, out)
-                }
-            }
-        }
     }
 
     private fun applyIps(source: ByteArray, patch: ByteArray): ByteArray {
@@ -414,39 +359,6 @@ object IpsUpsPatcher {
         update(bytes, offset, length)
         value
     }
-
-    private fun sha256Of(bytes: ByteArray): String {
-        // Table hex (was per-byte "%02x".format, ~261x slower measured).
-        return MessageDigest.getInstance("SHA-256").digest(bytes).toHex()
-    }
-
-    /**
-     * Combined SHA-256 + CRC32 over the patched output in one pass.
-     */
-    private fun hashOutput(bytes: ByteArray): Pair<String, Long> {
-        val sha = MessageDigest.getInstance("SHA-256")
-        val crc = CRC32()
-        var offset = 0
-        while (offset < bytes.size) {
-            val end = minOf(offset + STREAM_CHUNK_BYTES, bytes.size)
-            sha.update(bytes, offset, end - offset)
-            crc.update(bytes, offset, end - offset)
-            offset = end
-        }
-        return Pair(sha.digest().toHex(), crc.value)
-    }
-
-    private fun ByteArray.toHex(): String {
-        val chars = CharArray(size * 2)
-        for (i in indices) {
-            val v = this[i].toInt() and 0xFF
-            chars[i * 2] = HEX_CHARS[v ushr 4]
-            chars[i * 2 + 1] = HEX_CHARS[v and 0x0F]
-        }
-        return String(chars)
-    }
-
-    private const val STREAM_CHUNK_BYTES = 64 * 1024
 
     private fun InputStream.readBytesLimited(limit: Int): ByteArray {
         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)

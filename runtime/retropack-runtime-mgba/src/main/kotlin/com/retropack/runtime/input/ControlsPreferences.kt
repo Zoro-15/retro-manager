@@ -489,16 +489,6 @@ object ControlsPreferences {
     }
 
     /**
-     * Persists haptic vibration intensity (0.10 to 1.0).
-     */
-    fun saveHapticIntensity(context: Context, intensity: Float) {
-        context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putFloat(KEY_HAPTIC_INTENSITY, intensity.coerceIn(0.10f, 1.0f))
-            .apply()
-    }
-
-    /**
      * Loads haptic vibration intensity.
      */
     fun loadHapticIntensity(context: Context, defaultIntensity: Float = 1.0f): Float {
@@ -522,16 +512,6 @@ object ControlsPreferences {
     fun loadSensorMode(context: Context, defaultMode: String = "DISABLED"): String {
         return context.getSharedPreferences(PREFS_NAME, 0)
             .getString(KEY_SENSOR_MODE, defaultMode) ?: defaultMode
-    }
-
-    /**
-     * Persists motion sensor sensitivity factor (0.5x to 3.0x).
-     */
-    fun saveSensorSensitivity(context: Context, sensitivity: Float) {
-        context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putFloat(KEY_SENSOR_SENSITIVITY, sensitivity.coerceIn(0.2f, 5.0f))
-            .apply()
     }
 
     /**

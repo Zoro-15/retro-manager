@@ -56,8 +56,7 @@ object RomParser {
                         fileSize = fileSize,
                         checksums = checksumResult.checksums,
                         headerChecksumValid = gbaHeader.headerChecksumValid,
-                        logoOrFixedValid = gbaHeader.fixedValueValid,
-                        gbaHeader = gbaHeader
+                        logoOrFixedValid = gbaHeader.fixedValueValid
                     )
                 }
             }
@@ -78,8 +77,7 @@ object RomParser {
                     cgbFlag = gbHeader.cgbFlag,
                     cartridgeType = gbHeader.cartridgeType,
                     mbcType = gbHeader.mbcType,
-                    hasBattery = gbHeader.hasBattery,
-                    gbHeader = gbHeader
+                    hasBattery = gbHeader.hasBattery
                 )
             }
         }
