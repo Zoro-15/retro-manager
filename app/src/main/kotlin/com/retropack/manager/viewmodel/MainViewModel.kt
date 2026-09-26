@@ -655,8 +655,7 @@ class MainViewModel : ViewModel() {
                     )
                 }
                 val m3u = RomParser.generateM3u(
-                    baseGameTitle = state.identityState.gameTitle,
-                    discFilenames = multiDiscItems.map { it.fileName }
+                    discFileNames = multiDiscItems.map { it.fileName }
                 )
                 romIdentity.toContentPayload(
                     sourceRomName = state.romState.fileName ?: "game.rom"

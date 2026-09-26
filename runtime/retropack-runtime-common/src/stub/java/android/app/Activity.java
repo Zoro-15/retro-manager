@@ -1,5 +1,6 @@
 package android.app;
 
+import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Display;
@@ -9,7 +10,14 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class Activity extends Context {
+public class Activity extends Context implements ComponentCallbacks2 {
+    public static final int TRIM_MEMORY_COMPLETE = ComponentCallbacks2.TRIM_MEMORY_COMPLETE;
+    public static final int TRIM_MEMORY_MODERATE = ComponentCallbacks2.TRIM_MEMORY_MODERATE;
+    public static final int TRIM_MEMORY_BACKGROUND = ComponentCallbacks2.TRIM_MEMORY_BACKGROUND;
+    public static final int TRIM_MEMORY_UI_HIDDEN = ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN;
+    public static final int TRIM_MEMORY_RUNNING_CRITICAL = ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL;
+    public static final int TRIM_MEMORY_RUNNING_LOW = ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW;
+    public static final int TRIM_MEMORY_RUNNING_MODERATE = ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE;
     private Window window;
     private View contentView;
     private boolean isFinishing = false;
@@ -71,6 +79,8 @@ public class Activity extends Context {
     public void onWindowFocusChanged(boolean hasFocus) {}
 
     public void onConfigurationChanged(android.content.res.Configuration newConfig) {}
+    public void onTrimMemory(int level) {}
+    public void onLowMemory() {}
 
     public boolean dispatchKeyEvent(KeyEvent event) {
         return false;
