@@ -145,4 +145,72 @@ class TouchLayoutTest {
         assertEquals(500f, controlA.cx)
         assertEquals(600f, controlA.cy)
     }
+
+    @Test
+    fun `evaluates clusters and discovers all standard control groups`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val clusters = layout.getClusters()
+        assertEquals(5, clusters.size)
+
+        val clusterIds = clusters.map { it.id }.toSet()
+        assertTrue(clusterIds.contains(TouchLayout.CLUSTER_DPAD))
+        assertTrue(clusterIds.contains(TouchLayout.CLUSTER_ACTION))
+        assertTrue(clusterIds.contains(TouchLayout.CLUSTER_SHOULDER_L))
+        assertTrue(clusterIds.contains(TouchLayout.CLUSTER_SHOULDER_R))
+        assertTrue(clusterIds.contains(TouchLayout.CLUSTER_SYSTEM))
+
+        val actionCluster = layout.getCluster(TouchLayout.CLUSTER_ACTION)
+        assertNotNull(actionCluster)
+        assertEquals(listOf(TouchLayout.ID_B, TouchLayout.ID_A), actionCluster!!.controlIds)
+    }
+
+    @Test
+    fun `withClusterPosition translates all controls in cluster maintaining relative spacing`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val btnA_orig = layout.controls.first { it.id == TouchLayout.ID_A }
+        val btnB_orig = layout.controls.first { it.id == TouchLayout.ID_B }
+        val origDeltaX = btnA_orig.cx - btnB_orig.cx
+        val origDeltaY = btnA_orig.cy - btnB_orig.cy
+
+        val moved = layout.withClusterPosition(TouchLayout.CLUSTER_ACTION, 400f, 500f)
+        val btnA_moved = moved.controls.first { it.id == TouchLayout.ID_A }
+        val btnB_moved = moved.controls.first { it.id == TouchLayout.ID_B }
+
+        // Relative spacing must be identically preserved
+        assertEquals(origDeltaX, btnA_moved.cx - btnB_moved.cx, 0.001f)
+        assertEquals(origDeltaY, btnA_moved.cy - btnB_moved.cy, 0.001f)
+
+        // Midpoint should match the new anchor (400, 500)
+        assertEquals(400f, (btnA_moved.cx + btnB_moved.cx) / 2f, 0.001f)
+        assertEquals(500f, (btnA_moved.cy + btnB_moved.cy) / 2f, 0.001f)
+    }
+
+    @Test
+    fun `normalized cluster coordinates apply accurately across resolutions`() {
+        val layout1 = TouchLayout.portrait(1080f, 1920f)
+        val customLayout = layout1.withClusterPosition(TouchLayout.CLUSTER_DPAD, 300f, 1200f)
+
+        val normPositions = customLayout.getNormalizedClusterPositions()
+        assertEquals(300f / 1080f, normPositions[TouchLayout.CLUSTER_DPAD]!!.first, 0.001f)
+        assertEquals(1200f / 1920f, normPositions[TouchLayout.CLUSTER_DPAD]!!.second, 0.001f)
+
+        // Apply normalized coordinates to a higher resolution screen (1440x2560)
+        val layout2 = TouchLayout.portrait(1440f, 2560f)
+        val scaledLayout = layout2.applyNormalizedClusterPositions(normPositions)
+
+        val scaledDpad = scaledLayout.controls.first { it.id == TouchLayout.ID_DPAD }
+        assertEquals(1440f * (300f / 1080f), scaledDpad.cx, 0.01f)
+        assertEquals(2560f * (1200f / 1920f), scaledDpad.cy, 0.01f)
+    }
+
+    @Test
+    fun `findClusterAt identifies touched control cluster`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val dpad = layout.controls.first { it.id == TouchLayout.ID_DPAD }
+
+        val hitCluster = layout.findClusterAt(dpad.cx, dpad.cy)
+        assertNotNull(hitCluster)
+        assertEquals(TouchLayout.CLUSTER_DPAD, hitCluster!!.id)
+    }
 }
+

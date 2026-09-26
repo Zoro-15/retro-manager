@@ -90,6 +90,13 @@ class TouchLayout(
         const val ID_START = "btn_start"
         const val ID_SELECT = "btn_select"
 
+        // Clustered control identifiers for PPSSPP/Lemuroid-style layout positioning
+        const val CLUSTER_DPAD = "dpad"
+        const val CLUSTER_ACTION = "action"
+        const val CLUSTER_SHOULDER_L = "shoulder_l"
+        const val CLUSTER_SHOULDER_R = "shoulder_r"
+        const val CLUSTER_SYSTEM = "system"
+
         /**
          * Creates a [TouchLayout] automatically picking portrait or landscape geometry.
          */
@@ -280,4 +287,148 @@ class TouchLayout(
         }
         return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
     }
+
+    /**
+     * Evaluates and returns all control clusters in this layout.
+     */
+    fun getClusters(): List<ClusterInfo> {
+        val clusterSpecs = listOf(
+            Triple(CLUSTER_DPAD, "D-PAD", listOf(ID_DPAD)),
+            Triple(CLUSTER_ACTION, "ACTION", listOf(ID_B, ID_A)),
+            Triple(CLUSTER_SHOULDER_L, "L", listOf(ID_L)),
+            Triple(CLUSTER_SHOULDER_R, "R", listOf(ID_R)),
+            Triple(CLUSTER_SYSTEM, "SYSTEM", listOf(ID_SELECT, ID_START))
+        )
+
+        val result = mutableListOf<ClusterInfo>()
+        for ((clusterId, label, ids) in clusterSpecs) {
+            val matchingControls = controls.filter { it.id in ids }
+            if (matchingControls.isEmpty()) continue
+
+            val avgX = matchingControls.map { it.cx }.average().toFloat()
+            val avgY = matchingControls.map { it.cy }.average().toFloat()
+
+            var minX = Float.MAX_VALUE
+            var minY = Float.MAX_VALUE
+            var maxX = Float.MIN_VALUE
+            var maxY = Float.MIN_VALUE
+
+            for (c in matchingControls) {
+                minX = Math.min(minX, c.cx - c.halfWidth)
+                minY = Math.min(minY, c.cy - c.halfHeight)
+                maxX = Math.max(maxX, c.cx + c.halfWidth)
+                maxY = Math.max(maxY, c.cy + c.halfHeight)
+            }
+
+            result.add(
+                ClusterInfo(
+                    id = clusterId,
+                    label = label,
+                    controlIds = matchingControls.map { it.id },
+                    anchorX = avgX,
+                    anchorY = avgY,
+                    left = minX,
+                    top = minY,
+                    right = maxX,
+                    bottom = maxY
+                )
+            )
+        }
+        return result
+    }
+
+    /**
+     * Finds a cluster by its cluster identifier.
+     */
+    fun getCluster(clusterId: String): ClusterInfo? {
+        return getClusters().firstOrNull { it.id == clusterId }
+    }
+
+    /**
+     * Finds a cluster containing the given coordinates, with an optional touch slop expansion.
+     */
+    fun findClusterAt(x: Float, y: Float, touchSlop: Float = 16f): ClusterInfo? {
+        for (cluster in getClusters()) {
+            if (x >= cluster.left - touchSlop && x <= cluster.right + touchSlop &&
+                y >= cluster.top - touchSlop && y <= cluster.bottom + touchSlop) {
+                return cluster
+            }
+        }
+        return null
+    }
+
+    /**
+     * Moves all controls in [clusterId] so that the cluster's anchor aligns with ([newAnchorX], [newAnchorY]),
+     * preserving internal relative spacing between controls.
+     */
+    fun withClusterPosition(clusterId: String, newAnchorX: Float, newAnchorY: Float): TouchLayout {
+        val cluster = getCluster(clusterId) ?: return this
+        val dx = newAnchorX - cluster.anchorX
+        val dy = newAnchorY - cluster.anchorY
+        val targetIds = cluster.controlIds.toSet()
+
+        val updated = controls.map { c ->
+            if (c.id in targetIds) {
+                VirtualControl(
+                    id = c.id,
+                    key = c.key,
+                    label = c.label,
+                    shape = c.shape,
+                    cx = c.cx + dx,
+                    cy = c.cy + dy,
+                    halfWidth = c.halfWidth,
+                    halfHeight = c.halfHeight
+                )
+            } else {
+                c
+            }
+        }
+        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+    }
+
+    /**
+     * Computes normalized screen ratio coordinates (0.0 to 1.0) for each control cluster.
+     */
+    fun getNormalizedClusterPositions(): Map<String, Pair<Float, Float>> {
+        if (width <= 0f || height <= 0f) return emptyMap()
+        return getClusters().associate { cluster ->
+            cluster.id to Pair(cluster.anchorX / width, cluster.anchorY / height)
+        }
+    }
+
+    /**
+     * Applies normalized screen ratio coordinates (0.0 to 1.0) to all matching control clusters.
+     */
+    fun applyNormalizedClusterPositions(positions: Map<String, Pair<Float, Float>>): TouchLayout {
+        if (width <= 0f || height <= 0f || positions.isEmpty()) return this
+        var currentLayout = this
+        for ((clusterId, normPos) in positions) {
+            val targetX = (normPos.first * width).coerceIn(0f, width)
+            val targetY = (normPos.second * height).coerceIn(0f, height)
+            currentLayout = currentLayout.withClusterPosition(clusterId, targetX, targetY)
+        }
+        return currentLayout
+    }
 }
+
+/**
+ * Geometric cluster descriptor grouping related virtual controls.
+ */
+data class ClusterInfo(
+    val id: String,
+    val label: String,
+    val controlIds: List<String>,
+    val anchorX: Float,
+    val anchorY: Float,
+    val left: Float,
+    val top: Float,
+    val right: Float,
+    val bottom: Float
+) {
+    val width: Float get() = right - left
+    val height: Float get() = bottom - top
+
+    fun contains(x: Float, y: Float): Boolean =
+        x >= left && x <= right && y >= top && y <= bottom
+}
+

@@ -21,10 +21,13 @@ import com.retropack.runtime.core.NativeEmulationEngine
 import com.retropack.runtime.host.EmulationHost
 import com.retropack.runtime.host.RomStager
 import com.retropack.runtime.host.RuntimeConfig
+import com.retropack.runtime.input.ControlsPreferences
 import com.retropack.runtime.input.GamepadMapper
 import com.retropack.runtime.input.TouchOverlayView
 import com.retropack.runtime.logging.RuntimeLogger
 import com.retropack.runtime.save.SaveManager
+import com.retropack.runtime.ui.InGameSettingsOverlay
+import com.retropack.runtime.ui.QuickMenuOverlay
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
 import java.io.IOException
@@ -60,6 +63,12 @@ open class GameActivity : Activity() {
     var touchOverlay: TouchOverlayView? = null
         protected set
 
+    var quickMenu: QuickMenuOverlay? = null
+        protected set
+
+    var settingsOverlay: InGameSettingsOverlay? = null
+        protected set
+
     var saveManager: SaveManager? = null
         protected set
 
@@ -78,6 +87,11 @@ open class GameActivity : Activity() {
         // 2. Load Injected Runtime Configuration (assets/retropack.json)
         config = loadRuntimeConfig()
 
+        // Load persisted preferences or fallback to config defaults
+        val effectiveScaleMode = ControlsPreferences.loadScaleMode(this, config.runtime.videoScaleMode)
+        val effectiveOpacity = ControlsPreferences.loadOpacity(this, config.controls.touchOpacity)
+        val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
+
         // 3. Stage ROM atomically to storage/game.rom with SHA-256 verification
         val romFile = File(storageDirectory(), ROM_FILENAME)
         stageRomIfNeeded(romFile, config.game.romSha256)
@@ -86,22 +100,98 @@ open class GameActivity : Activity() {
         val root = FrameLayout(this)
 
         val sv = createSurfaceView()
-        sv.scaleMode = config.runtime.videoScaleMode
+        sv.scaleMode = effectiveScaleMode
         this.surfaceView = sv
         root.addView(sv, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
+        var to: TouchOverlayView? = null
         if (config.controls.touchEnabled) {
-            val to = createTouchOverlay()
-            to.opacity = config.controls.touchOpacity
-            to.hapticFeedbackEnabledState = config.controls.haptics
+            to = createTouchOverlay()
+            to.opacity = effectiveOpacity
+            to.hapticFeedbackEnabledState = effectiveHaptics
+            to.applySavedCustomLayout()
             this.touchOverlay = to
             root.addView(to, FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
             ))
+        }
+
+        // In-Game Settings Modal Sheet
+        val settings = createSettingsOverlay().apply {
+            scaleMode = effectiveScaleMode
+            touchOpacity = effectiveOpacity
+            hapticsEnabled = effectiveHaptics
+            gameTitle = config.game.title
+        }
+        this.settingsOverlay = settings
+        root.addView(settings, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Floating In-Game Quick Menu FAB
+        val qm = createQuickMenu().apply {
+            isControlsActive = to?.isControlsVisible ?: true
+            hapticFeedbackEnabledState = effectiveHaptics
+        }
+        this.quickMenu = qm
+        root.addView(qm, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Wire Quick Menu & Settings Interaction Callbacks
+        qm.onToggleControls = {
+            to?.let {
+                it.isControlsVisible = !it.isControlsVisible
+                qm.isControlsActive = it.isControlsVisible
+            }
+        }
+        qm.onOpenSettings = {
+            settings.show()
+        }
+
+        settings.onEditControlsClicked = {
+            settings.hide()
+            to?.isEditMode = true
+        }
+        settings.onScaleModeChanged = { mode ->
+            sv.scaleMode = mode
+            ControlsPreferences.saveScaleMode(this, mode)
+        }
+        settings.onOpacityChanged = { opacity ->
+            to?.opacity = opacity
+            ControlsPreferences.saveOpacity(this, opacity)
+        }
+        settings.onHapticsChanged = { haptics ->
+            to?.hapticFeedbackEnabledState = haptics
+            qm.hapticFeedbackEnabledState = haptics
+            settings.hapticFeedbackEnabledState = haptics
+            ControlsPreferences.saveHaptics(this, haptics)
+        }
+        settings.onResetDefaultsClicked = {
+            ControlsPreferences.resetAll(this)
+            sv.scaleMode = config.runtime.videoScaleMode
+            settings.scaleMode = config.runtime.videoScaleMode
+            to?.let {
+                it.opacity = config.controls.touchOpacity
+                it.hapticFeedbackEnabledState = config.controls.haptics
+                it.resetToDefaultLayout()
+            }
+            settings.touchOpacity = config.controls.touchOpacity
+            settings.hapticsEnabled = config.controls.haptics
+            qm.isControlsActive = to?.isControlsVisible ?: true
+        }
+
+        to?.onEditModeChanged = { inEditMode ->
+            qm.visibility = if (inEditMode) View.GONE else View.VISIBLE
+        }
+        to?.onLayoutSaved = {
+            qm.visibility = View.VISIBLE
         }
 
         setContentView(root)
@@ -364,4 +454,6 @@ open class GameActivity : Activity() {
         RetroAudioPlayer(driftController = com.retropack.runtime.audio.AudioDriftController(cfg.runtime.audioSampleRate, 2))
     protected open fun createSaveManager(saveFile: File): SaveManager = SaveManager(saveFile = saveFile)
     protected open fun createGamepadMapper(): GamepadMapper = GamepadMapper()
+    protected open fun createQuickMenu(): QuickMenuOverlay = QuickMenuOverlay(this)
+    protected open fun createSettingsOverlay(): InGameSettingsOverlay = InGameSettingsOverlay(this)
 }

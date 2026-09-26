@@ -46,4 +46,10 @@ public class Paint {
 
     public Align getTextAlign() { return textAlign; }
     public void setTextAlign(Align align) { this.textAlign = align; }
+
+    public float measureText(String text) {
+        return text != null ? text.length() * (textSize * 0.6f) : 0.0f;
+    }
+
+    public void setShadowLayer(float radius, float dx, float dy, int shadowColor) {}
 }

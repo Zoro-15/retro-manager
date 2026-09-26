@@ -13,8 +13,80 @@ public class RectF {
         this.right = right;
         this.bottom = bottom;
     }
+    public RectF(RectF r) {
+        if (r != null) {
+            this.left = r.left;
+            this.top = r.top;
+            this.right = r.right;
+            this.bottom = r.bottom;
+        }
+    }
 
     public boolean contains(float x, float y) {
         return x >= left && x <= right && y >= top && y <= bottom;
+    }
+
+    public float width() {
+        return right - left;
+    }
+
+    public float height() {
+        return bottom - top;
+    }
+
+    public float centerX() {
+        return (left + right) * 0.5f;
+    }
+
+    public float centerY() {
+        return (top + bottom) * 0.5f;
+    }
+
+    public void set(float left, float top, float right, float bottom) {
+        this.left = left;
+        this.top = top;
+        this.right = right;
+        this.bottom = bottom;
+    }
+
+    public void set(RectF src) {
+        this.left = src.left;
+        this.top = src.top;
+        this.right = src.right;
+        this.bottom = src.bottom;
+    }
+
+    public void union(float left, float top, float right, float bottom) {
+        if (left < right && top < bottom) {
+            if (this.left < this.right && this.top < this.bottom) {
+                if (this.left > left) this.left = left;
+                if (this.top > top) this.top = top;
+                if (this.right < right) this.right = right;
+                if (this.bottom < bottom) this.bottom = bottom;
+            } else {
+                this.left = left;
+                this.top = top;
+                this.right = right;
+                this.bottom = bottom;
+            }
+        }
+    }
+
+    public void union(RectF r) {
+        union(r.left, r.top, r.right, r.bottom);
+    }
+
+    public void inset(float dx, float dy) {
+        left += dx;
+        top += dy;
+        right -= dx;
+        bottom -= dy;
+    }
+
+    public void offset(float dx, float dy) {
+        left += dx;
+        top += dy;
+        right += dx;
+        bottom += dy;
     }
 }

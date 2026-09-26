@@ -102,4 +102,85 @@ class TouchOverlayTest {
         assertTrue(handled)
         assertTrue(overlay.isControlsVisible)
     }
+
+    @Test
+    fun `isEditMode clears active key masks and suppresses input emissions`() {
+        val overlay = TouchOverlayView(Context())
+        var reportedMask = -1
+        overlay.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        val btnA = overlay.layout.controls.first { it.id == TouchLayout.ID_A }
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, btnA.cx, btnA.cy))
+        assertEquals(RetroKey.KEY_A, overlay.getKeyMask())
+
+        // Activate edit mode
+        overlay.isEditMode = true
+        assertEquals(RetroKey.NO_KEYS_MASK, overlay.getKeyMask())
+        assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
+
+        // Touching button while in edit mode does NOT produce keymask
+        reportedMask = -1
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, btnA.cx, btnA.cy))
+        assertEquals(-1, reportedMask)
+        assertEquals(RetroKey.NO_KEYS_MASK, overlay.getKeyMask())
+    }
+
+    @Test
+    fun `edit mode drag updates cluster coordinates in real time`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.isEditMode = true
+
+        val dpadCluster = overlay.layout.getCluster(TouchLayout.CLUSTER_DPAD)!!
+        val initialX = dpadCluster.anchorX
+        val initialY = dpadCluster.anchorY
+
+        // Touch down on D-pad
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, initialX, initialY))
+        assertEquals(TouchLayout.CLUSTER_DPAD, overlay.selectedClusterId)
+
+        // Drag 100px right, 50px down
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_MOVE, initialX + 100f, initialY + 50f))
+
+        val movedCluster = overlay.layout.getCluster(TouchLayout.CLUSTER_DPAD)!!
+        assertEquals(initialX + 100f, movedCluster.anchorX, 0.001f)
+        assertEquals(initialY + 50f, movedCluster.anchorY, 0.001f)
+
+        // Touch up releases drag
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, initialX + 100f, initialY + 50f))
+        assertEquals(null, overlay.selectedClusterId)
+    }
+
+    @Test
+    fun `edit mode save button invokes callback and persists layout`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.isEditMode = true
+
+        var savedLayout: TouchLayout? = null
+        overlay.onLayoutSaved = { savedLayout = it }
+
+        // Trigger save directly
+        overlay.saveCurrentLayout()
+
+        assertFalse(overlay.isEditMode)
+        assertNotNull(savedLayout)
+    }
+
+    @Test
+    fun `edit mode reset button restores default coordinates`() {
+        val overlay = TouchOverlayView(Context())
+        val defaultDpadX = overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.cx
+
+        // Move D-pad
+        overlay.setCustomLayout(overlay.layout.withClusterPosition(TouchLayout.CLUSTER_DPAD, 500f, 600f))
+        assertEquals(500f, overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.cx)
+
+        // Reset
+        var resetTriggered = false
+        overlay.onLayoutReset = { resetTriggered = true }
+        overlay.resetToDefaultLayout()
+
+        assertTrue(resetTriggered)
+        assertEquals(defaultDpadX, overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.cx)
+    }
 }
+

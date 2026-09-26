@@ -43,5 +43,16 @@ public class Context {
         return getFilesDir();
     }
 
+    public static final int MODE_PRIVATE = 0;
+    private static final java.util.Map<String, SharedPreferences> sharedPreferencesMap = new java.util.HashMap<>();
+
+    public synchronized SharedPreferences getSharedPreferences(String name, int mode) {
+        return sharedPreferencesMap.computeIfAbsent(name, k -> new InMemorySharedPreferences());
+    }
+
+    public static synchronized void resetSharedPreferences() {
+        sharedPreferencesMap.clear();
+    }
+
     public void startActivity(Intent intent) {}
 }

@@ -51,6 +51,24 @@ public class View {
         void onClick(View v);
     }
 
+    private float alpha = 1.0f;
+    private float translationX = 0f;
+    private float translationY = 0f;
+    private float scaleX = 1.0f;
+    private float scaleY = 1.0f;
+
+    public void setAlpha(float alpha) { this.alpha = alpha; }
+    public float getAlpha() { return alpha; }
+    public void setTranslationX(float dx) { this.translationX = dx; }
+    public float getTranslationX() { return translationX; }
+    public void setTranslationY(float dy) { this.translationY = dy; }
+    public float getTranslationY() { return translationY; }
+    public void setScaleX(float sx) { this.scaleX = sx; }
+    public float getScaleX() { return scaleX; }
+    public void setScaleY(float sy) { this.scaleY = sy; }
+    public float getScaleY() { return scaleY; }
+    public void requestLayout() {}
+
     private OnClickListener onClickListener;
     public void setOnClickListener(OnClickListener l) {
         this.onClickListener = l;
