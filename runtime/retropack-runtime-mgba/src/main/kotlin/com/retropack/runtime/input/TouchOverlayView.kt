@@ -398,6 +398,9 @@ class TouchOverlayView @JvmOverloads constructor(
     /**
      * Returns the currently active composite RetroKey bitmask.
      */
+    val activeKeyMask: Int
+        get() = currentKeyMask
+
     fun getKeyMask(): Int = currentKeyMask
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
