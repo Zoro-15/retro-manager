@@ -48,11 +48,15 @@ class RetroGlShaderTest {
 
         val values = FloatArray(8)
         buffer.get(values)
-        // V is flipped so the mGBA top-row-first frame maps to GLES
-        // bottom-row-first textures (issue #13): TL=(0,1), BL=(0,0).
-        assertEquals(0.0f, values[0]) // u0
-        assertEquals(1.0f, values[1]) // v0 (flipped)
-        assertEquals(1.0f, values[6]) // u3
-        assertEquals(0.0f, values[7]) // v3 (flipped)
+        // Standard UV mapping for frame buffers where row 0 is top scanline:
+        // TL=(0,0), BL=(0,1), TR=(1,0), BR=(1,1).
+        assertEquals(0.0f, values[0]) // u0 (TL)
+        assertEquals(0.0f, values[1]) // v0 (TL)
+        assertEquals(0.0f, values[2]) // u1 (BL)
+        assertEquals(1.0f, values[3]) // v1 (BL)
+        assertEquals(1.0f, values[4]) // u2 (TR)
+        assertEquals(0.0f, values[5]) // v2 (TR)
+        assertEquals(1.0f, values[6]) // u3 (BR)
+        assertEquals(1.0f, values[7]) // v3 (BR)
     }
 }

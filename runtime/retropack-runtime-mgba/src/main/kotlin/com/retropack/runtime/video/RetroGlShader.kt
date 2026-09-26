@@ -42,15 +42,19 @@ object RetroGlShader {
 
     /**
      * UV texture coordinates mapping direct frame memory onto the quad.
-     * V is flipped: the mGBA frame starts with the top row, but GLES texture
-     * row 0 is the bottom row with no unpack flip — the previous mapping
-     * displayed every game upside down (issue #13).
+     * Normalized device coordinates (triangle strip):
+     * 0: (-1.0,  1.0) -> Top-Left     -> UV (0.0, 0.0)
+     * 1: (-1.0, -1.0) -> Bottom-Left  -> UV (0.0, 1.0)
+     * 2: ( 1.0,  1.0) -> Top-Right    -> UV (1.0, 0.0)
+     * 3: ( 1.0, -1.0) -> Bottom-Right -> UV (1.0, 1.0)
+     *
+     * In direct frame memory from mGBA, row 0 is the top scanline (UV V=0.0).
      */
     private val QUAD_TEX_COORDS = floatArrayOf(
-        0.0f, 1.0f,
         0.0f, 0.0f,
-        1.0f, 1.0f,
-        1.0f, 0.0f
+        0.0f, 1.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f
     )
 
     fun createVertexBuffer(): FloatBuffer =
