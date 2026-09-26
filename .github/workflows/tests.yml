@@ -2,19 +2,23 @@ name: Tests
 
 # Regression + performance-loss guard. Triggers exactly on pushes to main
 # and pull requests (plus manual dispatch). See issue #7.
-# - core-tests + runtime-tests: fail-closed module suites on PARALLEL runners
-#   (was one serial job; wall time roughly halves). Shipping the workflow
-#   in-branch is also what makes checks appear on the PR itself: GitHub only
-#   runs workflow files present in the PR head, which is why PRs opened before
-#   #8 merged showed no checks.
-# - perf-budget: parses JUnit XML durations; fails on suite/class wall-time
-#   blowup so throughput collapse (StreamChecksum, IpsUpsPatcher, SaveManager)
-#   is visible without flaky micro-benchmarks.
+# - core-tests, runtime-tests, template-tests: fail-closed module suites on PARALLEL runners
+# - perf-budget: parses JUnit XML durations; fails on suite/class wall-time blowup
 on:
   push:
-    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
+    branches: [main, master, v2]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "nano/**"
+      - ".gitignore"
   pull_request:
-    branches: [main, master, v2, "v**", "feat/**", "fix/**"]
+    branches: [main, master, v2]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "nano/**"
+      - ".gitignore"
   workflow_dispatch:
 
 permissions:
@@ -122,16 +126,60 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
+  template-tests:
+    name: Template tests (gated)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Temurin)
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run template unit tests (JVM stub variant)
+        run: env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :template-apk:test --no-daemon --stacktrace
+
+      - name: Upload JUnit XML results (template)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-template
+          path: |
+            template-apk/build/test-results/test/*.xml
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload HTML test reports (template)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-template
+          path: |
+            template-apk/build/reports/tests
+          if-no-files-found: warn
+          retention-days: 30
+
   perf-budget:
     name: Perf budget (gated)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [core-tests, runtime-tests]
+    needs: [core-tests, runtime-tests, template-tests]
     # Run even if module suites failed so timing data is still evaluated when
     # reports exist; the job itself stays gated (fails on budget breach).
     if: always()
     steps:
-      - name: Download JUnit XML results (both modules)
+      - name: Download JUnit XML results (all modules)
         uses: actions/download-artifact@v4
         with:
           pattern: junit-*
