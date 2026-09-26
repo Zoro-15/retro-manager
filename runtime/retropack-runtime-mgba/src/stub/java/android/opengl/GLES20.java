@@ -53,6 +53,8 @@ public class GLES20 {
     public static void glDisableVertexAttribArray(int index) {}
     public static void glVertexAttribPointer(int indx, int size, int type, boolean normalized, int stride, Buffer ptr) {}
     public static void glUniform1i(int location, int x) {}
+    public static void glUniform1f(int location, float x) {}
+    public static void glUniform2f(int location, float x, float y) {}
     public static void glDrawArrays(int mode, int first, int count) {}
     public static int glGetError() { return GL_NO_ERROR; }
 }

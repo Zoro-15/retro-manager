@@ -67,7 +67,7 @@ class MoreFeaturesSheet @JvmOverloads constructor(
             invalidate()
         }
 
-    var touchTheme: String = "neon"
+    var touchTheme: String = "classic_indigo"
         set(value) {
             field = value
             invalidate()
@@ -161,8 +161,8 @@ class MoreFeaturesSheet @JvmOverloads constructor(
 
     private val speedMultipliers = intArrayOf(1, 2, 4, 8, 16)
     private val speedLabels = arrayOf("1x", "2x", "4x", "8x", "Max")
-    private val themeNames = arrayOf("neon", "classic", "stealth", "cyber")
-    private val themeLabels = arrayOf("Neon", "Classic", "Stealth", "Cyber")
+    private val themeNames = arrayOf("classic_indigo", "glacier", "onyx_stealth", "retro_dmg")
+    private val themeLabels = arrayOf("Indigo", "Glacier", "Onyx", "DMG")
 
     fun show() {
         visibility = VISIBLE

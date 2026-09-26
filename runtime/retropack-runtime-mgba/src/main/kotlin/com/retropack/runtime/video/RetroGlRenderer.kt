@@ -44,12 +44,21 @@ class RetroGlRenderer(
     private var viewportDirty: Boolean = true
 
     @Volatile
+    var lcdGridEnabled: Boolean = false
+
+    @Volatile
+    var colorCorrectionEnabled: Boolean = false
+
+    @Volatile
     private var filterModeDirty: Boolean = true
 
     private var program: Int = 0
     private var positionHandle: Int = -1
     private var texCoordHandle: Int = -1
     private var samplerHandle: Int = -1
+    private var textureSizeHandle: Int = -1
+    private var lcdGridHandle: Int = -1
+    private var colorCorrectionHandle: Int = -1
     private var textureId: Int = 0
 
     private val vertexBuffer: FloatBuffer = RetroGlShader.createVertexBuffer()
@@ -63,6 +72,9 @@ class RetroGlRenderer(
         positionHandle = GLES20.glGetAttribLocation(program, "a_Position")
         texCoordHandle = GLES20.glGetAttribLocation(program, "a_TexCoord")
         samplerHandle = GLES20.glGetUniformLocation(program, "u_Texture")
+        textureSizeHandle = GLES20.glGetUniformLocation(program, "u_TextureSize")
+        lcdGridHandle = GLES20.glGetUniformLocation(program, "u_LcdGridEnabled")
+        colorCorrectionHandle = GLES20.glGetUniformLocation(program, "u_ColorCorrectionEnabled")
 
         GLES20.glGenTextures(1, textureArray, 0)
         textureId = textureArray[0]
@@ -121,6 +133,9 @@ class RetroGlRenderer(
         )
 
         GLES20.glUniform1i(samplerHandle, 0)
+        GLES20.glUniform2f(textureSizeHandle, nativeWidth.toFloat(), nativeHeight.toFloat())
+        GLES20.glUniform1f(lcdGridHandle, if (lcdGridEnabled) 1.0f else 0.0f)
+        GLES20.glUniform1f(colorCorrectionHandle, if (colorCorrectionEnabled) 1.0f else 0.0f)
 
         vertexBuffer.position(0)
         GLES20.glEnableVertexAttribArray(positionHandle)

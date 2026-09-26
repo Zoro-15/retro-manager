@@ -23,6 +23,12 @@ public class Context {
         this.assetManager = am;
     }
 
+    private android.content.res.Resources resources = new android.content.res.Resources();
+
+    public android.content.res.Resources getResources() {
+        return resources;
+    }
+
     public String getPackageName() {
         return "com.retropack.runtime";
     }

@@ -24,9 +24,59 @@ object RetroGlShader {
         precision mediump float;
         varying vec2 v_TexCoord;
         uniform sampler2D u_Texture;
+        uniform vec2 u_TextureSize;
+        uniform float u_LcdGridEnabled;
+        uniform float u_ColorCorrectionEnabled;
+
+        // Authentic GBA Color Profile (Pokefan531 / higan matrix with gamma 1.2)
+        vec3 applyGbaColor(vec3 color) {
+            vec3 gammaColor = pow(color, vec3(1.2));
+            // Column-major mat3 in GLSL:
+            // col0: (0.84, 0.08, 0.10), col1: (0.12, 0.80, 0.14), col2: (0.04, 0.12, 0.76)
+            mat3 gbaMatrix = mat3(
+                0.84, 0.08, 0.10,
+                0.12, 0.80, 0.14,
+                0.04, 0.12, 0.76
+            );
+            return clamp(gbaMatrix * gammaColor, 0.0, 1.0);
+        }
+
+        // Authentic 3-subpixel vertical RGB grid with scanline row separation
+        vec3 applyLcdGrid(vec3 color, vec2 texCoord, vec2 textureSize) {
+            vec2 pixelCoord = texCoord * textureSize;
+            vec2 subCoord = fract(pixelCoord);
+
+            vec3 subpixelMask;
+            float subX = subCoord.x * 3.0;
+            if (subX < 1.0) {
+                subpixelMask = vec3(1.0, 0.72, 0.72);
+            } else if (subX < 2.0) {
+                subpixelMask = vec3(0.72, 1.0, 0.72);
+            } else {
+                subpixelMask = vec3(0.72, 0.72, 1.0);
+            }
+
+            float scanline = 1.0;
+            if (subCoord.y < 0.10 || subCoord.y > 0.90) {
+                scanline = 0.82;
+            }
+
+            return color * subpixelMask * scanline;
+        }
+
         void main() {
             vec4 col = texture2D(u_Texture, v_TexCoord);
-            gl_FragColor = vec4(col.rgb, 1.0);
+            vec3 finalRgb = col.rgb;
+
+            if (u_ColorCorrectionEnabled > 0.5) {
+                finalRgb = applyGbaColor(finalRgb);
+            }
+
+            if (u_LcdGridEnabled > 0.5) {
+                finalRgb = applyLcdGrid(finalRgb, v_TexCoord, u_TextureSize);
+            }
+
+            gl_FragColor = vec4(finalRgb, 1.0);
         }
     """
 

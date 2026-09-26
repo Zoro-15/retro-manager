@@ -199,12 +199,23 @@ class GameActivityTest {
         // Verify View hierarchy created
         assertNotNull(activity.surfaceView, "RetroSurfaceView must be initialized")
         assertEquals(ScaleMode.ASPECT_FIT, activity.surfaceView!!.scaleMode)
+        assertNotNull(activity.bezelOverlay, "BezelOverlayView must be initialized")
         assertNotNull(activity.touchOverlay, "TouchOverlayView must be initialized")
         assertEquals(0.75f, activity.touchOverlay!!.opacity, 0.001f)
         assertNotNull(activity.quickMenu, "QuickMenuOverlay must be initialized")
         assertNotNull(activity.settingsOverlay, "InGameSettingsOverlay must be initialized")
         assertNotNull(activity.moreFeaturesSheet, "MoreFeaturesSheet must be initialized")
         assertNotNull(activity.saveStateManager, "SaveStateManager must be initialized")
+    }
+
+    @Test
+    fun `onConfigurationChanged reloads responsive layout profile`() {
+        activity.performCreate(Bundle())
+        val config = android.content.res.Configuration().apply {
+            orientation = android.content.res.Configuration.ORIENTATION_LANDSCAPE
+        }
+        activity.onConfigurationChanged(config)
+        assertNotNull(activity.touchOverlay?.layout)
     }
 
     @Test

@@ -267,6 +267,33 @@ class TouchLayoutTest {
         assertEquals(origActionCluster.anchorX, newCluster.anchorX, 0.001f)
         assertEquals(origActionCluster.anchorY, newCluster.anchorY, 0.001f)
     }
+
+    @Test
+    fun `withSuperpowers adds turbo and combo macro buttons`() {
+        val baseLayout = TouchLayout.portrait(1080f, 1920f)
+        assertFalse(baseLayout.turboEnabled)
+        assertFalse(baseLayout.comboEnabled)
+        assertEquals(7, baseLayout.controls.size)
+
+        val superLayout = baseLayout.withSuperpowers(newTurboEnabled = true, newComboEnabled = true)
+        assertTrue(superLayout.turboEnabled)
+        assertTrue(superLayout.comboEnabled)
+        assertEquals(10, superLayout.controls.size) // +2 Turbo (TA, TB) + 1 Combo (A+B)
+
+        val turboA = superLayout.controls.first { it.id == TouchLayout.ID_TURBO_A }
+        val turboB = superLayout.controls.first { it.id == TouchLayout.ID_TURBO_B }
+        val combo = superLayout.controls.first { it.id == TouchLayout.ID_COMBO_AB }
+
+        assertTrue(turboA.isTurbo)
+        assertTrue(turboB.isTurbo)
+
+        // Turbo A during active turbo phase -> KEY_A, inactive phase -> NO_KEYS_MASK
+        assertEquals(RetroKey.KEY_A, superLayout.inputAt(turboA.cx, turboA.cy, isTurboPhase = true))
+        assertEquals(RetroKey.NO_KEYS_MASK, superLayout.inputAt(turboA.cx, turboA.cy, isTurboPhase = false))
+
+        // Combo A+B pill always fires both A and B
+        assertEquals(RetroKey.KEY_A or RetroKey.KEY_B, superLayout.inputAt(combo.cx, combo.cy))
+    }
 }
 
 

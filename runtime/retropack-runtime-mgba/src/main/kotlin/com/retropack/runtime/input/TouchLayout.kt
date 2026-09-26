@@ -23,8 +23,12 @@ data class VirtualControl(
     val cx: Float,
     val cy: Float,
     val halfWidth: Float,
-    val halfHeight: Float
+    val halfHeight: Float,
+    val isTurbo: Boolean = false,
+    val customKeyMask: Int = RetroKey.NO_KEYS_MASK
 ) {
+    val radius: Float get() = Math.max(halfWidth, halfHeight)
+
     /**
      * Determines whether the given coordinate falls within the boundary of this control,
      * applying an optional [slopFactor] (defaults to 1.20f for a 20% invisible touch expansion).
@@ -52,7 +56,7 @@ data class VirtualControl(
      * For D-pad, resolves 8-way directional inputs (UP, DOWN, LEFT, RIGHT, and diagonals)
      * with an inner center deadzone.
      */
-    fun hitKeyMask(x: Float, y: Float, slopFactor: Float = 1.20f): Int {
+    fun hitKeyMask(x: Float, y: Float, slopFactor: Float = 1.20f, isTurboPhase: Boolean = true): Int {
         if (!contains(x, y, slopFactor)) return RetroKey.NO_KEYS_MASK
 
         return if (shape == ControlShape.DPAD) {
@@ -65,6 +69,10 @@ data class VirtualControl(
             if (dy < -dead) mask = mask or RetroKey.KEY_UP
             if (dy > dead) mask = mask or RetroKey.KEY_DOWN
             mask
+        } else if (customKeyMask != RetroKey.NO_KEYS_MASK) {
+            customKeyMask
+        } else if (isTurbo) {
+            if (isTurboPhase) key?.mask ?: RetroKey.NO_KEYS_MASK else RetroKey.NO_KEYS_MASK
         } else {
             key?.mask ?: RetroKey.NO_KEYS_MASK
         }
@@ -81,7 +89,9 @@ class TouchLayout(
     val width: Float,
     val height: Float,
     val controls: List<VirtualControl>,
-    val opacity: Float = DEFAULT_OPACITY
+    val opacity: Float = DEFAULT_OPACITY,
+    val turboEnabled: Boolean = false,
+    val comboEnabled: Boolean = false
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.6f
@@ -90,6 +100,9 @@ class TouchLayout(
         const val ID_DPAD = "dpad"
         const val ID_A = "btn_a"
         const val ID_B = "btn_b"
+        const val ID_TURBO_A = "btn_turbo_a"
+        const val ID_TURBO_B = "btn_turbo_b"
+        const val ID_COMBO_AB = "btn_combo_ab"
         const val ID_L = "btn_l"
         const val ID_R = "btn_r"
         const val ID_START = "btn_start"
@@ -101,15 +114,23 @@ class TouchLayout(
         const val CLUSTER_SHOULDER_L = "shoulder_l"
         const val CLUSTER_SHOULDER_R = "shoulder_r"
         const val CLUSTER_SYSTEM = "system"
+        const val CLUSTER_TURBO = "turbo"
+        const val CLUSTER_COMBO = "combo"
 
         /**
          * Creates a [TouchLayout] automatically picking portrait or landscape geometry.
          */
-        fun create(width: Float, height: Float, opacity: Float = DEFAULT_OPACITY): TouchLayout {
+        fun create(
+            width: Float,
+            height: Float,
+            opacity: Float = DEFAULT_OPACITY,
+            turboEnabled: Boolean = false,
+            comboEnabled: Boolean = false
+        ): TouchLayout {
             return if (width > height) {
-                landscape(width, height, opacity)
+                landscape(width, height, opacity, turboEnabled, comboEnabled)
             } else {
-                portrait(width, height, opacity)
+                portrait(width, height, opacity, turboEnabled, comboEnabled)
             }
         }
 
@@ -117,7 +138,13 @@ class TouchLayout(
          * Standard ergonomic portrait touch layout.
          * Game viewport occupies the top half; controls occupy the lower thumb zone.
          */
-        fun portrait(width: Float, height: Float, opacity: Float = DEFAULT_OPACITY): TouchLayout {
+        fun portrait(
+            width: Float,
+            height: Float,
+            opacity: Float = DEFAULT_OPACITY,
+            turboEnabled: Boolean = false,
+            comboEnabled: Boolean = false
+        ): TouchLayout {
             val unit = Math.min(width, height)
             val margin = unit * 0.03f
 
@@ -166,6 +193,28 @@ class TouchLayout(
                     width * 0.87f, mainY - unit * 0.03f, btnRadius, btnRadius)
             )
 
+            // Turbo A & Turbo B (Superpowers)
+            if (turboEnabled) {
+                val turboRadius = btnRadius * 0.72f
+                controls.add(
+                    VirtualControl(ID_TURBO_B, RetroKey.B, "TB", ControlShape.CIRCLE,
+                        width * 0.65f, mainY + unit * 0.05f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true)
+                )
+                controls.add(
+                    VirtualControl(ID_TURBO_A, RetroKey.A, "TA", ControlShape.CIRCLE,
+                        width * 0.87f, mainY - unit * 0.03f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true)
+                )
+            }
+
+            // A+B Combo Macro Pill (Superpowers)
+            if (comboEnabled) {
+                controls.add(
+                    VirtualControl(ID_COMBO_AB, null, "A+B", ControlShape.PILL,
+                        width * 0.76f, mainY + unit * 0.13f, btnRadius * 0.95f, btnRadius * 0.50f,
+                        customKeyMask = RetroKey.KEY_A or RetroKey.KEY_B)
+                )
+            }
+
             // System Buttons (Select / Start)
             val smallHalfW = unit * 0.13f
             val smallHalfH = unit * 0.045f
@@ -179,14 +228,20 @@ class TouchLayout(
                     width * 0.65f, smallY, smallHalfW, smallHalfH)
             )
 
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity)
+            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled)
         }
 
         /**
          * Standard ergonomic landscape touch layout.
          * Game viewport is centered; controls are placed in left and right thumb gutters.
          */
-        fun landscape(width: Float, height: Float, opacity: Float = DEFAULT_OPACITY): TouchLayout {
+        fun landscape(
+            width: Float,
+            height: Float,
+            opacity: Float = DEFAULT_OPACITY,
+            turboEnabled: Boolean = false,
+            comboEnabled: Boolean = false
+        ): TouchLayout {
             val unit = Math.min(width, height)
             val gameWidth = height * 240f / 160f
             val leftGutter = Math.max((width - gameWidth) / 2f, unit * 0.28f)
@@ -219,14 +274,41 @@ class TouchLayout(
             // Action Buttons A and B in right gutter
             val btnRadius = unit * 0.09f
             val rightWidth = width - rightGutterStart
+            val btnBX = rightGutterStart + rightWidth * 0.30f
+            val btnBY = mainY + unit * 0.05f
+            val btnAX = rightGutterStart + rightWidth * 0.75f
+            val btnAY = mainY - unit * 0.03f
+
             controls.add(
                 VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE,
-                    rightGutterStart + rightWidth * 0.30f, mainY + unit * 0.05f, btnRadius, btnRadius)
+                    btnBX, btnBY, btnRadius, btnRadius)
             )
             controls.add(
                 VirtualControl(ID_A, RetroKey.A, "A", ControlShape.CIRCLE,
-                    rightGutterStart + rightWidth * 0.75f, mainY - unit * 0.03f, btnRadius, btnRadius)
+                    btnAX, btnAY, btnRadius, btnRadius)
             )
+
+            // Turbo A & Turbo B (Superpowers)
+            if (turboEnabled) {
+                val turboRadius = btnRadius * 0.72f
+                controls.add(
+                    VirtualControl(ID_TURBO_B, RetroKey.B, "TB", ControlShape.CIRCLE,
+                        btnBX, btnBY - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true)
+                )
+                controls.add(
+                    VirtualControl(ID_TURBO_A, RetroKey.A, "TA", ControlShape.CIRCLE,
+                        btnAX, btnAY - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true)
+                )
+            }
+
+            // A+B Combo Macro Pill (Superpowers)
+            if (comboEnabled) {
+                controls.add(
+                    VirtualControl(ID_COMBO_AB, null, "A+B", ControlShape.PILL,
+                        rightGutterStart + rightWidth * 0.525f, mainY + unit * 0.13f, btnRadius * 0.95f, btnRadius * 0.50f,
+                        customKeyMask = RetroKey.KEY_A or RetroKey.KEY_B)
+                )
+            }
 
             // System Buttons (Select / Start)
             val smallHalfW = unit * 0.09f
@@ -241,7 +323,7 @@ class TouchLayout(
                     rightGutterStart + rightWidth * 0.75f, smallY, smallHalfW, smallHalfH)
             )
 
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity)
+            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled)
         }
     }
 
@@ -249,10 +331,10 @@ class TouchLayout(
      * Hit-tests a single coordinate point and returns the composite [RetroKey] bitmask,
      * incorporating 20% touch slop padding and thumb-roll assist across adjacent action buttons.
      */
-    fun inputAt(x: Float, y: Float, slopFactor: Float = DEFAULT_HIT_SLOP): Int {
+    fun inputAt(x: Float, y: Float, slopFactor: Float = DEFAULT_HIT_SLOP, isTurboPhase: Boolean = true): Int {
         var mask = RetroKey.NO_KEYS_MASK
         for (control in controls) {
-            mask = mask or control.hitKeyMask(x, y, slopFactor)
+            mask = mask or control.hitKeyMask(x, y, slopFactor, isTurboPhase)
         }
 
         // Thumb Roll Assist: If touch falls into the transition zone between B and A,
@@ -275,10 +357,14 @@ class TouchLayout(
     /**
      * Resolves multiple concurrent touch pointer coordinates into a single composite [RetroKey] bitmask.
      */
-    fun resolvePointers(pointers: Iterable<Pair<Float, Float>>, slopFactor: Float = DEFAULT_HIT_SLOP): Int {
+    fun resolvePointers(
+        pointers: Iterable<Pair<Float, Float>>,
+        slopFactor: Float = DEFAULT_HIT_SLOP,
+        isTurboPhase: Boolean = true
+    ): Int {
         var compositeMask = RetroKey.NO_KEYS_MASK
         for (pointer in pointers) {
-            compositeMask = compositeMask or inputAt(pointer.first, pointer.second, slopFactor)
+            compositeMask = compositeMask or inputAt(pointer.first, pointer.second, slopFactor, isTurboPhase)
         }
         return compositeMask
     }
@@ -287,7 +373,14 @@ class TouchLayout(
      * Creates a copy of this layout with an adjusted opacity.
      */
     fun withOpacity(newOpacity: Float): TouchLayout {
-        return TouchLayout(width, height, controls, newOpacity.coerceIn(0.0f, 1.0f))
+        return TouchLayout(width, height, controls, newOpacity.coerceIn(0.0f, 1.0f), turboEnabled, comboEnabled)
+    }
+
+    /**
+     * Creates a copy of this layout toggling Turbo and Combo Macro controls.
+     */
+    fun withSuperpowers(newTurboEnabled: Boolean, newComboEnabled: Boolean): TouchLayout {
+        return create(width, height, opacity, newTurboEnabled, newComboEnabled)
     }
 
     /**
@@ -300,13 +393,15 @@ class TouchLayout(
                     c.id, c.key, c.label, c.shape,
                     newCx, newCy,
                     c.halfWidth * scale,
-                    c.halfHeight * scale
+                    c.halfHeight * scale,
+                    c.isTurbo,
+                    c.customKeyMask
                 )
             } else {
                 c
             }
         }
-        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity, turboEnabled, comboEnabled)
     }
 
     /**
@@ -318,7 +413,9 @@ class TouchLayout(
             Triple(CLUSTER_ACTION, "ACTION", listOf(ID_B, ID_A)),
             Triple(CLUSTER_SHOULDER_L, "L", listOf(ID_L)),
             Triple(CLUSTER_SHOULDER_R, "R", listOf(ID_R)),
-            Triple(CLUSTER_SYSTEM, "SYSTEM", listOf(ID_SELECT, ID_START))
+            Triple(CLUSTER_SYSTEM, "SYSTEM", listOf(ID_SELECT, ID_START)),
+            Triple(CLUSTER_TURBO, "TURBO", listOf(ID_TURBO_B, ID_TURBO_A)),
+            Triple(CLUSTER_COMBO, "COMBO", listOf(ID_COMBO_AB))
         )
 
         val result = mutableListOf<ClusterInfo>()
@@ -398,13 +495,15 @@ class TouchLayout(
                     cx = c.cx + dx,
                     cy = c.cy + dy,
                     halfWidth = c.halfWidth,
-                    halfHeight = c.halfHeight
+                    halfHeight = c.halfHeight,
+                    isTurbo = c.isTurbo,
+                    customKeyMask = c.customKeyMask
                 )
             } else {
                 c
             }
         }
-        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity, turboEnabled, comboEnabled)
     }
 
     /**
@@ -428,13 +527,15 @@ class TouchLayout(
                     cx = cluster.anchorX + relX * clampedScale,
                     cy = cluster.anchorY + relY * clampedScale,
                     halfWidth = c.halfWidth * clampedScale,
-                    halfHeight = c.halfHeight * clampedScale
+                    halfHeight = c.halfHeight * clampedScale,
+                    isTurbo = c.isTurbo,
+                    customKeyMask = c.customKeyMask
                 )
             } else {
                 c
             }
         }
-        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity, turboEnabled, comboEnabled)
     }
 
     /**

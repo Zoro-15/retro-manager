@@ -1,6 +1,7 @@
 package com.retropack.runtime
 
 import android.app.Activity
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.Display
@@ -24,9 +25,13 @@ import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.input.ControlsPreferences
 import com.retropack.runtime.input.GamepadMapper
 import com.retropack.runtime.input.TouchOverlayView
+import com.retropack.runtime.input.TouchTheme
 import com.retropack.runtime.logging.RuntimeLogger
 import com.retropack.runtime.save.SaveManager
+import com.retropack.runtime.save.SaveStateManager
+import com.retropack.runtime.ui.BezelOverlayView
 import com.retropack.runtime.ui.InGameSettingsOverlay
+import com.retropack.runtime.ui.MoreFeaturesSheet
 import com.retropack.runtime.ui.QuickMenuOverlay
 import com.retropack.runtime.video.RetroSurfaceView
 import java.io.File
@@ -58,6 +63,9 @@ open class GameActivity : Activity() {
         protected set
 
     var surfaceView: RetroSurfaceView? = null
+        protected set
+
+    var bezelOverlay: BezelOverlayView? = null
         protected set
 
     var touchOverlay: TouchOverlayView? = null
@@ -101,7 +109,7 @@ open class GameActivity : Activity() {
         val effectiveMuteAudio = ControlsPreferences.loadMuteAudioOnFastForward(this, true)
         val effectiveTurbo = ControlsPreferences.loadTurboEnabled(this, false)
         val effectiveComboMacro = ControlsPreferences.loadComboMacroEnabled(this, false)
-        val effectiveTouchTheme = ControlsPreferences.loadTouchTheme(this, "neon")
+        val effectiveTouchTheme = ControlsPreferences.loadTouchTheme(this, "classic_indigo")
         val effectiveLcdGrid = ControlsPreferences.loadLcdGridEnabled(this, false)
         val effectiveGbaColor = ControlsPreferences.loadGbaColorCorrectionEnabled(this, false)
         val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, false)
@@ -119,8 +127,21 @@ open class GameActivity : Activity() {
 
         val sv = createSurfaceView()
         sv.scaleMode = effectiveScaleMode
+        sv.renderer.lcdGridEnabled = effectiveLcdGrid
+        sv.renderer.colorCorrectionEnabled = effectiveGbaColor
         this.surfaceView = sv
         root.addView(sv, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Handheld Screen Bezel & Borders
+        val bezel = createBezelOverlay().apply {
+            bezelEnabled = effectiveBezel
+            scaleMode = effectiveScaleMode
+        }
+        this.bezelOverlay = bezel
+        root.addView(bezel, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
@@ -130,6 +151,9 @@ open class GameActivity : Activity() {
             to = createTouchOverlay()
             to.opacity = effectiveOpacity
             to.hapticFeedbackEnabledState = effectiveHaptics
+            to.theme = TouchTheme.fromId(effectiveTouchTheme)
+            to.turboEnabled = effectiveTurbo
+            to.comboMacroEnabled = effectiveComboMacro
             to.applySavedCustomLayout()
             this.touchOverlay = to
             root.addView(to, FrameLayout.LayoutParams(
@@ -210,6 +234,7 @@ open class GameActivity : Activity() {
         }
         settings.onScaleModeChanged = { mode ->
             sv.scaleMode = mode
+            bezel.scaleMode = mode
             moreSheet.scaleMode = mode
             ControlsPreferences.saveScaleMode(this, mode)
         }
@@ -227,11 +252,15 @@ open class GameActivity : Activity() {
         settings.onResetDefaultsClicked = {
             ControlsPreferences.resetAll(this)
             sv.scaleMode = config.runtime.videoScaleMode
+            bezel.scaleMode = config.runtime.videoScaleMode
             settings.scaleMode = config.runtime.videoScaleMode
             moreSheet.scaleMode = config.runtime.videoScaleMode
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
+                it.theme = TouchTheme.CLASSIC_INDIGO
+                it.turboEnabled = false
+                it.comboMacroEnabled = false
                 it.resetToDefaultLayout()
             }
             settings.touchOpacity = config.controls.touchOpacity
@@ -269,25 +298,32 @@ open class GameActivity : Activity() {
             ControlsPreferences.saveMuteAudioOnFastForward(this, mute)
         }
         moreSheet.onTurboChanged = { turbo ->
+            to?.turboEnabled = turbo
             ControlsPreferences.saveTurboEnabled(this, turbo)
         }
         moreSheet.onComboMacroChanged = { combo ->
+            to?.comboMacroEnabled = combo
             ControlsPreferences.saveComboMacroEnabled(this, combo)
         }
-        moreSheet.onTouchThemeChanged = { theme ->
-            ControlsPreferences.saveTouchTheme(this, theme)
+        moreSheet.onTouchThemeChanged = { themeId ->
+            to?.theme = TouchTheme.fromId(themeId)
+            ControlsPreferences.saveTouchTheme(this, themeId)
         }
         moreSheet.onLcdGridChanged = { enabled ->
+            sv.renderer.lcdGridEnabled = enabled
             ControlsPreferences.saveLcdGridEnabled(this, enabled)
         }
         moreSheet.onGbaColorCorrectionChanged = { enabled ->
+            sv.renderer.colorCorrectionEnabled = enabled
             ControlsPreferences.saveGbaColorCorrectionEnabled(this, enabled)
         }
         moreSheet.onBezelChanged = { enabled ->
+            bezel.bezelEnabled = enabled
             ControlsPreferences.saveBezelEnabled(this, enabled)
         }
         moreSheet.onScaleModeChanged = { mode ->
             sv.scaleMode = mode
+            bezel.scaleMode = mode
             settings.scaleMode = mode
             ControlsPreferences.saveScaleMode(this, mode)
         }
@@ -562,9 +598,19 @@ open class GameActivity : Activity() {
         )
     }
 
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        touchOverlay?.let { to ->
+            val dm = resources.displayMetrics
+            to.updateLayout(dm.widthPixels.toFloat(), dm.heightPixels.toFloat())
+        }
+        bezelOverlay?.invalidate()
+    }
+
     // Factory methods for dependency injection and test isolation
     protected open fun createEngine(): EmulationEngine = NativeEmulationEngine()
     protected open fun createSurfaceView(): RetroSurfaceView = RetroSurfaceView(this)
+    protected open fun createBezelOverlay(): BezelOverlayView = BezelOverlayView(this)
     protected open fun createTouchOverlay(): TouchOverlayView = TouchOverlayView(this)
     protected open fun createAudioPlayer(cfg: RuntimeConfig): RetroAudioPlayer =
         RetroAudioPlayer(driftController = com.retropack.runtime.audio.AudioDriftController(cfg.runtime.audioSampleRate, 2))

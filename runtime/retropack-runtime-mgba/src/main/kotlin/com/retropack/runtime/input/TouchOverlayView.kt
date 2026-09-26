@@ -68,7 +68,25 @@ class TouchOverlayView @JvmOverloads constructor(
             }
         }
 
-    var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity)
+    var theme: TouchTheme = TouchTheme.CLASSIC_INDIGO
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var turboEnabled: Boolean = false
+        set(value) {
+            field = value
+            updateSuperpowerLayout()
+        }
+
+    var comboMacroEnabled: Boolean = false
+        set(value) {
+            field = value
+            updateSuperpowerLayout()
+        }
+
+    var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
         private set
 
     val clusterScales = mutableMapOf<String, Float>()
@@ -145,6 +163,25 @@ class TouchOverlayView @JvmOverloads constructor(
         return opacity
     }
 
+    private fun updateSuperpowerLayout() {
+        val isLandscape = if (width > 0 && height > 0) width > height else layout.width > layout.height
+        val w = if (width > 0) width.toFloat() else layout.width
+        val h = if (height > 0) height.toFloat() else layout.height
+        val defaultLayout = TouchLayout.create(w, h, opacity, turboEnabled, comboMacroEnabled)
+        val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
+        val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
+
+        var newLayout = defaultLayout
+        if (savedScales != null) {
+            newLayout = newLayout.applyClusterScales(savedScales)
+        }
+        if (savedPositions != null) {
+            newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
+        }
+        layout = newLayout
+        invalidate()
+    }
+
     /**
      * Updates the layout to match the provided dimensions or re-generates
      * default responsive coordinates for portrait/landscape orientation.
@@ -152,7 +189,7 @@ class TouchOverlayView @JvmOverloads constructor(
     fun updateLayout(width: Float, height: Float) {
         if (width > 0f && height > 0f) {
             val isLandscape = width > height
-            val defaultLayout = TouchLayout.create(width, height, opacity)
+            val defaultLayout = TouchLayout.create(width, height, opacity, turboEnabled, comboMacroEnabled)
             val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
             val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
 
@@ -186,7 +223,11 @@ class TouchOverlayView @JvmOverloads constructor(
             clusterScales.putAll(savedScales)
         }
 
-        var newLayout = layout
+        var newLayout = TouchLayout.create(
+            if (width > 0) width.toFloat() else layout.width,
+            if (height > 0) height.toFloat() else layout.height,
+            opacity, turboEnabled, comboMacroEnabled
+        )
         if (savedScales != null) {
             newLayout = newLayout.applyClusterScales(savedScales)
         }
@@ -205,7 +246,7 @@ class TouchOverlayView @JvmOverloads constructor(
         val h = if (height > 0) height.toFloat() else layout.height
         val isLandscape = w > h
         clusterScales.clear()
-        layout = TouchLayout.create(w, h, opacity)
+        layout = TouchLayout.create(w, h, opacity, turboEnabled, comboMacroEnabled)
         ControlsPreferences.clearCustomLayout(context, isLandscape)
         onLayoutReset?.invoke()
         invalidate()
@@ -398,10 +439,15 @@ class TouchOverlayView @JvmOverloads constructor(
         }
     }
 
+    fun isTurboPhase(currentTimeMs: Long = System.currentTimeMillis()): Boolean {
+        // 30Hz auto-repeat: ~33ms alternating press/release cycle
+        return (currentTimeMs / 33) % 2L == 0L
+    }
+
     private fun updateKeyMask() {
         if (isEditMode) return // Suppress game input while editing layout
 
-        val newMask = layout.resolvePointers(activePointers.values)
+        val newMask = layout.resolvePointers(activePointers.values, isTurboPhase = isTurboPhase())
         if (newMask != currentKeyMask) {
             val newlyPressed = newMask and currentKeyMask.inv()
             if (newlyPressed != 0 && hapticFeedbackEnabledState) {
@@ -412,6 +458,30 @@ class TouchOverlayView @JvmOverloads constructor(
             onKeyMaskChanged?.invoke(currentKeyMask)
             invalidate()
         }
+    }
+
+    private fun getControlColors(control: VirtualControl, isPressed: Boolean): Triple<Int, Int, Int> {
+        val (fill, stroke, text) = when (control.id) {
+            TouchLayout.ID_DPAD -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
+            TouchLayout.ID_A -> Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_B -> Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_COMBO_AB -> Triple(theme.comboFillColor, theme.accentColor, Color.WHITE)
+            TouchLayout.ID_L, TouchLayout.ID_R -> Triple(theme.shoulderFillColor, theme.shoulderStrokeColor, theme.shoulderTextColor)
+            TouchLayout.ID_SELECT, TouchLayout.ID_START -> Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
+            else -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
+        }
+
+        return if (isPressed) {
+            Triple(theme.accentColor, Color.WHITE, Color.WHITE)
+        } else {
+            Triple(fill, stroke, text)
+        }
+    }
+
+    private fun applyAlpha(color: Int, alphaFactor: Float): Int {
+        val a = ((Color.alpha(color) / 255f) * alphaFactor * 255f).toInt().coerceIn(0, 255)
+        return Color.argb(a, Color.red(color), Color.green(color), Color.blue(color))
     }
 
     fun renderForTesting(canvas: Canvas) {
@@ -430,20 +500,17 @@ class TouchOverlayView @JvmOverloads constructor(
             drawEditModeOverlay(canvas, viewW, viewH)
         }
 
-        // 2. Draw Virtual Controls (incorporating auto-dimming opacity)
+        // 2. Draw Virtual Controls (incorporating auto-dimming opacity & theme)
         val currentEffectiveOpacity = getEffectiveOpacity()
-        val alphaInt = if (isEditMode) 220 else (currentEffectiveOpacity * 255).toInt().coerceIn(0, 255)
-        val highlightAlphaInt = if (isEditMode) 255 else ((currentEffectiveOpacity * 1.5f).coerceAtMost(1.0f) * 255).toInt()
+        val opacityFactor = if (isEditMode) 0.95f else currentEffectiveOpacity
 
         for (control in layout.controls) {
             val isPressed = !isEditMode && isControlPressed(control)
-            val effectiveAlpha = if (isPressed) highlightAlphaInt else alphaInt
+            val (baseFill, baseStroke, baseTextColor) = getControlColors(control, isPressed)
 
-            basePaint.color = if (isPressed) Color.argb(effectiveAlpha, 120, 160, 220)
-                              else Color.argb(effectiveAlpha, 45, 52, 68)
-            strokePaint.color = if (isPressed) Color.argb(effectiveAlpha, 200, 220, 255)
-                                else Color.argb(effectiveAlpha, 160, 180, 210)
-            textPaint.alpha = effectiveAlpha
+            basePaint.color = applyAlpha(baseFill, if (isPressed) 1.0f else opacityFactor)
+            strokePaint.color = applyAlpha(baseStroke, if (isPressed) 1.0f else opacityFactor)
+            textPaint.color = applyAlpha(baseTextColor, if (isPressed) 1.0f else opacityFactor)
             textPaint.textSize = control.halfHeight * 0.7f
 
             when (control.shape) {
