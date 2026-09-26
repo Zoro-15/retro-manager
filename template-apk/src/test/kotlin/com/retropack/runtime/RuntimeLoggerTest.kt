@@ -1,11 +1,8 @@
 package com.retropack.runtime
 
-import android.content.Context
 import com.retropack.runtime.logging.RuntimeLogger
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -15,16 +12,9 @@ class RuntimeLoggerTest {
     @TempDir
     lateinit var tempDir: File
 
-    private lateinit var context: Context
-
-    @BeforeEach
-    fun setUp() {
-        context = Context()
-    }
-
     @Test
     fun testRuntimeLoggerLifecycleAndFileCreation() {
-        RuntimeLogger.init(context, tempDir)
+        RuntimeLogger.init(logDir = tempDir)
 
         val logFile = RuntimeLogger.logFile
         assertNotNull(logFile, "Log file should be initialized")

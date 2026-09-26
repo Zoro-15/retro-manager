@@ -47,11 +47,11 @@ object RuntimeLogger {
     fun start(context: Context) = init(context)
 
     @Synchronized
-    fun init(context: Context, logDir: File? = null) {
+    fun init(context: Context? = null, logDir: File? = null) {
         if (isInitialized) return
 
         try {
-            val targetDir = logDir ?: (context.getExternalFilesDir(null) ?: context.filesDir)
+            val targetDir = logDir ?: context?.let { it.getExternalFilesDir(null) ?: it.filesDir } ?: File(System.getProperty("java.io.tmpdir"), "retropack_logs")
             targetDir.mkdirs()
             val file = File(targetDir, LOG_FILENAME)
             activeLogFile = file
@@ -71,22 +71,24 @@ object RuntimeLogger {
             i("System", "==================================================")
             i("System", "RETROPACK STANDALONE RUNTIME DIAGNOSTIC LOG")
             i("System", "Started At: ${dateFormat.format(Date())}")
-            i("System", "Package: ${context.packageName}")
+            i("System", "Package: ${context?.packageName ?: "com.retropack.runtime"}")
             try {
                 i("System", "Device: ${Build.MANUFACTURER} ${Build.MODEL} (Android SDK ${Build.VERSION.SDK_INT})")
                 i("System", "Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}")
             } catch (_: Throwable) {
                 // JVM stub environment
             }
-            i("System", "Internal FilesDir: ${context.filesDir.absolutePath}")
+            i("System", "Internal FilesDir: ${context?.filesDir?.absolutePath ?: targetDir.absolutePath}")
             i("System", "Target Log Path: ${file.absolutePath}")
             i("System", "==================================================")
 
             // Start background logcat service if running on Android
-            try {
-                RuntimeLoggingService.start(context)
-            } catch (_: Throwable) {
-                // Best effort in test environments
+            if (context != null) {
+                try {
+                    RuntimeLoggingService.start(context)
+                } catch (_: Throwable) {
+                    // Best effort in test environments
+                }
             }
         } catch (t: Throwable) {
             System.err.println("RuntimeLogger failed to initialize: ${t.message}")
