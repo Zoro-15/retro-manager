@@ -1,6 +1,10 @@
 package android.os;
 
 public class Build {
+    public static final String MANUFACTURER = "Generic";
+    public static final String MODEL = "Emulator";
+    public static final String[] SUPPORTED_ABIS = new String[]{"arm64-v8a", "armeabi-v7a", "x86_64", "x86"};
+
     public static class VERSION {
         public static final int SDK_INT = 35;
     }

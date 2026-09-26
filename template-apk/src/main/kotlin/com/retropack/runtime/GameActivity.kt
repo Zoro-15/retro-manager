@@ -270,21 +270,21 @@ open class GameActivity : Activity() {
         runOnUiThread {
             try {
                 val container = LinearLayout(this).apply {
-                    orientation = LinearLayout.VERTICAL
+                    setOrientation(LinearLayout.VERTICAL)
                     setBackgroundColor(0xF00A0C10.toInt())
                     setPadding(48, 80, 48, 48)
                 }
 
                 val title = TextView(this).apply {
                     text = "⚠️ RetroPack Runtime Alert"
-                    textSize = 20f
+                    setTextSize(20f)
                     setTextColor(0xFFFF5252.toInt())
                 }
                 container.addView(title)
 
                 val body = TextView(this).apply {
                     text = details
-                    textSize = 14f
+                    setTextSize(14f)
                     setTextColor(0xFFE0E0E0.toInt())
                 }
                 container.addView(body)
@@ -292,7 +292,7 @@ open class GameActivity : Activity() {
                 val logPathInfo = TextView(this).apply {
                     val path = RuntimeLogger.logFile?.absolutePath ?: "Unavailable"
                     text = "\nDiagnostic log saved to:\n$path\n"
-                    textSize = 12f
+                    setTextSize(12f)
                     setTextColor(0xFF80D8FF.toInt())
                 }
                 container.addView(logPathInfo)

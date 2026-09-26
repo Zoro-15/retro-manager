@@ -21,6 +21,10 @@ public class LinearLayout extends View {
         this.orientation = orientation;
     }
 
+    public int getOrientation() {
+        return orientation;
+    }
+
     public void addView(View child) {
         children.add(child);
     }

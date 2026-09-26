@@ -2,6 +2,7 @@ package com.retropack.runtime.logging
 
 import android.app.Service
 import android.content.Context
+import android.content.Intent
 import android.os.IBinder
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -20,17 +21,8 @@ class RuntimeLoggingService : Service() {
 
         fun start(context: Context) {
             try {
-                val intent = try {
-                    val intentClass = Class.forName("android.content.Intent")
-                    val constructor = intentClass.getConstructor(Context::class.java, Class::class.java)
-                    constructor.newInstance(context, RuntimeLoggingService::class.java)
-                } catch (_: Throwable) {
-                    null
-                }
-
-                if (intent != null) {
-                    context.startService(intent)
-                }
+                val intent = Intent(context, RuntimeLoggingService::class.java)
+                context.startService(intent)
             } catch (t: Throwable) {
                 RuntimeLogger.w("LogService", "Could not start RuntimeLoggingService: ${t.message}")
             }
@@ -38,17 +30,8 @@ class RuntimeLoggingService : Service() {
 
         fun stop(context: Context) {
             try {
-                val intent = try {
-                    val intentClass = Class.forName("android.content.Intent")
-                    val constructor = intentClass.getConstructor(Context::class.java, Class::class.java)
-                    constructor.newInstance(context, RuntimeLoggingService::class.java)
-                } catch (_: Throwable) {
-                    null
-                }
-
-                if (intent != null) {
-                    context.stopService(intent)
-                }
+                val intent = Intent(context, RuntimeLoggingService::class.java)
+                context.stopService(intent)
             } catch (_: Throwable) {}
         }
     }
@@ -66,7 +49,7 @@ class RuntimeLoggingService : Service() {
         startLogcatStream()
     }
 
-    override fun onStartCommand(intent: Any?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_NOT_STICKY
     }
 
@@ -89,7 +72,7 @@ class RuntimeLoggingService : Service() {
                 logcatProcess = process
 
                 BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8)).use { reader ->
-                    var line: String?
+                    var line: String? = null
                     while (shouldRun && reader.readLine().also { line = it } != null) {
                         line?.let { l ->
                             RuntimeLogger.d("Logcat", l)
@@ -122,5 +105,5 @@ class RuntimeLoggingService : Service() {
         super.onDestroy()
     }
 
-    override fun onBind(intent: Any?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null
 }

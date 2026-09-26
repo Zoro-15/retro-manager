@@ -44,6 +44,8 @@ object RuntimeLogger {
     /**
      * Initializes continuous file logging for the runtime host.
      */
+    fun start(context: Context) = init(context)
+
     @Synchronized
     fun init(context: Context, logDir: File? = null) {
         if (isInitialized) return
