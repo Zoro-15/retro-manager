@@ -133,6 +133,7 @@ open class GameActivity : Activity() {
         val effectiveDeadzone = ControlsPreferences.loadJoystickDeadzone(this, 12.0f)
         val effectiveSensitivity = ControlsPreferences.loadJoystickSensitivity(this, 1.0f)
         val effectiveGestures = ControlsPreferences.loadGesturesEnabled(this, true)
+        val effectiveTouchTheme = ControlsPreferences.loadTouchTheme(this, "classic_indigo")
         val effectiveSensorModeStr = ControlsPreferences.loadSensorMode(this, "DISABLED")
         val effectiveSensorSensitivity = ControlsPreferences.loadSensorSensitivity(this, 1.0f)
         val effectiveFastForwardSpeed = ControlsPreferences.loadFastForwardSpeed(this, 1)
@@ -184,8 +185,6 @@ open class GameActivity : Activity() {
         sv.shaderMode = effectiveShaderMode
         sv.bezelMode = effectiveBezelMode
         sv.bfiEnabled = effectiveBfi
-        sv.renderer.lcdGridEnabled = effectiveLcdGrid
-        sv.renderer.colorCorrectionEnabled = effectiveGbaColor
         this.surfaceView = sv
         root.addView(sv, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -552,11 +551,9 @@ open class GameActivity : Activity() {
             remapOverlay.show()
         }
         moreSheet.onLcdGridChanged = { enabled ->
-            sv.renderer.lcdGridEnabled = enabled
             ControlsPreferences.saveLcdGridEnabled(this, enabled)
         }
         moreSheet.onGbaColorCorrectionChanged = { enabled ->
-            sv.renderer.colorCorrectionEnabled = enabled
             ControlsPreferences.saveGbaColorCorrectionEnabled(this, enabled)
         }
         moreSheet.onBezelChanged = { enabled ->

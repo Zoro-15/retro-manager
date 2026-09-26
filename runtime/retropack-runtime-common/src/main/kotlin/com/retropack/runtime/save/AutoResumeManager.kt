@@ -38,7 +38,7 @@ object AutoResumeManager {
             }
 
             // Capture state directly to scratch file
-            val stateSaved = engine.saveState(slot = 99, targetPath = scratchFile.absolutePath)
+            val stateSaved = engine.saveState(slot = 0, targetPath = scratchFile.absolutePath)
             if (!stateSaved || !scratchFile.exists() || scratchFile.length() == 0L) {
                 scratchFile.delete()
                 return false
@@ -107,7 +107,7 @@ object AutoResumeManager {
         }
 
         return try {
-            val loaded = engine.loadState(slot = 99, sourcePath = targetFile.absolutePath)
+            val loaded = engine.loadState(slot = 0, sourcePath = targetFile.absolutePath)
             if (loaded) {
                 true
             } else {

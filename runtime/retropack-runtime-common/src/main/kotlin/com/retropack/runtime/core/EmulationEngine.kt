@@ -265,7 +265,7 @@ class NativeEmulationEngine(
     }
 
     override fun saveState(slot: Int, targetPath: String): Boolean = synchronized(lock) {
-        require(slot in 0..99) { "State slot must be between 0 and 99" }
+        require(slot in 0..9) { "State slot must be between 0 and 9" }
         return try {
             core.nativeSaveState(slot, targetPath)
         } catch (e: UnsatisfiedLinkError) {
@@ -274,7 +274,7 @@ class NativeEmulationEngine(
     }
 
     override fun loadState(slot: Int, sourcePath: String): Boolean = synchronized(lock) {
-        require(slot in 0..99) { "State slot must be between 0 and 99" }
+        require(slot in 0..9) { "State slot must be between 0 and 9" }
         return try {
             core.nativeLoadState(slot, sourcePath)
         } catch (e: UnsatisfiedLinkError) {

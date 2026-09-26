@@ -204,7 +204,9 @@ class MoreFeaturesSheet @JvmOverloads constructor(
     var onRemapGamepadClicked: (() -> Unit)? = null
     var onLcdGridChanged: ((Boolean) -> Unit)? = null
     var onGbaColorCorrectionChanged: ((Boolean) -> Unit)? = null
+    var onShaderModeChanged: ((com.retropack.domain.model.ShaderMode) -> Unit)? = null
     var onBezelChanged: ((Boolean) -> Unit)? = null
+    var onBezelModeChanged: ((com.retropack.domain.model.BezelMode) -> Unit)? = null
     var onScaleModeChanged: ((ScaleMode) -> Unit)? = null
     var onAutoResumeChanged: ((Boolean) -> Unit)? = null
     var onHapticModeChanged: ((com.retropack.domain.model.HapticFeedbackMode) -> Unit)? = null
