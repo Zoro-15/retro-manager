@@ -207,8 +207,9 @@ object BuildEngine {
                 val baseEntries = RomAssetInjector.prepareAssetEntries(romBytes, configJson).toMutableMap()
                 if (additionalDiscBytes.isNotEmpty() || !request.content.m3uPlaylist.isNullOrBlank()) {
                     val discMap = mutableMapOf<String, ByteArray>()
-                    additionalDiscBytes.forEachIndexed { index, bytes ->
-                        discMap["assets/discs/disc_${index + 2}.bin"] = bytes
+                    additionalDiscBytes.forEachIndexed { _, pair ->
+                        val entryPath = if (pair.first.startsWith("assets/discs/")) pair.first else "assets/discs/${pair.first}"
+                        discMap[entryPath] = pair.second
                     }
                     val discEntries = RomAssetInjector.prepareMultiDiscAssetEntries(
                         discEntries = discMap,

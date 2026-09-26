@@ -53,6 +53,26 @@ public class InputDevice {
         return false;
     }
 
+    public static class MotionRange {
+        private final int axis;
+        public MotionRange(int axis) { this.axis = axis; }
+        public int getAxis() { return axis; }
+    }
+
+    public List<MotionRange> getMotionRanges() {
+        List<MotionRange> ranges = new ArrayList<>();
+        ranges.add(new MotionRange(MotionEvent.AXIS_X));
+        ranges.add(new MotionRange(MotionEvent.AXIS_Y));
+        ranges.add(new MotionRange(MotionEvent.AXIS_Z));
+        ranges.add(new MotionRange(MotionEvent.AXIS_RZ));
+        ranges.add(new MotionRange(MotionEvent.AXIS_LTRIGGER));
+        ranges.add(new MotionRange(MotionEvent.AXIS_RTRIGGER));
+        return ranges;
+    }
+
+    public int getVendorId() { return 0x045e; }
+    public int getProductId() { return 0x02e0; }
+
     public android.os.Vibrator getVibrator() {
         return new android.os.Vibrator();
     }

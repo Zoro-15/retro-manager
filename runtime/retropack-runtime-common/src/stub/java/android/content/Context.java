@@ -15,6 +15,7 @@ public class Context {
     private SensorManager sensorManager = new SensorManager();
     private Vibrator vibrator = new Vibrator();
     private android.os.VibratorManager vibratorManager = new android.os.VibratorManager();
+    private android.hardware.input.InputManager inputManager = new android.hardware.input.InputManager();
     private android.view.Display display = new android.view.Display();
 
     public android.view.Display getDisplay() {
@@ -52,6 +53,7 @@ public class Context {
         if (SENSOR_SERVICE.equals(name)) return sensorManager;
         if (VIBRATOR_SERVICE.equals(name)) return vibrator;
         if (VIBRATOR_MANAGER_SERVICE.equals(name)) return vibratorManager;
+        if (INPUT_SERVICE.equals(name)) return inputManager;
         return null;
     }
 
