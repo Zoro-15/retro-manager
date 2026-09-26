@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.input.InputManager
 import android.os.Build
 import android.view.InputDevice
+import android.view.MotionEvent
 
 /**
  * Controller hardware detection and discovery manager for RetroPack.
@@ -134,12 +135,12 @@ class GamepadManager(private val context: Context) : InputManager.InputDeviceLis
         val motionRanges = device.motionRanges
         for (range in motionRanges) {
             val axis = range.axis
-            if (axis == android.view.MotionEvent.AXIS_X || axis == android.view.MotionEvent.AXIS_Y ||
-                axis == android.view.MotionEvent.AXIS_Z || axis == android.view.MotionEvent.AXIS_RZ) {
+            if (axis == MotionEvent.AXIS_X || axis == MotionEvent.AXIS_Y ||
+                axis == MotionEvent.AXIS_Z || axis == MotionEvent.AXIS_RZ) {
                 hasAnalog = true
             }
-            if (axis == android.view.MotionEvent.AXIS_LTRIGGER || axis == android.view.MotionEvent.AXIS_RTRIGGER ||
-                axis == android.view.MotionEvent.AXIS_BRAKE || axis == android.view.MotionEvent.AXIS_GAS) {
+            if (axis == MotionEvent.AXIS_LTRIGGER || axis == MotionEvent.AXIS_RTRIGGER ||
+                axis == MotionEvent.AXIS_BRAKE || axis == MotionEvent.AXIS_GAS) {
                 hasTriggers = true
             }
         }
