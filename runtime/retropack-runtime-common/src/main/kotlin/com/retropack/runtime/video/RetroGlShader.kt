@@ -35,7 +35,7 @@ object RetroGlShader {
         varying vec2 v_TexCoord;
         uniform sampler2D u_Texture;
         void main() {
-            gl_FragColor = texture2D(u_Texture, v_TexCoord);
+            gl_FragColor = vec4(texture2D(u_Texture, v_TexCoord).rgb, 1.0);
         }
     """
 
@@ -138,7 +138,7 @@ object RetroGlShader {
         void main() {
             vec4 col = texture2D(u_Texture, v_TexCoord);
             vec3 boosted = applyGbaColorMatrix(col.rgb);
-            gl_FragColor = vec4(boosted, col.a);
+            gl_FragColor = vec4(boosted, 1.0);
         }
     """
 
@@ -155,7 +155,7 @@ object RetroGlShader {
             vec2 snap = clamp(f * 2.0 - 0.5, 0.0, 1.0);
             vec2 uv = (floor(texCoord) + 0.5 + snap) / u_TextureSize;
 
-            gl_FragColor = texture2D(u_Texture, uv);
+            gl_FragColor = vec4(texture2D(u_Texture, uv).rgb, 1.0);
         }
     """
 

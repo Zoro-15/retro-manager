@@ -9,6 +9,8 @@ import java.io.FileInputStream
 import java.util.Locale
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipInputStream
+import org.apache.commons.compress.archivers.sevenz.SevenZFile
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 
 /**
  * Robust, unified archive inspector and extractor for RetroPack.
@@ -128,6 +130,10 @@ object ArchiveExtractor {
      * Inspects incoming file from disk. If it is a ZIP or RAR archive, extracts the primary ROM file.
      */
     fun extractCandidateRom(file: File): ExtractedRomResult {
+        if (file.name.endsWith(".7z", ignoreCase = true)) {
+            val sevenZResult = runCatching { extractFrom7zFile(file) }.getOrNull()
+            if (sevenZResult != null) return sevenZResult
+        }
         val rawBytes = file.readBytes()
         return extractCandidateRom(rawBytes, file.name)
     }
@@ -185,6 +191,17 @@ object ArchiveExtractor {
             }
         }
 
+        // 4. Try 7Z extraction
+        if (is7z(rawBytes, lowerName)) {
+            val sevenZResult = runCatching { extractFrom7z(rawBytes, rawFileName) }.getOrNull()
+            if (sevenZResult != null) {
+                if (isArchive(sevenZResult.bytes, sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                    return extractCandidateRom(sevenZResult.bytes, sevenZResult.candidateFileName, currentDepth + 1)
+                }
+                return sevenZResult
+            }
+        }
+
         return ExtractedRomResult(
             bytes = rawBytes,
             candidateFileName = rawFileName,
@@ -209,6 +226,14 @@ object ArchiveExtractor {
     private fun isGzip(bytes: ByteArray, lowerName: String): Boolean {
         return lowerName.endsWith(".gz") ||
             (bytes.size >= 2 && bytes[0] == 0x1F.toByte() && bytes[1] == 0x8B.toByte())
+    }
+
+    private fun is7z(bytes: ByteArray, lowerName: String): Boolean {
+        return lowerName.endsWith(".7z") ||
+            (bytes.size >= 6 &&
+                bytes[0] == 0x37.toByte() && bytes[1] == 0x7A.toByte() &&
+                bytes[2] == 0xBC.toByte() && bytes[3] == 0xAF.toByte() &&
+                bytes[4] == 0x27.toByte() && bytes[5] == 0x1C.toByte())
     }
 
     /**
@@ -295,6 +320,88 @@ object ArchiveExtractor {
             originalFileName = rawFileName,
             isExtractedFromArchive = true,
             archiveType = "GZIP"
+        )
+    }
+
+    /**
+     * Extracts the best candidate ROM entry from a 7Z archive using Apache Commons Compress.
+     */
+    private fun extractFrom7z(rawBytes: ByteArray, rawFileName: String): ExtractedRomResult? {
+        val entries = mutableListOf<Pair<String, ByteArray>>()
+        val channel = SeekableInMemoryByteChannel(rawBytes)
+        SevenZFile(channel).use { sevenZFile ->
+            var entry = sevenZFile.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory) {
+                    val cleanName = entry.name.substringAfterLast('/').substringAfterLast('\\')
+                    if (!isIgnoredFile(cleanName)) {
+                        val size = entry.size
+                        if (size in 1..0x40000000L) {
+                            val content = ByteArray(size.toInt())
+                            var offset = 0
+                            while (offset < content.size) {
+                                val read = sevenZFile.read(content, offset, content.size - offset)
+                                if (read < 0) break
+                                offset += read
+                            }
+                            entries.add(Pair(cleanName, content))
+                        }
+                    }
+                }
+                entry = sevenZFile.nextEntry
+            }
+        }
+
+        if (entries.isEmpty()) return null
+
+        val best = selectBestEntry(entries.map { it.first }) ?: entries.first().first
+        val matched = entries.firstOrNull { it.first == best } ?: entries.first()
+
+        return ExtractedRomResult(
+            bytes = matched.second,
+            candidateFileName = matched.first,
+            originalFileName = rawFileName,
+            isExtractedFromArchive = true,
+            archiveType = "7Z"
+        )
+    }
+
+    private fun extractFrom7zFile(file: File): ExtractedRomResult? {
+        val entries = mutableListOf<Pair<String, ByteArray>>()
+        SevenZFile(file).use { sevenZFile ->
+            var entry = sevenZFile.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory) {
+                    val cleanName = entry.name.substringAfterLast('/').substringAfterLast('\\')
+                    if (!isIgnoredFile(cleanName)) {
+                        val size = entry.size
+                        if (size in 1..0x40000000L) {
+                            val content = ByteArray(size.toInt())
+                            var offset = 0
+                            while (offset < content.size) {
+                                val read = sevenZFile.read(content, offset, content.size - offset)
+                                if (read < 0) break
+                                offset += read
+                            }
+                            entries.add(Pair(cleanName, content))
+                        }
+                    }
+                }
+                entry = sevenZFile.nextEntry
+            }
+        }
+
+        if (entries.isEmpty()) return null
+
+        val best = selectBestEntry(entries.map { it.first }) ?: entries.first().first
+        val matched = entries.firstOrNull { it.first == best } ?: entries.first()
+
+        return ExtractedRomResult(
+            bytes = matched.second,
+            candidateFileName = matched.first,
+            originalFileName = file.name,
+            isExtractedFromArchive = true,
+            archiveType = "7Z"
         )
     }
 

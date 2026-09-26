@@ -29,8 +29,10 @@ dependencies {
     api("org.bouncycastle:bcprov-jdk18on:1.78.1")
     api("org.bouncycastle:bcpkix-jdk18on:1.78.1")
 
-    // Archive Extraction (RAR / ZIP)
+    // Archive Extraction (RAR / ZIP / 7Z)
     api("com.github.junrar:junrar:7.5.5")
+    api("org.apache.commons:commons-compress:1.26.2")
+    api("org.tukaani:xz:1.9")
 
     // Coroutines & Utilities
 

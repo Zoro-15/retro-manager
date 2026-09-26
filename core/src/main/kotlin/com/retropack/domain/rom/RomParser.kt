@@ -262,8 +262,7 @@ object RomParser {
                 "cue", "chd", "img", "mdf", "ecm" -> "psx"
                 "iso" -> "psp"
                 // Arcade / Neo Geo
-                "neo" -> "arcade"
-                "zip", "7z", "rar" -> "arcade"
+                "neo", "zip" -> "arcade"
                 "bin" -> "genesis"
                 else -> null
             }
