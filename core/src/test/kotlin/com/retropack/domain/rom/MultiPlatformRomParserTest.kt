@@ -95,7 +95,7 @@ class MultiPlatformRomParserTest {
         bytes[0x21] = 0x40
         // arm7 offset = 0x8000
         bytes[0x28] = 0x00
-        bytes[0x29] = 0x80
+        bytes[0x29] = 0x80.toByte()
 
         val identity = RomParser.parse(bytes)
         assertEquals("nds", identity.platform)

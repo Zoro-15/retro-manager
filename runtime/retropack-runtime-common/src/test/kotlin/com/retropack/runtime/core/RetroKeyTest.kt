@@ -40,7 +40,7 @@ class RetroKeyTest {
 
         val fullMask = RetroKey.maskOf(*RetroKey.entries.toTypedArray())
         assertEquals(RetroKey.ALL_KEYS_MASK, fullMask)
-        assertEquals(1023, fullMask)
+        assertEquals(RetroKey.GBA_KEYS_MASK, 1023)
         assertEquals(RetroKey.entries.toSet(), RetroKey.fromMask(fullMask))
 
         assertEquals(0, RetroKey.NO_KEYS_MASK)
@@ -75,8 +75,8 @@ class RetroKeyTest {
     }
 
     @Test
-    fun `verify KeyMaskBuilder clamps to 10-bit hardware mask`() {
-        val builder = KeyMaskBuilder(0xFFFF)
+    fun `verify KeyMaskBuilder clamps to all-keys hardware mask`() {
+        val builder = KeyMaskBuilder(0xFFFFFFFF.toInt())
         assertEquals(RetroKey.ALL_KEYS_MASK, builder.build())
     }
 }
