@@ -137,13 +137,13 @@ class MoreFeaturesSheetTest {
         var themeReported: String? = null
         sheet.onTouchThemeChanged = { themeReported = it }
 
-        // Tap Cyber theme pill (index 3)
-        val cyberX = sheet.themeRects[3].centerX()
-        val cyberY = sheet.themeRects[3].centerY()
-        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, cyberX, cyberY))
+        // Tap DMG theme pill (index 3)
+        val dmgX = sheet.themeRects[3].centerX()
+        val dmgY = sheet.themeRects[3].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, dmgX, dmgY))
 
-        assertEquals("cyber", sheet.touchTheme)
-        assertEquals("cyber", themeReported)
+        assertEquals("retro_dmg", sheet.touchTheme)
+        assertEquals("retro_dmg", themeReported)
 
         // Tap LCD Grid Filter toggle
         var lcdReported: Boolean? = null

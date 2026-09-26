@@ -70,6 +70,8 @@ public class Activity extends Context {
 
     public void onWindowFocusChanged(boolean hasFocus) {}
 
+    public void onConfigurationChanged(android.content.res.Configuration newConfig) {}
+
     public boolean dispatchKeyEvent(KeyEvent event) {
         return false;
     }

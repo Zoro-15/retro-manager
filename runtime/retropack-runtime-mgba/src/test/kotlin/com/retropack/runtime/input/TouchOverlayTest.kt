@@ -146,9 +146,9 @@ class TouchOverlayTest {
         assertEquals(initialX + 100f, movedCluster.anchorX, 0.001f)
         assertEquals(initialY + 50f, movedCluster.anchorY, 0.001f)
 
-        // Touch up releases drag
+        // Touch up releases drag (keeps cluster selected for scale toolbar)
         overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, initialX + 100f, initialY + 50f))
-        assertEquals(null, overlay.selectedClusterId)
+        assertEquals(TouchLayout.CLUSTER_DPAD, overlay.selectedClusterId)
     }
 
     @Test
@@ -236,26 +236,26 @@ class TouchOverlayTest {
         var reportedMask = -1
         overlay.onKeyMaskChanged = { mask -> reportedMask = mask }
 
-        // Touch down at (200, 1000) - left half of screen
-        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 200f, 1000f)
+        // Touch down at (200, 1400) - left half of screen away from shoulder triggers
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 200f, 1400f)
         overlay.onTouchEvent(downEvent)
 
         assertTrue(overlay.floatingDpadActive)
         assertEquals(200f, overlay.floatingDpadX, 0.01f)
-        assertEquals(1000f, overlay.floatingDpadY, 0.01f)
+        assertEquals(1400f, overlay.floatingDpadY, 0.01f)
 
-        // Drag right to (280, 1000) -> D-Pad Right
-        val moveRightEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 280f, 1000f)
+        // Drag right to (280, 1400) -> D-Pad Right
+        val moveRightEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 280f, 1400f)
         overlay.onTouchEvent(moveRightEvent)
         assertEquals(RetroKey.KEY_RIGHT, reportedMask)
 
-        // Drag up to (200, 920) -> D-Pad Up
-        val moveUpEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 200f, 920f)
+        // Drag up to (200, 1320) -> D-Pad Up
+        val moveUpEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 200f, 1320f)
         overlay.onTouchEvent(moveUpEvent)
         assertEquals(RetroKey.KEY_UP, reportedMask)
 
         // Touch Up clears floating d-pad
-        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 200f, 920f)
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 200f, 1320f)
         overlay.onTouchEvent(upEvent)
         assertFalse(overlay.floatingDpadActive)
         assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
