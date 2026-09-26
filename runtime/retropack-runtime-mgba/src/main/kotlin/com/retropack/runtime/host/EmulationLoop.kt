@@ -38,6 +38,15 @@ class EmulationLoop(
     @Volatile
     private var isPaused: Boolean = false
 
+    @Volatile
+    var speedMultiplier: Int = 1
+        set(value) {
+            field = value.coerceIn(1, 32)
+        }
+
+    @Volatile
+    var muteAudioOnFastForward: Boolean = true
+
     private var workerThread: Thread? = null
 
     val running: Boolean get() = isRunning
@@ -50,7 +59,10 @@ class EmulationLoop(
     fun stepSingleFrame(): Boolean {
         val success = engine.stepFrame()
         if (success) {
-            audioPlayer?.pumpAudio()
+            // Mute audio during fast-forward if requested to prevent screeching audio
+            if (!(muteAudioOnFastForward && speedMultiplier > 1)) {
+                audioPlayer?.pumpAudio()
+            }
             saveManagerSupplier()?.periodicFlush(System.currentTimeMillis())
             onFrameComplete?.invoke()
         }
@@ -183,21 +195,31 @@ class EmulationLoop(
             }
 
             // Frame pacing
-            nextFrameNanos += FRAME_DURATION_NANOS
-            val nowNanos = System.nanoTime()
-            val sleepNanos = nextFrameNanos - nowNanos
+            val targetFrameNanos = when {
+                speedMultiplier >= 16 -> 0L // Unthrottled
+                speedMultiplier > 1 -> FRAME_DURATION_NANOS / speedMultiplier
+                else -> FRAME_DURATION_NANOS
+            }
 
-            if (sleepNanos > 1_000_000L) { // More than 1ms
-                val millis = sleepNanos / 1_000_000L
-                val nanos = (sleepNanos % 1_000_000L).toInt()
-                try {
-                    Thread.sleep(millis, nanos)
-                } catch (_: InterruptedException) {
-                    break
+            if (targetFrameNanos > 0L) {
+                nextFrameNanos += targetFrameNanos
+                val nowNanos = System.nanoTime()
+                val sleepNanos = nextFrameNanos - nowNanos
+
+                if (sleepNanos > 1_000_000L) { // More than 1ms
+                    val millis = sleepNanos / 1_000_000L
+                    val nanos = (sleepNanos % 1_000_000L).toInt()
+                    try {
+                        Thread.sleep(millis, nanos)
+                    } catch (_: InterruptedException) {
+                        break
+                    }
+                } else if (sleepNanos < -targetFrameNanos * 3) {
+                    // Fallen more than 3 frames behind; reset timing baseline to prevent drift spiraling
+                    nextFrameNanos = nowNanos
                 }
-            } else if (sleepNanos < -FRAME_DURATION_NANOS * 3) {
-                // Fallen more than 3 frames behind; reset timing baseline to prevent drift spiraling
-                nextFrameNanos = nowNanos
+            } else {
+                nextFrameNanos = System.nanoTime()
             }
         }
     }

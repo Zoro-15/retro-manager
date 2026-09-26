@@ -26,31 +26,34 @@ data class VirtualControl(
     val halfHeight: Float
 ) {
     /**
-     * Determines whether the given coordinate falls within the boundary of this control.
+     * Determines whether the given coordinate falls within the boundary of this control,
+     * applying an optional [slopFactor] (defaults to 1.20f for a 20% invisible touch expansion).
      */
-    fun contains(x: Float, y: Float): Boolean {
+    fun contains(x: Float, y: Float, slopFactor: Float = 1.20f): Boolean {
         val dx = x - cx
         val dy = y - cy
+        val sw = halfWidth * slopFactor
+        val sh = halfHeight * slopFactor
         return when (shape) {
             ControlShape.CIRCLE -> {
-                val nx = dx / halfWidth
-                val ny = dy / halfHeight
+                val nx = dx / sw
+                val ny = dy / sh
                 (nx * nx + ny * ny) <= 1.0f
             }
             ControlShape.PILL, ControlShape.DPAD -> {
-                Math.abs(dx) <= halfWidth && Math.abs(dy) <= halfHeight
+                Math.abs(dx) <= sw && Math.abs(dy) <= sh
             }
         }
     }
 
     /**
-     * Evaluates the active hardware keymask at coordinate (x, y).
+     * Evaluates the active hardware keymask at coordinate (x, y) with 20% touch slop padding.
      *
      * For D-pad, resolves 8-way directional inputs (UP, DOWN, LEFT, RIGHT, and diagonals)
      * with an inner center deadzone.
      */
-    fun hitKeyMask(x: Float, y: Float): Int {
-        if (!contains(x, y)) return RetroKey.NO_KEYS_MASK
+    fun hitKeyMask(x: Float, y: Float, slopFactor: Float = 1.20f): Int {
+        if (!contains(x, y, slopFactor)) return RetroKey.NO_KEYS_MASK
 
         return if (shape == ControlShape.DPAD) {
             var mask = RetroKey.NO_KEYS_MASK
@@ -82,6 +85,8 @@ class TouchLayout(
 ) {
     companion object {
         const val DEFAULT_OPACITY = 0.6f
+        const val DEFAULT_HIT_SLOP = 1.20f // 20% invisible touch slop expansion
+
         const val ID_DPAD = "dpad"
         const val ID_A = "btn_a"
         const val ID_B = "btn_b"
@@ -150,7 +155,7 @@ class TouchLayout(
                     width * 0.25f, mainY, dpadHalf, dpadHalf)
             )
 
-            // Action Buttons A and B (angled for ergonomic thumb reach)
+            // Action Buttons A and B (angled for ergonomic thumb reach and thumb rolling)
             val btnRadius = unit * 0.11f
             controls.add(
                 VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE,
@@ -241,23 +246,39 @@ class TouchLayout(
     }
 
     /**
-     * Hit-tests a single coordinate point and returns the composite [RetroKey] bitmask.
+     * Hit-tests a single coordinate point and returns the composite [RetroKey] bitmask,
+     * incorporating 20% touch slop padding and thumb-roll assist across adjacent action buttons.
      */
-    fun inputAt(x: Float, y: Float): Int {
+    fun inputAt(x: Float, y: Float, slopFactor: Float = DEFAULT_HIT_SLOP): Int {
         var mask = RetroKey.NO_KEYS_MASK
         for (control in controls) {
-            mask = mask or control.hitKeyMask(x, y)
+            mask = mask or control.hitKeyMask(x, y, slopFactor)
         }
+
+        // Thumb Roll Assist: If touch falls into the transition zone between B and A,
+        // activate both buttons seamlessly without requiring the user to lift their finger.
+        val btnA = controls.firstOrNull { it.id == ID_A }
+        val btnB = controls.firstOrNull { it.id == ID_B }
+        if (btnA != null && btnB != null) {
+            val distA = Math.hypot((x - btnA.cx).toDouble(), (y - btnA.cy).toDouble()).toFloat()
+            val distB = Math.hypot((x - btnB.cx).toDouble(), (y - btnB.cy).toDouble()).toFloat()
+            val btnDistance = Math.hypot((btnA.cx - btnB.cx).toDouble(), (btnA.cy - btnB.cy).toDouble()).toFloat()
+            // If touch is along the segment between A and B
+            if (distA + distB <= btnDistance * 1.25f && distA <= btnA.halfWidth * 1.5f && distB <= btnB.halfWidth * 1.5f) {
+                mask = mask or RetroKey.KEY_A or RetroKey.KEY_B
+            }
+        }
+
         return mask
     }
 
     /**
      * Resolves multiple concurrent touch pointer coordinates into a single composite [RetroKey] bitmask.
      */
-    fun resolvePointers(pointers: Iterable<Pair<Float, Float>>): Int {
+    fun resolvePointers(pointers: Iterable<Pair<Float, Float>>, slopFactor: Float = DEFAULT_HIT_SLOP): Int {
         var compositeMask = RetroKey.NO_KEYS_MASK
         for (pointer in pointers) {
-            compositeMask = compositeMask or inputAt(pointer.first, pointer.second)
+            compositeMask = compositeMask or inputAt(pointer.first, pointer.second, slopFactor)
         }
         return compositeMask
     }
@@ -384,6 +405,48 @@ class TouchLayout(
             }
         }
         return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+    }
+
+    /**
+     * Scales all controls in [clusterId] by [scale] (clamped to 0.5x..2.0x) around the cluster's anchor center,
+     * maintaining proportional relative spacing and geometry.
+     */
+    fun withClusterScale(clusterId: String, scale: Float): TouchLayout {
+        val cluster = getCluster(clusterId) ?: return this
+        val clampedScale = scale.coerceIn(0.5f, 2.0f)
+        val targetIds = cluster.controlIds.toSet()
+
+        val updated = controls.map { c ->
+            if (c.id in targetIds) {
+                val relX = c.cx - cluster.anchorX
+                val relY = c.cy - cluster.anchorY
+                VirtualControl(
+                    id = c.id,
+                    key = c.key,
+                    label = c.label,
+                    shape = c.shape,
+                    cx = cluster.anchorX + relX * clampedScale,
+                    cy = cluster.anchorY + relY * clampedScale,
+                    halfWidth = c.halfWidth * clampedScale,
+                    halfHeight = c.halfHeight * clampedScale
+                )
+            } else {
+                c
+            }
+        }
+        return TouchLayout(width, height, Collections.unmodifiableList(updated), opacity)
+    }
+
+    /**
+     * Applies scaling factors for multiple clusters in one operation.
+     */
+    fun applyClusterScales(scales: Map<String, Float>): TouchLayout {
+        if (scales.isEmpty()) return this
+        var currentLayout = this
+        for ((clusterId, scale) in scales) {
+            currentLayout = currentLayout.withClusterScale(clusterId, scale)
+        }
+        return currentLayout
     }
 
     /**

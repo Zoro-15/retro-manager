@@ -162,6 +162,29 @@ class EmulationHostTest {
     }
 
     @Test
+    fun `fast forward multiplier and audio mute update loop configuration`() {
+        val engine = FakeEngine()
+        val host = EmulationHost(engine = engine)
+
+        assertEquals(1, host.getFastForwardMultiplier())
+        host.setFastForwardMultiplier(4)
+        assertEquals(4, host.getFastForwardMultiplier())
+        assertEquals(4, host.emulationLoop.speedMultiplier)
+
+        host.setMuteAudioOnFastForward(true)
+        assertTrue(host.emulationLoop.muteAudioOnFastForward)
+    }
+
+    @Test
+    fun `saveState and loadState delegate to engine`() {
+        val engine = FakeEngine()
+        val host = EmulationHost(engine = engine)
+
+        assertTrue(host.saveState(1, "/tmp/slot_1.state"))
+        assertTrue(host.loadState(1, "/tmp/slot_1.state"))
+    }
+
+    @Test
     fun `close releases engine and stops loop`() {
         val engine = FakeEngine()
         val host = EmulationHost(engine = engine)

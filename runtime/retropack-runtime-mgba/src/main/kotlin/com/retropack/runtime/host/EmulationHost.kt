@@ -136,6 +136,22 @@ class EmulationHost(
     }
 
     /**
+     * Updates fast-forward emulation speed multiplier.
+     */
+    fun setFastForwardMultiplier(multiplier: Int) {
+        emulationLoop.speedMultiplier = multiplier
+    }
+
+    fun getFastForwardMultiplier(): Int = emulationLoop.speedMultiplier
+
+    /**
+     * Configures whether audio output is muted during fast-forward.
+     */
+    fun setMuteAudioOnFastForward(mute: Boolean) {
+        emulationLoop.muteAudioOnFastForward = mute
+    }
+
+    /**
      * Changes display scaling mode.
      */
     fun setScaleMode(mode: ScaleMode) {

@@ -183,5 +183,48 @@ class TouchOverlayTest {
         assertTrue(resetTriggered)
         assertEquals(defaultDpadX, overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.cx)
     }
+
+    @Test
+    fun `inactivity auto-dimming fades opacity down to 10 percent after 4000ms`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.opacity = 0.80f
+        overlay.inactivityTimeoutMs = 4000L
+        overlay.dimAlphaFactor = 0.10f
+
+        val t0 = 100000L
+        overlay.notifyTouchActivity(t0)
+
+        // Immediately after touch: full opacity (0.80)
+        assertEquals(0.80f, overlay.getEffectiveOpacity(t0), 0.001f)
+        assertEquals(0.80f, overlay.getEffectiveOpacity(t0 + 2000L), 0.001f)
+
+        // After 4000ms: dimmed to 10% (0.80 * 0.10 = 0.08)
+        assertEquals(0.08f, overlay.getEffectiveOpacity(t0 + 4000L), 0.001f)
+        assertEquals(0.08f, overlay.getEffectiveOpacity(t0 + 10000L), 0.001f)
+
+        // New touch restores full opacity
+        overlay.notifyTouchActivity(t0 + 10000L)
+        assertEquals(0.80f, overlay.getEffectiveOpacity(t0 + 10000L), 0.001f)
+    }
+
+    @Test
+    fun `setClusterScale clamps within 0_5x to 2_0x and scales cluster hitboxes`() {
+        val overlay = TouchOverlayView(Context())
+        val defaultDpadRadius = overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.radius
+
+        // Scale up to 1.5x
+        overlay.setClusterScale(TouchLayout.CLUSTER_DPAD, 1.5f)
+        assertEquals(1.5f, overlay.clusterScales[TouchLayout.CLUSTER_DPAD])
+        val scaledDpadRadius = overlay.layout.controls.first { it.id == TouchLayout.ID_DPAD }.radius
+        assertEquals(defaultDpadRadius * 1.5f, scaledDpadRadius, 0.01f)
+
+        // Scale beyond 2.0x is clamped to 2.0x
+        overlay.setClusterScale(TouchLayout.CLUSTER_DPAD, 3.5f)
+        assertEquals(2.0f, overlay.clusterScales[TouchLayout.CLUSTER_DPAD])
+
+        // Scale below 0.5x is clamped to 0.5x
+        overlay.setClusterScale(TouchLayout.CLUSTER_DPAD, 0.1f)
+        assertEquals(0.5f, overlay.clusterScales[TouchLayout.CLUSTER_DPAD])
+    }
 }
 

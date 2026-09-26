@@ -72,6 +72,12 @@ open class GameActivity : Activity() {
     var saveManager: SaveManager? = null
         protected set
 
+    var saveStateManager: SaveStateManager? = null
+        protected set
+
+    var moreFeaturesSheet: MoreFeaturesSheet? = null
+        protected set
+
     var isGameLoaded: Boolean = false
         protected set
 
@@ -91,10 +97,22 @@ open class GameActivity : Activity() {
         val effectiveScaleMode = ControlsPreferences.loadScaleMode(this, config.runtime.videoScaleMode)
         val effectiveOpacity = ControlsPreferences.loadOpacity(this, config.controls.touchOpacity)
         val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
+        val effectiveFastForwardSpeed = ControlsPreferences.loadFastForwardSpeed(this, 1)
+        val effectiveMuteAudio = ControlsPreferences.loadMuteAudioOnFastForward(this, true)
+        val effectiveTurbo = ControlsPreferences.loadTurboEnabled(this, false)
+        val effectiveComboMacro = ControlsPreferences.loadComboMacroEnabled(this, false)
+        val effectiveTouchTheme = ControlsPreferences.loadTouchTheme(this, "neon")
+        val effectiveLcdGrid = ControlsPreferences.loadLcdGridEnabled(this, false)
+        val effectiveGbaColor = ControlsPreferences.loadGbaColorCorrectionEnabled(this, false)
+        val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, false)
 
         // 3. Stage ROM atomically to storage/game.rom with SHA-256 verification
         val romFile = File(storageDirectory(), ROM_FILENAME)
         stageRomIfNeeded(romFile, config.game.romSha256)
+
+        // Initialize Save State Manager
+        val ssm = createSaveStateManager(storageDirectory())
+        this.saveStateManager = ssm
 
         // 4. Assemble View Hierarchy
         val root = FrameLayout(this)
@@ -133,9 +151,31 @@ open class GameActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
+        // In-Game "More" App Page / Feature Hub
+        val moreSheet = createMoreFeaturesSheet().apply {
+            gameTitle = config.game.title
+            scaleMode = effectiveScaleMode
+            fastForwardSpeed = effectiveFastForwardSpeed
+            muteAudioOnFastForward = effectiveMuteAudio
+            turboButtonsEnabled = effectiveTurbo
+            comboMacroEnabled = effectiveComboMacro
+            touchTheme = effectiveTouchTheme
+            lcdGridEnabled = effectiveLcdGrid
+            gbaColorCorrectionEnabled = effectiveGbaColor
+            bezelEnabled = effectiveBezel
+            hapticFeedbackEnabledState = effectiveHaptics
+            saveStateManager = ssm
+        }
+        this.moreFeaturesSheet = moreSheet
+        root.addView(moreSheet, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
         // Floating In-Game Quick Menu FAB
         val qm = createQuickMenu().apply {
             isControlsActive = to?.isControlsVisible ?: true
+            fastForwardSpeed = effectiveFastForwardSpeed
             hapticFeedbackEnabledState = effectiveHaptics
         }
         this.quickMenu = qm
@@ -144,23 +184,33 @@ open class GameActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
-        // Wire Quick Menu & Settings Interaction Callbacks
+        // Wire Quick Menu Interactions
         qm.onToggleControls = {
             to?.let {
                 it.isControlsVisible = !it.isControlsVisible
                 qm.isControlsActive = it.isControlsVisible
             }
         }
+        qm.onFastForwardSpeedChanged = { speed ->
+            host?.setFastForwardMultiplier(speed)
+            ControlsPreferences.saveFastForwardSpeed(this, speed)
+            moreSheet.fastForwardSpeed = speed
+        }
         qm.onOpenSettings = {
             settings.show()
         }
+        qm.onOpenMore = {
+            moreSheet.show()
+        }
 
+        // Wire Settings Sheet Callbacks
         settings.onEditControlsClicked = {
             settings.hide()
             to?.isEditMode = true
         }
         settings.onScaleModeChanged = { mode ->
             sv.scaleMode = mode
+            moreSheet.scaleMode = mode
             ControlsPreferences.saveScaleMode(this, mode)
         }
         settings.onOpacityChanged = { opacity ->
@@ -171,12 +221,14 @@ open class GameActivity : Activity() {
             to?.hapticFeedbackEnabledState = haptics
             qm.hapticFeedbackEnabledState = haptics
             settings.hapticFeedbackEnabledState = haptics
+            moreSheet.hapticFeedbackEnabledState = haptics
             ControlsPreferences.saveHaptics(this, haptics)
         }
         settings.onResetDefaultsClicked = {
             ControlsPreferences.resetAll(this)
             sv.scaleMode = config.runtime.videoScaleMode
             settings.scaleMode = config.runtime.videoScaleMode
+            moreSheet.scaleMode = config.runtime.videoScaleMode
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
@@ -185,6 +237,63 @@ open class GameActivity : Activity() {
             settings.touchOpacity = config.controls.touchOpacity
             settings.hapticsEnabled = config.controls.haptics
             qm.isControlsActive = to?.isControlsVisible ?: true
+            qm.fastForwardSpeed = 1
+            host?.setFastForwardMultiplier(1)
+        }
+
+        // Wire More Features Sheet Callbacks
+        moreSheet.onSaveStateClicked = { slot ->
+            host?.let { h ->
+                val vBuf = h.engine.getVideoBuffer()
+                ssm.saveState(
+                    slot = slot,
+                    engine = h.engine,
+                    videoBuffer = vBuf,
+                    gameTitle = config.game.title
+                )
+                moreSheet.invalidate()
+            }
+        }
+        moreSheet.onLoadStateClicked = { slot ->
+            host?.let { h ->
+                ssm.loadState(slot, h.engine)
+            }
+        }
+        moreSheet.onFastForwardSpeedChanged = { speed ->
+            host?.setFastForwardMultiplier(speed)
+            ControlsPreferences.saveFastForwardSpeed(this, speed)
+            qm.fastForwardSpeed = speed
+        }
+        moreSheet.onMuteAudioOnFastForwardChanged = { mute ->
+            host?.setMuteAudioOnFastForward(mute)
+            ControlsPreferences.saveMuteAudioOnFastForward(this, mute)
+        }
+        moreSheet.onTurboChanged = { turbo ->
+            ControlsPreferences.saveTurboEnabled(this, turbo)
+        }
+        moreSheet.onComboMacroChanged = { combo ->
+            ControlsPreferences.saveComboMacroEnabled(this, combo)
+        }
+        moreSheet.onTouchThemeChanged = { theme ->
+            ControlsPreferences.saveTouchTheme(this, theme)
+        }
+        moreSheet.onLcdGridChanged = { enabled ->
+            ControlsPreferences.saveLcdGridEnabled(this, enabled)
+        }
+        moreSheet.onGbaColorCorrectionChanged = { enabled ->
+            ControlsPreferences.saveGbaColorCorrectionEnabled(this, enabled)
+        }
+        moreSheet.onBezelChanged = { enabled ->
+            ControlsPreferences.saveBezelEnabled(this, enabled)
+        }
+        moreSheet.onScaleModeChanged = { mode ->
+            sv.scaleMode = mode
+            settings.scaleMode = mode
+            ControlsPreferences.saveScaleMode(this, mode)
+        }
+        moreSheet.onEditControlsClicked = {
+            moreSheet.hide()
+            to?.isEditMode = true
         }
 
         to?.onEditModeChanged = { inEditMode ->
@@ -203,7 +312,12 @@ open class GameActivity : Activity() {
 
         val engine = createEngine()
         val audioPlayer = createAudioPlayer(config)
-        val gamepadMapper = createGamepadMapper()
+        val gamepadMapper = createGamepadMapper().apply {
+            onGamepadDetected = {
+                to?.isControlsVisible = false
+                qm.isControlsActive = false
+            }
+        }
 
         val emulationHost = EmulationHost(
             engine = engine,
@@ -213,6 +327,8 @@ open class GameActivity : Activity() {
             touchOverlay = touchOverlay,
             gamepadMapper = gamepadMapper
         ).apply {
+            setFastForwardMultiplier(effectiveFastForwardSpeed)
+            setMuteAudioOnFastForward(effectiveMuteAudio)
             onFrameRenderRequested = {
                 sv.requestRenderFrame()
             }
@@ -395,8 +511,8 @@ open class GameActivity : Activity() {
                             val text = if (file != null && file.exists()) file.readText() else details
                             val sendIntent = android.content.Intent().apply {
                                 action = "android.intent.action.SEND"
-                                putExtra("android.intent.extra.TEXT", text)
                                 type = "text/plain"
+                                putExtra("android.intent.extra.TEXT", text)
                             }
                             startActivity(android.content.Intent.createChooser(sendIntent, "Share RetroPack Log"))
                         } catch (_: Throwable) {}
@@ -453,7 +569,9 @@ open class GameActivity : Activity() {
     protected open fun createAudioPlayer(cfg: RuntimeConfig): RetroAudioPlayer =
         RetroAudioPlayer(driftController = com.retropack.runtime.audio.AudioDriftController(cfg.runtime.audioSampleRate, 2))
     protected open fun createSaveManager(saveFile: File): SaveManager = SaveManager(saveFile = saveFile)
+    protected open fun createSaveStateManager(storageDir: File): SaveStateManager = SaveStateManager(storageDir = storageDir)
     protected open fun createGamepadMapper(): GamepadMapper = GamepadMapper()
     protected open fun createQuickMenu(): QuickMenuOverlay = QuickMenuOverlay(this)
     protected open fun createSettingsOverlay(): InGameSettingsOverlay = InGameSettingsOverlay(this)
+    protected open fun createMoreFeaturesSheet(): MoreFeaturesSheet = MoreFeaturesSheet(this)
 }

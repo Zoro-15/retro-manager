@@ -19,7 +19,8 @@ import com.retropack.runtime.core.RetroKey
  * - masterplan.md Section 5.4: "Virtual TouchOverlayView (custom coords, opacity, haptics)
  *   + physical Bluetooth/USB gamepad HID handler. Auto-hides virtual controls when physical
  *   gamepad buttons are pressed."
- * - roadmap.md Part 2.5.
+ * - Touch ergonomics: 20% hitbox expansion, thumb-roll assist, inactivity auto-dimming (10% alpha after 4s),
+ *   and per-cluster scale controls (0.5x to 2.0x).
  */
 class TouchOverlayView @JvmOverloads constructor(
     context: Context,
@@ -46,6 +47,12 @@ class TouchOverlayView @JvmOverloads constructor(
 
     var revealOnTouchWhenHidden: Boolean = true
 
+    // Inactivity Auto-Dimming
+    var autoDimEnabled: Boolean = true
+    var inactivityTimeoutMs: Long = 4000L
+    var lastTouchTimestampMs: Long = System.currentTimeMillis()
+    var dimAlphaFactor: Float = 0.10f
+
     var isEditMode: Boolean = false
         set(value) {
             if (field != value) {
@@ -63,6 +70,8 @@ class TouchOverlayView @JvmOverloads constructor(
 
     var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity)
         private set
+
+    val clusterScales = mutableMapOf<String, Float>()
 
     /** Callback invoked whenever the composite RetroKey bitmask changes. */
     var onKeyMaskChanged: ((Int) -> Unit)? = null
@@ -87,10 +96,13 @@ class TouchOverlayView @JvmOverloads constructor(
     private var initialAnchorX: Float = 0f
     private var initialAnchorY: Float = 0f
 
-    // Top banner hit testing areas for edit mode
+    // Top banner and scale controls hit testing areas for edit mode
     val topBannerRect = RectF()
     val resetBtnRect = RectF()
     val saveBtnRect = RectF()
+    val scaleControlRect = RectF()
+    val scaleDownBtnRect = RectF()
+    val scaleUpBtnRect = RectF()
 
     private val activePointers = mutableMapOf<Int, Pair<Float, Float>>()
     private var currentKeyMask: Int = RetroKey.NO_KEYS_MASK
@@ -116,6 +128,24 @@ class TouchOverlayView @JvmOverloads constructor(
     private val tempRect = RectF()
 
     /**
+     * Resets inactivity timer on any touch interaction.
+     */
+    fun notifyTouchActivity(currentTimeMs: Long = System.currentTimeMillis()) {
+        lastTouchTimestampMs = currentTimeMs
+        invalidate()
+    }
+
+    /**
+     * Returns effective visual opacity accounting for inactivity auto-dimming.
+     */
+    fun getEffectiveOpacity(currentTimeMs: Long = System.currentTimeMillis()): Float {
+        if (!isEditMode && autoDimEnabled && (currentTimeMs - lastTouchTimestampMs >= inactivityTimeoutMs)) {
+            return (opacity * dimAlphaFactor).coerceAtLeast(0.05f)
+        }
+        return opacity
+    }
+
+    /**
      * Updates the layout to match the provided dimensions or re-generates
      * default responsive coordinates for portrait/landscape orientation.
      */
@@ -124,25 +154,47 @@ class TouchOverlayView @JvmOverloads constructor(
             val isLandscape = width > height
             val defaultLayout = TouchLayout.create(width, height, opacity)
             val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
-            layout = if (savedPositions != null) {
-                defaultLayout.applyNormalizedClusterPositions(savedPositions)
-            } else {
-                defaultLayout
+            val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
+
+            clusterScales.clear()
+            if (savedScales != null) {
+                clusterScales.putAll(savedScales)
             }
+
+            var newLayout = defaultLayout
+            if (savedScales != null) {
+                newLayout = newLayout.applyClusterScales(savedScales)
+            }
+            if (savedPositions != null) {
+                newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
+            }
+            layout = newLayout
             invalidate()
         }
     }
 
     /**
-     * Loads and applies previously saved custom layout coordinates if present.
+     * Loads and applies previously saved custom layout coordinates and scales if present.
      */
     fun applySavedCustomLayout() {
         val isLandscape = if (width > 0 && height > 0) width > height else layout.width > layout.height
-        val saved = ControlsPreferences.loadLayoutPositions(context, isLandscape)
-        if (saved != null) {
-            layout = layout.applyNormalizedClusterPositions(saved)
-            invalidate()
+        val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
+        val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
+
+        clusterScales.clear()
+        if (savedScales != null) {
+            clusterScales.putAll(savedScales)
         }
+
+        var newLayout = layout
+        if (savedScales != null) {
+            newLayout = newLayout.applyClusterScales(savedScales)
+        }
+        if (savedPositions != null) {
+            newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
+        }
+        layout = newLayout
+        invalidate()
     }
 
     /**
@@ -152,6 +204,7 @@ class TouchOverlayView @JvmOverloads constructor(
         val w = if (width > 0) width.toFloat() else layout.width
         val h = if (height > 0) height.toFloat() else layout.height
         val isLandscape = w > h
+        clusterScales.clear()
         layout = TouchLayout.create(w, h, opacity)
         ControlsPreferences.clearCustomLayout(context, isLandscape)
         onLayoutReset?.invoke()
@@ -159,14 +212,25 @@ class TouchOverlayView @JvmOverloads constructor(
     }
 
     /**
-     * Persists current normalized coordinates to SharedPreferences and exits edit mode.
+     * Persists current normalized coordinates and cluster scales to SharedPreferences and exits edit mode.
      */
     fun saveCurrentLayout() {
         val isLandscape = if (width > 0 && height > 0) width > height else layout.width > layout.height
         val positions = layout.getNormalizedClusterPositions()
         ControlsPreferences.saveLayoutPositions(context, isLandscape, positions)
+        ControlsPreferences.saveLayoutScales(context, isLandscape, clusterScales)
         isEditMode = false
         onLayoutSaved?.invoke(layout)
+        invalidate()
+    }
+
+    /**
+     * Adjusts the scale factor for a specific control cluster (clamped between 0.5x and 2.0x).
+     */
+    fun setClusterScale(clusterId: String, scale: Float) {
+        val clamped = scale.coerceIn(0.5f, 2.0f)
+        clusterScales[clusterId] = clamped
+        layout = layout.withClusterScale(clusterId, clamped)
         invalidate()
     }
 
@@ -185,6 +249,8 @@ class TouchOverlayView @JvmOverloads constructor(
     fun getKeyMask(): Int = currentKeyMask
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        notifyTouchActivity()
+
         if (isEditMode) {
             return handleEditModeTouchEvent(event)
         }
@@ -240,20 +306,31 @@ class TouchOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_DOWN -> {
                 // Check if user tapped banner buttons
                 if (resetBtnRect.contains(x, y)) {
-                    if (hapticFeedbackEnabledState) {
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        onHapticFeedbackRequested?.invoke()
-                    }
+                    triggerHaptic()
                     resetToDefaultLayout()
                     return true
                 }
                 if (saveBtnRect.contains(x, y)) {
-                    if (hapticFeedbackEnabledState) {
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        onHapticFeedbackRequested?.invoke()
-                    }
+                    triggerHaptic()
                     saveCurrentLayout()
                     return true
+                }
+
+                // Check if user tapped scale adjustment buttons
+                val clusterId = selectedClusterId
+                if (clusterId != null) {
+                    if (scaleDownBtnRect.contains(x, y)) {
+                        triggerHaptic()
+                        val currentScale = clusterScales[clusterId] ?: 1.0f
+                        setClusterScale(clusterId, (currentScale - 0.1f).coerceAtLeast(0.5f))
+                        return true
+                    }
+                    if (scaleUpBtnRect.contains(x, y)) {
+                        triggerHaptic()
+                        val currentScale = clusterScales[clusterId] ?: 1.0f
+                        setClusterScale(clusterId, (currentScale + 0.1f).coerceAtMost(2.0f))
+                        return true
+                    }
                 }
 
                 // Hit test clusters
@@ -264,10 +341,7 @@ class TouchOverlayView @JvmOverloads constructor(
                     dragTouchStartY = y
                     initialAnchorX = cluster.anchorX
                     initialAnchorY = cluster.anchorY
-                    if (hapticFeedbackEnabledState) {
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                        onHapticFeedbackRequested?.invoke()
-                    }
+                    triggerHaptic()
                     invalidate()
                     return true
                 }
@@ -299,14 +373,18 @@ class TouchOverlayView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                if (selectedClusterId != null) {
-                    selectedClusterId = null
-                    invalidate()
-                }
+                // Keep cluster selected for scale adjustment until another touch
                 return true
             }
         }
         return true
+    }
+
+    private fun triggerHaptic() {
+        if (hapticFeedbackEnabledState) {
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            onHapticFeedbackRequested?.invoke()
+        }
     }
 
     private fun clearPointers() {
@@ -352,9 +430,10 @@ class TouchOverlayView @JvmOverloads constructor(
             drawEditModeOverlay(canvas, viewW, viewH)
         }
 
-        // 2. Draw Virtual Controls
-        val alphaInt = if (isEditMode) 220 else (opacity * 255).toInt().coerceIn(0, 255)
-        val highlightAlphaInt = if (isEditMode) 255 else ((opacity * 1.5f).coerceAtMost(1.0f) * 255).toInt()
+        // 2. Draw Virtual Controls (incorporating auto-dimming opacity)
+        val currentEffectiveOpacity = getEffectiveOpacity()
+        val alphaInt = if (isEditMode) 220 else (currentEffectiveOpacity * 255).toInt().coerceIn(0, 255)
+        val highlightAlphaInt = if (isEditMode) 255 else ((currentEffectiveOpacity * 1.5f).coerceAtMost(1.0f) * 255).toInt()
 
         for (control in layout.controls) {
             val isPressed = !isEditMode && isControlPressed(control)
@@ -445,7 +524,9 @@ class TouchOverlayView @JvmOverloads constructor(
             // Draw cluster label badge
             textPaint.textSize = 22f
             textPaint.color = if (isSelected) Color.argb(255, 0, 229, 255) else Color.argb(200, 180, 210, 255)
-            canvas.drawText(cluster.label, cluster.anchorX, tempRect.top - 8f, textPaint)
+            val currentScale = clusterScales[cluster.id] ?: 1.0f
+            val labelWithScale = "${cluster.label} (${String.format("%.1f", currentScale)}x)"
+            canvas.drawText(labelWithScale, cluster.anchorX, tempRect.top - 8f, textPaint)
         }
 
         // Top Banner
@@ -477,7 +558,7 @@ class TouchOverlayView @JvmOverloads constructor(
         // Title (Center)
         textPaint.textSize = 20f
         textPaint.color = Color.argb(255, 0, 229, 255)
-        canvas.drawText("Controls Placement", topBannerRect.centerX(), topBannerRect.centerY() + 7f, textPaint)
+        canvas.drawText("Controls Editor", topBannerRect.centerX(), topBannerRect.centerY() + 7f, textPaint)
 
         // "Save & Exit" Button (Right)
         saveBtnRect.set(topBannerRect.right - btnW - 8f, btnY, topBannerRect.right - 8f, btnY + btnH)
@@ -486,6 +567,47 @@ class TouchOverlayView @JvmOverloads constructor(
         textPaint.textSize = 18f
         textPaint.color = Color.WHITE
         canvas.drawText("✓ Save", saveBtnRect.centerX(), saveBtnRect.centerY() + 6f, textPaint)
+
+        // Bottom Cluster Scale Adjustment Toolbar (when cluster selected)
+        val selId = selectedClusterId
+        if (selId != null) {
+            val scaleToolbarW = Math.min(viewW * 0.80f, 360f)
+            val scaleToolbarH = 44f
+            val scaleToolbarLeft = (viewW - scaleToolbarW) * 0.5f
+            val scaleToolbarTop = viewH - scaleToolbarH - 24f
+            scaleControlRect.set(scaleToolbarLeft, scaleToolbarTop, scaleToolbarLeft + scaleToolbarW, scaleToolbarTop + scaleToolbarH)
+
+            editorFillPaint.color = Color.argb(240, 22, 28, 42)
+            canvas.drawRoundRect(scaleControlRect, 12f, 12f, editorFillPaint)
+            editorBoxPaint.color = Color.argb(200, 0, 229, 255)
+            canvas.drawRoundRect(scaleControlRect, 12f, 12f, editorBoxPaint)
+
+            val ctrlBtnW = 44f
+            val ctrlBtnH = 34f
+            val ctrlBtnY = scaleToolbarTop + 5f
+
+            // Scale - Button
+            scaleDownBtnRect.set(scaleToolbarLeft + 8f, ctrlBtnY, scaleToolbarLeft + 8f + ctrlBtnW, ctrlBtnY + ctrlBtnH)
+            editorFillPaint.color = Color.argb(255, 45, 55, 75)
+            canvas.drawRoundRect(scaleDownBtnRect, 8f, 8f, editorFillPaint)
+            textPaint.textSize = 20f
+            textPaint.color = Color.WHITE
+            canvas.drawText("➖", scaleDownBtnRect.centerX(), scaleDownBtnRect.centerY() + 7f, textPaint)
+
+            // Current Scale Label
+            val curScale = clusterScales[selId] ?: 1.0f
+            textPaint.textSize = 16f
+            textPaint.color = Color.argb(255, 0, 229, 255)
+            canvas.drawText("Cluster Scale: ${String.format("%.1f", curScale)}x", scaleControlRect.centerX(), scaleControlRect.centerY() + 6f, textPaint)
+
+            // Scale + Button
+            scaleUpBtnRect.set(scaleControlRect.right - ctrlBtnW - 8f, ctrlBtnY, scaleControlRect.right - 8f, ctrlBtnY + ctrlBtnH)
+            editorFillPaint.color = Color.argb(255, 45, 55, 75)
+            canvas.drawRoundRect(scaleUpBtnRect, 8f, 8f, editorFillPaint)
+            textPaint.textSize = 20f
+            textPaint.color = Color.WHITE
+            canvas.drawText("➕", scaleUpBtnRect.centerX(), scaleUpBtnRect.centerY() + 7f, textPaint)
+        }
     }
 
     private fun isControlPressed(control: VirtualControl): Boolean {
@@ -497,3 +619,4 @@ class TouchOverlayView @JvmOverloads constructor(
         return false
     }
 }
+

@@ -212,5 +212,61 @@ class TouchLayoutTest {
         assertNotNull(hitCluster)
         assertEquals(TouchLayout.CLUSTER_DPAD, hitCluster!!.id)
     }
+
+    @Test
+    fun `20 percent hitbox expansion detects touches slightly outside visual boundary`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val btnA = layout.controls.first { it.id == TouchLayout.ID_A }
+
+        // Point exactly at 1.10x radius (outside 1.0x visual, but inside 1.20x slop)
+        val nearPointX = btnA.cx + btnA.halfWidth * 1.10f
+        val nearPointY = btnA.cy
+
+        val inputMask = layout.inputAt(nearPointX, nearPointY)
+        assertEquals(RetroKey.KEY_A, inputMask, "20% touch slop must activate button within 1.20x radius")
+
+        // Point at 1.35x radius (outside 1.20x slop)
+        val farPointX = btnA.cx + btnA.halfWidth * 1.35f
+        val farPointY = btnA.cy
+
+        val farMask = layout.inputAt(farPointX, farPointY)
+        assertEquals(RetroKey.NO_KEYS_MASK, farMask, "Point beyond 1.20x slop must not activate button")
+    }
+
+    @Test
+    fun `thumb roll assist activates both buttons when rolling across A and B corridor`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val btnA = layout.controls.first { it.id == TouchLayout.ID_A }
+        val btnB = layout.controls.first { it.id == TouchLayout.ID_B }
+
+        // Midpoint between B and A
+        val midX = (btnA.cx + btnB.cx) * 0.5f
+        val midY = (btnA.cy + btnB.cy) * 0.5f
+
+        val rollMask = layout.inputAt(midX, midY)
+        assertEquals(RetroKey.KEY_A or RetroKey.KEY_B, rollMask, "Rolling between A and B must activate both keys")
+    }
+
+    @Test
+    fun `withClusterScale scales cluster controls around anchor center`() {
+        val layout = TouchLayout.portrait(1080f, 1920f)
+        val origActionCluster = layout.getCluster(TouchLayout.CLUSTER_ACTION)!!
+        val origBtnA = layout.controls.first { it.id == TouchLayout.ID_A }
+        val origBtnB = layout.controls.first { it.id == TouchLayout.ID_B }
+
+        // Scale action cluster to 1.5x
+        val scaledLayout = layout.withClusterScale(TouchLayout.CLUSTER_ACTION, 1.5f)
+        val scaledBtnA = scaledLayout.controls.first { it.id == TouchLayout.ID_A }
+        val scaledBtnB = scaledLayout.controls.first { it.id == TouchLayout.ID_B }
+
+        assertEquals(origBtnA.halfWidth * 1.5f, scaledBtnA.halfWidth, 0.001f)
+        assertEquals(origBtnB.halfWidth * 1.5f, scaledBtnB.halfWidth, 0.001f)
+
+        // Cluster anchor should remain identical
+        val newCluster = scaledLayout.getCluster(TouchLayout.CLUSTER_ACTION)!!
+        assertEquals(origActionCluster.anchorX, newCluster.anchorX, 0.001f)
+        assertEquals(origActionCluster.anchorY, newCluster.anchorY, 0.001f)
+    }
 }
+
 

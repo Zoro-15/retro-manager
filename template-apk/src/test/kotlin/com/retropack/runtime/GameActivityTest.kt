@@ -203,6 +203,8 @@ class GameActivityTest {
         assertEquals(0.75f, activity.touchOverlay!!.opacity, 0.001f)
         assertNotNull(activity.quickMenu, "QuickMenuOverlay must be initialized")
         assertNotNull(activity.settingsOverlay, "InGameSettingsOverlay must be initialized")
+        assertNotNull(activity.moreFeaturesSheet, "MoreFeaturesSheet must be initialized")
+        assertNotNull(activity.saveStateManager, "SaveStateManager must be initialized")
     }
 
     @Test

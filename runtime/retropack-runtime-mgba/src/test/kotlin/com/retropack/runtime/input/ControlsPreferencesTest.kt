@@ -74,4 +74,46 @@ class ControlsPreferencesTest {
         ControlsPreferences.saveScaleMode(context, ScaleMode.INTEGER_FIT)
         assertEquals(ScaleMode.INTEGER_FIT, ControlsPreferences.loadScaleMode(context, ScaleMode.ASPECT_FIT))
     }
+
+    @Test
+    fun `persists and loads cluster scales for portrait and landscape`() {
+        val portraitScales = mapOf(
+            TouchLayout.CLUSTER_DPAD to 1.3f,
+            TouchLayout.CLUSTER_ACTION to 0.8f
+        )
+        ControlsPreferences.saveLayoutScales(context, isLandscape = false, portraitScales)
+
+        val loaded = ControlsPreferences.loadLayoutScales(context, isLandscape = false)
+        assertNotNull(loaded)
+        assertEquals(1.3f, loaded!![TouchLayout.CLUSTER_DPAD]!!, 0.001f)
+        assertEquals(0.8f, loaded[TouchLayout.CLUSTER_ACTION]!!, 0.001f)
+    }
+
+    @Test
+    fun `persists and loads fast-forward and feature hub preferences`() {
+        ControlsPreferences.saveFastForwardSpeed(context, 4)
+        assertEquals(4, ControlsPreferences.loadFastForwardSpeed(context, 1))
+
+        ControlsPreferences.saveMuteAudioOnFastForward(context, false)
+        assertFalse(ControlsPreferences.loadMuteAudioOnFastForward(context, true))
+
+        ControlsPreferences.saveTurboEnabled(context, true)
+        assertTrue(ControlsPreferences.loadTurboEnabled(context, false))
+
+        ControlsPreferences.saveComboMacroEnabled(context, true)
+        assertTrue(ControlsPreferences.loadComboMacroEnabled(context, false))
+
+        ControlsPreferences.saveTouchTheme(context, "cyber")
+        assertEquals("cyber", ControlsPreferences.loadTouchTheme(context, "neon"))
+
+        ControlsPreferences.saveLcdGridEnabled(context, true)
+        assertTrue(ControlsPreferences.loadLcdGridEnabled(context, false))
+
+        ControlsPreferences.saveGbaColorCorrectionEnabled(context, true)
+        assertTrue(ControlsPreferences.loadGbaColorCorrectionEnabled(context, false))
+
+        ControlsPreferences.saveBezelEnabled(context, true)
+        assertTrue(ControlsPreferences.loadBezelEnabled(context, false))
+    }
 }
+
