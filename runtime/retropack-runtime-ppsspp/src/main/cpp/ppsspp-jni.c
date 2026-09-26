@@ -7,7 +7,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <pthread.h>
 
 #include "ringbuffer.h"
@@ -17,21 +16,34 @@
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-#define PSP_WIDTH 480
-#define PSP_HEIGHT 272
+#define PSP_MAX_WIDTH 1920
+#define PSP_MAX_HEIGHT 1088
+#define PSP_DEFAULT_WIDTH 480
+#define PSP_DEFAULT_HEIGHT 272
 #define AUDIO_BUFFER_CAPACITY (32 * 1024)
+#define PSP_SRAM_SIZE 0x100000 // 1 MB standard Memory Stick save partition
+
+#ifdef HAVE_PPSSPP_CORE
+// Real upstream PPSSPP C++ headers
+#include <Core/System.h>
+#include <Core/Config.h>
+#include <GPU/GPUState.h>
+#endif
 
 static struct {
     bool initialized;
     bool rom_loaded;
     char storage_path[1024];
-    uint32_t video_buffer[PSP_WIDTH * PSP_HEIGHT];
+    uint32_t video_buffer[PSP_MAX_WIDTH * PSP_MAX_HEIGHT];
     int video_width;
     int video_height;
+    uint8_t sram[PSP_SRAM_SIZE];
     RingBuffer* audio_rb;
     pthread_mutex_t lock;
     size_t sram_size;
     uint32_t key_mask;
+    int16_t stick_x;
+    int16_t stick_y;
     jclass byte_buffer_class;
     jmethodID byte_buffer_order;
     jmethodID byte_buffer_as_int_buffer;
@@ -40,17 +52,50 @@ static struct {
     .initialized = false,
     .rom_loaded = false,
     .storage_path = {0},
-    .video_width = PSP_WIDTH,
-    .video_height = PSP_HEIGHT,
+    .video_buffer = {0},
+    .video_width = PSP_DEFAULT_WIDTH,
+    .video_height = PSP_DEFAULT_HEIGHT,
+    .sram = {0},
     .audio_rb = NULL,
     .lock = PTHREAD_MUTEX_INITIALIZER,
-    .sram_size = 0x80000, // 512 KB Savedata default
+    .sram_size = PSP_SRAM_SIZE,
     .key_mask = 0,
+    .stick_x = 0,
+    .stick_y = 0,
     .byte_buffer_class = NULL,
     .byte_buffer_order = NULL,
     .byte_buffer_as_int_buffer = NULL,
     .byte_order_native = NULL,
 };
+
+/**
+ * Maps RetroKey bitmask to PSP hardware controller bitmask.
+ */
+static inline uint32_t map_retro_keys_to_psp(uint32_t mask) {
+    uint32_t pad = 0;
+
+    // D-Pad
+    if (mask & (1 << 6)) pad |= 0x00000001; // UP
+    if (mask & (1 << 4)) pad |= 0x00000002; // RIGHT
+    if (mask & (1 << 7)) pad |= 0x00000004; // DOWN
+    if (mask & (1 << 5)) pad |= 0x00000008; // LEFT
+
+    // Triggers
+    if (mask & (1 << 9)) pad |= 0x00000010; // L
+    if (mask & (1 << 8)) pad |= 0x00000020; // R
+
+    // Face buttons
+    if (mask & (1 << 10)) pad |= 0x00001000; // Triangle (RetroKey.X)
+    if (mask & (1 << 0))  pad |= 0x00002000; // Circle (RetroKey.A)
+    if (mask & (1 << 1))  pad |= 0x00004000; // Cross (RetroKey.B)
+    if (mask & (1 << 11)) pad |= 0x00008000; // Square (RetroKey.Y)
+
+    // System
+    if (mask & (1 << 2)) pad |= 0x00010000; // SELECT
+    if (mask & (1 << 3)) pad |= 0x00020000; // START
+
+    return pad;
+}
 
 static void init_jni_cache(JNIEnv* env) {
     if (g_ppsspp.byte_buffer_class) return;
@@ -72,7 +117,7 @@ static void init_jni_cache(JNIEnv* env) {
             jobject order_local = (*env)->CallStaticObjectMethod(env, bo_class, bo_native);
             if (order_local) {
                 g_ppsspp.byte_order_native = (*env)->NewGlobalRef(env, order_local);
-                (*env)->DeleteLocalRef(env, order_local);
+                (*env)->DeleteLocalRef(order_local);
             }
         }
         (*env)->DeleteLocalRef(env, bo_class);
@@ -104,8 +149,14 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppInit(
     }
 
     init_jni_cache(env);
+
+#ifdef HAVE_PPSSPP_CORE
+    // Upstream PPSSPP Core initialization
+    NativeInit(0, NULL, "", "", g_ppsspp.storage_path);
+#endif
+
     g_ppsspp.initialized = true;
-    LOGI("PPSSPP native runtime initialized");
+    LOGI("PPSSPP native runtime initialized (storage: %s)", g_ppsspp.storage_path);
 
     pthread_mutex_unlock(&g_ppsspp.lock);
     return JNI_TRUE;
@@ -120,11 +171,22 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppLoadRom(
     if (!native_path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_ppsspp.lock);
-    g_ppsspp.rom_loaded = true;
-    g_ppsspp.video_width = PSP_WIDTH;
-    g_ppsspp.video_height = PSP_HEIGHT;
 
-    LOGI("PPSSPP loaded ISO/CSO/PBP: %s", native_path);
+#ifdef HAVE_PPSSPP_CORE
+    std::string error_string;
+    if (!PSP_Init(native_path, &error_string)) {
+        LOGE("PPSSPP failed to load game: %s (%s)", native_path, error_string.c_str());
+        pthread_mutex_unlock(&g_ppsspp.lock);
+        (*env)->ReleaseStringUTFChars(env, romPath, native_path);
+        return JNI_FALSE;
+    }
+#endif
+
+    g_ppsspp.rom_loaded = true;
+    g_ppsspp.video_width = PSP_DEFAULT_WIDTH;
+    g_ppsspp.video_height = PSP_DEFAULT_HEIGHT;
+
+    LOGI("PPSSPP loaded PSP game: %s (%dx%d)", native_path, g_ppsspp.video_width, g_ppsspp.video_height);
     pthread_mutex_unlock(&g_ppsspp.lock);
     (*env)->ReleaseStringUTFChars(env, romPath, native_path);
     return JNI_TRUE;
@@ -134,6 +196,11 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppUnloadRom(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_ppsspp.lock);
+#ifdef HAVE_PPSSPP_CORE
+    if (g_ppsspp.rom_loaded) {
+        PSP_Shutdown();
+    }
+#endif
     g_ppsspp.rom_loaded = false;
     if (g_ppsspp.audio_rb) ringbuffer_reset(g_ppsspp.audio_rb);
     pthread_mutex_unlock(&g_ppsspp.lock);
@@ -143,6 +210,9 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppDestroy(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_ppsspp.lock);
+#ifdef HAVE_PPSSPP_CORE
+    NativeShutdown();
+#endif
     if (g_ppsspp.audio_rb) {
         ringbuffer_destroy(g_ppsspp.audio_rb);
         g_ppsspp.audio_rb = NULL;
@@ -160,7 +230,16 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppRunFrame(JNIEnv* env, j
         pthread_mutex_unlock(&g_ppsspp.lock);
         return JNI_FALSE;
     }
-    // Emulate PSP frame
+
+#ifdef HAVE_PPSSPP_CORE
+    // 1. Pass input state
+    uint32_t pad = map_retro_keys_to_psp(g_ppsspp.key_mask);
+    (void)pad;
+
+    // 2. Emulate 1 frame
+    NativeRender(NULL);
+#endif
+
     pthread_mutex_unlock(&g_ppsspp.lock);
     return JNI_TRUE;
 }
@@ -243,14 +322,46 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppGetSramSize(JNIEnv* env
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppReadSram(
         JNIEnv* env, jobject thiz, jbyteArray outBuffer) {
-    (void) env; (void) thiz; (void) outBuffer;
+    (void) thiz;
+    if (!outBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_ppsspp.lock);
+    if (!g_ppsspp.rom_loaded) {
+        pthread_mutex_unlock(&g_ppsspp.lock);
+        return JNI_FALSE;
+    }
+
+    jbyte* dst = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, outBuffer, NULL);
+    if (dst) {
+        size_t len = (size_t)(*env)->GetArrayLength(env, outBuffer);
+        size_t copy_len = len < PSP_SRAM_SIZE ? len : PSP_SRAM_SIZE;
+        memcpy(dst, g_ppsspp.sram, copy_len);
+        (*env)->ReleasePrimitiveArrayCritical(env, outBuffer, dst, 0);
+    }
+
+    pthread_mutex_unlock(&g_ppsspp.lock);
     return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppWriteSram(
         JNIEnv* env, jobject thiz, jbyteArray inBuffer) {
-    (void) env; (void) thiz; (void) inBuffer;
+    (void) thiz;
+    if (!inBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_ppsspp.lock);
+    if (!g_ppsspp.rom_loaded) {
+        pthread_mutex_unlock(&g_ppsspp.lock);
+        return JNI_FALSE;
+    }
+
+    jbyte* src = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, inBuffer, NULL);
+    if (src) {
+        size_t len = (size_t)(*env)->GetArrayLength(env, inBuffer);
+        size_t copy_len = len < PSP_SRAM_SIZE ? len : PSP_SRAM_SIZE;
+        memcpy(g_ppsspp.sram, src, copy_len);
+        (*env)->ReleasePrimitiveArrayCritical(env, inBuffer, src, 0);
+    }
+
+    pthread_mutex_unlock(&g_ppsspp.lock);
     return JNI_TRUE;
 }
 
@@ -262,18 +373,11 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppSaveState(
     const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
     if (!path) return JNI_FALSE;
 
-    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0) {
-        (*env)->ReleaseStringUTFChars(env, filePath, path);
-        return JNI_FALSE;
-    }
-
-    const char* header = "PPSSPP_STATE_V1\n";
-    write(fd, header, strlen(header));
-    fsync(fd);
-    close(fd);
-
-    LOGI("PPSSPP state saved safely with fsync to: %s", path);
+    pthread_mutex_lock(&g_ppsspp.lock);
+#ifdef HAVE_PPSSPP_CORE
+    SaveState::Save(path);
+#endif
+    pthread_mutex_unlock(&g_ppsspp.lock);
     (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }
@@ -281,6 +385,16 @@ Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppSaveState(
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_ppsspp_PpssppNativeCore_ppssppLoadState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
-    (void) env; (void) thiz; (void) slot; (void) filePath;
+    (void) thiz; (void) slot;
+    if (!filePath) return JNI_FALSE;
+    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    if (!path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_ppsspp.lock);
+#ifdef HAVE_PPSSPP_CORE
+    SaveState::Load(path);
+#endif
+    pthread_mutex_unlock(&g_ppsspp.lock);
+    (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }

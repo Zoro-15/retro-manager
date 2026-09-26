@@ -73,11 +73,17 @@ with open(path, "w") as f:
 print(f"  updated {path}")
 PY
 
-  # If this is mgba-unified, update compiled-in anchors in RuntimeRegistry.kt and RuntimeDescriptor.kt
+  # If this runtime is registered in RuntimeRegistry.kt, update its compiled-in whole-APK anchor
   local runtime_id="$(basename "$bundle_dir")"
+  local const_name="RUNTIME_${runtime_id//-/_}"
+  const_name="${const_name^^}"
+  
+  if grep -q "$const_name" "$REGISTRY"; then
+    perl -0pi -e "s/(${const_name} to \")[0-9a-fA-F]{64}(\")/\${1}${apk_hash}\${2}/" "$REGISTRY"
+    echo "  updated $const_name in $REGISTRY"
+  fi
+
   if [[ "$runtime_id" == "mgba-unified" ]]; then
-    # TRUSTED_TEMPLATES whole-APK hash
-    perl -0pi -e "s/(RUNTIME_MGBA_UNIFIED to \")[0-9a-fA-F]{64}(\")/\${1}${apk_hash}\${2}/" "$REGISTRY"
     if [[ -n "$so_name" ]]; then
       perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"${so_hash}\"/g" "$REGISTRY"
       perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"sha256:[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"sha256:${so_hash}\"/g" "$DESCRIPTOR"
@@ -86,6 +92,7 @@ PY
     perl -0pi -e "s/(\"classes\.dex\" to \"sha256:)[0-9a-fA-F]{64}(\")/\${1}${dex_hash}\${2}/g" "$DESCRIPTOR"
     echo "  updated $REGISTRY & $DESCRIPTOR"
   fi
+
 }
 
 if [[ $# -ge 1 ]]; then

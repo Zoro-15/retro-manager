@@ -230,6 +230,11 @@ open class GameActivity : Activity() {
             to.onToggleQuickMenuRequested = {
                 quickMenu?.let { q -> q.isExpanded = !q.isExpanded }
             }
+            to.onStylusTouch = { x, y, isTouching ->
+                if (config.game.platform.lowercase() == "nds" || config.runtime.core.contains("melon")) {
+                    com.retropack.runtime.melonds.MelondsNativeCore.nativeSetTouch(x, y, isTouching)
+                }
+            }
 
             this.touchOverlay = to
             root.addView(to, FrameLayout.LayoutParams(

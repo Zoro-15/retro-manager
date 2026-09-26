@@ -22,17 +22,33 @@ object RomParser {
 
     /**
      * Inspects a ROM byte array and resolves its complete [RomIdentity].
+     * Transparently unpacks ZIP and RAR archives and re-validates the inner candidate ROM.
      */
     fun parse(bytes: ByteArray, fileName: String? = null): RomIdentity {
-        val checksumResult = StreamChecksum.calculate(bytes)
-        return parseWithChecksums(bytes, checksumResult, bytes.size.toLong(), fileName)
+        val candidate = if (ArchiveExtractor.isArchive(bytes, fileName)) {
+            val extracted = ArchiveExtractor.extractCandidateRom(bytes, fileName ?: "archive.zip")
+            if (extracted.isExtractedFromArchive) extracted else null
+        } else {
+            null
+        }
+
+        val targetBytes = candidate?.bytes ?: bytes
+        val targetFileName = candidate?.candidateFileName ?: fileName
+        val checksumResult = StreamChecksum.calculate(targetBytes)
+        return parseWithChecksums(targetBytes, checksumResult, targetBytes.size.toLong(), targetFileName)
     }
 
     /**
      * Inspects a ROM file in a single streaming pass: checksums plus a bounded
-     * header prefix up to 64 KB.
+     * header prefix up to 64 KB. Transparently extracts ZIP and RAR archives.
      */
     fun parse(file: File): RomIdentity {
+        if (ArchiveExtractor.isArchive(file.readBytes().take(16).toByteArray(), file.name)) {
+            val extracted = ArchiveExtractor.extractCandidateRom(file)
+            if (extracted.isExtractedFromArchive) {
+                return parse(extracted.bytes, extracted.candidateFileName)
+            }
+        }
         val (checksumResult, prefix) =
             StreamChecksum.calculateWithPrefix(file, MAX_HEADER_PROBE_SIZE)
         return parseWithChecksums(prefix, checksumResult, checksumResult.totalBytes, file.name)
@@ -221,21 +237,33 @@ object RomParser {
         if (!fileName.isNullOrBlank()) {
             val ext = fileName.substringAfterLast('.', "").lowercase()
             val fallbackPlatform = when (ext) {
-                "gba" -> "gba"
-                "gbc" -> "gbc"
-                "gb" -> "gb"
-                "sfc", "smc", "snes", "fig" -> "snes"
-                "nes", "fds", "unf" -> "nes"
-                "md", "smd", "gen" -> "genesis"
+                // Game Boy / Color / Advance
+                "gba", "agb" -> "gba"
+                "gbc", "cgb" -> "gbc"
+                "gb", "sgb" -> "gb"
+                // Super Nintendo
+                "sfc", "smc", "snes", "fig", "swc", "bs", "gd3", "gd7", "dx2" -> "snes"
+                // NES / Famicom
+                "nes", "fds", "unf", "unif", "fam" -> "nes"
+                // Sega Genesis / Master System / Game Gear / SG-1000
+                "md", "smd", "gen", "68k", "sgd" -> "genesis"
                 "sms" -> "sms"
                 "gg" -> "gg"
-                "pce", "tg16", "sgx" -> "pce"
-                "n64", "z64", "v64" -> "n64"
-                "nds", "srl", "dsi" -> "nds"
-                "iso", "cso" -> "psp"
+                "sg", "sc" -> "genesis"
+                // PC Engine / TG-16 / SuperGrafx / PCE-CD
+                "pce", "tg16", "sgx", "ccd", "toc" -> "pce"
+                // Nintendo 64
+                "n64", "z64", "v64", "u64", "ndd" -> "n64"
+                // Nintendo DS / DSi
+                "nds", "srl", "dsi", "ids" -> "nds"
+                // PlayStation Portable / PS1 / Disc Images
+                "cso", "prx", "elf" -> "psp"
                 "pbp" -> "psp"
-                "cue", "chd" -> "psx"
-                "zip", "7z" -> "arcade"
+                "cue", "chd", "img", "mdf", "ecm" -> "psx"
+                "iso" -> "psp"
+                // Arcade / Neo Geo
+                "neo" -> "arcade"
+                "zip", "7z", "rar" -> "arcade"
                 "bin" -> "genesis"
                 else -> null
             }

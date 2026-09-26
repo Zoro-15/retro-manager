@@ -171,6 +171,9 @@ class TouchOverlayView @JvmOverloads constructor(
     var onToggleFastForwardRequested: (() -> Unit)? = null
     var onToggleQuickMenuRequested: (() -> Unit)? = null
 
+    /** Stylus touch callback for Nintendo DS: (ndsX: 0..255, ndsY: 0..191, isTouching: Boolean) */
+    var onStylusTouch: ((x: Int, y: Int, isTouching: Boolean) -> Unit)? = null
+
     var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
         private set
 
@@ -527,11 +530,58 @@ class TouchOverlayView @JvmOverloads constructor(
                 joystick.onUp()
                 dynamicDpadActive = false
                 dynamicDpadPointerId = null
+                onStylusTouch?.invoke(0, 0, false)
             }
         }
 
+        updateStylusTouch()
         updateKeyMask()
         return true
+    }
+
+    private fun updateStylusTouch() {
+        val callback = onStylusTouch ?: return
+        val viewW = if (width > 0) width.toFloat() else layout.width
+        val viewH = if (height > 0) height.toFloat() else layout.height
+        if (viewW <= 0f || viewH <= 0f) return
+
+        // Check active pointers that are not hitting physical buttons or joystick
+        for ((_, pt) in activePointers) {
+            val (px, py) = pt
+            // If pointer is inside a button or active joystick, skip it
+            if (layout.inputAt(px, py) != RetroKey.NO_KEYS_MASK) continue
+            if (joystick.isActive && Math.hypot((px - joystick.baseCenterX).toDouble(), (py - joystick.baseCenterY).toDouble()) <= joystick.baseRadius * 1.5) continue
+
+            // Bottom screen region for NDS (256x384 stacked display)
+            val targetAspect = 256.0f / 384.0f
+            val currentAspect = viewW / viewH
+            val vpW: Float
+            val vpH: Float
+            val vpX: Float
+            val vpY: Float
+
+            if (currentAspect > targetAspect) {
+                vpH = viewH
+                vpW = viewH * targetAspect
+                vpX = (viewW - vpW) * 0.5f
+                vpY = 0f
+            } else {
+                vpW = viewW
+                vpH = viewW / targetAspect
+                vpX = 0f
+                vpY = (viewH - vpH) * 0.5f
+            }
+
+            val bottomTop = vpY + vpH * 0.5f
+            val bottomHeight = vpH * 0.5f
+
+            if (px >= vpX && px <= vpX + vpW && py >= bottomTop && py <= vpY + vpH) {
+                val ndsX = (((px - vpX) / vpW) * 256f).toInt().coerceIn(0, 255)
+                val ndsY = (((py - bottomTop) / bottomHeight) * 192f).toInt().coerceIn(0, 191)
+                callback.invoke(ndsX, ndsY, true)
+                return
+            }
+        }
     }
 
     private fun handleEditModeTouchEvent(event: MotionEvent): Boolean {

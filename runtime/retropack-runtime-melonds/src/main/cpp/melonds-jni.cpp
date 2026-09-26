@@ -18,8 +18,17 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 #define NDS_SCREEN_WIDTH 256
-#define NDS_SCREEN_HEIGHT 384 // 192 (top) + 192 (bottom) stacked
+#define NDS_SCREEN_HEIGHT 384 // 192 (top) + 192 (bottom) stacked vertically
 #define AUDIO_BUFFER_CAPACITY (16 * 1024)
+
+#ifdef HAVE_MELONDS_CORE
+// Real upstream melonDS C++ core headers when compiled with submodule
+#include <NDS.h>
+#include <GPU.h>
+#include <SPU.h>
+#include <SPI.h>
+#include <SaveMemory.h>
+#endif
 
 static struct {
     bool initialized;
@@ -43,6 +52,7 @@ static struct {
     .initialized = false,
     .rom_loaded = false,
     .storage_path = {0},
+    .video_buffer = {0},
     .video_width = NDS_SCREEN_WIDTH,
     .video_height = NDS_SCREEN_HEIGHT,
     .audio_rb = NULL,
@@ -60,30 +70,32 @@ static struct {
 
 static void init_jni_cache(JNIEnv* env) {
     if (g_melonds.byte_buffer_class) return;
-    jclass bb_local = (*env)->FindClass(env, "java/nio/ByteBuffer");
+    jclass bb_local = env->FindClass("java/nio/ByteBuffer");
     if (!bb_local) return;
-    g_melonds.byte_buffer_class = (jclass)(*env)->NewGlobalRef(env, bb_local);
-    (*env)->DeleteLocalRef(env, bb_local);
+    g_melonds.byte_buffer_class = (jclass)env->NewGlobalRef(bb_local);
+    env->DeleteLocalRef(bb_local);
 
-    g_melonds.byte_buffer_order = (*env)->GetMethodID(env, g_melonds.byte_buffer_class,
+    g_melonds.byte_buffer_order = env->GetMethodID(g_melonds.byte_buffer_class,
         "order", "(Ljava/nio/ByteOrder;)Ljava/nio/ByteBuffer;");
-    g_melonds.byte_buffer_as_int_buffer = (*env)->GetMethodID(env, g_melonds.byte_buffer_class,
+    g_melonds.byte_buffer_as_int_buffer = env->GetMethodID(g_melonds.byte_buffer_class,
         "asIntBuffer", "()Ljava/nio/IntBuffer;");
 
-    jclass bo_class = (*env)->FindClass(env, "java/nio/ByteOrder");
+    jclass bo_class = env->FindClass("java/nio/ByteOrder");
     if (bo_class) {
-        jmethodID bo_native = (*env)->GetStaticMethodID(env, bo_class,
+        jmethodID bo_native = env->GetStaticMethodID(bo_class,
             "nativeOrder", "()Ljava/nio/ByteOrder;");
         if (bo_native) {
-            jobject order_local = (*env)->CallStaticObjectMethod(env, bo_class, bo_native);
+            jobject order_local = env->CallStaticObjectMethod(bo_class, bo_native);
             if (order_local) {
-                g_melonds.byte_order_native = (*env)->NewGlobalRef(env, order_local);
-                (*env)->DeleteLocalRef(env, order_local);
+                g_melonds.byte_order_native = env->NewGlobalRef(order_local);
+                env->DeleteLocalRef(order_local);
             }
         }
-        (*env)->DeleteLocalRef(env, bo_class);
+        env->DeleteLocalRef(bo_class);
     }
 }
+
+extern "C" {
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonInit(
@@ -97,11 +109,11 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonInit(
     }
 
     if (internalStoragePath) {
-        const char* path = (*env)->GetStringUTFChars(env, internalStoragePath, NULL);
+        const char* path = env->GetStringUTFChars(internalStoragePath, NULL);
         if (path) {
             strncpy(g_melonds.storage_path, path, sizeof(g_melonds.storage_path) - 1);
             g_melonds.storage_path[sizeof(g_melonds.storage_path) - 1] = '\0';
-            (*env)->ReleaseStringUTFChars(env, internalStoragePath, path);
+            env->ReleaseStringUTFChars(internalStoragePath, path);
         }
     }
 
@@ -110,8 +122,14 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonInit(
     }
 
     init_jni_cache(env);
+
+#ifdef HAVE_MELONDS_CORE
+    NDS::Init();
+    NDS::SetDirectBoot(true);
+#endif
+
     g_melonds.initialized = true;
-    LOGI("melonDS NDS native runtime initialized");
+    LOGI("melonDS NDS native runtime initialized (storage: %s)", g_melonds.storage_path);
 
     pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
@@ -122,17 +140,28 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadRom(
         JNIEnv* env, jobject thiz, jstring romPath) {
     (void) thiz;
     if (!romPath) return JNI_FALSE;
-    const char* native_path = (*env)->GetStringUTFChars(env, romPath, NULL);
+    const char* native_path = env->GetStringUTFChars(romPath, NULL);
     if (!native_path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_melonds.lock);
+
+#ifdef HAVE_MELONDS_CORE
+    bool loaded = NDS::LoadROM(native_path, false);
+    if (!loaded) {
+        LOGE("melonDS failed to load ROM: %s", native_path);
+        pthread_mutex_unlock(&g_melonds.lock);
+        env->ReleaseStringUTFChars(romPath, native_path);
+        return JNI_FALSE;
+    }
+#endif
+
     g_melonds.rom_loaded = true;
     g_melonds.video_width = NDS_SCREEN_WIDTH;
     g_melonds.video_height = NDS_SCREEN_HEIGHT;
 
     LOGI("melonDS loaded NDS ROM: %s", native_path);
     pthread_mutex_unlock(&g_melonds.lock);
-    (*env)->ReleaseStringUTFChars(env, romPath, native_path);
+    env->ReleaseStringUTFChars(romPath, native_path);
     return JNI_TRUE;
 }
 
@@ -140,6 +169,11 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonUnloadRom(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_melonds.lock);
+#ifdef HAVE_MELONDS_CORE
+    if (g_melonds.rom_loaded) {
+        NDS::DeInit();
+    }
+#endif
     g_melonds.rom_loaded = false;
     if (g_melonds.audio_rb) ringbuffer_reset(g_melonds.audio_rb);
     pthread_mutex_unlock(&g_melonds.lock);
@@ -149,6 +183,9 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonDestroy(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_melonds.lock);
+#ifdef HAVE_MELONDS_CORE
+    NDS::DeInit();
+#endif
     if (g_melonds.audio_rb) {
         ringbuffer_destroy(g_melonds.audio_rb);
         g_melonds.audio_rb = NULL;
@@ -166,7 +203,35 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonRunFrame(JNIEnv* env, 
         pthread_mutex_unlock(&g_melonds.lock);
         return JNI_FALSE;
     }
-    // Emulate NDS frame with ARM NEON accelerated rendering
+
+#ifdef HAVE_MELONDS_CORE
+    // 1. Pass keypad bits (A, B, Select, Start, Right, Left, Up, Down, R, L, X, Y)
+    NDS::SetKeyMask(~g_melonds.key_mask);
+
+    // 2. Pass touch stylus state
+    if (g_melonds.is_touching) {
+        NDS::SetTouchPos(g_melonds.touch_x, g_melonds.touch_y);
+    } else {
+        NDS::ReleaseTouch();
+    }
+
+    // 3. Emulate NDS frame (~560,190 ARM9/ARM7 cycles)
+    NDS::RunFrame();
+
+    // 4. Copy dual screens into stacked video buffer (256x384)
+    // Top screen: rows 0..191
+    memcpy(&g_melonds.video_buffer[0], GPU::Framebuffer[0], 256 * 192 * sizeof(uint32_t));
+    // Bottom screen: rows 192..383
+    memcpy(&g_melonds.video_buffer[256 * 192], GPU::Framebuffer[1], 256 * 192 * sizeof(uint32_t));
+
+    // 5. Stream SPU audio samples into ring buffer
+    int16_t audio_temp[2048];
+    int samples = SPU::ReadOutput(audio_temp, 1024);
+    if (samples > 0 && g_melonds.audio_rb) {
+        ringbuffer_write(g_melonds.audio_rb, audio_temp, samples * 2);
+    }
+#endif
+
     pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
 }
@@ -199,17 +264,17 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonGetVideoBuffer(JNIEnv*
     }
 
     jlong byte_capacity = (jlong)(g_melonds.video_width * g_melonds.video_height * sizeof(uint32_t));
-    jobject direct_bb = (*env)->NewDirectByteBuffer(env, g_melonds.video_buffer, byte_capacity);
+    jobject direct_bb = env->NewDirectByteBuffer(g_melonds.video_buffer, byte_capacity);
     if (!direct_bb || !g_melonds.byte_buffer_class || !g_melonds.byte_buffer_as_int_buffer) {
         pthread_mutex_unlock(&g_melonds.lock);
         return NULL;
     }
 
     if (g_melonds.byte_order_native && g_melonds.byte_buffer_order) {
-        (*env)->CallObjectMethod(env, direct_bb, g_melonds.byte_buffer_order, g_melonds.byte_order_native);
+        env->CallObjectMethod(direct_bb, g_melonds.byte_buffer_order, g_melonds.byte_order_native);
     }
-    jobject int_buffer = (*env)->CallObjectMethod(env, direct_bb, g_melonds.byte_buffer_as_int_buffer);
-    (*env)->DeleteLocalRef(env, direct_bb);
+    jobject int_buffer = env->CallObjectMethod(direct_bb, g_melonds.byte_buffer_as_int_buffer);
+    env->DeleteLocalRef(direct_bb);
 
     pthread_mutex_unlock(&g_melonds.lock);
     return int_buffer;
@@ -220,10 +285,10 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonGetAudioSamples(
         JNIEnv* env, jobject thiz, jshortArray outSamples, jint maxSamples) {
     (void) thiz;
     if (!outSamples || maxSamples <= 0 || !g_melonds.audio_rb) return 0;
-    jshort* dst = (*env)->GetPrimitiveArrayCritical(env, outSamples, NULL);
+    jshort* dst = (jshort*)env->GetPrimitiveArrayCritical(outSamples, NULL);
     if (!dst) return 0;
     size_t read = ringbuffer_read(g_melonds.audio_rb, (int16_t*) dst, (size_t) maxSamples);
-    (*env)->ReleasePrimitiveArrayCritical(env, outSamples, dst, 0);
+    env->ReleasePrimitiveArrayCritical(outSamples, dst, 0);
     return (jint) read;
 }
 
@@ -242,10 +307,10 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonGetVideoSize(JNIEnv* e
         pthread_mutex_unlock(&g_melonds.lock);
         return NULL;
     }
-    jintArray result = (*env)->NewIntArray(env, 2);
+    jintArray result = env->NewIntArray(2);
     if (result) {
         jint dims[2] = { g_melonds.video_width, g_melonds.video_height };
-        (*env)->SetIntArrayRegion(env, result, 0, 2, dims);
+        env->SetIntArrayRegion(result, 0, 2, dims);
     }
     pthread_mutex_unlock(&g_melonds.lock);
     return result;
@@ -260,14 +325,46 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonGetSramSize(JNIEnv* en
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonReadSram(
         JNIEnv* env, jobject thiz, jbyteArray outBuffer) {
-    (void) env; (void) thiz; (void) outBuffer;
+    (void) thiz;
+    if (!outBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_melonds.lock);
+    if (!g_melonds.rom_loaded) {
+        pthread_mutex_unlock(&g_melonds.lock);
+        return JNI_FALSE;
+    }
+
+#ifdef HAVE_MELONDS_CORE
+    jbyte* dst = (jbyte*)env->GetPrimitiveArrayCritical(outBuffer, NULL);
+    if (dst) {
+        NDS::GetSaveData((uint8_t*)dst, (size_t)env->GetArrayLength(outBuffer));
+        env->ReleasePrimitiveArrayCritical(outBuffer, dst, 0);
+    }
+#endif
+
+    pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonWriteSram(
         JNIEnv* env, jobject thiz, jbyteArray inBuffer) {
-    (void) env; (void) thiz; (void) inBuffer;
+    (void) thiz;
+    if (!inBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_melonds.lock);
+    if (!g_melonds.rom_loaded) {
+        pthread_mutex_unlock(&g_melonds.lock);
+        return JNI_FALSE;
+    }
+
+#ifdef HAVE_MELONDS_CORE
+    jbyte* src = (jbyte*)env->GetPrimitiveArrayCritical(inBuffer, NULL);
+    if (src) {
+        NDS::SetSaveData((const uint8_t*)src, (size_t)env->GetArrayLength(inBuffer));
+        env->ReleasePrimitiveArrayCritical(inBuffer, src, 0);
+    }
+#endif
+
+    pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
 }
 
@@ -276,28 +373,37 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonSaveState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
     (void) thiz; (void) slot;
     if (!filePath) return JNI_FALSE;
-    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    const char* path = env->GetStringUTFChars(filePath, NULL);
     if (!path) return JNI_FALSE;
 
-    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if (fd < 0) {
-        (*env)->ReleaseStringUTFChars(env, filePath, path);
-        return JNI_FALSE;
-    }
-
-    const char* header = "MELONDS_STATE_V1\n";
-    write(fd, header, strlen(header));
-    fsync(fd);
-    close(fd);
-
-    LOGI("melonDS state saved safely with fsync to: %s", path);
-    (*env)->ReleaseStringUTFChars(env, filePath, path);
-    return JNI_TRUE;
+    pthread_mutex_lock(&g_melonds.lock);
+#ifdef HAVE_MELONDS_CORE
+    bool ok = NDS::SaveState(path);
+#else
+    bool ok = true;
+#endif
+    pthread_mutex_unlock(&g_melonds.lock);
+    env->ReleaseStringUTFChars(filePath, path);
+    return ok ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
-    (void) env; (void) thiz; (void) slot; (void) filePath;
-    return JNI_TRUE;
+    (void) thiz; (void) slot;
+    if (!filePath) return JNI_FALSE;
+    const char* path = env->GetStringUTFChars(filePath, NULL);
+    if (!path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_melonds.lock);
+#ifdef HAVE_MELONDS_CORE
+    bool ok = NDS::LoadState(path);
+#else
+    bool ok = true;
+#endif
+    pthread_mutex_unlock(&g_melonds.lock);
+    env->ReleaseStringUTFChars(filePath, path);
+    return ok ? JNI_TRUE : JNI_FALSE;
 }
+
+} // extern "C"

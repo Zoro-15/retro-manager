@@ -59,46 +59,21 @@ object UriUtils {
         }
     }
 
-    val SUPPORTED_ROM_EXTENSIONS = setOf(
-        ".gba", ".gbc", ".gb",
-        ".sfc", ".smc", ".snes", ".fig",
-        ".nes", ".fds", ".unf",
-        ".md", ".smd", ".gen", ".sms", ".gg", ".bin",
-        ".pce", ".sgx", ".cue", ".iso", ".chd", ".pbp",
-        ".z64", ".n64", ".v64",
-        ".nds", ".srl", ".dsi",
-        ".cso"
-    )
+    val SUPPORTED_ROM_EXTENSIONS = com.retropack.domain.rom.ArchiveExtractor.SUPPORTED_ROM_EXTENSIONS
 
     /**
-     * Inspects incoming byte array. If it is a ZIP archive containing a retro ROM,
+     * Inspects incoming byte array. If it is a ZIP or RAR archive containing a retro ROM,
      * extracts the inner ROM bytes, fileName, and size.
      */
-    fun extractRomIfZip(rawBytes: ByteArray, rawFileName: String): Triple<ByteArray, String, Long> {
-        if (!rawFileName.endsWith(".zip", ignoreCase = true) &&
-            !(rawBytes.size >= 4 && rawBytes[0] == 0x50.toByte() && rawBytes[1] == 0x4B.toByte())
-        ) {
-            return Triple(rawBytes, rawFileName, rawBytes.size.toLong())
-        }
+    fun extractRomIfArchive(rawBytes: ByteArray, rawFileName: String): Triple<ByteArray, String, Long> {
+        val result = com.retropack.domain.rom.ArchiveExtractor.extractCandidateRom(rawBytes, rawFileName)
+        return Triple(result.bytes, result.candidateFileName, result.bytes.size.toLong())
+    }
 
-        try {
-            java.util.zip.ZipInputStream(java.io.ByteArrayInputStream(rawBytes)).use { zis ->
-                var entry = zis.nextEntry
-                while (entry != null) {
-                    if (!entry.isDirectory) {
-                        val name = entry.name.substringAfterLast('/').substringAfterLast('\\')
-                        val lower = name.lowercase(java.util.Locale.US)
-                        if (SUPPORTED_ROM_EXTENSIONS.any { lower.endsWith(it) }) {
-                            val extracted = zis.readBytes()
-                            return Triple(extracted, name, extracted.size.toLong())
-                        }
-                    }
-                    entry = zis.nextEntry
-                }
-            }
-        } catch (_: Exception) {
-            // Fall back to original bytes if not a valid zip
-        }
-        return Triple(rawBytes, rawFileName, rawBytes.size.toLong())
+    /**
+     * Backward-compatible alias for extractRomIfArchive.
+     */
+    fun extractRomIfZip(rawBytes: ByteArray, rawFileName: String): Triple<ByteArray, String, Long> {
+        return extractRomIfArchive(rawBytes, rawFileName)
     }
 }

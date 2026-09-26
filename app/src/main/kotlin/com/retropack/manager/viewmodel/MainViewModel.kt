@@ -81,11 +81,14 @@ class MainViewModel : ViewModel() {
             _uiState.update { it.copy(romState = it.romState.copy(isLoading = true, errorMessage = null)) }
 
             val (rawFileName, rawFileSize) = UriUtils.getFileNameAndSize(context, uri)
+            com.retropack.manager.util.AppLogger.i("ROM_SELECTION", "User selected ROM URI: $uri (Name: $rawFileName, Size: $rawFileSize bytes)")
+
             val rawBytes = withContext(Dispatchers.IO) {
                 UriUtils.readBytesFromUri(context, uri)
             }
 
             if (rawBytes == null || rawBytes.isEmpty()) {
+                com.retropack.manager.util.AppLogger.e("ROM_SELECTION", "Failed to read ROM content bytes from selected URI: $uri")
                 _uiState.update {
                     it.copy(
                         romState = it.romState.copy(
@@ -97,7 +100,10 @@ class MainViewModel : ViewModel() {
                 return@launch
             }
 
-            val (romBytes, fileName, fileSize) = UriUtils.extractRomIfZip(rawBytes, rawFileName)
+            val (romBytes, fileName, fileSize) = UriUtils.extractRomIfArchive(rawBytes, rawFileName)
+            if (fileName != rawFileName) {
+                com.retropack.manager.util.AppLogger.i("ROM_SELECTION", "Archive unpacked: '$rawFileName' -> '$fileName' (${romBytes.size} bytes)")
+            }
 
             val parseResult = withContext(Dispatchers.Default) {
                 runCatching { RomParser.parse(romBytes, fileName) }
@@ -107,6 +113,8 @@ class MainViewModel : ViewModel() {
                 val derivedPkg = identity.derivePackageName()
                 val matchedRuntime = RuntimeRegistry.findRuntimeForPlatform(identity.platform)
                 val templateId = matchedRuntime?.id ?: RuntimeRegistry.RUNTIME_MGBA_UNIFIED
+                com.retropack.manager.util.AppLogger.i("ROM_PARSER", "Header analysis successful: Platform=${identity.platform}, Title='${identity.gameTitle}', Package=$derivedPkg, Template=$templateId, SHA-256=${identity.checksums.sha256}")
+
                 _uiState.update { current ->
                     current.copy(
                         romState = current.romState.copy(
@@ -137,6 +145,7 @@ class MainViewModel : ViewModel() {
                     gameCode = identity.gameCode
                 )
             }.onFailure { err ->
+                com.retropack.manager.util.AppLogger.e("ROM_PARSER", "ROM inspection failed for '$fileName': ${err.message}", err)
                 _uiState.update {
                     it.copy(
                         romState = it.romState.copy(
@@ -146,6 +155,18 @@ class MainViewModel : ViewModel() {
                     )
                 }
             }
+        }
+    }
+
+    fun onViewLatestSessionLog(context: Context) {
+        val logContent = com.retropack.manager.util.AppLogger.readLatestLogText(context)
+        _uiState.update { current ->
+            current.copy(
+                buildState = current.buildState.copy(
+                    showTerminalSheet = true,
+                    rawTerminalLogs = logContent
+                )
+            )
         }
     }
 
@@ -422,6 +443,7 @@ class MainViewModel : ViewModel() {
             fun appendLog(line: String) {
                 val time = dateFormat.format(Date())
                 logBuffer.append("[$time] $line")
+                com.retropack.manager.util.AppLogger.i("TransformationEngine", line)
                 _uiState.update { current ->
                     current.copy(
                         buildState = current.buildState.copy(
@@ -449,6 +471,7 @@ class MainViewModel : ViewModel() {
                 )
             }
 
+            com.retropack.manager.util.AppLogger.i("TransformationEngine", "=== Transformation Pipeline Triggered for ${state.identityState.gameTitle} ===")
             appendLog("$ retropack transform --rom \"${state.romState.fileName}\" --platform \"${romIdentity.platform}\"")
             appendLog("--> Initializing 15-Step Verified Transformation Engine (v${BuildEngine.MANAGER_VERSION})")
             appendLog("--> Ingesting ROM: ${state.identityState.gameTitle} (${romIdentity.checksums.sha256.take(16)}...)")

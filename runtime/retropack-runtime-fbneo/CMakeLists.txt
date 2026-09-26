@@ -7,13 +7,34 @@ set(CMAKE_CXX_STANDARD 17)
 # Enforce 16 KB Page Alignment (Mandatory for Android 15 / API 35+, NDK r28b+)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
 
-add_library(retropack-runtime-fbneo SHARED
+set(FBNEO_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules/fbneo")
+
+set(FBNEO_SRCS
     src/main/cpp/fbneo-jni.c
     src/main/cpp/ringbuffer.c
 )
 
+if(EXISTS "${FBNEO_SOURCE_DIR}/src/burner/burner.h" OR EXISTS "${FBNEO_SOURCE_DIR}/CMakeLists.txt" OR EXISTS "${FBNEO_SOURCE_DIR}/makefile-libretro")
+    message(STATUS "Found upstream FBNeo submodule at ${FBNEO_SOURCE_DIR}")
+    add_definitions(-DHAVE_FBNEO_CORE=1)
+    
+    if(EXISTS "${FBNEO_SOURCE_DIR}/CMakeLists.txt")
+        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
+        add_subdirectory("${FBNEO_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/fbneo" EXCLUDE_FROM_ALL)
+    endif()
+endif()
+
+add_library(retropack-runtime-fbneo SHARED
+    ${FBNEO_SRCS}
+)
+
 target_include_directories(retropack-runtime-fbneo PRIVATE
     src/main/cpp
+    "${FBNEO_SOURCE_DIR}"
+    "${FBNEO_SOURCE_DIR}/src"
+    "${FBNEO_SOURCE_DIR}/src/burner"
+    "${FBNEO_SOURCE_DIR}/src/burner/libretro"
+    "${FBNEO_SOURCE_DIR}/src/cpu"
 )
 
 target_link_libraries(retropack-runtime-fbneo PRIVATE

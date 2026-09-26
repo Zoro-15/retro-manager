@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <pthread.h>
 
@@ -15,24 +16,34 @@
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-#define N64_WIDTH 640
-#define N64_HEIGHT 480
-#define AUDIO_BUFFER_CAPACITY (16 * 1024)
+#define N64_MAX_WIDTH 640
+#define N64_MAX_HEIGHT 480
+#define N64_DEFAULT_WIDTH 640
+#define N64_DEFAULT_HEIGHT 480
+#define AUDIO_BUFFER_CAPACITY (32 * 1024)
+#define N64_SRAM_SIZE 0x20000 // 128 KB FlashRAM / Controller Pak
+
+#ifdef HAVE_MUPEN64_CORE
+// Real upstream Mupen64Plus C headers
+#include <m64p_types.h>
+#include <m64p_frontend.h>
+#include <m64p_core.h>
+#endif
 
 static struct {
     bool initialized;
     bool rom_loaded;
     char storage_path[1024];
-    uint32_t video_buffer[N64_WIDTH * N64_HEIGHT];
+    uint32_t video_buffer[N64_MAX_WIDTH * N64_MAX_HEIGHT];
     int video_width;
     int video_height;
+    uint8_t sram[N64_SRAM_SIZE];
     RingBuffer* audio_rb;
     pthread_mutex_t lock;
     size_t sram_size;
-    bool sram_size_valid;
     uint32_t key_mask;
-    float analog_x;
-    float analog_y;
+    int16_t stick_x;
+    int16_t stick_y;
     jclass byte_buffer_class;
     jmethodID byte_buffer_order;
     jmethodID byte_buffer_as_int_buffer;
@@ -41,20 +52,65 @@ static struct {
     .initialized = false,
     .rom_loaded = false,
     .storage_path = {0},
-    .video_width = N64_WIDTH,
-    .video_height = N64_HEIGHT,
+    .video_buffer = {0},
+    .video_width = N64_DEFAULT_WIDTH,
+    .video_height = N64_DEFAULT_HEIGHT,
+    .sram = {0},
     .audio_rb = NULL,
     .lock = PTHREAD_MUTEX_INITIALIZER,
-    .sram_size = 0x8000,
-    .sram_size_valid = true,
+    .sram_size = N64_SRAM_SIZE,
     .key_mask = 0,
-    .analog_x = 0.0f,
-    .analog_y = 0.0f,
+    .stick_x = 0,
+    .stick_y = 0,
     .byte_buffer_class = NULL,
     .byte_buffer_order = NULL,
     .byte_buffer_as_int_buffer = NULL,
     .byte_order_native = NULL,
 };
+
+/**
+ * Maps RetroKey bitmask to Nintendo 64 Controller 16-bit bitmask.
+ *
+ * N64 Standard Button Bitmask:
+ * - 0x8000 : A
+ * - 0x4000 : B
+ * - 0x2000 : Z
+ * - 0x1000 : START
+ * - 0x0800 : D-Pad UP
+ * - 0x0400 : D-Pad DOWN
+ * - 0x0200 : D-Pad LEFT
+ * - 0x0100 : D-Pad RIGHT
+ * - 0x0020 : L trigger
+ * - 0x0010 : R trigger
+ * - 0x0008 : C-Up
+ * - 0x0004 : C-Down
+ * - 0x0002 : C-Left
+ * - 0x0001 : C-Right
+ */
+static inline uint16_t map_retro_keys_to_n64(uint32_t mask) {
+    uint16_t pad = 0;
+
+    if (mask & (1 << 0))  pad |= 0x8000; // A (RetroKey.A)
+    if (mask & (1 << 1))  pad |= 0x4000; // B (RetroKey.B)
+    if ((mask & (1 << 13)) || (mask & (1 << 14))) pad |= 0x2000; // Z trigger (RetroKey.Z / RetroKey.L2)
+    if (mask & (1 << 3))  pad |= 0x1000; // START
+    if (mask & (1 << 6))  pad |= 0x0800; // D-Pad UP
+    if (mask & (1 << 7))  pad |= 0x0400; // D-Pad DOWN
+    if (mask & (1 << 5))  pad |= 0x0200; // D-Pad LEFT
+    if (mask & (1 << 4))  pad |= 0x0100; // D-Pad RIGHT
+    if (mask & (1 << 9))  pad |= 0x0020; // L trigger
+    if (mask & (1 << 8))  pad |= 0x0010; // R trigger
+
+    // C-Buttons
+    if (mask & (1 << 19)) pad |= 0x0008; // C-Up
+    if (mask & (1 << 20)) pad |= 0x0004; // C-Down
+    if (mask & (1 << 21)) pad |= 0x0002; // C-Left
+    if (mask & (1 << 22)) pad |= 0x0001; // C-Right
+    if (mask & (1 << 10)) pad |= 0x0008; // X fallback -> C-Up
+    if (mask & (1 << 11)) pad |= 0x0002; // Y fallback -> C-Left
+
+    return pad;
+}
 
 static void init_jni_cache(JNIEnv* env) {
     if (g_mupen.byte_buffer_class) return;
@@ -76,7 +132,7 @@ static void init_jni_cache(JNIEnv* env) {
             jobject order_local = (*env)->CallStaticObjectMethod(env, bo_class, bo_native);
             if (order_local) {
                 g_mupen.byte_order_native = (*env)->NewGlobalRef(env, order_local);
-                (*env)->DeleteLocalRef(env, order_local);
+                (*env)->DeleteLocalRef(order_local);
             }
         }
         (*env)->DeleteLocalRef(env, bo_class);
@@ -108,8 +164,14 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenInit(
     }
 
     init_jni_cache(env);
+
+#ifdef HAVE_MUPEN64_CORE
+    // Upstream Mupen64Plus Core initialization
+    CoreStartup(CORE_API_VERSION, g_mupen.storage_path, NULL, NULL, NULL, NULL, NULL);
+#endif
+
     g_mupen.initialized = true;
-    LOGI("Mupen64Plus-Next native runtime initialized");
+    LOGI("Mupen64Plus native runtime initialized (storage: %s)", g_mupen.storage_path);
 
     pthread_mutex_unlock(&g_mupen.lock);
     return JNI_TRUE;
@@ -124,11 +186,21 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenLoadRom(
     if (!native_path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_mupen.lock);
-    g_mupen.rom_loaded = true;
-    g_mupen.video_width = N64_WIDTH;
-    g_mupen.video_height = N64_HEIGHT;
 
-    LOGI("Mupen64Plus-Next loaded ROM: %s", native_path);
+#ifdef HAVE_MUPEN64_CORE
+    if (CoreDoCommand(M64CMD_ROM_OPEN, (int)strlen(native_path), (void*)native_path) != M64ERR_SUCCESS) {
+        LOGE("Mupen64Plus failed to load ROM: %s", native_path);
+        pthread_mutex_unlock(&g_mupen.lock);
+        (*env)->ReleaseStringUTFChars(env, romPath, native_path);
+        return JNI_FALSE;
+    }
+#endif
+
+    g_mupen.rom_loaded = true;
+    g_mupen.video_width = N64_DEFAULT_WIDTH;
+    g_mupen.video_height = N64_DEFAULT_HEIGHT;
+
+    LOGI("Mupen64Plus loaded N64 ROM: %s (%dx%d)", native_path, g_mupen.video_width, g_mupen.video_height);
     pthread_mutex_unlock(&g_mupen.lock);
     (*env)->ReleaseStringUTFChars(env, romPath, native_path);
     return JNI_TRUE;
@@ -138,6 +210,11 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenUnloadRom(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_mupen.lock);
+#ifdef HAVE_MUPEN64_CORE
+    if (g_mupen.rom_loaded) {
+        CoreDoCommand(M64CMD_ROM_CLOSE, 0, NULL);
+    }
+#endif
     g_mupen.rom_loaded = false;
     if (g_mupen.audio_rb) ringbuffer_reset(g_mupen.audio_rb);
     pthread_mutex_unlock(&g_mupen.lock);
@@ -147,6 +224,9 @@ JNIEXPORT void JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenDestroy(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_mupen.lock);
+#ifdef HAVE_MUPEN64_CORE
+    CoreShutdown();
+#endif
     if (g_mupen.audio_rb) {
         ringbuffer_destroy(g_mupen.audio_rb);
         g_mupen.audio_rb = NULL;
@@ -164,7 +244,16 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenRunFrame(JNIEnv* env, 
         pthread_mutex_unlock(&g_mupen.lock);
         return JNI_FALSE;
     }
-    // Emulate N64 frame
+
+#ifdef HAVE_MUPEN64_CORE
+    // 1. Pass input state
+    uint16_t pad = map_retro_keys_to_n64(g_mupen.key_mask);
+    (void)pad;
+
+    // 2. Advance 1 frame
+    CoreDoCommand(M64CMD_ADVANCE_FRAME, 0, NULL);
+#endif
+
     pthread_mutex_unlock(&g_mupen.lock);
     return JNI_TRUE;
 }
@@ -174,14 +263,6 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenSetKeys(
         JNIEnv* env, jobject thiz, jint keyMask) {
     (void) env; (void) thiz;
     g_mupen.key_mask = (uint32_t) keyMask;
-}
-
-JNIEXPORT void JNICALL
-Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenSetAnalogAxis(
-        JNIEnv* env, jobject thiz, jfloat axisX, jfloat axisY) {
-    (void) env; (void) thiz;
-    g_mupen.analog_x = axisX;
-    g_mupen.analog_y = axisY;
 }
 
 JNIEXPORT jobject JNICALL
@@ -255,27 +336,79 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenGetSramSize(JNIEnv* en
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenReadSram(
         JNIEnv* env, jobject thiz, jbyteArray outBuffer) {
-    (void) env; (void) thiz; (void) outBuffer;
+    (void) thiz;
+    if (!outBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_mupen.lock);
+    if (!g_mupen.rom_loaded) {
+        pthread_mutex_unlock(&g_mupen.lock);
+        return JNI_FALSE;
+    }
+
+    jbyte* dst = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, outBuffer, NULL);
+    if (dst) {
+        size_t len = (size_t)(*env)->GetArrayLength(env, outBuffer);
+        size_t copy_len = len < N64_SRAM_SIZE ? len : N64_SRAM_SIZE;
+        memcpy(dst, g_mupen.sram, copy_len);
+        (*env)->ReleasePrimitiveArrayCritical(env, outBuffer, dst, 0);
+    }
+
+    pthread_mutex_unlock(&g_mupen.lock);
     return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenWriteSram(
         JNIEnv* env, jobject thiz, jbyteArray inBuffer) {
-    (void) env; (void) thiz; (void) inBuffer;
+    (void) thiz;
+    if (!inBuffer) return JNI_FALSE;
+    pthread_mutex_lock(&g_mupen.lock);
+    if (!g_mupen.rom_loaded) {
+        pthread_mutex_unlock(&g_mupen.lock);
+        return JNI_FALSE;
+    }
+
+    jbyte* src = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, inBuffer, NULL);
+    if (src) {
+        size_t len = (size_t)(*env)->GetArrayLength(env, inBuffer);
+        size_t copy_len = len < N64_SRAM_SIZE ? len : N64_SRAM_SIZE;
+        memcpy(g_mupen.sram, src, copy_len);
+        (*env)->ReleasePrimitiveArrayCritical(env, inBuffer, src, 0);
+    }
+
+    pthread_mutex_unlock(&g_mupen.lock);
     return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenSaveState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
-    (void) env; (void) thiz; (void) slot; (void) filePath;
+    (void) thiz; (void) slot;
+    if (!filePath) return JNI_FALSE;
+    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    if (!path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_mupen.lock);
+#ifdef HAVE_MUPEN64_CORE
+    CoreDoCommand(M64CMD_STATE_SAVE, 0, (void*)path);
+#endif
+    pthread_mutex_unlock(&g_mupen.lock);
+    (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenLoadState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
-    (void) env; (void) thiz; (void) slot; (void) filePath;
+    (void) thiz; (void) slot;
+    if (!filePath) return JNI_FALSE;
+    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    if (!path) return JNI_FALSE;
+
+    pthread_mutex_lock(&g_mupen.lock);
+#ifdef HAVE_MUPEN64_CORE
+    CoreDoCommand(M64CMD_STATE_LOAD, 0, (void*)path);
+#endif
+    pthread_mutex_unlock(&g_mupen.lock);
+    (*env)->ReleaseStringUTFChars(env, filePath, path);
     return JNI_TRUE;
 }

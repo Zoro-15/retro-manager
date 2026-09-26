@@ -7,13 +7,30 @@ set(CMAKE_CXX_STANDARD 17)
 # Enforce 16 KB Page Alignment (Mandatory for Android 15 / API 35+, NDK r28b+)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
 
-add_library(retropack-runtime-snes9x SHARED
-    src/main/cpp/snes9x-jni.c
+set(SNES9X_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules/snes9x")
+
+set(SNES9X_SRCS
+    src/main/cpp/snes9x-jni.cpp
     src/main/cpp/ringbuffer.c
+)
+
+if(EXISTS "${SNES9X_SOURCE_DIR}/snes9x.h" OR EXISTS "${SNES9X_SOURCE_DIR}/CMakeLists.txt")
+    message(STATUS "Found upstream Snes9x submodule at ${SNES9X_SOURCE_DIR}")
+    add_definitions(-DHAVE_SNES9X_CORE=1)
+    
+    if(EXISTS "${SNES9X_SOURCE_DIR}/CMakeLists.txt")
+        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
+        add_subdirectory("${SNES9X_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/snes9x" EXCLUDE_FROM_ALL)
+    endif()
+endif()
+
+add_library(retropack-runtime-snes9x SHARED
+    ${SNES9X_SRCS}
 )
 
 target_include_directories(retropack-runtime-snes9x PRIVATE
     src/main/cpp
+    "${SNES9X_SOURCE_DIR}"
 )
 
 target_link_libraries(retropack-runtime-snes9x PRIVATE

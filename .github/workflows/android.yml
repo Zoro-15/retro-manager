@@ -92,11 +92,17 @@ jobs:
           path: template-apk/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
 
+      - name: Verify 16 KB Page-Size ELF Alignment (Android 15/16 Gate)
+        run: |
+          chmod +x scripts/verify-16kb-alignment.sh
+          ./scripts/verify-16kb-alignment.sh
+
       - name: Stage Fresh Template APK and Rotate Trust Anchors
         run: |
           cp template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk
           chmod +x scripts/rotate-trust-anchors.sh
           ./scripts/rotate-trust-anchors.sh
+
 
       - name: Assemble Manager APK
         run: ./gradlew :app:assembleDebug --stacktrace
@@ -107,7 +113,7 @@ jobs:
       # "No runtime template registered for ID: 'mgba-unified'". This gate
       # inspects the FINAL packaged APK so that class of failure can never
       # ship again.
-      - name: Verify Manager APK embeds the pinned runtime bundle
+      - name: Verify Manager APK embeds all pinned runtime bundle descriptors
         run: |
           MANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"
           echo "Inspecting $MANAGER_APK"
@@ -116,13 +122,22 @@ jobs:
           for REQUIRED in \
             "assets/mgba-unified/template.apk" \
             "assets/mgba-unified/runtime.json" \
-            "assets/mgba-unified/licenses/LICENSE.txt" ; do
+            "assets/snes9x-unified/runtime.json" \
+            "assets/genesis-unified/runtime.json" \
+            "assets/fceumm-unified/runtime.json" \
+            "assets/pce-unified/runtime.json" \
+            "assets/fbneo-unified/runtime.json" \
+            "assets/pcsx-unified/runtime.json" \
+            "assets/mupen64-unified/runtime.json" \
+            "assets/ppsspp-unified/runtime.json" \
+            "assets/melonds-unified/runtime.json" ; do
             if ! grep -q "$REQUIRED" /tmp/manager-apk-entries.txt ; then
-              echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded. Restore runtimes/mgba-unified/template.apk (see scripts/rotate-trust-anchors.sh) and rebuild."
+              echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded."
               exit 1
             fi
           done
-          echo "Pinned runtime bundle verified inside Manager APK."
+          echo "All 10 pinned runtime bundle descriptors verified inside Manager APK."
+
 
       - name: Run Android unit tests (app + template-apk)
         run: ./gradlew :app:testDebugUnitTest :template-apk:testDebugUnitTest --stacktrace

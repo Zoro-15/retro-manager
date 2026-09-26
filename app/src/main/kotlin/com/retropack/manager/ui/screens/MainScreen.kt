@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Gamepad
@@ -249,10 +250,16 @@ fun MainScreen(
                         arrayOf(
                             "*/*",
                             "application/octet-stream",
-                            "application/x-gameboy-rom",
-                            "application/x-gba-rom",
                             "application/zip",
-                            "application/x-zip-compressed"
+                            "application/x-zip-compressed",
+                            "application/x-rar-compressed",
+                            "application/x-rar",
+                            "application/vnd.rar",
+                            "application/x-7z-compressed",
+                            "application/x-tar",
+                            "application/gzip",
+                            "application/x-gameboy-rom",
+                            "application/x-gba-rom"
                         )
                     )
                 }
@@ -523,10 +530,23 @@ fun MainScreen(
                 title = "Inspect Game Runtime Log",
                 subtitle = "Load retropack_runtime.log into Terminal",
                 icon = Icons.Default.BugReport,
-                badgeText = "DIAGNOSTICS",
+                badgeText = "GAME LOG",
                 selected = false,
                 onClick = {
                     logPickerLauncher.launch(arrayOf("text/*", "*/*"))
+                }
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            ActionTile(
+                title = "Manager Session Diagnostic Log",
+                subtitle = "View latest session logs recorded in App Data",
+                icon = Icons.Default.Description,
+                badgeText = "APP DATA",
+                selected = false,
+                onClick = {
+                    viewModel.onViewLatestSessionLog(context)
                 }
             )
 

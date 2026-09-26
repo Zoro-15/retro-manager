@@ -7,13 +7,34 @@ set(CMAKE_CXX_STANDARD 17)
 # Enforce 16 KB Page Alignment (Mandatory for Android 15 / API 35+, NDK r28b+)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
 
-add_library(retropack-runtime-melonds SHARED
-    src/main/cpp/melonds-jni.c
+set(MELONDS_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules/melonds")
+
+set(MELONDS_SRCS
+    src/main/cpp/melonds-jni.cpp
     src/main/cpp/ringbuffer.c
+)
+
+if(EXISTS "${MELONDS_SOURCE_DIR}/src/NDS.cpp" OR EXISTS "${MELONDS_SOURCE_DIR}/CMakeLists.txt")
+    message(STATUS "Found upstream melonDS submodule at ${MELONDS_SOURCE_DIR}")
+    add_definitions(-DHAVE_MELONDS_CORE=1)
+    
+    # Add melonDS sources or submodule
+    if(EXISTS "${MELONDS_SOURCE_DIR}/CMakeLists.txt")
+        set(BUILD_SHARED OFF CACHE BOOL "Build static" FORCE)
+        set(ENABLE_QT OFF CACHE BOOL "Disable Qt" FORCE)
+        set(ENABLE_SDL OFF CACHE BOOL "Disable SDL" FORCE)
+        set(BUILD_STATIC ON CACHE BOOL "Build static" FORCE)
+        add_subdirectory("${MELONDS_SOURCE_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/melonds" EXCLUDE_FROM_ALL)
+    endif()
+endif()
+
+add_library(retropack-runtime-melonds SHARED
+    ${MELONDS_SRCS}
 )
 
 target_include_directories(retropack-runtime-melonds PRIVATE
     src/main/cpp
+    "${MELONDS_SOURCE_DIR}/src"
 )
 
 target_link_libraries(retropack-runtime-melonds PRIVATE
