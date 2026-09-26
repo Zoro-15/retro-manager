@@ -487,7 +487,7 @@ class MainViewModel : ViewModel() {
 
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
-                    ensureRuntimesLoaded(context, buildRequest.runtime.templateId) { line -> appendLog(line) }
+                    val provisioned = ensureRuntimesLoaded(context, buildRequest.runtime.templateId) { line -> appendLog(line) }
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -495,6 +495,15 @@ class MainViewModel : ViewModel() {
                         outputDir = outputDir,
                         iconForegroundBytes = state.identityState.iconForegroundBytes,
                         iconBackgroundBytes = state.identityState.iconBackgroundBytes,
+                        precomputedChecksums = romIdentity.checksums,
+                        verifiedTemplate = provisioned?.let {
+                            BuildEngine.VerifiedTemplate(
+                                file = it.template.templateApk,
+                                sha256 = it.templateSha256 ?: "",
+                                lastModified = it.templateLastModified,
+                                length = it.template.templateApk.length()
+                            )
+                        },
                         stageListener = { stageRecord ->
                             _uiState.update { current ->
                                 current.copy(
@@ -583,13 +592,15 @@ class MainViewModel : ViewModel() {
      * (missing bundle asset, stale trust anchor, corrupt descriptor) BEFORE
      * the pipeline records its Stage 2 failure.
      *
-     * Returns true when a usable template is registered.
+     * Returns the provisioned bundle (with its fresh digest) when usable,
+     * null otherwise. Callers thread the digest into the build so Step 2
+     * skips its file re-hash on identity match.
      */
     private fun ensureRuntimesLoaded(
         context: Context,
         runtimeId: String = RuntimeRegistry.RUNTIME_MGBA_UNIFIED,
         appendLog: (String) -> Unit
-    ): Boolean {
+    ): RuntimeProvisionResult.Provisioned? {
         val assets = try {
             context.assets
         } catch (_: Throwable) {
@@ -613,19 +624,19 @@ class MainViewModel : ViewModel() {
                     "[✓] Runtime template ready ($runtimeId): ${outcome.template.templateApk.name} " +
                         "(${outcome.template.templateApk.length()} bytes)"
                 )
-                true
+                outcome
             }
             is RuntimeProvisionResult.MissingTemplate -> {
                 appendLog("[✗] Runtime template MISSING ($runtimeId): ${outcome.guidance}")
-                false
+                null
             }
             is RuntimeProvisionResult.IntegrityMismatch -> {
                 appendLog("[✗] Runtime template INTEGRITY FAILURE ($runtimeId): ${outcome.details}")
-                false
+                null
             }
             is RuntimeProvisionResult.ExtractionFailure -> {
                 appendLog("[✗] Runtime bundle provisioning failed ($runtimeId): ${outcome.cause}")
-                false
+                null
             }
         }
     }
