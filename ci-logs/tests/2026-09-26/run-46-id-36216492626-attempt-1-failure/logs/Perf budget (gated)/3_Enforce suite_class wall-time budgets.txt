@@ -1,0 +1,126 @@
+﻿2026-09-26T04:01:28.5202610Z ##[group]Run python3 - <<'PY'
+2026-09-26T04:01:28.5203221Z [36;1mpython3 - <<'PY'[0m
+2026-09-26T04:01:28.5203623Z [36;1mimport glob, os, xml.etree.ElementTree as ET[0m
+2026-09-26T04:01:28.5203999Z [36;1m[0m
+2026-09-26T04:01:28.5204345Z [36;1mtotal_budget = float(os.environ.get("PERF_TOTAL_BUDGET_SEC", "600"))[0m
+2026-09-26T04:01:28.5204880Z [36;1mclass_budget = float(os.environ.get("PERF_CLASS_BUDGET_SEC", "120"))[0m
+2026-09-26T04:01:28.5205256Z [36;1m[0m
+2026-09-26T04:01:28.5205615Z [36;1mfiles = sorted(glob.glob("junit-xml/**/TEST-*.xml", recursive=True))[0m
+2026-09-26T04:01:28.5206023Z [36;1mif not files:[0m
+2026-09-26T04:01:28.5206399Z [36;1m    # Fall back to flat layout (download-artifact may flatten paths)[0m
+2026-09-26T04:01:28.5206866Z [36;1m    files = sorted(glob.glob("junit-xml/TEST-*.xml"))[0m
+2026-09-26T04:01:28.5207204Z [36;1mif not files:[0m
+2026-09-26T04:01:28.5207665Z [36;1m    print("::error::No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?")[0m
+2026-09-26T04:01:28.5208441Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T04:01:28.5208773Z [36;1m[0m
+2026-09-26T04:01:28.5209259Z [36;1mrows = [][0m
+2026-09-26T04:01:28.5209542Z [36;1mfor f in files:[0m
+2026-09-26T04:01:28.5209816Z [36;1m    try:[0m
+2026-09-26T04:01:28.5210154Z [36;1m        root = ET.parse(f).getroot()[0m
+2026-09-26T04:01:28.5210504Z [36;1m    except ET.ParseError as e:[0m
+2026-09-26T04:01:28.5210897Z [36;1m        print(f"::error::Unparseable JUnit XML: {f}: {e}")[0m
+2026-09-26T04:01:28.5211250Z [36;1m        raise SystemExit(1)[0m
+2026-09-26T04:01:28.5211646Z [36;1m    # Gradle emits <testsuite name=.. tests=.. failures=.. errors=.. skipped=.. time=..>[0m
+2026-09-26T04:01:28.5212206Z [36;1m    suites = [root] if root.tag == "testsuite" else root.findall("testsuite")[0m
+2026-09-26T04:01:28.5212591Z [36;1m    if not suites:[0m
+2026-09-26T04:01:28.5212912Z [36;1m        suites = [root][0m
+2026-09-26T04:01:28.5213366Z [36;1m    for s in suites:[0m
+2026-09-26T04:01:28.5213716Z [36;1m        name = s.get("name", f)[0m
+2026-09-26T04:01:28.5214028Z [36;1m        try:[0m
+2026-09-26T04:01:28.5214315Z [36;1m            t = float(s.get("time", "0") or 0)[0m
+2026-09-26T04:01:28.5214694Z [36;1m        except ValueError:[0m
+2026-09-26T04:01:28.5214993Z [36;1m            t = 0.0[0m
+2026-09-26T04:01:28.5215359Z [36;1m        failures = int(s.get("failures", "0") or 0)[0m
+2026-09-26T04:01:28.5215714Z [36;1m        errors = int(s.get("errors", "0") or 0)[0m
+2026-09-26T04:01:28.5216065Z [36;1m        skipped = int(s.get("skipped", "0") or 0)[0m
+2026-09-26T04:01:28.5216459Z [36;1m        tests = int(s.get("tests", "0") or 0)[0m
+2026-09-26T04:01:28.5216832Z [36;1m        rows.append((name, f, t, tests, failures, errors, skipped))[0m
+2026-09-26T04:01:28.5217255Z [36;1m[0m
+2026-09-26T04:01:28.5217520Z [36;1mtotal = sum(r[2] for r in rows)[0m
+2026-09-26T04:01:28.5217972Z [36;1mprint(f"Parsed {len(files)} XML files, {len(rows)} suites, total time {total:.2f}s "[0m
+2026-09-26T04:01:28.5218662Z [36;1m      f"(budget {total_budget:.0f}s, class budget {class_budget:.0f}s)")[0m
+2026-09-26T04:01:28.5219050Z [36;1m[0m
+2026-09-26T04:01:28.5219468Z [36;1mlines = ["| Suite | Time (s) | Tests | Failures | Errors | Skipped |",[0m
+2026-09-26T04:01:28.5220026Z [36;1m         "| --- | ---: | ---: | ---: | ---: | ---: |"][0m
+2026-09-26T04:01:28.5220504Z [36;1mfor name, f, t, tests, failures, errors, skipped in sorted(rows, key=lambda r: -r[2]):[0m
+2026-09-26T04:01:28.5220951Z [36;1m    flag = " ❌" if t > class_budget else ""[0m
+2026-09-26T04:01:28.5221431Z [36;1m    lines.append(f"| `{name}` | {t:.2f}{flag} | {tests} | {failures} | {errors} | {skipped} |")[0m
+2026-09-26T04:01:28.5221888Z [36;1mlines.append(f"| **TOTAL** | **{total:.2f}** |  |  |  |  |")[0m
+2026-09-26T04:01:28.5222249Z [36;1msummary = "\n".join(lines) + "\n"[0m
+2026-09-26T04:01:28.5222675Z [36;1mwith open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as fh:[0m
+2026-09-26T04:01:28.5223203Z [36;1m    fh.write("## Perf budget report\n\n" + summary)[0m
+2026-09-26T04:01:28.5223824Z [36;1mprint(summary)[0m
+2026-09-26T04:01:28.5224106Z [36;1m[0m
+2026-09-26T04:01:28.5224367Z [36;1mfailed = False[0m
+2026-09-26T04:01:28.5224670Z [36;1mfor name, f, t, *_ in rows:[0m
+2026-09-26T04:01:28.5224994Z [36;1m    if t > class_budget:[0m
+2026-09-26T04:01:28.5225459Z [36;1m        print(f"::error::Perf budget breached: class `{name}` took {t:.2f}s > {class_budget:.0f}s ({f})")[0m
+2026-09-26T04:01:28.5225879Z [36;1m        failed = True[0m
+2026-09-26T04:01:28.5226212Z [36;1mif total > total_budget:[0m
+2026-09-26T04:01:28.5226631Z [36;1m    print(f"::error::Perf budget breached: total suite {total:.2f}s > {total_budget:.0f}s")[0m
+2026-09-26T04:01:28.5227045Z [36;1m    failed = True[0m
+2026-09-26T04:01:28.5227353Z [36;1mif failed:[0m
+2026-09-26T04:01:28.5227641Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T04:01:28.5227971Z [36;1mprint("Perf budgets OK.")[0m
+2026-09-26T04:01:28.5228499Z [36;1mPY[0m
+2026-09-26T04:01:28.7476492Z shell: /usr/bin/bash -e {0}
+2026-09-26T04:01:28.7477006Z env:
+2026-09-26T04:01:28.7477327Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-26T04:01:28.7477641Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-26T04:01:28.7477976Z ##[endgroup]
+2026-09-26T04:01:28.9049167Z Parsed 50 XML files, 50 suites, total time 2.82s (budget 600s, class budget 120s)
+2026-09-26T04:01:28.9049876Z | Suite | Time (s) | Tests | Failures | Errors | Skipped |
+2026-09-26T04:01:28.9050248Z | --- | ---: | ---: | ---: | ---: | ---: |
+2026-09-26T04:01:28.9050783Z | `com.retropack.packaging.ApkSignerAndVerificationTest` | 0.94 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9051284Z | `com.retropack.security.HybridKeystoreTest` | 0.37 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9051743Z | `com.retropack.packaging.BuildEngineTest` | 0.36 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9052243Z | `com.retropack.packaging.HomebrewConformanceTest` | 0.28 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9052708Z | `com.retropack.domain.rom.GbRomParserTest` | 0.06 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9053232Z | `com.retropack.domain.runtime.RuntimeProvisionerTest` | 0.06 | 8 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9053699Z | `com.retropack.domain.rom.StreamChecksumTest` | 0.05 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9054175Z | `com.retropack.runtime.host.RuntimeConfigTest` | 0.05 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9054672Z | `com.retropack.domain.runtime.RuntimeBundleIntegrityTest` | 0.05 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9055204Z | `com.retropack.runtime.audio.AudioDriftControllerTest` | 0.04 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9055684Z | `com.retropack.domain.rom.RomParserTest` | 0.04 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9056127Z | `com.retropack.runtime.host.EmulationHostTest` | 0.04 | 8 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9056619Z | `com.retropack.runtime.save.SaveStateManagerTest` | 0.04 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9057082Z | `com.retropack.runtime.audio.RetroAudioPlayerTest` | 0.03 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9057594Z | `com.retropack.runtime.save.SaveManagerTest` | 0.03 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9058030Z | `com.retropack.runtime.host.RomStagerTest` | 0.02 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9058592Z | `com.retropack.runtime.ui.MoreFeaturesSheetTest` | 0.02 | 10 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9059064Z | `com.retropack.runtime.core.EmulationStateTest` | 0.02 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9059645Z | `com.retropack.runtime.input.TouchLayoutTest` | 0.02 | 16 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9060475Z | `com.retropack.runtime.core.ScaleModeTest` | 0.02 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9060955Z | `com.retropack.packaging.ProtectedEntriesVerifierTest` | 0.02 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9061450Z | `com.retropack.runtime.core.RetroKeyTest` | 0.02 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9061883Z | `com.retropack.runtime.input.TouchOverlayTest` | 0.02 | 13 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9062438Z | `com.retropack.domain.runtime.RuntimeDescriptorTest` | 0.02 | 2 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9062912Z | `com.retropack.domain.rom.IpsUpsPatcherTest` | 0.02 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9063460Z | `com.retropack.runtime.input.ControlsPreferencesTest` | 0.02 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9063993Z | `com.retropack.packaging.AxmlMutatorTest` | 0.01 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9064452Z | `com.retropack.runtime.core.NativeEmulationEngineTest` | 0.01 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9064974Z | `com.retropack.runtime.video.RetroGlRendererTest` | 0.01 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9065426Z | `com.retropack.packaging.AlignmentVerifierTest` | 0.01 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9065901Z | `com.retropack.runtime.input.GamepadRemapTest` | 0.01 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9066357Z | `com.retropack.runtime.ui.QuickMenuOverlayTest` | 0.01 | 7 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9066834Z | `com.retropack.domain.runtime.RuntimeTemplateTest` | 0.01 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9067344Z | `com.retropack.runtime.ui.InGameSettingsOverlayTest` | 0.01 | 5 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9067821Z | `com.retropack.packaging.BuildTerminalReporterTest` | 0.01 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9068424Z | `com.retropack.runtime.input.InputCoordinatorTest` | 0.01 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9068889Z | `com.retropack.runtime.input.GamepadMapperTest` | 0.01 | 6 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9069339Z | `com.retropack.domain.rom.GbaRomParserTest` | 0.01 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9069842Z | `com.retropack.packaging.PackageIdentityTest` | 0.01 | 9 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9070282Z | `com.retropack.packaging.ScratchAllocatorTest` | 0.01 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9070756Z | `com.retropack.runtime.video.RetroGlShaderTest` | 0.01 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9071223Z | `com.retropack.domain.runtime.RuntimeRegistryTest` | 0.00 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9071710Z | `com.retropack.packaging.IconInjectorTest` | 0.00 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9072153Z | `com.retropack.packaging.ZipArchiveTransformerTest` | 0.00 | 1 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9072664Z | `com.retropack.runtime.input.RetroGestureDetectorTest` | 0.00 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9073241Z | `com.retropack.runtime.input.SensorControllerTest` | 0.00 | 4 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9073723Z | `com.retropack.runtime.ui.BezelOverlayTest` | 0.00 | 2 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9074237Z | `com.retropack.packaging.RomAssetInjectorTest` | 0.00 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9074706Z | `com.retropack.runtime.input.HapticEngineTest` | 0.00 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9075161Z | `com.retropack.runtime.input.TouchThemeTest` | 0.00 | 3 | 0 | 0 | 0 |
+2026-09-26T04:01:28.9075658Z | **TOTAL** | **2.82** |  |  |  |  |
+2026-09-26T04:01:28.9075870Z 
+2026-09-26T04:01:28.9075967Z Perf budgets OK.
