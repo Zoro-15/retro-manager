@@ -88,12 +88,12 @@ class QuickMenuOverlay @JvmOverloads constructor(
     }
 
     /**
-     * FAB Center positioned at 60:40 screen ratio (60% X, 40% Y)
-     * Provides natural thumb reach in both landscape and portrait orientations without corner crowding.
+     * FAB Center docked to the right edge of the screen at 40% height.
+     * Sticks strictly to the right side in both horizontal and vertical modes.
      */
     fun getFabCenterX(): Float {
         val viewW = if (width > 0) width.toFloat() else 1080f
-        return viewW * 0.60f
+        return viewW - fabRadius - 16f
     }
 
     fun getFabCenterY(): Float {
@@ -234,7 +234,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
         val currentAlpha = if (isExpanded) expandedAlpha else idleAlpha
         val alphaInt = (currentAlpha * 255).toInt().coerceIn(0, 255)
 
-        // 1. Draw Expanded Satellite Buttons (No text brackets, 1.5x scaled)
+        // 1. Draw Expanded Satellite Buttons (No text brackets, 1.5x scaled, Black & Indigo)
         if (isExpanded) {
             drawSatelliteButtons(canvas, fabCx, fabCy)
         }
@@ -243,8 +243,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
         bgPaint.color = Color.argb(alphaInt, 11, 13, 20)
         canvas.drawCircle(fabCx, fabCy, fabRadius, bgPaint)
 
-        ringPaint.color = if (isExpanded) Color.argb(255, 168, 85, 247) // Purple glow when expanded
-                          else Color.argb((alphaInt * 0.95f).toInt(), 99, 102, 241) // Indigo glow
+        ringPaint.color = Color.argb(255, 99, 102, 241) // Crisp Indigo ring
         canvas.drawCircle(fabCx, fabCy, fabRadius, ringPaint)
 
         textPaint.textSize = if (isExpanded) 32f else 28f
@@ -256,8 +255,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
     private fun drawSatelliteButtons(canvas: Canvas, fabCx: Float, fabCy: Float) {
         // ─── SATELLITE 1: Joystick / Controls Toggle ───
         val sat1Cy = fabCy + satelliteSpacing * 1f
-        val sat1BgColor = if (isControlsActive) Color.argb(245, 49, 46, 129) else Color.argb(230, 24, 24, 34)
-        val sat1RingColor = if (isControlsActive) Color.argb(255, 129, 140, 248) else Color.argb(160, 100, 116, 139)
+        val sat1BgColor = if (isControlsActive) Color.argb(245, 79, 70, 229) else Color.argb(230, 18, 20, 30)
+        val sat1RingColor = if (isControlsActive) Color.argb(255, 165, 180, 252) else Color.argb(160, 79, 70, 229)
 
         bgPaint.color = sat1BgColor
         canvas.drawCircle(fabCx, sat1Cy, satelliteRadius, bgPaint)
@@ -271,8 +270,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
         // ─── SATELLITE 2: Fast-Forward Speed Floater ───
         val sat2Cy = fabCy + satelliteSpacing * 2f
         val isFastForwarding = fastForwardSpeed > 1
-        val sat2BgColor = if (isFastForwarding) Color.argb(245, 88, 28, 135) else Color.argb(230, 24, 24, 34)
-        val sat2RingColor = if (isFastForwarding) Color.argb(255, 192, 132, 252) else Color.argb(160, 100, 116, 139)
+        val sat2BgColor = if (isFastForwarding) Color.argb(245, 99, 102, 241) else Color.argb(230, 18, 20, 30)
+        val sat2RingColor = if (isFastForwarding) Color.argb(255, 224, 231, 255) else Color.argb(160, 79, 70, 229)
 
         bgPaint.color = sat2BgColor
         canvas.drawCircle(fabCx, sat2Cy, satelliteRadius, bgPaint)
@@ -285,7 +284,7 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
         // Draw speed badge indicator
         if (isFastForwarding) {
-            badgePaint.color = Color.argb(255, 192, 132, 252)
+            badgePaint.color = Color.argb(255, 224, 231, 255)
             val badgeX = fabCx + satelliteRadius * 0.65f
             val badgeY = sat2Cy - satelliteRadius * 0.65f
             canvas.drawCircle(badgeX, badgeY, 12f, badgePaint)
@@ -297,8 +296,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
         // ─── SATELLITE 3: Quick Settings Floater ───
         val sat3Cy = fabCy + satelliteSpacing * 3f
-        val sat3BgColor = Color.argb(235, 30, 27, 75)
-        val sat3RingColor = Color.argb(220, 129, 140, 248)
+        val sat3BgColor = Color.argb(240, 49, 46, 129)
+        val sat3RingColor = Color.argb(255, 129, 140, 248)
 
         bgPaint.color = sat3BgColor
         canvas.drawCircle(fabCx, sat3Cy, satelliteRadius, bgPaint)
@@ -311,8 +310,8 @@ class QuickMenuOverlay @JvmOverloads constructor(
 
         // ─── SATELLITE 4: More Features Hub Floater ───
         val sat4Cy = fabCy + satelliteSpacing * 4f
-        val sat4BgColor = Color.argb(240, 59, 7, 100)
-        val sat4RingColor = Color.argb(255, 192, 132, 252)
+        val sat4BgColor = Color.argb(240, 67, 56, 202)
+        val sat4RingColor = Color.argb(255, 165, 180, 252)
 
         bgPaint.color = sat4BgColor
         canvas.drawCircle(fabCx, sat4Cy, satelliteRadius, bgPaint)
