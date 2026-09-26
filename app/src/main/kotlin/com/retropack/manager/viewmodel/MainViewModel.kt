@@ -608,7 +608,7 @@ class MainViewModel : ViewModel() {
         }
         if (assets == null) {
             appendLog("[i] Runtime provisioning skipped: asset manager unavailable (headless/unit-test environment)")
-            return false
+            return null
         }
 
         val targetRuntimesDir = File(context.filesDir, RuntimeProvisioner.BUNDLE_ROOT_DIRNAME)
