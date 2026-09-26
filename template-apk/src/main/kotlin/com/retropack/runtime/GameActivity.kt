@@ -208,7 +208,7 @@ open class GameActivity : Activity() {
                 }
             }
             to.onToggleFastForwardRequested = {
-                val currentSpeed = host?.emulationLoop?.fastForwardMultiplier ?: 1
+                val currentSpeed = quickMenu?.fastForwardSpeed ?: 1
                 val newSpeed = if (currentSpeed == 1) {
                     val saved = ControlsPreferences.loadFastForwardSpeed(this@GameActivity, 2)
                     if (saved > 1) saved else 2
@@ -216,6 +216,7 @@ open class GameActivity : Activity() {
                 host?.setFastForwardMultiplier(newSpeed)
                 quickMenu?.fastForwardSpeed = newSpeed
                 moreFeaturesSheet?.fastForwardSpeed = newSpeed
+                ControlsPreferences.saveFastForwardSpeed(this@GameActivity, newSpeed)
                 RuntimeLogger.i("Gesture", "Fast-Forward toggled to ${newSpeed}x")
             }
             to.onToggleQuickMenuRequested = {
