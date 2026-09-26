@@ -122,11 +122,11 @@ object HapticEngine {
                     vibrator.vibrate(effect)
                 } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     val amplitude = (90 * clampedIntensity).toInt().coerceIn(1, 255)
-                    val effect = VibrationEffect.createOneShot(6L, amplitude)
+                    val effect = VibrationEffect.createOneShot(8L, amplitude)
                     vibrator.vibrate(effect)
                 } else {
                     @Suppress("DEPRECATION")
-                    vibrator.vibrate(6L)
+                    vibrator.vibrate(8L)
                 }
             } else {
                 view?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
@@ -134,6 +134,14 @@ object HapticEngine {
         } catch (_: Throwable) {
             view?.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK)
         }
+    }
+
+    /**
+     * Fires subtle detent haptic feedback (EFFECT_TICK / 8ms) when the virtual joystick
+     * crosses cardinal sector boundaries or exits the center deadzone.
+     */
+    fun triggerDetent(context: Context?, intensity: Float = 1.0f, view: View? = null) {
+        triggerTick(context, intensity, view)
     }
 
     /**

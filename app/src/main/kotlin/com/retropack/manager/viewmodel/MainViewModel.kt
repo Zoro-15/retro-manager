@@ -22,6 +22,7 @@ import com.retropack.domain.runtime.RuntimeProvisionResult
 import com.retropack.domain.runtime.RuntimeProvisioner
 import com.retropack.domain.runtime.RuntimeRegistry
 import com.retropack.manager.runtime.AndroidAssetSource
+import com.retropack.manager.service.GameIconScraper
 import com.retropack.manager.util.IconSynthesizer
 import com.retropack.manager.util.TerminalLogBuffer
 import com.retropack.manager.util.UriUtils
@@ -123,6 +124,15 @@ class MainViewModel : ViewModel() {
                         )
                     )
                 }
+
+                // Automatically trigger rapid online box-art lookup in background
+                scrapeGameArt(
+                    context = context.applicationContext,
+                    platform = identity.platform,
+                    gameTitle = identity.gameTitle,
+                    rawFileName = fileName,
+                    gameCode = identity.gameCode
+                )
             }.onFailure { err ->
                 _uiState.update {
                     it.copy(
@@ -134,6 +144,65 @@ class MainViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    private fun scrapeGameArt(
+        context: Context,
+        platform: String,
+        gameTitle: String,
+        rawFileName: String?,
+        gameCode: String?
+    ) {
+        viewModelScope.launch {
+            _uiState.update { current ->
+                current.copy(identityState = current.identityState.copy(isScrapingIcon = true))
+            }
+
+            val artBytes = runCatching {
+                GameIconScraper.fetchBoxArt(
+                    context = context,
+                    platform = platform,
+                    gameTitle = gameTitle,
+                    rawFileName = rawFileName,
+                    gameCode = gameCode
+                )
+            }.getOrNull()
+
+            if (artBytes != null && artBytes.isNotEmpty()) {
+                val layers = withContext(Dispatchers.Default) {
+                    IconSynthesizer.synthesizeLayers(artBytes)
+                }
+                if (layers != null) {
+                    _uiState.update { current ->
+                        current.copy(
+                            identityState = current.identityState.copy(
+                                iconForegroundBytes = layers.first,
+                                iconBackgroundBytes = layers.second,
+                                isScrapingIcon = false
+                            )
+                        )
+                    }
+                    return@launch
+                }
+            }
+
+            _uiState.update { current ->
+                current.copy(identityState = current.identityState.copy(isScrapingIcon = false))
+            }
+        }
+    }
+
+    fun onFetchOnlineBoxArt(context: Context) {
+        val identity = _uiState.value.romState.romIdentity ?: return
+        val fileName = _uiState.value.romState.fileName
+        val currentTitle = _uiState.value.identityState.gameTitle
+        scrapeGameArt(
+            context = context.applicationContext,
+            platform = identity.platform,
+            gameTitle = currentTitle.ifBlank { identity.gameTitle },
+            rawFileName = fileName,
+            gameCode = identity.gameCode
+        )
     }
 
     fun onSelectPatch(context: Context, uri: Uri) {

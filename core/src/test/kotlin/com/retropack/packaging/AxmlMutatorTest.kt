@@ -15,7 +15,8 @@ class AxmlMutatorTest {
         packageName: String = "com.retropack.template",
         activityName: String = "com.retropack.runtime.GameActivity",
         extractNativeLibs: Boolean = false,
-        includeExtractAttr: Boolean = true
+        includeExtractAttr: Boolean = true,
+        isLauncher: Boolean = true
     ): ByteArray {
         val block = AndroidManifestBlock()
         block.packageName = packageName
@@ -32,6 +33,14 @@ class AxmlMutatorTest {
         val activity = app.createChildElement("activity")
         val nameAttr = activity.getOrCreateAndroidAttribute("name", 0x01010003)
         nameAttr.valueAsString = activityName
+
+        if (isLauncher) {
+            val filter = activity.createChildElement("intent-filter")
+            val action = filter.createChildElement("action")
+            action.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = "android.intent.action.MAIN"
+            val category = filter.createChildElement("category")
+            category.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = "android.intent.category.LAUNCHER"
+        }
 
         block.refresh()
         val out = ByteArrayOutputStream()
@@ -68,6 +77,8 @@ class AxmlMutatorTest {
         for (act in activities) {
             val name = (act.searchAttributeByName("name") ?: act.searchAttributeByName("android:name"))?.valueAsString
             assertTrue(name != null && !name.startsWith("."), "Activity name must be fully qualified: $name")
+            val label = (act.searchAttributeByName("label") ?: act.searchAttributeByName("android:label"))?.valueAsString
+            assertEquals("Pokemon Emerald Version", label, "Launcher activity must have explicit game title label")
         }
     }
 

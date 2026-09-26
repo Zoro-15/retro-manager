@@ -441,8 +441,10 @@ fun MainScreen(
             // Boxart / Launcher Icon Picker
             IconPreviewCard(
                 foregroundBytes = uiState.identityState.iconForegroundBytes,
+                isScraping = uiState.identityState.isScrapingIcon,
                 onPickImage = { iconPickerLauncher.launch("image/*") },
-                onResetDefault = { viewModel.onResetDefaultIcon() }
+                onResetDefault = { viewModel.onResetDefaultIcon() },
+                onFetchOnline = { viewModel.onFetchOnlineBoxArt(context) }
             )
 
             Spacer(modifier = Modifier.height(10.dp))

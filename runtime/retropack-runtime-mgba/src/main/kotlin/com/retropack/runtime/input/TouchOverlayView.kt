@@ -6,7 +6,6 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
-import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import com.retropack.runtime.core.RetroKey
@@ -19,6 +18,9 @@ import com.retropack.runtime.core.RetroKey
  * - masterplan.md Section 5.4: "Virtual TouchOverlayView (custom coords, opacity, haptics)
  *   + physical Bluetooth/USB gamepad HID handler. Auto-hides virtual controls when physical
  *   gamepad buttons are pressed."
+ * - Virtual Analog Joystick Engine with Cardinal Grid Snapping (RPG vs Action Mode),
+ *   Dual-Mode Origin (Fixed Movable vs Dynamic Floating), Pitch Black & Glowing Indigo Aesthetics,
+ *   and Quadrant Detent Haptic Feedback.
  * - Touch ergonomics: 20% hitbox expansion, thumb-roll assist, inactivity auto-dimming (10% alpha after 4s),
  *   and per-cluster scale controls (0.5x to 2.0x).
  */
@@ -86,12 +88,47 @@ class TouchOverlayView @JvmOverloads constructor(
             updateSuperpowerLayout()
         }
 
-    var floatingDpadEnabled: Boolean = false
+    // ─── Virtual Analog Joystick & D-Pad Engine ───
+    val joystick: VirtualJoystick = VirtualJoystick()
+
+    var dpadType: DpadType = DpadType.CLASSIC_CROSS
         set(value) {
             field = value
+            if (value == DpadType.CLASSIC_CROSS) {
+                joystick.onUp()
+                dynamicDpadActive = false
+                dynamicDpadPointerId = null
+            } else {
+                syncJoystickGeometry()
+            }
+            invalidate()
+        }
+
+    var joystickSnapMode: JoystickSnapMode
+        get() = joystick.snapMode
+        set(value) {
+            joystick.snapMode = value
+            invalidate()
+        }
+
+    var joystickDeadzone: Float
+        get() = joystick.deadzoneRadius
+        set(value) {
+            joystick.deadzoneRadius = value
+            invalidate()
+        }
+
+    var joystickSensitivity: Float = 1.0f
+
+    /** Backward compatible property for dynamic floating D-Pad toggle. */
+    var floatingDpadEnabled: Boolean
+        get() = dpadType == DpadType.FLOATING_JOYSTICK
+        set(value) {
+            dpadType = if (value) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
             if (!value) {
                 dynamicDpadActive = false
                 dynamicDpadPointerId = null
+                joystick.onUp()
             }
             invalidate()
         }
@@ -102,13 +139,21 @@ class TouchOverlayView @JvmOverloads constructor(
         private set
 
     val floatingDpadActive: Boolean
-        get() = dynamicDpadActive
+        get() = dynamicDpadActive || (dpadType == DpadType.FLOATING_JOYSTICK && joystick.isActive)
 
     val floatingDpadX: Float
-        get() = layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorX ?: 0f
+        get() = if (dpadType != DpadType.CLASSIC_CROSS && (joystick.isActive || dpadType == DpadType.FIXED_JOYSTICK)) {
+            joystick.baseCenterX
+        } else {
+            layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorX ?: 0f
+        }
 
     val floatingDpadY: Float
-        get() = layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorY ?: 0f
+        get() = if (dpadType != DpadType.CLASSIC_CROSS && (joystick.isActive || dpadType == DpadType.FIXED_JOYSTICK)) {
+            joystick.baseCenterY
+        } else {
+            layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorY ?: 0f
+        }
 
     var hapticIntensity: Float = 1.0f
 
@@ -136,6 +181,9 @@ class TouchOverlayView @JvmOverloads constructor(
 
     /** Test hook callback invoked when haptic feedback is triggered. */
     var onHapticFeedbackRequested: (() -> Unit)? = null
+
+    /** Test hook callback invoked when detent quadrant tick haptic is triggered. */
+    var onHapticTickRequested: (() -> Unit)? = null
 
     /** Test hook callback invoked when haptic release is triggered. */
     var onHapticReleaseRequested: (() -> Unit)? = null
@@ -206,6 +254,20 @@ class TouchOverlayView @JvmOverloads constructor(
         return opacity
     }
 
+    private fun syncJoystickGeometry() {
+        val dpadCluster = layout.getCluster(TouchLayout.CLUSTER_DPAD)
+        val scale = clusterScales[TouchLayout.CLUSTER_DPAD] ?: 1.0f
+        if (dpadCluster != null) {
+            if (!joystick.isActive || dpadType == DpadType.FIXED_JOYSTICK) {
+                joystick.baseCenterX = dpadCluster.anchorX
+                joystick.baseCenterY = dpadCluster.anchorY
+            }
+        }
+        joystick.baseRadius = VirtualJoystick.DEFAULT_BASE_RADIUS * scale
+        joystick.knobRadius = VirtualJoystick.DEFAULT_KNOB_RADIUS * scale
+        joystick.deadzoneRadius = VirtualJoystick.DEFAULT_DEADZONE_RADIUS * scale
+    }
+
     private fun updateSuperpowerLayout() {
         val isLandscape = if (width > 0 && height > 0) width > height else layout.width > layout.height
         val w = if (width > 0) width.toFloat() else layout.width
@@ -222,6 +284,7 @@ class TouchOverlayView @JvmOverloads constructor(
             newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
         }
         layout = newLayout
+        syncJoystickGeometry()
         invalidate()
     }
 
@@ -249,6 +312,7 @@ class TouchOverlayView @JvmOverloads constructor(
                 newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
             }
             layout = newLayout
+            syncJoystickGeometry()
             invalidate()
         }
     }
@@ -278,6 +342,7 @@ class TouchOverlayView @JvmOverloads constructor(
             newLayout = newLayout.applyNormalizedClusterPositions(savedPositions)
         }
         layout = newLayout
+        syncJoystickGeometry()
         invalidate()
     }
 
@@ -291,6 +356,7 @@ class TouchOverlayView @JvmOverloads constructor(
         clusterScales.clear()
         layout = TouchLayout.create(w, h, opacity, turboEnabled, comboMacroEnabled)
         ControlsPreferences.clearCustomLayout(context, isLandscape)
+        syncJoystickGeometry()
         onLayoutReset?.invoke()
         invalidate()
     }
@@ -315,6 +381,7 @@ class TouchOverlayView @JvmOverloads constructor(
         val clamped = scale.coerceIn(0.5f, 2.0f)
         clusterScales[clusterId] = clamped
         layout = layout.withClusterScale(clusterId, clamped)
+        syncJoystickGeometry()
         invalidate()
     }
 
@@ -324,6 +391,7 @@ class TouchOverlayView @JvmOverloads constructor(
     fun setCustomLayout(customLayout: TouchLayout) {
         this.layout = customLayout
         this.opacity = customLayout.opacity
+        syncJoystickGeometry()
         invalidate()
     }
 
@@ -365,11 +433,29 @@ class TouchOverlayView @JvmOverloads constructor(
                 val y0 = event.getY(0)
                 activePointers[id0] = Pair(x0, y0)
 
-                if (floatingDpadEnabled) {
+                syncJoystickGeometry()
+
+                if (dpadType == DpadType.FLOATING_JOYSTICK) {
                     if (x0 < viewW * 0.5f) {
                         dynamicDpadPointerId = id0
                         dynamicDpadActive = true
                         layout = layout.withClusterPosition(TouchLayout.CLUSTER_DPAD, x0, y0)
+                        val res = joystick.onDown(x0, y0, id0, isFloating = true)
+                        if (res.detentCrossed && !res.isDeadzone) {
+                            triggerDetentHaptic()
+                        }
+                    }
+                } else if (dpadType == DpadType.FIXED_JOYSTICK) {
+                    val dx = x0 - joystick.baseCenterX
+                    val dy = y0 - joystick.baseCenterY
+                    val dist = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+                    if (dist <= joystick.baseRadius * 1.5f || (x0 < viewW * 0.45f && Math.abs(dy) <= joystick.baseRadius * 1.8f)) {
+                        dynamicDpadPointerId = id0
+                        dynamicDpadActive = true
+                        val res = joystick.onDown(x0, y0, id0, isFloating = false)
+                        if (res.detentCrossed && !res.isDeadzone) {
+                            triggerDetentHaptic()
+                        }
                     }
                 }
             }
@@ -380,11 +466,29 @@ class TouchOverlayView @JvmOverloads constructor(
                     val py = event.getY(actionIndex)
                     activePointers[id] = Pair(px, py)
 
-                    if (floatingDpadEnabled && dynamicDpadPointerId == null) {
+                    syncJoystickGeometry()
+
+                    if (dpadType == DpadType.FLOATING_JOYSTICK && !joystick.isActive) {
                         if (px < viewW * 0.5f) {
                             dynamicDpadPointerId = id
                             dynamicDpadActive = true
                             layout = layout.withClusterPosition(TouchLayout.CLUSTER_DPAD, px, py)
+                            val res = joystick.onDown(px, py, id, isFloating = true)
+                            if (res.detentCrossed && !res.isDeadzone) {
+                                triggerDetentHaptic()
+                            }
+                        }
+                    } else if (dpadType == DpadType.FIXED_JOYSTICK && !joystick.isActive) {
+                        val dx = px - joystick.baseCenterX
+                        val dy = py - joystick.baseCenterY
+                        val dist = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+                        if (dist <= joystick.baseRadius * 1.5f || (px < viewW * 0.45f && Math.abs(dy) <= joystick.baseRadius * 1.8f)) {
+                            dynamicDpadPointerId = id
+                            dynamicDpadActive = true
+                            val res = joystick.onDown(px, py, id, isFloating = false)
+                            if (res.detentCrossed && !res.isDeadzone) {
+                                triggerDetentHaptic()
+                            }
                         }
                     }
                 }
@@ -392,14 +496,24 @@ class TouchOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_MOVE -> {
                 for (i in 0 until event.pointerCount) {
                     val id = event.getPointerId(i)
-                    activePointers[id] = Pair(event.getX(i), event.getY(i))
+                    val px = event.getX(i)
+                    val py = event.getY(i)
+                    activePointers[id] = Pair(px, py)
+
+                    if (joystick.isActive && joystick.pointerId == id) {
+                        val res = joystick.update(px, py)
+                        if (res.detentCrossed && !res.isDeadzone) {
+                            triggerDetentHaptic()
+                        }
+                    }
                 }
             }
             MotionEvent.ACTION_POINTER_UP -> {
                 if (actionIndex in 0 until event.pointerCount) {
                     val id = event.getPointerId(actionIndex)
                     activePointers.remove(id)
-                    if (id == dynamicDpadPointerId) {
+                    if (joystick.isActive && joystick.pointerId == id) {
+                        joystick.onUp()
                         dynamicDpadActive = false
                         dynamicDpadPointerId = null
                     }
@@ -407,10 +521,9 @@ class TouchOverlayView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 activePointers.clear()
-                if (floatingDpadEnabled) {
-                    dynamicDpadActive = false
-                    dynamicDpadPointerId = null
-                }
+                joystick.onUp()
+                dynamicDpadActive = false
+                dynamicDpadPointerId = null
             }
         }
 
@@ -485,6 +598,7 @@ class TouchOverlayView @JvmOverloads constructor(
                         val targetY = (initialAnchorY + dy).coerceIn(halfH + 72f, viewH - halfH - 16f)
 
                         layout = layout.withClusterPosition(clusterId, targetX, targetY)
+                        syncJoystickGeometry()
                         invalidate()
                     }
                     return true
@@ -507,9 +621,20 @@ class TouchOverlayView @JvmOverloads constructor(
         }
     }
 
+    private fun triggerDetentHaptic() {
+        if (hapticFeedbackEnabledState) {
+            HapticEngine.triggerDetent(context, hapticIntensity, this)
+            onHapticTickRequested?.invoke()
+            onHapticFeedbackRequested?.invoke()
+        }
+    }
+
     private fun clearPointers() {
         if (activePointers.isNotEmpty() || currentKeyMask != RetroKey.NO_KEYS_MASK) {
             activePointers.clear()
+            joystick.onUp()
+            dynamicDpadActive = false
+            dynamicDpadPointerId = null
             val oldMask = currentKeyMask
             currentKeyMask = RetroKey.NO_KEYS_MASK
             if (oldMask != currentKeyMask) {
@@ -530,7 +655,21 @@ class TouchOverlayView @JvmOverloads constructor(
     private fun updateKeyMask() {
         if (isEditMode) return // Suppress game input while editing layout
 
-        val newMask = layout.resolvePointers(activePointers.values, isTurboPhase = isTurboPhase())
+        val newMask = if (dpadType == DpadType.CLASSIC_CROSS) {
+            layout.resolvePointers(activePointers.values, isTurboPhase = isTurboPhase())
+        } else {
+            val nonJoystickPointers = activePointers.filter { (id, _) -> id != joystick.pointerId }.values
+            var mask = RetroKey.NO_KEYS_MASK
+            for (p in nonJoystickPointers) {
+                for (c in layout.controls) {
+                    if (c.id != TouchLayout.ID_DPAD) {
+                        mask = mask or c.hitKeyMask(p.first, p.second, TouchLayout.DEFAULT_HIT_SLOP, isTurboPhase())
+                    }
+                }
+            }
+            mask or joystick.currentKeyMask
+        }
+
         if (newMask != currentKeyMask) {
             val newlyPressed = newMask and currentKeyMask.inv()
             val newlyReleased = currentKeyMask and newMask.inv()
@@ -593,8 +732,32 @@ class TouchOverlayView @JvmOverloads constructor(
         val currentEffectiveOpacity = getEffectiveOpacity()
         val opacityFactor = if (isEditMode) 0.95f else currentEffectiveOpacity
 
+        // Draw Virtual Analog Joystick when enabled
+        if (dpadType != DpadType.CLASSIC_CROSS) {
+            val dpadCluster = layout.getCluster(TouchLayout.CLUSTER_DPAD)
+            val scale = clusterScales[TouchLayout.CLUSTER_DPAD] ?: 1.0f
+            val baseX = if (joystick.isActive || dpadType == DpadType.FIXED_JOYSTICK) joystick.baseCenterX else (dpadCluster?.anchorX ?: 0f)
+            val baseY = if (joystick.isActive || dpadType == DpadType.FIXED_JOYSTICK) joystick.baseCenterY else (dpadCluster?.anchorY ?: 0f)
+
+            val shouldDrawJoystick = when {
+                isEditMode -> true
+                dpadType == DpadType.FIXED_JOYSTICK -> true
+                dpadType == DpadType.FLOATING_JOYSTICK -> joystick.isActive || dynamicDpadActive
+                else -> false
+            }
+
+            if (shouldDrawJoystick && baseX > 0f && baseY > 0f) {
+                drawVirtualJoystick(canvas, baseX, baseY, scale, opacityFactor)
+            }
+        }
+
         for (control in layout.controls) {
-            // If floating D-Pad is enabled and inactive, don't draw D-Pad
+            // If joystick mode is enabled, skip drawing the classic DPAD shape
+            if (dpadType != DpadType.CLASSIC_CROSS && control.id == TouchLayout.ID_DPAD) {
+                continue
+            }
+
+            // If floating classic D-Pad is enabled and inactive, don't draw D-Pad
             if (floatingDpadEnabled && !isEditMode && !dynamicDpadActive && control.id == TouchLayout.ID_DPAD) {
                 continue
             }
@@ -649,6 +812,101 @@ class TouchOverlayView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Renders the glowing Virtual Analog Joystick outer base and inner floating thumb knob.
+     * Material 3 Pitch Black & Indigo Theme:
+     * - Outer Base Ring: radius 54dp, Glowing Indigo border (#6366F1), translucent pitch-black fill (rgba(10, 10, 16, 0.65)).
+     * - Inner Floating Knob: radius 24dp, gradient Indigo fill (#4F46E5 to #818CF8), white center reticle.
+     */
+    private fun drawVirtualJoystick(
+        canvas: Canvas,
+        baseX: Float,
+        baseY: Float,
+        scale: Float,
+        opacityFactor: Float
+    ) {
+        val baseR = VirtualJoystick.DEFAULT_BASE_RADIUS * scale
+        val knobR = VirtualJoystick.DEFAULT_KNOB_RADIUS * scale
+        val deadzoneR = VirtualJoystick.DEFAULT_DEADZONE_RADIUS * scale
+
+        val kx = if (joystick.isActive) joystick.knobX else baseX
+        val ky = if (joystick.isActive) joystick.knobY else baseY
+
+        // 1. Outer Base Ring (rgba(10, 10, 16, 0.65))
+        basePaint.color = Color.argb((0.65f * 255 * opacityFactor).toInt(), 10, 10, 16)
+        canvas.drawCircle(baseX, baseY, baseR, basePaint)
+
+        // Outer Glow Ring (Indigo #6366F1 with 25% alpha, stroke width 6f)
+        strokePaint.color = Color.argb((0.25f * 255 * opacityFactor).toInt(), 99, 102, 241)
+        strokePaint.strokeWidth = 6f * scale
+        canvas.drawCircle(baseX, baseY, baseR + 2f * scale, strokePaint)
+
+        // Outer Glowing Border Ring (Indigo #6366F1, stroke width 3f)
+        strokePaint.color = Color.argb((0.95f * 255 * opacityFactor).toInt(), 99, 102, 241)
+        strokePaint.strokeWidth = 3f * scale
+        canvas.drawCircle(baseX, baseY, baseR, strokePaint)
+
+        // Deadzone Guide Ring (Subtle Indigo #6366F1 with 20% alpha)
+        strokePaint.color = Color.argb((0.20f * 255 * opacityFactor).toInt(), 99, 102, 241)
+        strokePaint.strokeWidth = 1.5f * scale
+        canvas.drawCircle(baseX, baseY, deadzoneR, strokePaint)
+
+        // Cardinal Direction Reticles / Notches on Base Perimeter (0°, 90°, 180°, 270°)
+        val tickLength = 7f * scale
+        val tickInner = baseR - tickLength
+        val tickOuter = baseR - 1f
+        strokePaint.color = Color.argb((0.70f * 255 * opacityFactor).toInt(), 129, 140, 248)
+        strokePaint.strokeWidth = 2.5f * scale
+
+        // Right
+        canvas.drawLine(baseX + tickInner, baseY, baseX + tickOuter, baseY, strokePaint)
+        // Down
+        canvas.drawLine(baseX, baseY + tickInner, baseX, baseY + tickOuter, strokePaint)
+        // Left
+        canvas.drawLine(baseX - tickInner, baseY, baseX - tickOuter, baseY, strokePaint)
+        // Up
+        canvas.drawLine(baseX, baseY - tickInner, baseX, baseY - tickOuter, strokePaint)
+
+        // Diagonal Subtle Sector Ticks if RPG Grid mode (30°, 60°, 120°, 150°, 210°, 240°, 300°, 330°)
+        if (joystickSnapMode == JoystickSnapMode.RPG_GRID_4WAY) {
+            strokePaint.color = Color.argb((0.35f * 255 * opacityFactor).toInt(), 129, 140, 248)
+            strokePaint.strokeWidth = 1.5f * scale
+            val diagAngles = floatArrayOf(30f, 60f, 120f, 150f, 210f, 240f, 300f, 330f)
+            for (ang in diagAngles) {
+                val rad = Math.toRadians(ang.toDouble())
+                val cosA = Math.cos(rad).toFloat()
+                val sinA = Math.sin(rad).toFloat()
+                val x1 = baseX + (baseR - 4f * scale) * cosA
+                val y1 = baseY + (baseR - 4f * scale) * sinA
+                val x2 = baseX + baseR * cosA
+                val y2 = baseY + baseR * sinA
+                canvas.drawLine(x1, y1, x2, y2, strokePaint)
+            }
+        }
+
+        // 2. Inner Floating Thumb Knob (Gradient Indigo #4F46E5 to #818CF8)
+        // Outer Knob Base Ring (#4F46E5)
+        basePaint.color = Color.argb((0.92f * 255 * opacityFactor).toInt(), 79, 70, 229)
+        canvas.drawCircle(kx, ky, knobR, basePaint)
+
+        // Inner Knob Dome (#6366F1)
+        basePaint.color = Color.argb((0.95f * 255 * opacityFactor).toInt(), 99, 102, 241)
+        canvas.drawCircle(kx, ky, knobR * 0.75f, basePaint)
+
+        // Knob Top Bevel Highlight (#818CF8)
+        basePaint.color = Color.argb((0.90f * 255 * opacityFactor).toInt(), 129, 140, 248)
+        canvas.drawCircle(kx, ky, knobR * 0.45f, basePaint)
+
+        // Knob Outer Stroke (#A5B4FC)
+        strokePaint.color = Color.argb((0.85f * 255 * opacityFactor).toInt(), 165, 180, 252)
+        strokePaint.strokeWidth = 2f * scale
+        canvas.drawCircle(kx, ky, knobR, strokePaint)
+
+        // White Center Reticle (#FFFFFF)
+        basePaint.color = Color.argb((0.95f * 255 * opacityFactor).toInt(), 255, 255, 255)
+        canvas.drawCircle(kx, ky, 3.5f * scale, basePaint)
+    }
+
     private fun drawEditModeOverlay(canvas: Canvas, viewW: Float, viewH: Float) {
         // Dim background
         editorFillPaint.color = Color.argb(90, 8, 12, 20)
@@ -686,7 +944,16 @@ class TouchOverlayView @JvmOverloads constructor(
             textPaint.textSize = 22f
             textPaint.color = if (isSelected) Color.argb(255, 0, 229, 255) else Color.argb(200, 180, 210, 255)
             val currentScale = clusterScales[cluster.id] ?: 1.0f
-            val labelWithScale = "${cluster.label} (${String.format("%.1f", currentScale)}x)"
+            val baseLabel = if (cluster.id == TouchLayout.CLUSTER_DPAD) {
+                when (dpadType) {
+                    DpadType.CLASSIC_CROSS -> "D-PAD"
+                    DpadType.FIXED_JOYSTICK -> "JOYSTICK"
+                    DpadType.FLOATING_JOYSTICK -> "JOYSTICK (Floating)"
+                }
+            } else {
+                cluster.label
+            }
+            val labelWithScale = "${baseLabel} (${String.format("%.1f", currentScale)}x)"
             canvas.drawText(labelWithScale, cluster.anchorX, tempRect.top - 8f, textPaint)
         }
 
@@ -780,4 +1047,3 @@ class TouchOverlayView @JvmOverloads constructor(
         return false
     }
 }
-

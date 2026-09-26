@@ -1,6 +1,7 @@
 package com.retropack.manager.ui.components
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,7 +22,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
 import com.retropack.manager.ui.theme.RetroPrimary
@@ -45,8 +49,10 @@ import com.retropack.manager.ui.theme.RetroPrimary
 @Composable
 fun IconPreviewCard(
     foregroundBytes: ByteArray?,
+    isScraping: Boolean = false,
     onPickImage: () -> Unit,
     onResetDefault: () -> Unit,
+    onFetchOnline: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val foregroundBitmap = remember(foregroundBytes) {
@@ -80,13 +86,16 @@ fun IconPreviewCard(
                     modifier = Modifier
                         .size(56.dp)
                         .clip(RoundedCornerShape(16.dp))
-                        .background(Color(0xFF0F141C))
-                        .then(
-                            if (foregroundBitmap != null) Modifier else Modifier
-                        ),
+                        .background(Color(0xFF0F141C)),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (foregroundBitmap != null) {
+                    if (isScraping) {
+                        CircularProgressIndicator(
+                            color = RetroPrimary,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else if (foregroundBitmap != null) {
                         Image(
                             bitmap = foregroundBitmap,
                             contentDescription = "Launcher Icon Foreground",
@@ -104,13 +113,30 @@ fun IconPreviewCard(
                 }
 
                 Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = if (isScraping) {
+                                "Scraping Box Art..."
+                            } else if (foregroundBitmap != null) {
+                                "Custom Boxart Icon"
+                            } else {
+                                "Default Retro Icon"
+                            },
+                            style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     Text(
-                        text = if (foregroundBitmap != null) "Custom Boxart Icon" else "Default Retro Icon",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = if (foregroundBitmap != null) "Adaptive layer generated" else "Tap to choose custom PNG/JPG",
+                        text = if (isScraping) {
+                            "Querying Libretro CDN..."
+                        } else if (foregroundBitmap != null) {
+                            "Adaptive layers synthesized"
+                        } else {
+                            "Tap to choose PNG/JPG or scrape online"
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -122,7 +148,20 @@ fun IconPreviewCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                if (foregroundBitmap != null) {
+                if (onFetchOnline != null && !isScraping) {
+                    IconButton(
+                        onClick = onFetchOnline,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CloudDownload,
+                            contentDescription = "Fetch Art Online",
+                            tint = RetroPrimary
+                        )
+                    }
+                }
+
+                if (foregroundBitmap != null && !isScraping) {
                     IconButton(
                         onClick = onResetDefault,
                         modifier = Modifier.size(36.dp)
@@ -139,7 +178,8 @@ fun IconPreviewCard(
                     onClick = onPickImage,
                     shape = RoundedCornerShape(12.dp),
                     border = BorderStroke(1.dp, RetroPrimary.copy(alpha = 0.5f)),
-                    modifier = Modifier.height(38.dp)
+                    modifier = Modifier.height(38.dp),
+                    enabled = !isScraping
                 ) {
                     Icon(
                         imageVector = Icons.Default.AddPhotoAlternate,
@@ -158,3 +198,4 @@ fun IconPreviewCard(
         }
     }
 }
+

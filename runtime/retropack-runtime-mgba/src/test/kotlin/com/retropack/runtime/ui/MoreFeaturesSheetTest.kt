@@ -246,4 +246,40 @@ class MoreFeaturesSheetTest {
         assertTrue(remapLaunched)
         assertFalse(sheet.isShowing())
     }
+
+    @Test
+    fun `dpad type and joystick snap mode segmented buttons update state and fire callbacks`() {
+        val sheet = MoreFeaturesSheet(Context())
+        sheet.setDimensions(1080, 1920)
+        sheet.show()
+        sheet.renderForTesting(Canvas())
+
+        var reportedDpadType: DpadType? = null
+        var reportedSnapMode: JoystickSnapMode? = null
+        sheet.onDpadTypeChanged = { reportedDpadType = it }
+        sheet.onJoystickSnapModeChanged = { reportedSnapMode = it }
+
+        // 1. Select Fixed Joystick (index 1)
+        val fixedX = sheet.dpadTypeRects[1].centerX()
+        val fixedY = sheet.dpadTypeRects[1].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, fixedX, fixedY))
+        assertEquals(DpadType.FIXED_JOYSTICK, sheet.dpadType)
+        assertEquals(DpadType.FIXED_JOYSTICK, reportedDpadType)
+        assertFalse(sheet.floatingDpadEnabled)
+
+        // 2. Select Floating Stick (index 2)
+        val floatX = sheet.dpadTypeRects[2].centerX()
+        val floatY = sheet.dpadTypeRects[2].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, floatX, floatY))
+        assertEquals(DpadType.FLOATING_JOYSTICK, sheet.dpadType)
+        assertEquals(DpadType.FLOATING_JOYSTICK, reportedDpadType)
+        assertTrue(sheet.floatingDpadEnabled)
+
+        // 3. Select 8-Way Action Snap Mode (index 1)
+        val actionSnapX = sheet.snapModeRects[1].centerX()
+        val actionSnapY = sheet.snapModeRects[1].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, actionSnapX, actionSnapY))
+        assertEquals(JoystickSnapMode.ACTION_8WAY, sheet.joystickSnapMode)
+        assertEquals(JoystickSnapMode.ACTION_8WAY, reportedSnapMode)
+    }
 }

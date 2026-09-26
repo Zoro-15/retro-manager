@@ -114,6 +114,26 @@ class ControlsPreferencesTest {
 
         ControlsPreferences.saveBezelEnabled(context, true)
         assertTrue(ControlsPreferences.loadBezelEnabled(context, false))
+
+        // D-Pad Type Persistence
+        ControlsPreferences.saveDpadType(context, DpadType.FIXED_JOYSTICK)
+        assertEquals(DpadType.FIXED_JOYSTICK, ControlsPreferences.loadDpadType(context))
+        assertFalse(ControlsPreferences.loadFloatingDpadEnabled(context))
+
+        ControlsPreferences.saveDpadType(context, DpadType.FLOATING_JOYSTICK)
+        assertEquals(DpadType.FLOATING_JOYSTICK, ControlsPreferences.loadDpadType(context))
+        assertTrue(ControlsPreferences.loadFloatingDpadEnabled(context))
+
+        // Joystick Snap Mode Persistence
+        ControlsPreferences.saveJoystickSnapMode(context, JoystickSnapMode.ACTION_8WAY)
+        assertEquals(JoystickSnapMode.ACTION_8WAY, ControlsPreferences.loadJoystickSnapMode(context))
+
+        // Joystick Deadzone & Sensitivity
+        ControlsPreferences.saveJoystickDeadzone(context, 16.0f)
+        assertEquals(16.0f, ControlsPreferences.loadJoystickDeadzone(context), 0.001f)
+
+        ControlsPreferences.saveJoystickSensitivity(context, 1.5f)
+        assertEquals(1.5f, ControlsPreferences.loadJoystickSensitivity(context), 0.001f)
     }
 }
 

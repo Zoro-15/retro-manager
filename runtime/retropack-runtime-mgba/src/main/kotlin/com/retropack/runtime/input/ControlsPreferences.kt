@@ -24,6 +24,10 @@ object ControlsPreferences {
     private const val KEY_GBA_COLOR = "gba_color_enabled"
     private const val KEY_BEZEL = "bezel_enabled"
     private const val KEY_FLOATING_DPAD = "floating_dpad_enabled"
+    private const val KEY_DPAD_TYPE = "dpad_type"
+    private const val KEY_JOYSTICK_SNAP_MODE = "joystick_snap_mode"
+    private const val KEY_JOYSTICK_DEADZONE = "joystick_deadzone"
+    private const val KEY_JOYSTICK_SENSITIVITY = "joystick_sensitivity"
     private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
     private const val KEY_SENSOR_MODE = "sensor_mode"
     private const val KEY_SENSOR_SENSITIVITY = "sensor_sensitivity"
@@ -390,21 +394,98 @@ object ControlsPreferences {
     }
 
     /**
+     * Persists D-Pad / Virtual Joystick control mode.
+     */
+    fun saveDpadType(context: Context, type: DpadType) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_DPAD_TYPE, type.name)
+            .putBoolean(KEY_FLOATING_DPAD, type == DpadType.FLOATING_JOYSTICK)
+            .apply()
+    }
+
+    /**
+     * Loads D-Pad / Virtual Joystick control mode.
+     */
+    fun loadDpadType(context: Context, defaultType: DpadType = DpadType.CLASSIC_CROSS): DpadType {
+        val prefs = context.getSharedPreferences(PREFS_NAME, 0)
+        val typeStr = prefs.getString(KEY_DPAD_TYPE, null)
+        if (typeStr != null) {
+            return DpadType.fromString(typeStr)
+        }
+        val legacyFloating = prefs.getBoolean(KEY_FLOATING_DPAD, false)
+        return if (legacyFloating) DpadType.FLOATING_JOYSTICK else defaultType
+    }
+
+    /**
+     * Persists Virtual Joystick sector gate / snapping mode.
+     */
+    fun saveJoystickSnapMode(context: Context, mode: JoystickSnapMode) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_JOYSTICK_SNAP_MODE, mode.name)
+            .apply()
+    }
+
+    /**
+     * Loads Virtual Joystick sector gate / snapping mode.
+     */
+    fun loadJoystickSnapMode(context: Context, defaultMode: JoystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY): JoystickSnapMode {
+        val name = context.getSharedPreferences(PREFS_NAME, 0)
+            .getString(KEY_JOYSTICK_SNAP_MODE, defaultMode.name)
+        return JoystickSnapMode.fromString(name)
+    }
+
+    /**
+     * Persists Virtual Joystick center deadzone radius in dp (e.g. 4dp to 30dp).
+     */
+    fun saveJoystickDeadzone(context: Context, deadzoneDp: Float) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putFloat(KEY_JOYSTICK_DEADZONE, deadzoneDp.coerceIn(4f, 40f))
+            .apply()
+    }
+
+    /**
+     * Loads Virtual Joystick center deadzone radius in dp.
+     */
+    fun loadJoystickDeadzone(context: Context, defaultDeadzoneDp: Float = 12.0f): Float {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getFloat(KEY_JOYSTICK_DEADZONE, defaultDeadzoneDp)
+    }
+
+    /**
+     * Persists Virtual Joystick deflection sensitivity multiplier (0.5x to 3.0x).
+     */
+    fun saveJoystickSensitivity(context: Context, sensitivity: Float) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putFloat(KEY_JOYSTICK_SENSITIVITY, sensitivity.coerceIn(0.5f, 3.0f))
+            .apply()
+    }
+
+    /**
+     * Loads Virtual Joystick deflection sensitivity multiplier.
+     */
+    fun loadJoystickSensitivity(context: Context, defaultSensitivity: Float = 1.0f): Float {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getFloat(KEY_JOYSTICK_SENSITIVITY, defaultSensitivity)
+    }
+
+    /**
      * Persists dynamic/floating touch D-Pad mode preference.
      */
     fun saveFloatingDpadEnabled(context: Context, enabled: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, 0)
-            .edit()
-            .putBoolean(KEY_FLOATING_DPAD, enabled)
-            .apply()
+        val type = if (enabled) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
+        saveDpadType(context, type)
     }
 
     /**
      * Loads dynamic/floating touch D-Pad mode preference.
      */
     fun loadFloatingDpadEnabled(context: Context, defaultEnabled: Boolean = false): Boolean {
-        return context.getSharedPreferences(PREFS_NAME, 0)
-            .getBoolean(KEY_FLOATING_DPAD, defaultEnabled)
+        val type = loadDpadType(context, if (defaultEnabled) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS)
+        return type == DpadType.FLOATING_JOYSTICK
     }
 
     /**

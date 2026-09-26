@@ -1,6 +1,7 @@
 package com.retropack.packaging
 
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
+import com.reandroid.arsc.chunk.xml.ResXmlElement
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
@@ -14,7 +15,11 @@ object AxmlMutator {
 
     private const val ANDROID_NS_URI = "http://schemas.android.com/apk/res/android"
     private const val ATTR_NAME = "name"
+    private const val ATTR_LABEL = "label"
     private const val ATTR_EXTRACT_NATIVE_LIBS = "extractNativeLibs"
+    private const val ATTR_LABEL_RESOURCE_ID = 0x01010001
+    private const val ACTION_MAIN = "android.intent.action.MAIN"
+    private const val CATEGORY_LAUNCHER = "android.intent.category.LAUNCHER"
 
     /**
      * Mutates raw AXML [manifestBytes] using [packageIdentity] and [gameTitle].
@@ -43,10 +48,45 @@ object AxmlMutator {
         // 5. Assert Constitutional Invariant 2: extractNativeLibs="false"
         validateExtractNativeLibs(manifest)
 
+        // 6. Explicitly set android:label on all launcher activities
+        mutateLauncherActivityLabels(manifest, gameTitle)
+
         manifest.refresh()
         val out = ByteArrayOutputStream()
         manifest.writeBytes(out)
         return out.toByteArray()
+    }
+
+    private fun mutateLauncherActivityLabels(manifest: AndroidManifestBlock, gameTitle: String) {
+        val activities = manifest.listApplicationElementsByTag("activity") ?: return
+        for (activity in activities) {
+            if (isLauncherActivity(activity)) {
+                val labelAttr = activity.getOrCreateAndroidAttribute(ATTR_LABEL, ATTR_LABEL_RESOURCE_ID)
+                labelAttr.valueAsString = gameTitle
+            }
+        }
+    }
+
+    private fun isLauncherActivity(activity: ResXmlElement): Boolean {
+        val intentFilters = activity.listElementsByTag("intent-filter") ?: return false
+        for (filter in intentFilters) {
+            val actions = filter.listElementsByTag("action") ?: emptyList()
+            val categories = filter.listElementsByTag("category") ?: emptyList()
+
+            val hasMain = actions.any { action ->
+                val name = (action.searchAttributeByName(ATTR_NAME) ?: action.searchAttributeByName("android:$ATTR_NAME"))?.valueAsString
+                name == ACTION_MAIN
+            }
+            val hasLauncher = categories.any { category ->
+                val name = (category.searchAttributeByName(ATTR_NAME) ?: category.searchAttributeByName("android:$ATTR_NAME"))?.valueAsString
+                name == CATEGORY_LAUNCHER
+            }
+
+            if (hasMain && hasLauncher) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun validateFullyQualifiedActivities(manifest: AndroidManifestBlock) {

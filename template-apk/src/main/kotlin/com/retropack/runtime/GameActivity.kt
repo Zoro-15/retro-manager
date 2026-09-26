@@ -23,7 +23,9 @@ import com.retropack.runtime.host.EmulationHost
 import com.retropack.runtime.host.RomStager
 import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.input.ControlsPreferences
+import com.retropack.runtime.input.DpadType
 import com.retropack.runtime.input.GamepadMapper
+import com.retropack.runtime.input.JoystickSnapMode
 import com.retropack.runtime.input.SensorController
 import com.retropack.runtime.input.TouchOverlayView
 import com.retropack.runtime.input.TouchTheme
@@ -115,6 +117,10 @@ open class GameActivity : Activity() {
         val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
         val effectiveHapticIntensity = ControlsPreferences.loadHapticIntensity(this, 1.0f)
         val effectiveFloatingDpad = ControlsPreferences.loadFloatingDpadEnabled(this, false)
+        val effectiveDpadType = ControlsPreferences.loadDpadType(this, if (effectiveFloatingDpad) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS)
+        val effectiveSnapMode = ControlsPreferences.loadJoystickSnapMode(this, JoystickSnapMode.RPG_GRID_4WAY)
+        val effectiveDeadzone = ControlsPreferences.loadJoystickDeadzone(this, 12.0f)
+        val effectiveSensitivity = ControlsPreferences.loadJoystickSensitivity(this, 1.0f)
         val effectiveGestures = ControlsPreferences.loadGesturesEnabled(this, true)
         val effectiveSensorModeStr = ControlsPreferences.loadSensorMode(this, "DISABLED")
         val effectiveSensorSensitivity = ControlsPreferences.loadSensorSensitivity(this, 1.0f)
@@ -180,7 +186,10 @@ open class GameActivity : Activity() {
             to.opacity = effectiveOpacity
             to.hapticFeedbackEnabledState = effectiveHaptics
             to.hapticIntensity = effectiveHapticIntensity
-            to.floatingDpadEnabled = effectiveFloatingDpad
+            to.dpadType = effectiveDpadType
+            to.joystickSnapMode = effectiveSnapMode
+            to.joystickDeadzone = effectiveDeadzone
+            to.joystickSensitivity = effectiveSensitivity
             to.gesturesEnabled = effectiveGestures
             to.theme = TouchTheme.fromId(effectiveTouchTheme)
             to.turboEnabled = effectiveTurbo
@@ -249,6 +258,8 @@ open class GameActivity : Activity() {
             scaleMode = effectiveScaleMode
             fastForwardSpeed = effectiveFastForwardSpeed
             muteAudioOnFastForward = effectiveMuteAudio
+            dpadType = effectiveDpadType
+            joystickSnapMode = effectiveSnapMode
             floatingDpadEnabled = effectiveFloatingDpad
             gesturesEnabled = effectiveGestures
             turboButtonsEnabled = effectiveTurbo
@@ -341,10 +352,13 @@ open class GameActivity : Activity() {
             bezel.scaleMode = config.runtime.videoScaleMode
             settings.scaleMode = config.runtime.videoScaleMode
             moreSheet.scaleMode = config.runtime.videoScaleMode
+            moreSheet.dpadType = DpadType.CLASSIC_CROSS
+            moreSheet.joystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
-                it.floatingDpadEnabled = false
+                it.dpadType = DpadType.CLASSIC_CROSS
+                it.joystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY
                 it.gesturesEnabled = true
                 it.theme = TouchTheme.CLASSIC_INDIGO
                 it.turboEnabled = false
@@ -388,9 +402,19 @@ open class GameActivity : Activity() {
             host?.setMuteAudioOnFastForward(mute)
             ControlsPreferences.saveMuteAudioOnFastForward(this, mute)
         }
+        moreSheet.onDpadTypeChanged = { type ->
+            to?.dpadType = type
+            ControlsPreferences.saveDpadType(this, type)
+        }
+        moreSheet.onJoystickSnapModeChanged = { snapMode ->
+            to?.joystickSnapMode = snapMode
+            ControlsPreferences.saveJoystickSnapMode(this, snapMode)
+        }
         moreSheet.onFloatingDpadChanged = { enabled ->
-            to?.floatingDpadEnabled = enabled
-            ControlsPreferences.saveFloatingDpadEnabled(this, enabled)
+            val type = if (enabled) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
+            to?.dpadType = type
+            moreSheet.dpadType = type
+            ControlsPreferences.saveDpadType(this, type)
         }
         moreSheet.onGesturesChanged = { enabled ->
             to?.gesturesEnabled = enabled

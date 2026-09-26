@@ -275,5 +275,37 @@ class TouchOverlayTest {
         overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, btnA.cx, btnA.cy))
         assertEquals(listOf("press", "release"), hapticEvents)
     }
+
+    @Test
+    fun `fixed joystick mode tracks knob deflection and fires detent ticks`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.dpadType = DpadType.FIXED_JOYSTICK
+        overlay.joystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY
+        overlay.updateLayout(1080f, 1920f)
+
+        var reportedMask = -1
+        var tickTriggered = false
+        overlay.onKeyMaskChanged = { mask -> reportedMask = mask }
+        overlay.onHapticTickRequested = { tickTriggered = true }
+
+        val dpadCluster = overlay.layout.getCluster(TouchLayout.CLUSTER_DPAD)!!
+        val cx = dpadCluster.anchorX
+        val cy = dpadCluster.anchorY
+
+        // Touch down at center (deadzone)
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, cx, cy))
+        assertTrue(overlay.joystick.isActive)
+        assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
+
+        // Move right 50px
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_MOVE, cx + 50f, cy))
+        assertEquals(RetroKey.KEY_RIGHT, reportedMask)
+        assertTrue(tickTriggered)
+
+        // Release
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, cx + 50f, cy))
+        assertFalse(overlay.joystick.isActive)
+        assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
+    }
 }
 

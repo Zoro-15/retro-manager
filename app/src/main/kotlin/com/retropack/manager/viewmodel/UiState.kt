@@ -44,7 +44,8 @@ data class IdentityUiState(
     val versionName: String = "1.0.0",
     val iconForegroundUri: Uri? = null,
     val iconForegroundBytes: ByteArray? = null,
-    val iconBackgroundBytes: ByteArray? = null
+    val iconBackgroundBytes: ByteArray? = null,
+    val isScrapingIcon: Boolean = false
 )
 
 data class RuntimeUiState(
