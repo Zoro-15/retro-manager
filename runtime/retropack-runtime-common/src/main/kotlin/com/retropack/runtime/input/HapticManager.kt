@@ -175,7 +175,7 @@ class HapticManager(
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val primitive = if (isHeavyMotor) {
-                    VibrationEffect.Composition.PRIMITIVE_HEAVY_CLICK
+                    VibrationEffect.Composition.PRIMITIVE_THUD
                 } else {
                     VibrationEffect.Composition.PRIMITIVE_QUICK_RISE
                 }

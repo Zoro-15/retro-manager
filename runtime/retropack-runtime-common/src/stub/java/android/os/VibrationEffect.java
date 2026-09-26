@@ -17,7 +17,6 @@ public class VibrationEffect {
         public static final int PRIMITIVE_QUICK_FALL = 6;
         public static final int PRIMITIVE_TICK = 7;
         public static final int PRIMITIVE_LOW_TICK = 8;
-        public static final int PRIMITIVE_HEAVY_CLICK = 9;
 
         public Composition addPrimitive(int primitiveId) { return this; }
         public Composition addPrimitive(int primitiveId, float scale) { return this; }
