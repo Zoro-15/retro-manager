@@ -177,4 +177,73 @@ class MoreFeaturesSheetTest {
         assertTrue(editLaunched)
         assertFalse(sheet.isShowing())
     }
+
+    @Test
+    fun `floating dpad and gestures toggles update state and invoke callbacks`() {
+        val sheet = MoreFeaturesSheet(Context())
+        sheet.setDimensions(1080, 1920)
+        sheet.show()
+        sheet.renderForTesting(Canvas())
+
+        var floatingDpadReported: Boolean? = null
+        sheet.onFloatingDpadChanged = { floatingDpadReported = it }
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, sheet.floatingDpadToggleRect.centerX(), sheet.floatingDpadToggleRect.centerY()))
+        assertTrue(sheet.floatingDpadEnabled)
+        assertEquals(true, floatingDpadReported)
+
+        var gesturesReported: Boolean? = null
+        sheet.onGesturesChanged = { gesturesReported = it }
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, sheet.gesturesToggleRect.centerX(), sheet.gesturesToggleRect.centerY()))
+        assertFalse(sheet.gesturesEnabled) // Initially true, toggles to false
+        assertEquals(false, gesturesReported)
+    }
+
+    @Test
+    fun `sensor mode pills and calibration button trigger callbacks`() {
+        val sheet = MoreFeaturesSheet(Context())
+        sheet.setDimensions(1080, 1920)
+        sheet.show()
+        sheet.renderForTesting(Canvas())
+
+        var sensorModeReported: String? = null
+        sheet.onSensorModeChanged = { sensorModeReported = it }
+
+        // Tap D-Pad Tilt (index 1)
+        val tiltX = sheet.sensorModeRects[1].centerX()
+        val tiltY = sheet.sensorModeRects[1].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, tiltX, tiltY))
+        assertEquals("DPAD_EMULATION", sheet.sensorMode)
+        assertEquals("DPAD_EMULATION", sensorModeReported)
+
+        // Tap Native Gyro (index 2)
+        val gyroX = sheet.sensorModeRects[2].centerX()
+        val gyroY = sheet.sensorModeRects[2].centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, gyroX, gyroY))
+        assertEquals("NATIVE_GYRO", sheet.sensorMode)
+        assertEquals("NATIVE_GYRO", sensorModeReported)
+
+        // Tap Calibration button
+        var calibrated = false
+        sheet.onCalibrateSensorClicked = { calibrated = true }
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, sheet.sensorCalibrateBtnRect.centerX(), sheet.sensorCalibrateBtnRect.centerY()))
+        assertTrue(calibrated)
+    }
+
+    @Test
+    fun `gamepad remap button dismisses sheet and launches remap overlay`() {
+        val sheet = MoreFeaturesSheet(Context())
+        sheet.setDimensions(1080, 1920)
+        sheet.show()
+        sheet.renderForTesting(Canvas())
+
+        var remapLaunched = false
+        sheet.onRemapGamepadClicked = { remapLaunched = true }
+
+        val remapX = sheet.gamepadRemapBtnRect.centerX()
+        val remapY = sheet.gamepadRemapBtnRect.centerY()
+        sheet.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, remapX, remapY))
+
+        assertTrue(remapLaunched)
+        assertFalse(sheet.isShowing())
+    }
 }

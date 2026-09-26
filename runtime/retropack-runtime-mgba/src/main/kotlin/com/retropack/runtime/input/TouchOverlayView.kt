@@ -86,6 +86,37 @@ class TouchOverlayView @JvmOverloads constructor(
             updateSuperpowerLayout()
         }
 
+    var floatingDpadEnabled: Boolean = false
+        set(value) {
+            field = value
+            if (!value) {
+                dynamicDpadActive = false
+                dynamicDpadPointerId = null
+            }
+            invalidate()
+        }
+
+    var dynamicDpadActive: Boolean = false
+        private set
+    var dynamicDpadPointerId: Int? = null
+        private set
+
+    var hapticIntensity: Float = 1.0f
+
+    var gesturesEnabled: Boolean = true
+    val gestureDetector: RetroGestureDetector = RetroGestureDetector().apply {
+        onTwoFingerSwipeLeft = { onQuickSaveRequested?.invoke() }
+        onTwoFingerSwipeRight = { onQuickLoadRequested?.invoke() }
+        onTwoFingerDoubleTap = { onToggleFastForwardRequested?.invoke() }
+        onThreeFingerTap = { onToggleQuickMenuRequested?.invoke() }
+    }
+
+    // Multi-touch Gesture Callbacks
+    var onQuickSaveRequested: (() -> Unit)? = null
+    var onQuickLoadRequested: (() -> Unit)? = null
+    var onToggleFastForwardRequested: (() -> Unit)? = null
+    var onToggleQuickMenuRequested: (() -> Unit)? = null
+
     var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
         private set
 
@@ -296,6 +327,12 @@ class TouchOverlayView @JvmOverloads constructor(
             return handleEditModeTouchEvent(event)
         }
 
+        // 1. Process Multi-Touch Gestures
+        if (gesturesEnabled) {
+            gestureDetector.gesturesEnabled = true
+            gestureDetector.onTouchEvent(event)
+        }
+
         if (!isControlsVisible) {
             if (revealOnTouchWhenHidden && event.actionMasked == MotionEvent.ACTION_DOWN) {
                 isControlsVisible = true
@@ -306,16 +343,38 @@ class TouchOverlayView @JvmOverloads constructor(
 
         val action = event.actionMasked
         val actionIndex = event.actionIndex
+        val viewW = if (width > 0) width.toFloat() else layout.width
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
                 activePointers.clear()
-                activePointers[event.getPointerId(0)] = Pair(event.getX(0), event.getY(0))
+                val id0 = event.getPointerId(0)
+                val x0 = event.getX(0)
+                val y0 = event.getY(0)
+                activePointers[id0] = Pair(x0, y0)
+
+                if (floatingDpadEnabled) {
+                    if (x0 < viewW * 0.5f) {
+                        dynamicDpadPointerId = id0
+                        dynamicDpadActive = true
+                        layout = layout.withClusterPosition(TouchLayout.CLUSTER_DPAD, x0, y0)
+                    }
+                }
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 if (actionIndex in 0 until event.pointerCount) {
                     val id = event.getPointerId(actionIndex)
-                    activePointers[id] = Pair(event.getX(actionIndex), event.getY(actionIndex))
+                    val px = event.getX(actionIndex)
+                    val py = event.getY(actionIndex)
+                    activePointers[id] = Pair(px, py)
+
+                    if (floatingDpadEnabled && dynamicDpadPointerId == null) {
+                        if (px < viewW * 0.5f) {
+                            dynamicDpadPointerId = id
+                            dynamicDpadActive = true
+                            layout = layout.withClusterPosition(TouchLayout.CLUSTER_DPAD, px, py)
+                        }
+                    }
                 }
             }
             MotionEvent.ACTION_MOVE -> {
@@ -328,10 +387,18 @@ class TouchOverlayView @JvmOverloads constructor(
                 if (actionIndex in 0 until event.pointerCount) {
                     val id = event.getPointerId(actionIndex)
                     activePointers.remove(id)
+                    if (id == dynamicDpadPointerId) {
+                        dynamicDpadActive = false
+                        dynamicDpadPointerId = null
+                    }
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 activePointers.clear()
+                if (floatingDpadEnabled) {
+                    dynamicDpadActive = false
+                    dynamicDpadPointerId = null
+                }
             }
         }
 
@@ -423,7 +490,7 @@ class TouchOverlayView @JvmOverloads constructor(
 
     private fun triggerHaptic() {
         if (hapticFeedbackEnabledState) {
-            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            HapticEngine.triggerPress(context, hapticIntensity, this)
             onHapticFeedbackRequested?.invoke()
         }
     }
@@ -434,6 +501,9 @@ class TouchOverlayView @JvmOverloads constructor(
             val oldMask = currentKeyMask
             currentKeyMask = RetroKey.NO_KEYS_MASK
             if (oldMask != currentKeyMask) {
+                if (hapticFeedbackEnabledState) {
+                    HapticEngine.triggerRelease(context, hapticIntensity, this)
+                }
                 onKeyMaskChanged?.invoke(currentKeyMask)
             }
         }
@@ -450,9 +520,14 @@ class TouchOverlayView @JvmOverloads constructor(
         val newMask = layout.resolvePointers(activePointers.values, isTurboPhase = isTurboPhase())
         if (newMask != currentKeyMask) {
             val newlyPressed = newMask and currentKeyMask.inv()
-            if (newlyPressed != 0 && hapticFeedbackEnabledState) {
-                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
-                onHapticFeedbackRequested?.invoke()
+            val newlyReleased = currentKeyMask and newMask.inv()
+            if (hapticFeedbackEnabledState) {
+                if (newlyPressed != 0) {
+                    HapticEngine.triggerPress(context, hapticIntensity, this)
+                    onHapticFeedbackRequested?.invoke()
+                } else if (newlyReleased != 0) {
+                    HapticEngine.triggerRelease(context, hapticIntensity, this)
+                }
             }
             currentKeyMask = newMask
             onKeyMaskChanged?.invoke(currentKeyMask)
@@ -505,6 +580,11 @@ class TouchOverlayView @JvmOverloads constructor(
         val opacityFactor = if (isEditMode) 0.95f else currentEffectiveOpacity
 
         for (control in layout.controls) {
+            // If floating D-Pad is enabled and inactive, don't draw D-Pad
+            if (floatingDpadEnabled && !isEditMode && !dynamicDpadActive && control.id == TouchLayout.ID_DPAD) {
+                continue
+            }
+
             val isPressed = !isEditMode && isControlPressed(control)
             val (baseFill, baseStroke, baseTextColor) = getControlColors(control, isPressed)
 

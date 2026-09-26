@@ -25,12 +25,14 @@ class EmulationHost(
     val audioPlayer: RetroAudioPlayer? = null,
     val renderer: RetroGlRenderer? = null,
     touchOverlay: TouchOverlayView? = null,
-    gamepadMapper: GamepadMapper = GamepadMapper()
+    gamepadMapper: GamepadMapper = GamepadMapper(),
+    sensorController: com.retropack.runtime.input.SensorController? = null
 ) : AutoCloseable {
 
     val inputCoordinator: InputCoordinator = InputCoordinator(
         touchOverlay = touchOverlay,
         gamepadMapper = gamepadMapper,
+        sensorController = sensorController,
         onKeyMaskDispatched = { mask -> engine.setKeyMask(mask) }
     )
 

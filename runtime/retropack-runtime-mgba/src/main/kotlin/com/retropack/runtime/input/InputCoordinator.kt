@@ -3,16 +3,18 @@ package com.retropack.runtime.input
 import com.retropack.runtime.core.RetroKey
 
 /**
- * Coordinates and unifies virtual touch overlay and physical gamepad inputs
+ * Coordinates and unifies virtual touch overlay, physical gamepad, and motion sensor inputs
  * into a single consolidated [RetroKey] bitmask.
  *
  * Implements specifications from:
  * - masterplan.md Section 5.4: "Auto-hides virtual controls when physical gamepad buttons are pressed."
- * - roadmap.md Part 2.5.
+ * - Motion sensor tilt steering integration.
+ * - roadmap.md Part 2.5 & Part 3.
  */
 class InputCoordinator(
     val touchOverlay: TouchOverlayView? = null,
     val gamepadMapper: GamepadMapper = GamepadMapper(),
+    val sensorController: SensorController? = null,
     private val onKeyMaskDispatched: (Int) -> Unit = {}
 ) {
     var autoHideTouchOnGamepad: Boolean = true
@@ -25,9 +27,12 @@ class InputCoordinator(
     @Volatile
     private var gamepadMask: Int = RetroKey.NO_KEYS_MASK
 
+    @Volatile
+    private var sensorMask: Int = RetroKey.NO_KEYS_MASK
+
     val compositeKeyMask: Int
         get() = synchronized(maskLock) {
-            (touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK
+            (touchMask or gamepadMask or sensorMask) and RetroKey.ALL_KEYS_MASK
         }
 
     init {
@@ -35,7 +40,7 @@ class InputCoordinator(
         touchOverlay?.onKeyMaskChanged = { mask ->
             synchronized(maskLock) {
                 touchMask = mask
-                onKeyMaskDispatched((touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK)
+                dispatchCompositeMask()
             }
         }
 
@@ -43,13 +48,21 @@ class InputCoordinator(
         gamepadMapper.onKeyMaskChanged = { mask ->
             synchronized(maskLock) {
                 gamepadMask = mask
-                onKeyMaskDispatched((touchMask or gamepadMask) and RetroKey.ALL_KEYS_MASK)
+                dispatchCompositeMask()
             }
         }
 
         gamepadMapper.onGamepadDetected = {
             if (autoHideTouchOnGamepad) {
                 touchOverlay?.isControlsVisible = false
+            }
+        }
+
+        // Wire motion sensor callbacks
+        sensorController?.onKeyMaskChanged = { mask ->
+            synchronized(maskLock) {
+                sensorMask = mask
+                dispatchCompositeMask()
             }
         }
     }
@@ -75,8 +88,17 @@ class InputCoordinator(
     }
 
     /**
-     * Resets all touch and gamepad key states with a single dispatch (the old
-     * path fired once via gamepadMapper.reset() plus once directly).
+     * Updates the motion sensor key mask directly.
+     */
+    fun updateSensorMask(mask: Int) {
+        synchronized(maskLock) {
+            sensorMask = mask
+            dispatchCompositeMask()
+        }
+    }
+
+    /**
+     * Resets all touch, gamepad, and sensor key states with a single consolidated dispatch.
      */
     fun reset() {
         val mapperCallback = gamepadMapper.onKeyMaskChanged
@@ -89,6 +111,7 @@ class InputCoordinator(
         synchronized(maskLock) {
             touchMask = RetroKey.NO_KEYS_MASK
             gamepadMask = RetroKey.NO_KEYS_MASK
+            sensorMask = RetroKey.NO_KEYS_MASK
             dispatchCompositeMask()
         }
     }

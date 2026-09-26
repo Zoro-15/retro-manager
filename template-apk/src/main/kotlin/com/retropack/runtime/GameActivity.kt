@@ -24,12 +24,14 @@ import com.retropack.runtime.host.RomStager
 import com.retropack.runtime.host.RuntimeConfig
 import com.retropack.runtime.input.ControlsPreferences
 import com.retropack.runtime.input.GamepadMapper
+import com.retropack.runtime.input.SensorController
 import com.retropack.runtime.input.TouchOverlayView
 import com.retropack.runtime.input.TouchTheme
 import com.retropack.runtime.logging.RuntimeLogger
 import com.retropack.runtime.save.SaveManager
 import com.retropack.runtime.save.SaveStateManager
 import com.retropack.runtime.ui.BezelOverlayView
+import com.retropack.runtime.ui.GamepadRemapOverlay
 import com.retropack.runtime.ui.InGameSettingsOverlay
 import com.retropack.runtime.ui.MoreFeaturesSheet
 import com.retropack.runtime.ui.QuickMenuOverlay
@@ -86,6 +88,12 @@ open class GameActivity : Activity() {
     var moreFeaturesSheet: MoreFeaturesSheet? = null
         protected set
 
+    var sensorController: SensorController? = null
+        protected set
+
+    var gamepadRemapOverlay: GamepadRemapOverlay? = null
+        protected set
+
     var isGameLoaded: Boolean = false
         protected set
 
@@ -105,6 +113,11 @@ open class GameActivity : Activity() {
         val effectiveScaleMode = ControlsPreferences.loadScaleMode(this, config.runtime.videoScaleMode)
         val effectiveOpacity = ControlsPreferences.loadOpacity(this, config.controls.touchOpacity)
         val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
+        val effectiveHapticIntensity = ControlsPreferences.loadHapticIntensity(this, 1.0f)
+        val effectiveFloatingDpad = ControlsPreferences.loadFloatingDpadEnabled(this, false)
+        val effectiveGestures = ControlsPreferences.loadGesturesEnabled(this, true)
+        val effectiveSensorModeStr = ControlsPreferences.loadSensorMode(this, "DISABLED")
+        val effectiveSensorSensitivity = ControlsPreferences.loadSensorSensitivity(this, 1.0f)
         val effectiveFastForwardSpeed = ControlsPreferences.loadFastForwardSpeed(this, 1)
         val effectiveMuteAudio = ControlsPreferences.loadMuteAudioOnFastForward(this, true)
         val effectiveTurbo = ControlsPreferences.loadTurboEnabled(this, false)
@@ -122,7 +135,18 @@ open class GameActivity : Activity() {
         val ssm = createSaveStateManager(storageDirectory())
         this.saveStateManager = ssm
 
-        // 4. Assemble View Hierarchy
+        // 4. Initialize Motion Sensor Controller
+        val sc = createSensorController().apply {
+            mode = try {
+                SensorController.SensorMode.valueOf(effectiveSensorModeStr)
+            } catch (_: Throwable) {
+                SensorController.SensorMode.DISABLED
+            }
+            sensitivity = effectiveSensorSensitivity
+        }
+        this.sensorController = sc
+
+        // 5. Assemble View Hierarchy
         val root = FrameLayout(this)
 
         val sv = createSurfaceView()
@@ -146,15 +170,58 @@ open class GameActivity : Activity() {
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
 
+        val gamepadMapper = createGamepadMapper().apply {
+            loadProfile(this@GameActivity)
+        }
+
         var to: TouchOverlayView? = null
         if (config.controls.touchEnabled) {
             to = createTouchOverlay()
             to.opacity = effectiveOpacity
             to.hapticFeedbackEnabledState = effectiveHaptics
+            to.hapticIntensity = effectiveHapticIntensity
+            to.floatingDpadEnabled = effectiveFloatingDpad
+            to.gesturesEnabled = effectiveGestures
             to.theme = TouchTheme.fromId(effectiveTouchTheme)
             to.turboEnabled = effectiveTurbo
             to.comboMacroEnabled = effectiveComboMacro
             to.applySavedCustomLayout()
+
+            // Wire Multi-Touch Gestures
+            to.onQuickSaveRequested = {
+                host?.let { h ->
+                    val vBuf = h.engine.getVideoBuffer()
+                    ssm.saveState(
+                        slot = 1,
+                        engine = h.engine,
+                        videoBuffer = vBuf,
+                        gameTitle = config.game.title
+                    )
+                    moreFeaturesSheet?.invalidate()
+                    RuntimeLogger.i("Gesture", "Quick Save State triggered (Slot 1)")
+                }
+            }
+            to.onQuickLoadRequested = {
+                host?.let { h ->
+                    ssm.loadState(1, h.engine)
+                    RuntimeLogger.i("Gesture", "Quick Load State triggered (Slot 1)")
+                }
+            }
+            to.onToggleFastForwardRequested = {
+                val currentSpeed = host?.emulationLoop?.fastForwardMultiplier ?: 1
+                val newSpeed = if (currentSpeed == 1) {
+                    val saved = ControlsPreferences.loadFastForwardSpeed(this@GameActivity, 2)
+                    if (saved > 1) saved else 2
+                } else 1
+                host?.setFastForwardMultiplier(newSpeed)
+                quickMenu?.fastForwardSpeed = newSpeed
+                moreFeaturesSheet?.fastForwardSpeed = newSpeed
+                RuntimeLogger.i("Gesture", "Fast-Forward toggled to ${newSpeed}x")
+            }
+            to.onToggleQuickMenuRequested = {
+                quickMenu?.let { q -> q.isExpanded = !q.isExpanded }
+            }
+
             this.touchOverlay = to
             root.addView(to, FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -181,17 +248,34 @@ open class GameActivity : Activity() {
             scaleMode = effectiveScaleMode
             fastForwardSpeed = effectiveFastForwardSpeed
             muteAudioOnFastForward = effectiveMuteAudio
+            floatingDpadEnabled = effectiveFloatingDpad
+            gesturesEnabled = effectiveGestures
             turboButtonsEnabled = effectiveTurbo
             comboMacroEnabled = effectiveComboMacro
             touchTheme = effectiveTouchTheme
+            sensorMode = effectiveSensorModeStr
+            sensorSensitivity = effectiveSensorSensitivity
             lcdGridEnabled = effectiveLcdGrid
             gbaColorCorrectionEnabled = effectiveGbaColor
             bezelEnabled = effectiveBezel
             hapticFeedbackEnabledState = effectiveHaptics
+            hapticIntensity = effectiveHapticIntensity
             saveStateManager = ssm
         }
         this.moreFeaturesSheet = moreSheet
         root.addView(moreSheet, FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Gamepad Remapping Modal Dialog
+        val remapOverlay = createGamepadRemapOverlay().apply {
+            this.gamepadMapper = gamepadMapper
+            this.hapticFeedbackEnabledState = effectiveHaptics
+            this.hapticIntensity = effectiveHapticIntensity
+        }
+        this.gamepadRemapOverlay = remapOverlay
+        root.addView(remapOverlay, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
@@ -247,6 +331,7 @@ open class GameActivity : Activity() {
             qm.hapticFeedbackEnabledState = haptics
             settings.hapticFeedbackEnabledState = haptics
             moreSheet.hapticFeedbackEnabledState = haptics
+            remapOverlay.hapticFeedbackEnabledState = haptics
             ControlsPreferences.saveHaptics(this, haptics)
         }
         settings.onResetDefaultsClicked = {
@@ -258,11 +343,16 @@ open class GameActivity : Activity() {
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
+                it.floatingDpadEnabled = false
+                it.gesturesEnabled = true
                 it.theme = TouchTheme.CLASSIC_INDIGO
                 it.turboEnabled = false
                 it.comboMacroEnabled = false
                 it.resetToDefaultLayout()
             }
+            sc.mode = SensorController.SensorMode.DISABLED
+            sc.stop()
+            gamepadMapper.resetBindingsToDefault(this)
             settings.touchOpacity = config.controls.touchOpacity
             settings.hapticsEnabled = config.controls.haptics
             qm.isControlsActive = to?.isControlsVisible ?: true
@@ -297,6 +387,14 @@ open class GameActivity : Activity() {
             host?.setMuteAudioOnFastForward(mute)
             ControlsPreferences.saveMuteAudioOnFastForward(this, mute)
         }
+        moreSheet.onFloatingDpadChanged = { enabled ->
+            to?.floatingDpadEnabled = enabled
+            ControlsPreferences.saveFloatingDpadEnabled(this, enabled)
+        }
+        moreSheet.onGesturesChanged = { enabled ->
+            to?.gesturesEnabled = enabled
+            ControlsPreferences.saveGesturesEnabled(this, enabled)
+        }
         moreSheet.onTurboChanged = { turbo ->
             to?.turboEnabled = turbo
             ControlsPreferences.saveTurboEnabled(this, turbo)
@@ -308,6 +406,27 @@ open class GameActivity : Activity() {
         moreSheet.onTouchThemeChanged = { themeId ->
             to?.theme = TouchTheme.fromId(themeId)
             ControlsPreferences.saveTouchTheme(this, themeId)
+        }
+        moreSheet.onSensorModeChanged = { modeStr ->
+            val targetMode = try {
+                SensorController.SensorMode.valueOf(modeStr)
+            } catch (_: Throwable) {
+                SensorController.SensorMode.DISABLED
+            }
+            sc.mode = targetMode
+            if (targetMode != SensorController.SensorMode.DISABLED) {
+                sc.start(this)
+            } else {
+                sc.stop()
+            }
+            ControlsPreferences.saveSensorMode(this, modeStr)
+        }
+        moreSheet.onCalibrateSensorClicked = {
+            sc.calibrateZeroPoint()
+            RuntimeLogger.i("Sensor", "Zero-point calibrated")
+        }
+        moreSheet.onRemapGamepadClicked = {
+            remapOverlay.show()
         }
         moreSheet.onLcdGridChanged = { enabled ->
             sv.renderer.lcdGridEnabled = enabled
@@ -341,18 +460,17 @@ open class GameActivity : Activity() {
 
         setContentView(root)
 
-        // 5. Initialize Core Subsystems and Wire into EmulationHost
+        // 6. Initialize Core Subsystems and Wire into EmulationHost
         val saveFile = File(storageDirectory(), SAVE_FILENAME)
         val sm = createSaveManager(saveFile)
         this.saveManager = sm
 
         val engine = createEngine()
         val audioPlayer = createAudioPlayer(config)
-        val gamepadMapper = createGamepadMapper().apply {
-            onGamepadDetected = {
-                to?.isControlsVisible = false
-                qm.isControlsActive = false
-            }
+
+        gamepadMapper.onGamepadDetected = {
+            to?.isControlsVisible = false
+            qm.isControlsActive = false
         }
 
         val emulationHost = EmulationHost(
@@ -361,7 +479,8 @@ open class GameActivity : Activity() {
             audioPlayer = audioPlayer,
             renderer = sv.renderer,
             touchOverlay = touchOverlay,
-            gamepadMapper = gamepadMapper
+            gamepadMapper = gamepadMapper,
+            sensorController = sc
         ).apply {
             setFastForwardMultiplier(effectiveFastForwardSpeed)
             setMuteAudioOnFastForward(effectiveMuteAudio)
@@ -371,7 +490,7 @@ open class GameActivity : Activity() {
         }
         this.host = emulationHost
 
-        // 6. Bootstrap Emulation if ROM is staged and verified
+        // 7. Bootstrap Emulation if ROM is staged and verified
         if (romFile.exists() && romFile.length() > 0L) {
             RuntimeLogger.i("Bootstrap", "Loading ROM into EmulationHost: ${romFile.absolutePath} (${romFile.length()} bytes)")
             isGameLoaded = emulationHost.loadGame(
@@ -406,6 +525,9 @@ open class GameActivity : Activity() {
         super.onResume()
         hideSystemUI()
         surfaceView?.resume()
+        if (sensorController?.mode != SensorController.SensorMode.DISABLED) {
+            sensorController?.start(this)
+        }
         RuntimeLogger.i("Lifecycle", "onResume: isGameLoaded=$isGameLoaded")
         host?.let {
             if (isGameLoaded) {
@@ -416,6 +538,7 @@ open class GameActivity : Activity() {
 
     override fun onPause() {
         RuntimeLogger.i("Lifecycle", "onPause: pausing emulation and flushing SRAM")
+        sensorController?.stop()
         host?.pause()
         // Invariant 5: Guarantees synchronous POSIX fsync cartridge SRAM flush to flash memory
         saveManager?.flushNow()
@@ -432,6 +555,7 @@ open class GameActivity : Activity() {
 
     override fun onDestroy() {
         RuntimeLogger.i("Lifecycle", "onDestroy: closing host and stopping logger")
+        sensorController?.stop()
         saveManager?.flushNow()
         host?.close()
         host = null
@@ -447,6 +571,11 @@ open class GameActivity : Activity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (gamepadRemapOverlay?.isShowing() == true) {
+            if (gamepadRemapOverlay?.handleKeyEvent(event) == true) {
+                return true
+            }
+        }
         if (host?.inputCoordinator?.gamepadMapper?.handleKeyEvent(event) == true) {
             return true
         }
@@ -454,6 +583,11 @@ open class GameActivity : Activity() {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        if (gamepadRemapOverlay?.isShowing() == true) {
+            if (gamepadRemapOverlay?.handleMotionEvent(event) == true) {
+                return true
+            }
+        }
         if (host?.inputCoordinator?.gamepadMapper?.handleGenericMotionEvent(event) == true) {
             return true
         }
@@ -620,4 +754,6 @@ open class GameActivity : Activity() {
     protected open fun createQuickMenu(): QuickMenuOverlay = QuickMenuOverlay(this)
     protected open fun createSettingsOverlay(): InGameSettingsOverlay = InGameSettingsOverlay(this)
     protected open fun createMoreFeaturesSheet(): MoreFeaturesSheet = MoreFeaturesSheet(this)
+    protected open fun createSensorController(): SensorController = SensorController()
+    protected open fun createGamepadRemapOverlay(): GamepadRemapOverlay = GamepadRemapOverlay(this)
 }

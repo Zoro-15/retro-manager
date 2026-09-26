@@ -1,10 +1,18 @@
 package android.content;
 
+import android.hardware.SensorManager;
+import android.os.Vibrator;
+
 public class Context {
     public static final String WINDOW_SERVICE = "window";
+    public static final String SENSOR_SERVICE = "sensor";
+    public static final String VIBRATOR_SERVICE = "vibrator";
+    public static final String INPUT_SERVICE = "input";
 
     private java.io.File filesDir = new java.io.File(System.getProperty("java.io.tmpdir"), "retropack_test_files");
     private android.content.res.AssetManager assetManager = new android.content.res.AssetManager();
+    private SensorManager sensorManager = new SensorManager();
+    private Vibrator vibrator = new Vibrator();
 
     public java.io.File getFilesDir() {
         if (!filesDir.exists()) filesDir.mkdirs();
@@ -34,6 +42,8 @@ public class Context {
     }
 
     public Object getSystemService(String name) {
+        if (SENSOR_SERVICE.equals(name)) return sensorManager;
+        if (VIBRATOR_SERVICE.equals(name)) return vibrator;
         return null;
     }
 

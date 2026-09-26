@@ -225,6 +225,53 @@ class TouchOverlayTest {
         // Scale below 0.5x is clamped to 0.5x
         overlay.setClusterScale(TouchLayout.CLUSTER_DPAD, 0.1f)
         assertEquals(0.5f, overlay.clusterScales[TouchLayout.CLUSTER_DPAD])
+    @Test
+    fun `floating dynamic dpad mode centers on touch down in left screen half and calculates directional deflection`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.floatingDpadEnabled = true
+        overlay.onSizeChanged(1080, 1920, 0, 0)
+
+        var reportedMask = -1
+        overlay.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        // Touch down at (200, 1000) - left half of screen
+        val downEvent = MotionEvent.createTouch(MotionEvent.ACTION_DOWN, 200f, 1000f)
+        overlay.onTouchEvent(downEvent)
+
+        assertTrue(overlay.floatingDpadActive)
+        assertEquals(200f, overlay.floatingDpadX)
+        assertEquals(1000f, overlay.floatingDpadY)
+
+        // Drag right to (260, 1000) -> D-Pad Right
+        val moveRightEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 260f, 1000f)
+        overlay.onTouchEvent(moveRightEvent)
+        assertEquals(RetroKey.KEY_RIGHT, reportedMask)
+
+        // Drag up to (200, 940) -> D-Pad Up
+        val moveUpEvent = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, 200f, 940f)
+        overlay.onTouchEvent(moveUpEvent)
+        assertEquals(RetroKey.KEY_UP, reportedMask)
+
+        // Touch Up clears floating d-pad
+        val upEvent = MotionEvent.createTouch(MotionEvent.ACTION_UP, 200f, 940f)
+        overlay.onTouchEvent(upEvent)
+        assertFalse(overlay.floatingDpadActive)
+        assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
+    }
+
+    @Test
+    fun `touch down and touch up trigger dual-state haptic feedback`() {
+        val overlay = TouchOverlayView(Context())
+        val hapticEvents = mutableListOf<String>()
+        overlay.onHapticFeedbackRequested = { hapticEvents.add("press") }
+        overlay.onHapticReleaseRequested = { hapticEvents.add("release") }
+
+        val btnA = overlay.layout.controls.first { it.id == TouchLayout.ID_A }
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, btnA.cx, btnA.cy))
+        assertEquals(listOf("press"), hapticEvents)
+
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_UP, btnA.cx, btnA.cy))
+        assertEquals(listOf("press", "release"), hapticEvents)
     }
 }
 

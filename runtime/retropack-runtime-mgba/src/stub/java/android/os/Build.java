@@ -10,7 +10,10 @@ public class Build {
     }
 
     public static class VERSION_CODES {
+        public static final int O = 26;
+        public static final int O_MR1 = 27;
         public static final int P = 28;
+        public static final int Q = 29;
         public static final int R = 30;
         public static final int S = 31;
         public static final int TIRAMISU = 33;

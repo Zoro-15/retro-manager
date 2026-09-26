@@ -23,8 +23,15 @@ object ControlsPreferences {
     private const val KEY_LCD_GRID = "lcd_grid_enabled"
     private const val KEY_GBA_COLOR = "gba_color_enabled"
     private const val KEY_BEZEL = "bezel_enabled"
+    private const val KEY_FLOATING_DPAD = "floating_dpad_enabled"
+    private const val KEY_HAPTIC_INTENSITY = "haptic_intensity"
+    private const val KEY_SENSOR_MODE = "sensor_mode"
+    private const val KEY_SENSOR_SENSITIVITY = "sensor_sensitivity"
+    private const val KEY_GESTURES_ENABLED = "gestures_enabled"
     private const val KEY_HAS_CUSTOM_PORTRAIT = "has_custom_portrait"
     private const val KEY_HAS_CUSTOM_LANDSCAPE = "has_custom_landscape"
+
+    const val GAMEPAD_PREFS_NAME = "retropack_gamepad_prefs"
 
     /**
      * Persists normalized (0.0 to 1.0) cluster coordinates for portrait or landscape orientation.
@@ -383,10 +390,177 @@ object ControlsPreferences {
     }
 
     /**
+     * Persists dynamic/floating touch D-Pad mode preference.
+     */
+    fun saveFloatingDpadEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_FLOATING_DPAD, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads dynamic/floating touch D-Pad mode preference.
+     */
+    fun loadFloatingDpadEnabled(context: Context, defaultEnabled: Boolean = false): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_FLOATING_DPAD, defaultEnabled)
+    }
+
+    /**
+     * Persists haptic vibration intensity (0.10 to 1.0).
+     */
+    fun saveHapticIntensity(context: Context, intensity: Float) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putFloat(KEY_HAPTIC_INTENSITY, intensity.coerceIn(0.10f, 1.0f))
+            .apply()
+    }
+
+    /**
+     * Loads haptic vibration intensity.
+     */
+    fun loadHapticIntensity(context: Context, defaultIntensity: Float = 1.0f): Float {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getFloat(KEY_HAPTIC_INTENSITY, defaultIntensity)
+    }
+
+    /**
+     * Persists motion sensor mode name.
+     */
+    fun saveSensorMode(context: Context, modeName: String) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putString(KEY_SENSOR_MODE, modeName)
+            .apply()
+    }
+
+    /**
+     * Loads motion sensor mode name.
+     */
+    fun loadSensorMode(context: Context, defaultMode: String = "DISABLED"): String {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getString(KEY_SENSOR_MODE, defaultMode) ?: defaultMode
+    }
+
+    /**
+     * Persists motion sensor sensitivity factor (0.5x to 3.0x).
+     */
+    fun saveSensorSensitivity(context: Context, sensitivity: Float) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putFloat(KEY_SENSOR_SENSITIVITY, sensitivity.coerceIn(0.2f, 5.0f))
+            .apply()
+    }
+
+    /**
+     * Loads motion sensor sensitivity factor.
+     */
+    fun loadSensorSensitivity(context: Context, defaultSensitivity: Float = 1.0f): Float {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getFloat(KEY_SENSOR_SENSITIVITY, defaultSensitivity)
+    }
+
+    /**
+     * Persists multi-touch gesture shortcuts toggle.
+     */
+    fun saveGesturesEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .putBoolean(KEY_GESTURES_ENABLED, enabled)
+            .apply()
+    }
+
+    /**
+     * Loads multi-touch gesture shortcuts toggle.
+     */
+    fun loadGesturesEnabled(context: Context, defaultEnabled: Boolean = true): Boolean {
+        return context.getSharedPreferences(PREFS_NAME, 0)
+            .getBoolean(KEY_GESTURES_ENABLED, defaultEnabled)
+    }
+
+    /**
+     * Persists custom gamepad key bindings for a specific controller device descriptor.
+     */
+    fun saveGamepadMapping(
+        context: Context,
+        deviceDescriptor: String,
+        bindings: Map<Int, com.retropack.runtime.core.RetroKey>
+    ) {
+        val prefs = context.getSharedPreferences(GAMEPAD_PREFS_NAME, 0)
+        val editor = prefs.edit()
+        val prefix = "map_${deviceDescriptor}_"
+
+        // Clear existing mappings for this device
+        for (key in prefs.all.keys) {
+            if (key.startsWith(prefix)) {
+                editor.remove(key)
+            }
+        }
+
+        // Write new mappings: keyCode -> RetroKey name
+        for ((keyCode, retroKey) in bindings) {
+            editor.putString("${prefix}${keyCode}", retroKey.name)
+        }
+        editor.putBoolean("has_map_${deviceDescriptor}", true)
+        editor.apply()
+    }
+
+    /**
+     * Loads custom gamepad key bindings for a controller descriptor, or null if unmapped.
+     */
+    fun loadGamepadMapping(
+        context: Context,
+        deviceDescriptor: String
+    ): Map<Int, com.retropack.runtime.core.RetroKey>? {
+        val prefs = context.getSharedPreferences(GAMEPAD_PREFS_NAME, 0)
+        if (!prefs.getBoolean("has_map_${deviceDescriptor}", false)) {
+            return null
+        }
+
+        val prefix = "map_${deviceDescriptor}_"
+        val result = mutableMapOf<Int, com.retropack.runtime.core.RetroKey>()
+
+        for ((key, value) in prefs.all) {
+            if (key.startsWith(prefix) && value is String) {
+                val keyCodeStr = key.removePrefix(prefix)
+                val keyCode = keyCodeStr.toIntOrNull()
+                if (keyCode != null) {
+                    try {
+                        result[keyCode] = com.retropack.runtime.core.RetroKey.valueOf(value)
+                    } catch (_: Throwable) {}
+                }
+            }
+        }
+        return if (result.isNotEmpty()) result else null
+    }
+
+    /**
+     * Clears saved mapping for a controller descriptor.
+     */
+    fun clearGamepadMapping(context: Context, deviceDescriptor: String) {
+        val prefs = context.getSharedPreferences(GAMEPAD_PREFS_NAME, 0)
+        val editor = prefs.edit()
+        val prefix = "map_${deviceDescriptor}_"
+
+        for (key in prefs.all.keys) {
+            if (key.startsWith(prefix)) {
+                editor.remove(key)
+            }
+        }
+        editor.remove("has_map_${deviceDescriptor}")
+        editor.apply()
+    }
+
+    /**
      * Resets all RetroPack controls preferences back to factory defaults.
      */
     fun resetAll(context: Context) {
         context.getSharedPreferences(PREFS_NAME, 0)
+            .edit()
+            .clear()
+            .apply()
+        context.getSharedPreferences(GAMEPAD_PREFS_NAME, 0)
             .edit()
             .clear()
             .apply()

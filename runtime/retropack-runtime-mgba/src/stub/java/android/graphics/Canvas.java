@@ -1,6 +1,10 @@
 package android.graphics;
 
 public class Canvas {
+    public Canvas() {}
+
+    public Canvas(Bitmap bitmap) {}
+
     public void drawColor(int color) {}
     public void drawCircle(float cx, float cy, float radius, Paint paint) {}
     public void drawRect(RectF rect, Paint paint) {}
@@ -11,6 +15,9 @@ public class Canvas {
     public void drawLines(float[] pts, Paint paint) {}
     public void drawLines(float[] pts, int offset, int count, Paint paint) {}
     public void drawText(String text, float x, float y, Paint paint) {}
+    public void drawBitmap(Bitmap bitmap, float left, float top, Paint paint) {}
+    public void drawBitmap(Bitmap bitmap, Rect src, RectF dst, Paint paint) {}
+    public void drawBitmap(Bitmap bitmap, Rect src, Rect dst, Paint paint) {}
     public int save() { return 0; }
     public void restore() {}
     public void translate(float dx, float dy) {}

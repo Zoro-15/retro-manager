@@ -1,5 +1,7 @@
 package com.retropack.runtime.input
 
+import android.content.Context
+import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import com.retropack.runtime.core.RetroKey
@@ -7,11 +9,12 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Translates physical Bluetooth/USB HID gamepad and keyboard inputs into GBA [RetroKey] bitmasks.
+ * Supports dynamic controller auto-detection and per-device custom remapping profiles.
  *
  * Implements specifications from:
  * - masterplan.md Section 5.4: "physical Bluetooth/USB gamepad HID handler. Auto-hides virtual
  *   controls when physical gamepad buttons are pressed."
- * - roadmap.md Part 2.5.
+ * - PPSSPP (ControlMappingScreen.cpp) & Lemuroid (GamepadManager.kt).
  */
 class GamepadMapper(
     initialBindings: Map<Int, RetroKey> = defaultKeyBindings()
@@ -49,8 +52,6 @@ class GamepadMapper(
             map[KeyEvent.KEYCODE_DPAD_RIGHT] = RetroKey.RIGHT
 
             // Hardware Keyboard Fallback Controls
-            // NOTE: KEYCODE_DEL is deliberately unmapped — consuming system
-            // back/backspace as SELECT breaks UI navigation (issue #14).
             map[KeyEvent.KEYCODE_X] = RetroKey.A
             map[KeyEvent.KEYCODE_Z] = RetroKey.B
             map[KeyEvent.KEYCODE_ENTER] = RetroKey.START
@@ -58,9 +59,39 @@ class GamepadMapper(
 
             return map
         }
+
+        /**
+         * Returns a human-friendly label for standard Android key codes.
+         */
+        fun getKeyLabel(keyCode: Int): String {
+            return when (keyCode) {
+                KeyEvent.KEYCODE_BUTTON_A -> "BUTTON A"
+                KeyEvent.KEYCODE_BUTTON_B -> "BUTTON B"
+                KeyEvent.KEYCODE_BUTTON_X -> "BUTTON X"
+                KeyEvent.KEYCODE_BUTTON_Y -> "BUTTON Y"
+                KeyEvent.KEYCODE_BUTTON_L1 -> "L1 TRIGGER"
+                KeyEvent.KEYCODE_BUTTON_R1 -> "R1 TRIGGER"
+                KeyEvent.KEYCODE_BUTTON_L2 -> "L2 TRIGGER"
+                KeyEvent.KEYCODE_BUTTON_R2 -> "R2 TRIGGER"
+                KeyEvent.KEYCODE_BUTTON_START -> "START"
+                KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
+                KeyEvent.KEYCODE_DPAD_UP -> "DPAD UP"
+                KeyEvent.KEYCODE_DPAD_DOWN -> "DPAD DOWN"
+                KeyEvent.KEYCODE_DPAD_LEFT -> "DPAD LEFT"
+                KeyEvent.KEYCODE_DPAD_RIGHT -> "DPAD RIGHT"
+                KeyEvent.KEYCODE_X -> "KEY X"
+                KeyEvent.KEYCODE_Z -> "KEY Z"
+                KeyEvent.KEYCODE_ENTER -> "ENTER"
+                KeyEvent.KEYCODE_SPACE -> "SPACE"
+                else -> "KEY ($keyCode)"
+            }
+        }
     }
 
     val keyBindings: MutableMap<Int, RetroKey> = ConcurrentHashMap(initialBindings)
+
+    var activeDeviceName: String = "Default Gamepad"
+    var activeDeviceDescriptor: String = "default_gamepad"
 
     var axisDeadzone: Float = DEFAULT_AXIS_DEADZONE
         set(value) {
@@ -81,20 +112,90 @@ class GamepadMapper(
      */
     var onGamepadDetected: (() -> Unit)? = null
 
+    /** Callback triggered when a new controller device profile is activated. */
+    var onDeviceProfileChanged: ((name: String, descriptor: String) -> Unit)? = null
+
     @Volatile
     private var buttonMask: Int = RetroKey.NO_KEYS_MASK
 
     @Volatile
     private var axisMask: Int = RetroKey.NO_KEYS_MASK
 
-    // Single guard for read-modify-write composites: without it a key event
-    // racing a motion event could interleave into a torn mask (issue #14).
+    // Single guard for read-modify-write composites
     private val maskLock = Any()
 
     val currentKeyMask: Int
         get() = synchronized(maskLock) {
             (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
         }
+
+    /**
+     * Automatically identifies and applies the controller profile corresponding to [device].
+     */
+    fun detectAndApplyDevice(context: Context, device: InputDevice) {
+        val descriptor = device.descriptor ?: "gamepad_${device.id}"
+        val name = device.name ?: "Game Controller"
+        activeDeviceDescriptor = descriptor
+        activeDeviceName = name
+        loadProfile(context, descriptor, name)
+        onDeviceProfileChanged?.invoke(name, descriptor)
+    }
+
+    /**
+     * Loads custom bindings from SharedPreferences for [descriptor], or falls back to defaults.
+     */
+    fun loadProfile(context: Context, descriptor: String = activeDeviceDescriptor, name: String = activeDeviceName) {
+        activeDeviceDescriptor = descriptor
+        activeDeviceName = name
+        val saved = ControlsPreferences.loadGamepadMapping(context, descriptor)
+        keyBindings.clear()
+        if (saved != null && saved.isNotEmpty()) {
+            keyBindings.putAll(saved)
+        } else {
+            keyBindings.putAll(defaultKeyBindings())
+        }
+    }
+
+    /**
+     * Persists the current key bindings profile for [descriptor] to SharedPreferences.
+     */
+    fun saveProfile(context: Context, descriptor: String = activeDeviceDescriptor) {
+        ControlsPreferences.saveGamepadMapping(context, descriptor, keyBindings)
+    }
+
+    /**
+     * Binds an Android [keyCode] to a GBA [retroKey].
+     */
+    fun setKeyBinding(keyCode: Int, retroKey: RetroKey) {
+        // Remove any existing binding that might map to this retroKey if desired,
+        // or allow multiple keys to map to the same retroKey
+        keyBindings[keyCode] = retroKey
+    }
+
+    /**
+     * Removes binding for [keyCode].
+     */
+    fun removeKeyBinding(keyCode: Int) {
+        keyBindings.remove(keyCode)
+    }
+
+    /**
+     * Resets bindings back to factory defaults.
+     */
+    fun resetBindingsToDefault(context: Context? = null) {
+        keyBindings.clear()
+        keyBindings.putAll(defaultKeyBindings())
+        if (context != null) {
+            ControlsPreferences.clearGamepadMapping(context, activeDeviceDescriptor)
+        }
+    }
+
+    /**
+     * Returns the keycode currently assigned to [retroKey], or null if unassigned.
+     */
+    fun getKeyCodeFor(retroKey: RetroKey): Int? {
+        return keyBindings.entries.firstOrNull { it.value == retroKey }?.key
+    }
 
     /**
      * Processes Android [KeyEvent] input (e.g. from Bluetooth/USB controller or keyboard).
