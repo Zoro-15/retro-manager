@@ -45,11 +45,11 @@ object RuntimeLogger {
      * Initializes continuous file logging for the runtime host.
      */
     @Synchronized
-    fun init(context: Context) {
+    fun init(context: Context, logDir: File? = null) {
         if (isInitialized) return
 
         try {
-            val targetDir = context.getExternalFilesDir(null) ?: context.filesDir
+            val targetDir = logDir ?: (context.getExternalFilesDir(null) ?: context.filesDir)
             targetDir.mkdirs()
             val file = File(targetDir, LOG_FILENAME)
             activeLogFile = file

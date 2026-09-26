@@ -1,6 +1,7 @@
 package android.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.IBinder;
 
 public abstract class Service extends Context {
@@ -8,9 +9,9 @@ public abstract class Service extends Context {
     public static final int START_NOT_STICKY = 2;
 
     public void onCreate() {}
-    public int onStartCommand(Object intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         return START_NOT_STICKY;
     }
     public void onDestroy() {}
-    public abstract IBinder onBind(Object intent);
+    public abstract IBinder onBind(Intent intent);
 }

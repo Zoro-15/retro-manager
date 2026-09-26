@@ -42,4 +42,6 @@ public class Context {
     public java.io.File getExternalFilesDir(String type) {
         return getFilesDir();
     }
+
+    public void startActivity(Intent intent) {}
 }

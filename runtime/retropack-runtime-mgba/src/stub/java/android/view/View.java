@@ -44,4 +44,22 @@ public class View {
     public boolean performHapticFeedback(int feedbackConstant) { return true; }
     protected void onDraw(Canvas canvas) {}
     public boolean onTouchEvent(MotionEvent event) { return false; }
+    public void setBackgroundColor(int color) {}
+    public void setPadding(int left, int top, int right, int bottom) {}
+
+    public interface OnClickListener {
+        void onClick(View v);
+    }
+
+    private OnClickListener onClickListener;
+    public void setOnClickListener(OnClickListener l) {
+        this.onClickListener = l;
+    }
+    public boolean performClick() {
+        if (onClickListener != null) {
+            onClickListener.onClick(this);
+            return true;
+        }
+        return false;
+    }
 }

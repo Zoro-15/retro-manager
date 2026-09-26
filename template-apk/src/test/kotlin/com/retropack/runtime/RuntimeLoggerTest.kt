@@ -20,12 +20,11 @@ class RuntimeLoggerTest {
     @BeforeEach
     fun setUp() {
         context = Context()
-        context.filesDir = tempDir
     }
 
     @Test
     fun testRuntimeLoggerLifecycleAndFileCreation() {
-        RuntimeLogger.init(context)
+        RuntimeLogger.init(context, tempDir)
 
         val logFile = RuntimeLogger.logFile
         assertNotNull(logFile, "Log file should be initialized")
