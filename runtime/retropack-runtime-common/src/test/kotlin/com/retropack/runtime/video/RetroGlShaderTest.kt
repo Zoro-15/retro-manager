@@ -1,33 +1,41 @@
 package com.retropack.runtime.video
 
+import com.retropack.domain.model.ShaderMode
 import com.retropack.runtime.core.ScaleMode
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class RetroGlShaderTest {
 
     @Test
-    fun `fragment shader source contains GBA color and LCD grid filter routines`() {
-        val src = RetroGlShader.FRAGMENT_SHADER_SRC
-        assertTrue(src.contains("u_LcdGridEnabled"), "Fragment shader must declare u_LcdGridEnabled uniform")
-        assertTrue(src.contains("u_ColorCorrectionEnabled"), "Fragment shader must declare u_ColorCorrectionEnabled uniform")
-        assertTrue(src.contains("applyGbaColor"), "Fragment shader must implement GBA color transformation matrix")
-        assertTrue(src.contains("applyLcdGrid"), "Fragment shader must implement LCD 3-subpixel grid calculation")
+    fun `fragment shader sources contain CRT scanlines and LCD dotmatrix routines`() {
+        val crtSrc = RetroGlShader.FRAGMENT_CRT_SCANLINES_SRC
+        assertTrue(crtSrc.contains("applyCurvature"), "CRT shader must implement curvature")
+        assertTrue(crtSrc.contains("scanFactor"), "CRT shader must modulate scanlines")
+
+        val lcdSrc = RetroGlShader.FRAGMENT_LCD_DOTMATRIX_SRC
+        assertTrue(lcdSrc.contains("subpixelMask"), "LCD shader must implement 3-subpixel mask")
+        assertTrue(lcdSrc.contains("gridGap"), "LCD shader must calculate physical grid gaps")
+
+        val colorBoostSrc = RetroGlShader.FRAGMENT_COLOR_BOOST_SRC
+        assertTrue(colorBoostSrc.contains("applyGbaColorMatrix"), "Color boost must implement GBA color transformation matrix")
+
+        val peaGreenSrc = RetroGlShader.FRAGMENT_DMG_PEA_GREEN_SRC
+        assertTrue(peaGreenSrc.contains("lum"), "Pea green shader must compute luminance")
     }
 
     @Test
-    fun `renderer properties manage LCD grid and color correction states`() {
-        val renderer = RetroGlRenderer(ScaleMode.ASPECT_FIT)
-        assertFalse(renderer.lcdGridEnabled)
-        assertFalse(renderer.colorCorrectionEnabled)
+    fun `renderer properties manage shader modes and scale modes`() {
+        val renderer = RetroGlRenderer(initialScaleMode = ScaleMode.ASPECT_FIT, initialShaderMode = ShaderMode.NONE)
+        assertEquals(ShaderMode.NONE, renderer.shaderMode)
+        assertEquals(ScaleMode.ASPECT_FIT, renderer.scaleMode)
 
-        renderer.lcdGridEnabled = true
-        renderer.colorCorrectionEnabled = true
+        renderer.updateShaderMode(ShaderMode.LCD_DOTMATRIX)
+        assertEquals(ShaderMode.LCD_DOTMATRIX, renderer.shaderMode)
 
-        assertTrue(renderer.lcdGridEnabled)
-        assertTrue(renderer.colorCorrectionEnabled)
+        renderer.updateShaderMode(ShaderMode.COLOR_BOOST)
+        assertEquals(ShaderMode.COLOR_BOOST, renderer.shaderMode)
     }
 
     @Test
