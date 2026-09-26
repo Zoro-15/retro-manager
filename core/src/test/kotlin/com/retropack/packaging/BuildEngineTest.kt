@@ -3,6 +3,7 @@ package com.retropack.packaging
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
 import com.retropack.domain.model.*
 import com.retropack.domain.rom.GbaTestRomFactory
+import com.retropack.domain.rom.StreamChecksum
 import com.retropack.security.HybridKeystore
 import com.retropack.security.KeyType
 import org.junit.jupiter.api.Assertions.*
@@ -80,6 +81,7 @@ class BuildEngineTest {
             makerCode = "01",
             version = 0
         )
+        val checksums = StreamChecksum.calculate(ByteArrayInputStream(romBytes))
 
         val request = BuildRequest(
             identity = GameIdentity(
