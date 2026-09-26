@@ -221,6 +221,11 @@ class SaveStateManager(
     fun getMetaFile(slot: Int): File = File(storageDir, "slot_$slot.meta")
 
     /**
+     * Checks if a valid non-empty save state file exists for [slot].
+     */
+    fun hasState(slot: Int): Boolean = getStateFile(slot).exists() && getStateFile(slot).length() > 0L
+
+    /**
      * Saves complete state binary, live thumbnail, and metadata for [slot].
      */
     fun saveState(

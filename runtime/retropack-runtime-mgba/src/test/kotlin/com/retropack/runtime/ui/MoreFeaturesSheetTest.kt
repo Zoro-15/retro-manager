@@ -5,6 +5,8 @@ import android.graphics.Canvas
 import android.view.MotionEvent
 import android.view.View
 import com.retropack.runtime.core.ScaleMode
+import com.retropack.runtime.input.DpadType
+import com.retropack.runtime.input.JoystickSnapMode
 import com.retropack.runtime.save.SaveStateManager
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -41,7 +43,7 @@ class MoreFeaturesSheetTest {
         val sheet = MoreFeaturesSheet(Context())
         val ssm = SaveStateManager(tempDir)
         sheet.saveStateManager = ssm
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -64,7 +66,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `tapping load state button invokes load callback and dismisses sheet`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.selectedSlot = 2
         sheet.renderForTesting(Canvas())
@@ -83,7 +85,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `speed selector updates fast-forward multiplier and notifies callback`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -102,7 +104,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `toggles for mute, turbo, and macro switch states`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -130,7 +132,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `touch theme and display shader toggles update preferences`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -163,7 +165,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `edit controls button dismisses sheet and launches layout editor`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -181,7 +183,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `floating dpad and gestures toggles update state and invoke callbacks`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -201,7 +203,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `sensor mode pills and calibration button trigger callbacks`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -232,7 +234,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `gamepad remap button dismisses sheet and launches remap overlay`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 
@@ -250,7 +252,7 @@ class MoreFeaturesSheetTest {
     @Test
     fun `dpad type and joystick snap mode segmented buttons update state and fire callbacks`() {
         val sheet = MoreFeaturesSheet(Context())
-        sheet.setDimensions(1080, 1920)
+        sheet.setSheetDimensions(1080, 1920)
         sheet.show()
         sheet.renderForTesting(Canvas())
 

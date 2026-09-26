@@ -70,6 +70,13 @@ object HapticEngine {
     }
 
     /**
+     * Triggers a standard tactile click (alias to triggerPress).
+     */
+    fun triggerClick(context: Context?, intensity: Float = 1.0f, view: View? = null) {
+        triggerPress(context, intensity, view)
+    }
+
+    /**
      * Triggers a subtle, short micro-tick when a virtual button is released.
      *
      * @param context Context used to resolve system Vibrator service.

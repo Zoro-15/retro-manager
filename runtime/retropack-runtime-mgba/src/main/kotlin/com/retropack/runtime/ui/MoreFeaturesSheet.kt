@@ -246,7 +246,7 @@ class MoreFeaturesSheet @JvmOverloads constructor(
 
     fun isShowing(): Boolean = visibility == VISIBLE
 
-    fun setDimensions(w: Int, h: Int) {
+    fun setSheetDimensions(w: Int, h: Int) {
         updateLayoutGeometry(w.toFloat(), h.toFloat())
     }
 
