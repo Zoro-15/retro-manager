@@ -51,5 +51,10 @@ public class Paint {
         return text != null ? text.length() * (textSize * 0.6f) : 0.0f;
     }
 
+    private boolean fakeBoldText = false;
+
+    public void setFakeBoldText(boolean fakeBoldText) { this.fakeBoldText = fakeBoldText; }
+    public boolean isFakeBoldText() { return fakeBoldText; }
+
     public void setShadowLayer(float radius, float dx, float dy, int shadowColor) {}
 }
