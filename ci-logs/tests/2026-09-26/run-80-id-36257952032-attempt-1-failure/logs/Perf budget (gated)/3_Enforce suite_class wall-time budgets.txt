@@ -1,0 +1,72 @@
+﻿2026-09-26T17:09:25.4316360Z ##[group]Run python3 - <<'PY'
+2026-09-26T17:09:25.4317950Z [36;1mpython3 - <<'PY'[0m
+2026-09-26T17:09:25.4319933Z [36;1mimport glob, os, xml.etree.ElementTree as ET[0m
+2026-09-26T17:09:25.4321638Z [36;1m[0m
+2026-09-26T17:09:25.4323217Z [36;1mtotal_budget = float(os.environ.get("PERF_TOTAL_BUDGET_SEC", "600"))[0m
+2026-09-26T17:09:25.4325712Z [36;1mclass_budget = float(os.environ.get("PERF_CLASS_BUDGET_SEC", "120"))[0m
+2026-09-26T17:09:25.4327643Z [36;1m[0m
+2026-09-26T17:09:25.4329448Z [36;1mfiles = sorted(glob.glob("junit-xml/**/TEST-*.xml", recursive=True))[0m
+2026-09-26T17:09:25.4331422Z [36;1mif not files:[0m
+2026-09-26T17:09:25.4333034Z [36;1m    # Fall back to flat layout (download-artifact may flatten paths)[0m
+2026-09-26T17:09:25.4335098Z [36;1m    files = sorted(glob.glob("junit-xml/TEST-*.xml"))[0m
+2026-09-26T17:09:25.4336715Z [36;1mif not files:[0m
+2026-09-26T17:09:25.4339026Z [36;1m    print("::error::No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?")[0m
+2026-09-26T17:09:25.4341465Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T17:09:25.4342700Z [36;1m[0m
+2026-09-26T17:09:25.4343900Z [36;1mrows = [][0m
+2026-09-26T17:09:25.4344959Z [36;1mfor f in files:[0m
+2026-09-26T17:09:25.4346091Z [36;1m    try:[0m
+2026-09-26T17:09:25.4347206Z [36;1m        root = ET.parse(f).getroot()[0m
+2026-09-26T17:09:25.4348681Z [36;1m    except ET.ParseError as e:[0m
+2026-09-26T17:09:25.4350460Z [36;1m        print(f"::error::Unparseable JUnit XML: {f}: {e}")[0m
+2026-09-26T17:09:25.4352118Z [36;1m        raise SystemExit(1)[0m
+2026-09-26T17:09:25.4354107Z [36;1m    # Gradle emits <testsuite name=.. tests=.. failures=.. errors=.. skipped=.. time=..>[0m
+2026-09-26T17:09:25.4356673Z [36;1m    suites = [root] if root.tag == "testsuite" else root.findall("testsuite")[0m
+2026-09-26T17:09:25.4358606Z [36;1m    if not suites:[0m
+2026-09-26T17:09:25.4360158Z [36;1m        suites = [root][0m
+2026-09-26T17:09:25.4361448Z [36;1m    for s in suites:[0m
+2026-09-26T17:09:25.4362724Z [36;1m        name = s.get("name", f)[0m
+2026-09-26T17:09:25.4364055Z [36;1m        try:[0m
+2026-09-26T17:09:25.4365411Z [36;1m            t = float(s.get("time", "0") or 0)[0m
+2026-09-26T17:09:25.4366913Z [36;1m        except ValueError:[0m
+2026-09-26T17:09:25.4368211Z [36;1m            t = 0.0[0m
+2026-09-26T17:09:25.4369869Z [36;1m        failures = int(s.get("failures", "0") or 0)[0m
+2026-09-26T17:09:25.4371567Z [36;1m        errors = int(s.get("errors", "0") or 0)[0m
+2026-09-26T17:09:25.4373232Z [36;1m        skipped = int(s.get("skipped", "0") or 0)[0m
+2026-09-26T17:09:25.4374922Z [36;1m        tests = int(s.get("tests", "0") or 0)[0m
+2026-09-26T17:09:25.4376772Z [36;1m        rows.append((name, f, t, tests, failures, errors, skipped))[0m
+2026-09-26T17:09:25.4378510Z [36;1m[0m
+2026-09-26T17:09:25.4379801Z [36;1mtotal = sum(r[2] for r in rows)[0m
+2026-09-26T17:09:25.4381820Z [36;1mprint(f"Parsed {len(files)} XML files, {len(rows)} suites, total time {total:.2f}s "[0m
+2026-09-26T17:09:25.4384341Z [36;1m      f"(budget {total_budget:.0f}s, class budget {class_budget:.0f}s)")[0m
+2026-09-26T17:09:25.4386152Z [36;1m[0m
+2026-09-26T17:09:25.4387557Z [36;1mlines = ["| Suite | Time (s) | Tests | Failures | Errors | Skipped |",[0m
+2026-09-26T17:09:25.4389654Z [36;1m         "| --- | ---: | ---: | ---: | ---: | ---: |"][0m
+2026-09-26T17:09:25.4391892Z [36;1mfor name, f, t, tests, failures, errors, skipped in sorted(rows, key=lambda r: -r[2]):[0m
+2026-09-26T17:09:25.4394075Z [36;1m    flag = " ❌" if t > class_budget else ""[0m
+2026-09-26T17:09:25.4396155Z [36;1m    lines.append(f"| `{name}` | {t:.2f}{flag} | {tests} | {failures} | {errors} | {skipped} |")[0m
+2026-09-26T17:09:25.4398515Z [36;1mlines.append(f"| **TOTAL** | **{total:.2f}** |  |  |  |  |")[0m
+2026-09-26T17:09:25.4400333Z [36;1msummary = "\n".join(lines) + "\n"[0m
+2026-09-26T17:09:25.4402196Z [36;1mwith open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as fh:[0m
+2026-09-26T17:09:25.4404507Z [36;1m    fh.write("## Perf budget report\n\n" + summary)[0m
+2026-09-26T17:09:25.4406000Z [36;1mprint(summary)[0m
+2026-09-26T17:09:25.4407068Z [36;1m[0m
+2026-09-26T17:09:25.4407992Z [36;1mfailed = False[0m
+2026-09-26T17:09:25.4409457Z [36;1mfor name, f, t, *_ in rows:[0m
+2026-09-26T17:09:25.4410747Z [36;1m    if t > class_budget:[0m
+2026-09-26T17:09:25.4412812Z [36;1m        print(f"::error::Perf budget breached: class `{name}` took {t:.2f}s > {class_budget:.0f}s ({f})")[0m
+2026-09-26T17:09:25.4414982Z [36;1m        failed = True[0m
+2026-09-26T17:09:25.4416170Z [36;1mif total > total_budget:[0m
+2026-09-26T17:09:25.4418096Z [36;1m    print(f"::error::Perf budget breached: total suite {total:.2f}s > {total_budget:.0f}s")[0m
+2026-09-26T17:09:25.4420377Z [36;1m    failed = True[0m
+2026-09-26T17:09:25.4421471Z [36;1mif failed:[0m
+2026-09-26T17:09:25.4422507Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T17:09:25.4423723Z [36;1mprint("Perf budgets OK.")[0m
+2026-09-26T17:09:25.4424927Z [36;1mPY[0m
+2026-09-26T17:09:25.4741765Z shell: /usr/bin/bash -e {0}
+2026-09-26T17:09:25.4742942Z env:
+2026-09-26T17:09:25.4744177Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-26T17:09:25.4745354Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-26T17:09:25.4746469Z ##[endgroup]
+2026-09-26T17:09:25.5099591Z ##[error]No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?
+2026-09-26T17:09:25.5124712Z ##[error]Process completed with exit code 1.

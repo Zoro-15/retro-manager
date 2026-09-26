@@ -1,0 +1,122 @@
+﻿2026-09-26T17:09:23.9440293Z Current runner version: '2.337.0'
+2026-09-26T17:09:23.9464479Z ##[group]Runner Image Provisioner
+2026-09-26T17:09:23.9465514Z Hosted Compute Agent
+2026-09-26T17:09:23.9466154Z Version: 20260828.587
+2026-09-26T17:09:23.9466909Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-26T17:09:23.9467739Z Build Date: 2026-08-28T16:44:25Z
+2026-09-26T17:09:23.9468447Z Worker ID: {469d838b-a8f6-485c-999d-e654c85a53f9}
+2026-09-26T17:09:23.9469519Z Azure Region: westus
+2026-09-26T17:09:23.9470135Z ##[endgroup]
+2026-09-26T17:09:23.9471835Z ##[group]Operating System
+2026-09-26T17:09:23.9472552Z Ubuntu
+2026-09-26T17:09:23.9473144Z 24.04.5
+2026-09-26T17:09:23.9473733Z LTS
+2026-09-26T17:09:23.9474279Z ##[endgroup]
+2026-09-26T17:09:23.9474853Z ##[group]Runner Image
+2026-09-26T17:09:23.9475583Z Image: ubuntu-24.04
+2026-09-26T17:09:23.9476211Z Version: 20260920.314.1
+2026-09-26T17:09:23.9477539Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-26T17:09:23.9479963Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-26T17:09:23.9481109Z ##[endgroup]
+2026-09-26T17:09:23.9482261Z ##[group]GITHUB_TOKEN Permissions
+2026-09-26T17:09:23.9484488Z Contents: read
+2026-09-26T17:09:23.9485142Z Metadata: read
+2026-09-26T17:09:23.9485812Z ##[endgroup]
+2026-09-26T17:09:23.9487919Z Secret source: Actions
+2026-09-26T17:09:23.9489276Z Cache mode: write
+2026-09-26T17:09:23.9490039Z Prepare workflow directory
+2026-09-26T17:09:23.9959982Z Prepare all required actions
+2026-09-26T17:09:24.0007360Z Getting action download info
+2026-09-26T17:09:24.3496942Z Download action repository 'actions/download-artifact@v4' (SHA:d3f86a106a0bac45b974a628896c90dbdf5c8093)
+2026-09-26T17:09:24.8927174Z Complete job name: Perf budget (gated)
+2026-09-26T17:09:24.9707081Z ##[group]Run actions/download-artifact@v4
+2026-09-26T17:09:24.9708028Z with:
+2026-09-26T17:09:24.9708479Z   pattern: junit-*
+2026-09-26T17:09:24.9709242Z   merge-multiple: true
+2026-09-26T17:09:24.9709737Z   path: junit-xml
+2026-09-26T17:09:24.9710244Z   repository: Zoro-15/retro-manager
+2026-09-26T17:09:24.9710792Z   run-id: 36257952032
+2026-09-26T17:09:24.9711503Z env:
+2026-09-26T17:09:24.9711948Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-26T17:09:24.9712481Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-26T17:09:24.9712989Z ##[endgroup]
+2026-09-26T17:09:25.1452989Z (node:2139) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-26T17:09:25.1454858Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-26T17:09:25.4066064Z Found 0 artifact(s)
+2026-09-26T17:09:25.4067580Z Filtering artifacts by pattern 'junit-*'
+2026-09-26T17:09:25.4085601Z Total of 0 artifact(s) downloaded
+2026-09-26T17:09:25.4092112Z Download artifact has finished successfully
+2026-09-26T17:09:25.4316384Z ##[group]Run python3 - <<'PY'
+2026-09-26T17:09:25.4317955Z [36;1mpython3 - <<'PY'[0m
+2026-09-26T17:09:25.4319947Z [36;1mimport glob, os, xml.etree.ElementTree as ET[0m
+2026-09-26T17:09:25.4321649Z [36;1m[0m
+2026-09-26T17:09:25.4323223Z [36;1mtotal_budget = float(os.environ.get("PERF_TOTAL_BUDGET_SEC", "600"))[0m
+2026-09-26T17:09:25.4325717Z [36;1mclass_budget = float(os.environ.get("PERF_CLASS_BUDGET_SEC", "120"))[0m
+2026-09-26T17:09:25.4327647Z [36;1m[0m
+2026-09-26T17:09:25.4329459Z [36;1mfiles = sorted(glob.glob("junit-xml/**/TEST-*.xml", recursive=True))[0m
+2026-09-26T17:09:25.4331431Z [36;1mif not files:[0m
+2026-09-26T17:09:25.4333039Z [36;1m    # Fall back to flat layout (download-artifact may flatten paths)[0m
+2026-09-26T17:09:25.4335103Z [36;1m    files = sorted(glob.glob("junit-xml/TEST-*.xml"))[0m
+2026-09-26T17:09:25.4336720Z [36;1mif not files:[0m
+2026-09-26T17:09:25.4339080Z [36;1m    print("::error::No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?")[0m
+2026-09-26T17:09:25.4341470Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T17:09:25.4342704Z [36;1m[0m
+2026-09-26T17:09:25.4343905Z [36;1mrows = [][0m
+2026-09-26T17:09:25.4344962Z [36;1mfor f in files:[0m
+2026-09-26T17:09:25.4346094Z [36;1m    try:[0m
+2026-09-26T17:09:25.4347210Z [36;1m        root = ET.parse(f).getroot()[0m
+2026-09-26T17:09:25.4348685Z [36;1m    except ET.ParseError as e:[0m
+2026-09-26T17:09:25.4350466Z [36;1m        print(f"::error::Unparseable JUnit XML: {f}: {e}")[0m
+2026-09-26T17:09:25.4352122Z [36;1m        raise SystemExit(1)[0m
+2026-09-26T17:09:25.4354113Z [36;1m    # Gradle emits <testsuite name=.. tests=.. failures=.. errors=.. skipped=.. time=..>[0m
+2026-09-26T17:09:25.4356678Z [36;1m    suites = [root] if root.tag == "testsuite" else root.findall("testsuite")[0m
+2026-09-26T17:09:25.4358610Z [36;1m    if not suites:[0m
+2026-09-26T17:09:25.4360168Z [36;1m        suites = [root][0m
+2026-09-26T17:09:25.4361465Z [36;1m    for s in suites:[0m
+2026-09-26T17:09:25.4362729Z [36;1m        name = s.get("name", f)[0m
+2026-09-26T17:09:25.4364066Z [36;1m        try:[0m
+2026-09-26T17:09:25.4365417Z [36;1m            t = float(s.get("time", "0") or 0)[0m
+2026-09-26T17:09:25.4366917Z [36;1m        except ValueError:[0m
+2026-09-26T17:09:25.4368215Z [36;1m            t = 0.0[0m
+2026-09-26T17:09:25.4369878Z [36;1m        failures = int(s.get("failures", "0") or 0)[0m
+2026-09-26T17:09:25.4371571Z [36;1m        errors = int(s.get("errors", "0") or 0)[0m
+2026-09-26T17:09:25.4373237Z [36;1m        skipped = int(s.get("skipped", "0") or 0)[0m
+2026-09-26T17:09:25.4374926Z [36;1m        tests = int(s.get("tests", "0") or 0)[0m
+2026-09-26T17:09:25.4376777Z [36;1m        rows.append((name, f, t, tests, failures, errors, skipped))[0m
+2026-09-26T17:09:25.4378514Z [36;1m[0m
+2026-09-26T17:09:25.4379810Z [36;1mtotal = sum(r[2] for r in rows)[0m
+2026-09-26T17:09:25.4381837Z [36;1mprint(f"Parsed {len(files)} XML files, {len(rows)} suites, total time {total:.2f}s "[0m
+2026-09-26T17:09:25.4384345Z [36;1m      f"(budget {total_budget:.0f}s, class budget {class_budget:.0f}s)")[0m
+2026-09-26T17:09:25.4386155Z [36;1m[0m
+2026-09-26T17:09:25.4387561Z [36;1mlines = ["| Suite | Time (s) | Tests | Failures | Errors | Skipped |",[0m
+2026-09-26T17:09:25.4389660Z [36;1m         "| --- | ---: | ---: | ---: | ---: | ---: |"][0m
+2026-09-26T17:09:25.4391896Z [36;1mfor name, f, t, tests, failures, errors, skipped in sorted(rows, key=lambda r: -r[2]):[0m
+2026-09-26T17:09:25.4394081Z [36;1m    flag = " ❌" if t > class_budget else ""[0m
+2026-09-26T17:09:25.4396160Z [36;1m    lines.append(f"| `{name}` | {t:.2f}{flag} | {tests} | {failures} | {errors} | {skipped} |")[0m
+2026-09-26T17:09:25.4398520Z [36;1mlines.append(f"| **TOTAL** | **{total:.2f}** |  |  |  |  |")[0m
+2026-09-26T17:09:25.4400338Z [36;1msummary = "\n".join(lines) + "\n"[0m
+2026-09-26T17:09:25.4402410Z [36;1mwith open(os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null"), "a") as fh:[0m
+2026-09-26T17:09:25.4404512Z [36;1m    fh.write("## Perf budget report\n\n" + summary)[0m
+2026-09-26T17:09:25.4406004Z [36;1mprint(summary)[0m
+2026-09-26T17:09:25.4407071Z [36;1m[0m
+2026-09-26T17:09:25.4407996Z [36;1mfailed = False[0m
+2026-09-26T17:09:25.4409470Z [36;1mfor name, f, t, *_ in rows:[0m
+2026-09-26T17:09:25.4410751Z [36;1m    if t > class_budget:[0m
+2026-09-26T17:09:25.4412817Z [36;1m        print(f"::error::Perf budget breached: class `{name}` took {t:.2f}s > {class_budget:.0f}s ({f})")[0m
+2026-09-26T17:09:25.4414985Z [36;1m        failed = True[0m
+2026-09-26T17:09:25.4416174Z [36;1mif total > total_budget:[0m
+2026-09-26T17:09:25.4418107Z [36;1m    print(f"::error::Perf budget breached: total suite {total:.2f}s > {total_budget:.0f}s")[0m
+2026-09-26T17:09:25.4420384Z [36;1m    failed = True[0m
+2026-09-26T17:09:25.4421475Z [36;1mif failed:[0m
+2026-09-26T17:09:25.4422511Z [36;1m    raise SystemExit(1)[0m
+2026-09-26T17:09:25.4423738Z [36;1mprint("Perf budgets OK.")[0m
+2026-09-26T17:09:25.4424931Z [36;1mPY[0m
+2026-09-26T17:09:25.4741792Z shell: /usr/bin/bash -e {0}
+2026-09-26T17:09:25.4742960Z env:
+2026-09-26T17:09:25.4744183Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-26T17:09:25.4745357Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-26T17:09:25.4746473Z ##[endgroup]
+2026-09-26T17:09:25.5099642Z ##[error]No JUnit XML found under junit-xml/. Did core-tests/runtime-tests upload results?
+2026-09-26T17:09:25.5124740Z ##[error]Process completed with exit code 1.
+2026-09-26T17:09:25.5244568Z Cleaning up orphan processes
+2026-09-26T17:09:25.5671542Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/download-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
