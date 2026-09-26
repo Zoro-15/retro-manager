@@ -164,4 +164,18 @@ public class MotionEvent {
         list.add(p);
         return new MotionEvent(ACTION_MOVE, InputDevice.SOURCE_JOYSTICK, list);
     }
+
+    public static MotionEvent obtain(long downTime, long eventTime, int action, float x, float y, int metaState) {
+        return createTouch(action, x, y);
+    }
+
+    public static MotionEvent obtain(long downTime, long eventTime, int action, kotlin.Pair<Float, Float>[] pointers) {
+        List<PointerCoords> list = new ArrayList<>();
+        if (pointers != null) {
+            for (int i = 0; i < pointers.length; i++) {
+                list.add(new PointerCoords(i, pointers[i].getFirst(), pointers[i].getSecond()));
+            }
+        }
+        return new MotionEvent(action, InputDevice.SOURCE_TOUCHSCREEN, list);
+    }
 }

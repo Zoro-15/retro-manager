@@ -101,6 +101,15 @@ class TouchOverlayView @JvmOverloads constructor(
     var dynamicDpadPointerId: Int? = null
         private set
 
+    val floatingDpadActive: Boolean
+        get() = dynamicDpadActive
+
+    val floatingDpadX: Float
+        get() = layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorX ?: 0f
+
+    val floatingDpadY: Float
+        get() = layout.getCluster(TouchLayout.CLUSTER_DPAD)?.anchorY ?: 0f
+
     var hapticIntensity: Float = 1.0f
 
     var gesturesEnabled: Boolean = true
@@ -127,6 +136,9 @@ class TouchOverlayView @JvmOverloads constructor(
 
     /** Test hook callback invoked when haptic feedback is triggered. */
     var onHapticFeedbackRequested: (() -> Unit)? = null
+
+    /** Test hook callback invoked when haptic release is triggered. */
+    var onHapticReleaseRequested: (() -> Unit)? = null
 
     /** Callback invoked when edit mode is toggled. */
     var onEditModeChanged: ((Boolean) -> Unit)? = null
@@ -503,6 +515,7 @@ class TouchOverlayView @JvmOverloads constructor(
             if (oldMask != currentKeyMask) {
                 if (hapticFeedbackEnabledState) {
                     HapticEngine.triggerRelease(context, hapticIntensity, this)
+                    onHapticReleaseRequested?.invoke()
                 }
                 onKeyMaskChanged?.invoke(currentKeyMask)
             }
@@ -527,6 +540,7 @@ class TouchOverlayView @JvmOverloads constructor(
                     onHapticFeedbackRequested?.invoke()
                 } else if (newlyReleased != 0) {
                     HapticEngine.triggerRelease(context, hapticIntensity, this)
+                    onHapticReleaseRequested?.invoke()
                 }
             }
             currentKeyMask = newMask

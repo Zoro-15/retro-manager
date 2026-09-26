@@ -23,6 +23,10 @@ public class KeyEvent {
     public static final int KEYCODE_DPAD_RIGHT = 22;
     public static final int KEYCODE_DPAD_CENTER = 23;
 
+    public static final int KEYCODE_A = 29;
+    public static final int KEYCODE_B = 30;
+    public static final int KEYCODE_C = 31;
+    public static final int KEYCODE_D = 32;
     public static final int KEYCODE_X = 52;
     public static final int KEYCODE_Z = 54;
     public static final int KEYCODE_ENTER = 66;
