@@ -196,17 +196,23 @@ class EmulationLoop(
                 val nowNanos = System.nanoTime()
                 val sleepNanos = nextFrameNanos - nowNanos
 
-                if (sleepNanos > 1_000_000L) { // More than 1ms
-                    val millis = sleepNanos / 1_000_000L
-                    val nanos = (sleepNanos % 1_000_000L).toInt()
+                if (sleepNanos > 2_000_000L) { // More than 2ms: coarse sleep saving CPU cycles
+                    val millis = (sleepNanos - 1_000_000L) / 1_000_000L
                     try {
-                        Thread.sleep(millis, nanos)
+                        Thread.sleep(millis)
                     } catch (_: InterruptedException) {
                         break
                     }
-                } else if (sleepNanos < -targetFrameNanos * 3) {
+                }
+
+                // Sub-millisecond high-precision wait to eliminate OS scheduler oversleep jitter
+                while (isRunning && !isPaused && System.nanoTime() < nextFrameNanos) {
+                    Thread.onSpinWait()
+                }
+
+                if (System.nanoTime() - nextFrameNanos > targetFrameNanos * 3) {
                     // Fallen more than 3 frames behind; reset timing baseline to prevent drift spiraling
-                    nextFrameNanos = nowNanos
+                    nextFrameNanos = System.nanoTime()
                 }
             } else {
                 nextFrameNanos = System.nanoTime()
