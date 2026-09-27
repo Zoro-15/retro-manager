@@ -60,5 +60,8 @@ class Mupen64NativeCoreTest {
         assertThrows(UnsatisfiedLinkError::class.java) {
             Mupen64NativeCore.nativeGetSramSize()
         }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            Mupen64NativeCore.nativeSetAnalogAxis(0.5f, -0.5f)
+        }
     }
 }

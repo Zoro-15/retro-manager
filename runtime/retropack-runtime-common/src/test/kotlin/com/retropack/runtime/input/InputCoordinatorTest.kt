@@ -69,4 +69,24 @@ class InputCoordinatorTest {
         assertEquals(RetroKey.NO_KEYS_MASK, dispatchedMask)
         assertEquals(RetroKey.NO_KEYS_MASK, coordinator.compositeKeyMask)
     }
+
+    @Test
+    fun `dispatches and resets analog axis`() {
+        var lastX = 0f
+        var lastY = 0f
+        val coordinator = InputCoordinator(
+            onAnalogAxisDispatched = { x, y ->
+                lastX = x
+                lastY = y
+            }
+        )
+
+        coordinator.updateAnalogAxis(0.75f, -0.5f)
+        assertEquals(0.75f, lastX)
+        assertEquals(-0.5f, lastY)
+
+        coordinator.reset()
+        assertEquals(0f, lastX)
+        assertEquals(0f, lastY)
+    }
 }

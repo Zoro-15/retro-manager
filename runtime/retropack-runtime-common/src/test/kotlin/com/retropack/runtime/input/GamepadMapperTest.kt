@@ -130,4 +130,33 @@ class GamepadMapperTest {
         assertEquals(RetroKey.NO_KEYS_MASK, mapper.currentKeyMask)
         assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
     }
+
+    @Test
+    fun `dispatches analog stick deflection and maps right stick to C-buttons`() {
+        val mapper = GamepadMapper()
+        var stickX = 0f
+        var stickY = 0f
+        var reportedMask = -1
+        mapper.onAnalogAxisChanged = { x, y ->
+            stickX = x
+            stickY = y
+        }
+        mapper.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        val event = MotionEvent.createJoystick(mapOf(
+            MotionEvent.AXIS_X to 0.75f,
+            MotionEvent.AXIS_Y to -0.60f,
+            MotionEvent.AXIS_Z to 0.85f,
+            MotionEvent.AXIS_RZ to -0.85f
+        ))
+        mapper.handleGenericMotionEvent(event)
+        assertEquals(0.75f, stickX)
+        assertEquals(-0.60f, stickY)
+        assertTrue((reportedMask and RetroKey.KEY_C_RIGHT) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_C_UP) != 0)
+
+        mapper.reset()
+        assertEquals(0f, stickX)
+        assertEquals(0f, stickY)
+    }
 }
