@@ -1,0 +1,144 @@
+﻿2026-09-27T07:06:23.8352429Z ##[group]Run sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "cmake;3.22.1"
+2026-09-27T07:06:23.8353247Z [36;1msdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "cmake;3.22.1"[0m
+2026-09-27T07:06:23.8353988Z [36;1mNDK_PKG="$(sdkmanager --list 2>/dev/null | grep -oE 'ndk;28\.[0-9.]+' | sort -uV | tail -n 1)"[0m
+2026-09-27T07:06:23.8354468Z [36;1mif [ -z "$NDK_PKG" ]; then[0m
+2026-09-27T07:06:23.8354817Z [36;1m  echo "::error::No NDK r28.x revision found in the SDK channel"[0m
+2026-09-27T07:06:23.8355143Z [36;1m  exit 1[0m
+2026-09-27T07:06:23.8355362Z [36;1mfi[0m
+2026-09-27T07:06:23.8355582Z [36;1mecho "Installing $NDK_PKG ..."[0m
+2026-09-27T07:06:23.8355862Z [36;1msdkmanager --install "$NDK_PKG"[0m
+2026-09-27T07:06:23.8356134Z [36;1mNDK_VER="${NDK_PKG#ndk;}"[0m
+2026-09-27T07:06:23.8356432Z [36;1msdkmanager --licenses > /dev/null <<< "y"[0m
+2026-09-27T07:06:23.8356775Z [36;1mecho "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"[0m
+2026-09-27T07:06:23.8357178Z [36;1mecho "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"[0m
+2026-09-27T07:06:23.8357589Z [36;1mecho "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"[0m
+2026-09-27T07:06:23.8414347Z shell: /usr/bin/bash -e {0}
+2026-09-27T07:06:23.8414628Z env:
+2026-09-27T07:06:23.8414933Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T07:06:23.8415375Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T07:06:23.8415755Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T07:06:23.8416042Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T07:06:23.8416324Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T07:06:23.8416606Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T07:06:23.8417000Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T07:06:23.8417423Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T07:06:23.8417736Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T07:06:23.8418015Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-09-27T07:06:23.8418306Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-09-27T07:06:23.8418583Z ##[endgroup]
+2026-09-27T07:06:24.6067048Z Loading package information...                                                  
+2026-09-27T07:06:24.6912987Z Loading local repository...                                                     
+2026-09-27T07:06:24.6915585Z [                                       ] 3% Loading local repository...        
+2026-09-27T07:06:24.6996880Z [                                       ] 3% Fetch remote repository...         
+2026-09-27T07:06:24.9555401Z [=                                      ] 3% Fetch remote repository...         
+2026-09-27T07:06:25.0681789Z [=                                      ] 4% Fetch remote repository...         
+2026-09-27T07:06:25.1116512Z [=                                      ] 5% Fetch remote repository...         
+2026-09-27T07:06:25.1637135Z [==                                     ] 5% Fetch remote repository...         
+2026-09-27T07:06:25.2120205Z [==                                     ] 6% Fetch remote repository...         
+2026-09-27T07:06:25.3005430Z [==                                     ] 7% Fetch remote repository...         
+2026-09-27T07:06:25.3006807Z [==                                     ] 7% Computing updates...               
+2026-09-27T07:06:25.3076024Z [===                                    ] 8% Computing updates...               
+2026-09-27T07:06:25.3215134Z [===                                    ] 10% Computing updates...              
+2026-09-27T07:06:25.6236411Z [===                                    ] 10% Installing CMake 3.22.1           
+2026-09-27T07:06:25.6451501Z [===                                    ] 10% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.6663216Z [====                                   ] 10% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.6970558Z [====                                   ] 11% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7170536Z [====                                   ] 12% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7334956Z [=====                                  ] 13% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7478547Z [=====                                  ] 14% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7568024Z [=====                                  ] 15% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7617695Z [======                                 ] 15% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7697742Z [======                                 ] 16% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7783514Z [======                                 ] 17% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7852005Z [=======                                ] 18% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7934328Z [=======                                ] 19% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.7962025Z [=======                                ] 20% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8000240Z [========                               ] 20% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8069272Z [========                               ] 21% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8129319Z [========                               ] 22% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8191455Z [=========                              ] 23% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8267300Z [=========                              ] 24% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8296710Z [=========                              ] 25% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8326506Z [==========                             ] 25% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8391431Z [==========                             ] 26% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8445530Z [==========                             ] 27% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8519769Z [===========                            ] 28% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8558314Z [===========                            ] 29% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8584347Z [===========                            ] 30% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8620631Z [============                           ] 30% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8683243Z [============                           ] 31% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8748830Z [============                           ] 32% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.8751584Z [============                           ] 33% Downloading cmake-3.22.1-linux.zip
+2026-09-27T07:06:25.9876186Z [============                           ] 33% Unzipping...                      
+2026-09-27T07:06:25.9916353Z [============                           ] 33% Unzipping... bin/cmake            
+2026-09-27T07:06:26.0076255Z [=============                          ] 33% Unzipping... bin/cmake            
+2026-09-27T07:06:26.0209231Z [=============                          ] 34% Unzipping... bin/cmake            
+2026-09-27T07:06:26.1426954Z [=============                          ] 35% Unzipping... bin/cmake            
+2026-09-27T07:06:26.1485423Z [==============                         ] 35% Unzipping... bin/cmake            
+2026-09-27T07:06:26.1610759Z [==============                         ] 36% Unzipping... bin/cmake            
+2026-09-27T07:06:26.1721598Z [==============                         ] 37% Unzipping... bin/cmake            
+2026-09-27T07:06:26.1823076Z [===============                        ] 38% Unzipping... bin/cmake            
+2026-09-27T07:06:26.2255336Z [===============                        ] 39% Unzipping... bin/cmake            
+2026-09-27T07:06:26.2342587Z [===============                        ] 39% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2394185Z [===============                        ] 40% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2448634Z [================                       ] 40% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2564498Z [================                       ] 41% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2684443Z [================                       ] 42% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2799574Z [=================                      ] 43% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2900224Z [=================                      ] 44% Unzipping... bin/ctest            
+2026-09-27T07:06:26.2954056Z [=================                      ] 45% Unzipping... bin/ctest            
+2026-09-27T07:06:26.3000549Z [==================                     ] 45% Unzipping... bin/ctest            
+2026-09-27T07:06:26.3532709Z [==================                     ] 46% Unzipping... bin/ctest            
+2026-09-27T07:06:26.3634759Z [==================                     ] 46% Unzipping... bin/cpack            
+2026-09-27T07:06:26.3744687Z [==================                     ] 47% Unzipping... bin/cpack            
+2026-09-27T07:06:26.3850645Z [===================                    ] 48% Unzipping... bin/cpack            
+2026-09-27T07:06:26.3970907Z [===================                    ] 49% Unzipping... bin/cpack            
+2026-09-27T07:06:26.4029414Z [===================                    ] 50% Unzipping... bin/cpack            
+2026-09-27T07:06:26.4075126Z [====================                   ] 50% Unzipping... bin/cpack            
+2026-09-27T07:06:26.4172146Z [====================                   ] 51% Unzipping... bin/cpack            
+2026-09-27T07:06:26.4732153Z [====================                   ] 52% Unzipping... bin/cpack            
+2026-09-27T07:06:26.5912358Z [====================                   ] 52% Unzipping... share/vim/vimfiles/in
+2026-09-27T07:06:26.5922470Z [====================                   ] 52% Unzipping... share/vim/vimfiles/sy
+2026-09-27T07:06:26.5924997Z [====================                   ] 52% Unzipping... share/aclocal/cmake.m
+2026-09-27T07:06:26.5929323Z [====================                   ] 52% Unzipping... share/emacs/site-lisp
+2026-09-27T07:06:26.5954801Z [====================                   ] 52% Unzipping... share/cmake-3.22/incl
+2026-09-27T07:06:29.6754949Z [====================                   ] 52% Unzipping... share/cmake-3.22/Help
+2026-09-27T07:06:29.7675110Z [=====================                  ] 53% Unzipping... share/cmake-3.22/Help
+2026-09-27T07:06:29.8024333Z [=====================                  ] 53% Unzipping... share/cmake-3.22/Temp
+2026-09-27T07:06:29.8417357Z [=====================                  ] 53% Unzipping... share/cmake-3.22/Modu
+2026-09-27T07:06:29.9431485Z [=====================                  ] 54% Unzipping... share/cmake-3.22/Modu
+2026-09-27T07:06:29.9455608Z [=====================                  ] 54% Unzipping... share/bash-completion
+2026-09-27T07:06:29.9485308Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/Copyri
+2026-09-27T07:06:29.9515166Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmzlib
+2026-09-27T07:06:29.9524961Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmzstd
+2026-09-27T07:06:29.9525905Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmnght
+2026-09-27T07:06:29.9526919Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmsys/
+2026-09-27T07:06:29.9527838Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmcurl
+2026-09-27T07:06:29.9528697Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmlibr
+2026-09-27T07:06:29.9529630Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmliba
+2026-09-27T07:06:29.9530492Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmlibl
+2026-09-27T07:06:29.9531612Z [=====================                  ] 54% Unzipping... doc/cmake-3.22/cmlibu
+2026-09-27T07:06:29.9532648Z [=====================                  ] 54% Unzipping... doc/openssl-1.1.1l/LI
+2026-09-27T07:06:29.9533519Z [=====================                  ] 54% Unzipping... source.properties    
+2026-09-27T07:06:29.9534522Z [=====================                  ] 54% Unzipping... bin/ninja            
+2026-09-27T07:06:29.9535386Z [=====================                  ] 54% Unzipping... doc/ninja/LICENSE    
+2026-09-27T07:06:29.9536246Z [=====================                  ] 54% Unzipping... share/cmake-3.22/Modu
+2026-09-27T07:06:29.9586795Z [=====================                  ] 55% Unzipping... share/cmake-3.22/Modu
+2026-09-27T07:06:29.9592776Z [=======================================] 100% Unzipping... share/cmake-3.22/Mod
+2026-09-27T07:06:30.3284499Z 
+2026-09-27T07:06:31.9785270Z Installing ndk;28.2.13676358 ...
+2026-09-27T07:06:32.5945485Z Loading package information...                                                  
+2026-09-27T07:06:32.6781369Z Loading local repository...                                                     
+2026-09-27T07:06:32.6782254Z [                                       ] 3% Loading local repository...        
+2026-09-27T07:06:32.6863111Z [                                       ] 3% Fetch remote repository...         
+2026-09-27T07:06:32.8815870Z [=                                      ] 3% Fetch remote repository...         
+2026-09-27T07:06:32.9190739Z [=                                      ] 4% Fetch remote repository...         
+2026-09-27T07:06:32.9355111Z [=                                      ] 5% Fetch remote repository...         
+2026-09-27T07:06:32.9675142Z [==                                     ] 5% Fetch remote repository...         
+2026-09-27T07:06:33.0063142Z [==                                     ] 6% Fetch remote repository...         
+2026-09-27T07:06:33.0607346Z [==                                     ] 7% Fetch remote repository...         
+2026-09-27T07:06:33.0635025Z [==                                     ] 7% Computing updates...               
+2026-09-27T07:06:33.0716274Z [===                                    ] 8% Computing updates...               
+2026-09-27T07:06:33.0763072Z [===                                    ] 10% Computing updates...              
+2026-09-27T07:06:33.0764282Z [=======================================] 100% Computing updates...             
+2026-09-27T07:06:33.0764878Z 
