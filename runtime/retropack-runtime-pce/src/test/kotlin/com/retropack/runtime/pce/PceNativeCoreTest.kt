@@ -52,5 +52,8 @@ class PceNativeCoreTest {
         assertThrows(UnsatisfiedLinkError::class.java) {
             PceNativeCore.nativeGetSramSize()
         }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PceNativeCore.nativeRunFrame()
+        }
     }
 }

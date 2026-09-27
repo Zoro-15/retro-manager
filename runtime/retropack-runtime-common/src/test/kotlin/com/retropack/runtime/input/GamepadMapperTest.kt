@@ -181,5 +181,22 @@ class GamepadMapperTest {
         mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_MODE))
         assertEquals(RetroKey.KEY_X or RetroKey.KEY_Y or RetroKey.KEY_C or RetroKey.KEY_Z or RetroKey.KEY_MODE, reportedMask)
     }
+
+    @Test
+    fun `maps NES and PC Engine controller profiles accurately`() {
+        val mapper = GamepadMapper()
+        var reportedMask = 0
+        mapper.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_A))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_B))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_SELECT))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_START))
+
+        assertTrue((reportedMask and RetroKey.KEY_A) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_B) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_SELECT) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_START) != 0)
+    }
 }
 
