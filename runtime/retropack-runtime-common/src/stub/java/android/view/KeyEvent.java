@@ -16,6 +16,7 @@ public class KeyEvent {
     public static final int KEYCODE_BUTTON_R2 = 105;
     public static final int KEYCODE_BUTTON_START = 108;
     public static final int KEYCODE_BUTTON_SELECT = 109;
+    public static final int KEYCODE_BUTTON_MODE = 110;
 
     public static final int KEYCODE_DPAD_UP = 19;
     public static final int KEYCODE_DPAD_DOWN = 20;

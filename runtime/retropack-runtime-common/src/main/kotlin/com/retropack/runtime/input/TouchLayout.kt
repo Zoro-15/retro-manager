@@ -143,8 +143,8 @@ class TouchLayout(
             comboEnabled: Boolean = false
         ): TouchLayout {
             return when (platform.lowercase()) {
-                "snes" -> snes(width, height, opacity, turboEnabled, comboEnabled)
-                "genesis", "megadrive", "sms", "gg" -> genesis(width, height, opacity, turboEnabled, comboEnabled)
+                "snes", "sfc", "smc" -> snes(width, height, opacity, turboEnabled, comboEnabled)
+                "genesis", "megadrive", "md", "smd", "gen", "sms", "gg" -> genesis(width, height, opacity, turboEnabled, comboEnabled)
                 "nes" -> nes(width, height, opacity, turboEnabled, comboEnabled)
                 "pce", "tg16", "sgx" -> pce(width, height, opacity, turboEnabled, comboEnabled)
                 "arcade", "fbneo", "neogeo", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)

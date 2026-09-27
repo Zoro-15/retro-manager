@@ -765,26 +765,78 @@ class TouchOverlayView @JvmOverloads constructor(
     }
 
     private fun getControlColors(control: VirtualControl, isPressed: Boolean): Triple<Int, Int, Int> {
+        val isSnes = platform in setOf("snes", "sfc", "smc")
+        val isGenesis = platform in setOf("genesis", "md", "smd", "gen", "sms", "gg", "megadrive")
+
         val (fill, stroke, text) = when (control.id) {
             TouchLayout.ID_DPAD -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
-            TouchLayout.ID_A -> if (platform in setOf("n64", "z64", "v64")) {
-                Triple(Color.argb(210, 20, 80, 200), Color.argb(255, 60, 130, 240), Color.WHITE)
+            TouchLayout.ID_A -> when {
+                platform in setOf("n64", "z64", "v64") ->
+                    Triple(Color.argb(210, 20, 80, 200), Color.argb(255, 60, 130, 240), Color.WHITE)
+                isSnes ->
+                    Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
+                isGenesis ->
+                    Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 220, 45, 45), Color.WHITE)
+                else ->
+                    Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_B -> when {
+                platform in setOf("n64", "z64", "v64") ->
+                    Triple(Color.argb(210, 20, 150, 60), Color.argb(255, 50, 200, 90), Color.WHITE)
+                isSnes ->
+                    Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
+                isGenesis ->
+                    Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 210, 210, 215), Color.WHITE)
+                else ->
+                    Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_C -> if (isGenesis) {
+                Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 0, 229, 255), Color.WHITE)
             } else {
                 Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
-            TouchLayout.ID_B -> if (platform in setOf("n64", "z64", "v64")) {
-                Triple(Color.argb(210, 20, 150, 60), Color.argb(255, 50, 200, 90), Color.WHITE)
-            } else {
-                Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_X -> when {
+                isSnes ->
+                    Triple(Color.argb(230, 160, 150, 200), Color.argb(255, 195, 185, 230), Color.argb(255, 45, 25, 75))
+                isGenesis ->
+                    Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 220, 45, 45), Color.argb(255, 220, 45, 45))
+                else ->
+                    Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_Y -> when {
+                isSnes ->
+                    Triple(Color.argb(230, 160, 150, 200), Color.argb(255, 195, 185, 230), Color.argb(255, 45, 25, 75))
+                isGenesis ->
+                    Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 210, 210, 215), Color.WHITE)
+                else ->
+                    Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_Z -> when {
+                isGenesis ->
+                    Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 0, 229, 255), Color.argb(255, 0, 229, 255))
+                else ->
+                    Triple(Color.argb(200, 60, 65, 75), Color.argb(240, 100, 110, 125), Color.WHITE)
             }
             TouchLayout.ID_C_UP, TouchLayout.ID_C_DOWN, TouchLayout.ID_C_LEFT, TouchLayout.ID_C_RIGHT ->
                 Triple(Color.argb(210, 230, 175, 10), Color.argb(255, 255, 205, 30), Color.argb(255, 40, 30, 10))
-            TouchLayout.ID_Z ->
-                Triple(Color.argb(200, 60, 65, 75), Color.argb(240, 100, 110, 125), Color.WHITE)
             TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             TouchLayout.ID_COMBO_AB -> Triple(theme.comboFillColor, theme.accentColor, Color.WHITE)
-            TouchLayout.ID_L, TouchLayout.ID_R -> Triple(theme.shoulderFillColor, theme.shoulderStrokeColor, theme.shoulderTextColor)
-            TouchLayout.ID_SELECT, TouchLayout.ID_START -> Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
+            TouchLayout.ID_L, TouchLayout.ID_R -> if (isSnes) {
+                Triple(Color.argb(210, 85, 90, 105), Color.argb(255, 130, 135, 150), Color.WHITE)
+            } else {
+                Triple(theme.shoulderFillColor, theme.shoulderStrokeColor, theme.shoulderTextColor)
+            }
+            TouchLayout.ID_MODE -> if (isGenesis) {
+                Triple(Color.argb(220, 30, 30, 35), Color.argb(255, 100, 100, 110), Color.WHITE)
+            } else {
+                Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
+            }
+            TouchLayout.ID_START -> if (isGenesis) {
+                Triple(Color.argb(220, 30, 30, 35), Color.argb(255, 220, 45, 45), Color.WHITE)
+            } else {
+                Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
+            }
+            TouchLayout.ID_SELECT -> Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             else -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
         }
 

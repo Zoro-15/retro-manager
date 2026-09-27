@@ -32,8 +32,10 @@ class GamepadMapper(
             // Gamepad Action Buttons
             map[KeyEvent.KEYCODE_BUTTON_A] = RetroKey.A
             map[KeyEvent.KEYCODE_BUTTON_B] = RetroKey.B
-            map[KeyEvent.KEYCODE_BUTTON_X] = RetroKey.A
-            map[KeyEvent.KEYCODE_BUTTON_Y] = RetroKey.B
+            map[KeyEvent.KEYCODE_BUTTON_X] = RetroKey.X
+            map[KeyEvent.KEYCODE_BUTTON_Y] = RetroKey.Y
+            map[KeyEvent.KEYCODE_BUTTON_C] = RetroKey.C
+            map[KeyEvent.KEYCODE_BUTTON_Z] = RetroKey.Z
 
             // Gamepad Shoulder Buttons
             map[KeyEvent.KEYCODE_BUTTON_L1] = RetroKey.L
@@ -44,6 +46,7 @@ class GamepadMapper(
             // Gamepad System Buttons
             map[KeyEvent.KEYCODE_BUTTON_START] = RetroKey.START
             map[KeyEvent.KEYCODE_BUTTON_SELECT] = RetroKey.SELECT
+            map[KeyEvent.KEYCODE_BUTTON_MODE] = RetroKey.MODE
 
             // Gamepad / Keyboard D-Pad Buttons
             map[KeyEvent.KEYCODE_DPAD_UP] = RetroKey.UP
@@ -69,6 +72,9 @@ class GamepadMapper(
                 KeyEvent.KEYCODE_BUTTON_B -> "BUTTON B"
                 KeyEvent.KEYCODE_BUTTON_X -> "BUTTON X"
                 KeyEvent.KEYCODE_BUTTON_Y -> "BUTTON Y"
+                KeyEvent.KEYCODE_BUTTON_C -> "BUTTON C"
+                KeyEvent.KEYCODE_BUTTON_Z -> "BUTTON Z"
+                KeyEvent.KEYCODE_BUTTON_MODE -> "MODE"
                 KeyEvent.KEYCODE_BUTTON_L1 -> "L1 TRIGGER"
                 KeyEvent.KEYCODE_BUTTON_R1 -> "R1 TRIGGER"
                 KeyEvent.KEYCODE_BUTTON_L2 -> "L2 TRIGGER"
