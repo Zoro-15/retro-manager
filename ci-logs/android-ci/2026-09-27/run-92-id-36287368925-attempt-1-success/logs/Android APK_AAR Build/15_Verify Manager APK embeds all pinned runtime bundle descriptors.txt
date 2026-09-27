@@ -1,0 +1,334 @@
+﻿2026-09-27T02:07:58.4142133Z ##[group]Run MANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"
+2026-09-27T02:07:58.4143178Z [36;1mMANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"[0m
+2026-09-27T02:07:58.4143910Z [36;1mecho "Inspecting $MANAGER_APK"[0m
+2026-09-27T02:07:58.4144574Z [36;1munzip -l "$MANAGER_APK" > /tmp/manager-apk-entries.txt[0m
+2026-09-27T02:07:58.4145300Z [36;1mcat /tmp/manager-apk-entries.txt[0m
+2026-09-27T02:07:58.4145849Z [36;1mfor REQUIRED in \[0m
+2026-09-27T02:07:58.4146362Z [36;1m  "assets/mgba-unified/template.apk" \[0m
+2026-09-27T02:07:58.4146967Z [36;1m  "assets/mgba-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4147576Z [36;1m  "assets/snes9x-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4148211Z [36;1m  "assets/genesis-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4148859Z [36;1m  "assets/fceumm-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4149491Z [36;1m  "assets/pce-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4150123Z [36;1m  "assets/fbneo-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4150817Z [36;1m  "assets/pcsx-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4151796Z [36;1m  "assets/mupen64-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4152448Z [36;1m  "assets/ppsspp-unified/runtime.json" \[0m
+2026-09-27T02:07:58.4153092Z [36;1m  "assets/melonds-unified/runtime.json" ; do[0m
+2026-09-27T02:07:58.4153852Z [36;1m  if ! grep -q "$REQUIRED" /tmp/manager-apk-entries.txt ; then[0m
+2026-09-27T02:07:58.4155211Z [36;1m    echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded."[0m
+2026-09-27T02:07:58.4156103Z [36;1m    exit 1[0m
+2026-09-27T02:07:58.4156515Z [36;1m  fi[0m
+2026-09-27T02:07:58.4156910Z [36;1mdone[0m
+2026-09-27T02:07:58.4157560Z [36;1mecho "All 10 pinned runtime bundle descriptors verified inside Manager APK."[0m
+2026-09-27T02:07:58.4228556Z shell: /usr/bin/bash -e {0}
+2026-09-27T02:07:58.4229028Z env:
+2026-09-27T02:07:58.4229598Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T02:07:58.4230574Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T02:07:58.4231646Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T02:07:58.4232237Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T02:07:58.4232792Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T02:07:58.4233343Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T02:07:58.4234194Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T02:07:58.4235124Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T02:07:58.4235749Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T02:07:58.4236121Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-09-27T02:07:58.4236447Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-09-27T02:07:58.4236835Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-09-27T02:07:58.4237196Z ##[endgroup]
+2026-09-27T02:07:58.4357485Z Inspecting app/build/outputs/apk/debug/app-debug.apk
+2026-09-27T02:07:58.4411265Z Archive:  app/build/outputs/apk/debug/app-debug.apk
+2026-09-27T02:07:58.4416075Z   Length      Date    Time    Name
+2026-09-27T02:07:58.4416799Z ---------  ---------- -----   ----
+2026-09-27T02:07:58.4417722Z        56  1981-01-01 01:01   META-INF/com/android/build/gradle/app-metadata.properties
+2026-09-27T02:07:58.4418568Z  44711212  1981-01-01 01:01   classes.dex
+2026-09-27T02:07:58.4419174Z     89780  1981-01-01 01:01   classes10.dex
+2026-09-27T02:07:58.4419776Z     33956  1981-01-01 01:01   classes11.dex
+2026-09-27T02:07:58.4420350Z    355048  1981-01-01 01:01   classes12.dex
+2026-09-27T02:07:58.4421238Z     37172  1981-01-01 01:01   classes13.dex
+2026-09-27T02:07:58.4421846Z     20376  1981-01-01 01:01   classes14.dex
+2026-09-27T02:07:58.4422380Z    411840  1981-01-01 01:01   classes15.dex
+2026-09-27T02:07:58.4423007Z    106920  1981-01-01 01:01   classes16.dex
+2026-09-27T02:07:58.4423613Z     73576  1981-01-01 01:01   classes17.dex
+2026-09-27T02:07:58.4424538Z  11415632  1981-01-01 01:01   classes18.dex
+2026-09-27T02:07:58.4425157Z  10556568  1981-01-01 01:01   classes19.dex
+2026-09-27T02:07:58.4425754Z     33972  1981-01-01 01:01   classes2.dex
+2026-09-27T02:07:58.4426327Z    274128  1981-01-01 01:01   classes3.dex
+2026-09-27T02:07:58.4426900Z     58188  1981-01-01 01:01   classes4.dex
+2026-09-27T02:07:58.4427405Z     90516  1981-01-01 01:01   classes5.dex
+2026-09-27T02:07:58.4427754Z     41320  1981-01-01 01:01   classes6.dex
+2026-09-27T02:07:58.4428083Z    128684  1981-01-01 01:01   classes7.dex
+2026-09-27T02:07:58.4428413Z     83352  1981-01-01 01:01   classes8.dex
+2026-09-27T02:07:58.4428755Z     28448  1981-01-01 01:01   classes9.dex
+2026-09-27T02:07:58.4429209Z     10096  1981-01-01 01:01   lib/arm64-v8a/libandroidx.graphics.path.so
+2026-09-27T02:07:58.4429772Z      7252  1981-01-01 01:01   lib/armeabi-v7a/libandroidx.graphics.path.so
+2026-09-27T02:07:58.4430290Z      9284  1981-01-01 01:01   lib/x86/libandroidx.graphics.path.so
+2026-09-27T02:07:58.4430802Z     10760  1981-01-01 01:01   lib/x86_64/libandroidx.graphics.path.so
+2026-09-27T02:07:58.4431597Z       592  1981-01-01 01:01   assets/fbneo-unified/runtime.json
+2026-09-27T02:07:58.4432083Z       568  1981-01-01 01:01   assets/fceumm-unified/runtime.json
+2026-09-27T02:07:58.4432555Z       614  1981-01-01 01:01   assets/genesis-unified/runtime.json
+2026-09-27T02:07:58.4433019Z       562  1981-01-01 01:01   assets/melonds-unified/runtime.json
+2026-09-27T02:07:58.4433759Z       465  1981-01-01 01:01   assets/mgba-unified/licenses/LICENSE.txt
+2026-09-27T02:07:58.4434233Z       831  1981-01-01 01:01   assets/mgba-unified/runtime.json
+2026-09-27T02:07:58.4434711Z  36715078  1981-01-01 01:01   assets/mgba-unified/template.apk
+2026-09-27T02:07:58.4435194Z       569  1981-01-01 01:01   assets/mupen64-unified/runtime.json
+2026-09-27T02:07:58.4435666Z       575  1981-01-01 01:01   assets/pce-unified/runtime.json
+2026-09-27T02:07:58.4436122Z       581  1981-01-01 01:01   assets/pcsx-unified/runtime.json
+2026-09-27T02:07:58.4436596Z       555  1981-01-01 01:01   assets/ppsspp-unified/runtime.json
+2026-09-27T02:07:58.4437064Z       571  1981-01-01 01:01   assets/snes9x-unified/runtime.json
+2026-09-27T02:07:58.4437475Z      6776  1981-01-01 01:01   AndroidManifest.xml
+2026-09-27T02:07:58.4437898Z       340  1981-01-01 01:01   res/color/vector_tint_color.xml
+2026-09-27T02:07:58.4438353Z       340  1981-01-01 01:01   res/color/vector_tint_theme_color.xml
+2026-09-27T02:07:58.4438915Z       212  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_low_normal.9.png
+2026-09-27T02:07:58.4439515Z       225  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_low_pressed.9.png
+2026-09-27T02:07:58.4440098Z       212  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_normal.9.png
+2026-09-27T02:07:58.4440687Z       225  1981-01-01 01:01   res/drawable-hdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-27T02:07:58.4444240Z       909  1981-01-01 01:01   res/drawable-hdpi-v4/notification_oversize_large_icon_bg.png
+2026-09-27T02:07:58.4445484Z       107  1981-01-01 01:01   res/drawable-hdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-27T02:07:58.4446726Z       215  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_low_normal.9.png
+2026-09-27T02:07:58.4447838Z       223  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_low_pressed.9.png
+2026-09-27T02:07:58.4448903Z       215  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_normal.9.png
+2026-09-27T02:07:58.4450036Z       223  1981-01-01 01:01   res/drawable-mdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-27T02:07:58.4451466Z        98  1981-01-01 01:01   res/drawable-mdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-27T02:07:58.4452590Z      1180  1981-01-01 01:01   res/drawable-v21/notification_action_background.xml
+2026-09-27T02:07:58.4453675Z       221  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_low_normal.9.png
+2026-09-27T02:07:58.4454759Z       252  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_low_pressed.9.png
+2026-09-27T02:07:58.4456122Z       221  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_normal.9.png
+2026-09-27T02:07:58.4457228Z       247  1981-01-01 01:01   res/drawable-xhdpi-v4/notification_bg_normal_pressed.9.png
+2026-09-27T02:07:58.4458645Z       138  1981-01-01 01:01   res/drawable-xhdpi-v4/notify_panel_notification_icon_bg.png
+2026-09-27T02:07:58.4459752Z      1356  1981-01-01 01:01   res/drawable/ic_call_answer.xml
+2026-09-27T02:07:58.4460886Z      1320  1981-01-01 01:01   res/drawable/ic_call_answer_low.xml
+2026-09-27T02:07:58.4461691Z       772  1981-01-01 01:01   res/drawable/ic_call_answer_video.xml
+2026-09-27T02:07:58.4462202Z       736  1981-01-01 01:01   res/drawable/ic_call_answer_video_low.xml
+2026-09-27T02:07:58.4462702Z      1528  1981-01-01 01:01   res/drawable/ic_call_decline.xml
+2026-09-27T02:07:58.4463178Z      1492  1981-01-01 01:01   res/drawable/ic_call_decline_low.xml
+2026-09-27T02:07:58.4463643Z       532  1981-01-01 01:01   res/drawable/notification_bg.xml
+2026-09-27T02:07:58.4464103Z       532  1981-01-01 01:01   res/drawable/notification_bg_low.xml
+2026-09-27T02:07:58.4464617Z       372  1981-01-01 01:01   res/drawable/notification_icon_background.xml
+2026-09-27T02:07:58.4465145Z       304  1981-01-01 01:01   res/drawable/notification_tile_bg.xml
+2026-09-27T02:07:58.4465629Z      1052  1981-01-01 01:01   res/layout-v21/notification_action.xml
+2026-09-27T02:07:58.4466159Z      1228  1981-01-01 01:01   res/layout-v21/notification_action_tombstone.xml
+2026-09-27T02:07:58.4466915Z      2456  1981-01-01 01:01   res/layout-v21/notification_template_custom_big.xml
+2026-09-27T02:07:58.4467494Z       988  1981-01-01 01:01   res/layout-v21/notification_template_icon_group.xml
+2026-09-27T02:07:58.4467980Z       612  1981-01-01 01:01   res/layout/custom_dialog.xml
+2026-09-27T02:07:58.4468457Z       364  1981-01-01 01:01   res/layout/ime_base_split_test_activity.xml
+2026-09-27T02:07:58.4468993Z       876  1981-01-01 01:01   res/layout/ime_secondary_split_test_activity.xml
+2026-09-27T02:07:58.4469561Z       440  1981-01-01 01:01   res/layout/notification_template_part_chronometer.xml
+2026-09-27T02:07:58.4470121Z       440  1981-01-01 01:01   res/layout/notification_template_part_time.xml
+2026-09-27T02:07:58.4470575Z       712  1981-01-01 01:01   res/xml/file_paths.xml
+2026-09-27T02:07:58.4471224Z    415816  1981-01-01 01:01   resources.arsc
+2026-09-27T02:07:58.4471650Z      1738  1981-01-01 01:01   DebugProbesKt.bin
+2026-09-27T02:07:58.4472153Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity-compose.version
+2026-09-27T02:07:58.4472710Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity-ktx.version
+2026-09-27T02:07:58.4473230Z         6  1981-01-01 01:01   META-INF/androidx.activity_activity.version
+2026-09-27T02:07:58.4473819Z         6  1981-01-01 01:01   META-INF/androidx.annotation_annotation-experimental.version
+2026-09-27T02:07:58.4474412Z        67  1981-01-01 01:01   META-INF/androidx.arch.core_core-runtime.version
+2026-09-27T02:07:58.4474935Z         6  1981-01-01 01:01   META-INF/androidx.autofill_autofill.version
+2026-09-27T02:07:58.4475511Z         6  1981-01-01 01:01   META-INF/androidx.compose.animation_animation-core.version
+2026-09-27T02:07:58.4476533Z         6  1981-01-01 01:01   META-INF/androidx.compose.animation_animation.version
+2026-09-27T02:07:58.4478007Z         6  1981-01-01 01:01   META-INF/androidx.compose.foundation_foundation-layout.version
+2026-09-27T02:07:58.4478784Z         6  1981-01-01 01:01   META-INF/androidx.compose.foundation_foundation.version
+2026-09-27T02:07:58.4479382Z         6  1981-01-01 01:01   META-INF/androidx.compose.material3_material3.version
+2026-09-27T02:07:58.4480000Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-icons-core.version
+2026-09-27T02:07:58.4480683Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-icons-extended.version
+2026-09-27T02:07:58.4481702Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material-ripple.version
+2026-09-27T02:07:58.4482511Z         6  1981-01-01 01:01   META-INF/androidx.compose.material_material.version
+2026-09-27T02:07:58.4483117Z         6  1981-01-01 01:01   META-INF/androidx.compose.runtime_runtime-saveable.version
+2026-09-27T02:07:58.4483702Z         6  1981-01-01 01:01   META-INF/androidx.compose.runtime_runtime.version
+2026-09-27T02:07:58.4484259Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-geometry.version
+2026-09-27T02:07:58.4484803Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-graphics.version
+2026-09-27T02:07:58.4485364Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-test-manifest.version
+2026-09-27T02:07:58.4485906Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-text.version
+2026-09-27T02:07:58.4486458Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling-data.version
+2026-09-27T02:07:58.4487050Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling-preview.version
+2026-09-27T02:07:58.4487609Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-tooling.version
+2026-09-27T02:07:58.4488140Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-unit.version
+2026-09-27T02:07:58.4488644Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui-util.version
+2026-09-27T02:07:58.4489136Z         6  1981-01-01 01:01   META-INF/androidx.compose.ui_ui.version
+2026-09-27T02:07:58.4489610Z         7  1981-01-01 01:01   META-INF/androidx.core_core-ktx.version
+2026-09-27T02:07:58.4490205Z         7  1981-01-01 01:01   META-INF/androidx.core_core.version
+2026-09-27T02:07:58.4490797Z         6  1981-01-01 01:01   META-INF/androidx.customview_customview-poolingcontainer.version
+2026-09-27T02:07:58.4492297Z         6  1981-01-01 01:01   META-INF/androidx.emoji2_emoji2.version
+2026-09-27T02:07:58.4492856Z         6  1981-01-01 01:01   META-INF/androidx.graphics_graphics-path.version
+2026-09-27T02:07:58.4493612Z         6  1981-01-01 01:01   META-INF/androidx.interpolator_interpolator.version
+2026-09-27T02:07:58.4494824Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-livedata-core.version
+2026-09-27T02:07:58.4496110Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-process.version
+2026-09-27T02:07:58.4496754Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime-compose.version
+2026-09-27T02:07:58.4497393Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime-ktx.version
+2026-09-27T02:07:58.4497992Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-runtime.version
+2026-09-27T02:07:58.4498603Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel-ktx.version
+2026-09-27T02:07:58.4499274Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel-savedstate.version
+2026-09-27T02:07:58.4499917Z         6  1981-01-01 01:01   META-INF/androidx.lifecycle_lifecycle-viewmodel.version
+2026-09-27T02:07:58.4500530Z         6  1981-01-01 01:01   META-INF/androidx.profileinstaller_profileinstaller.version
+2026-09-27T02:07:58.4501514Z         6  1981-01-01 01:01   META-INF/androidx.savedstate_savedstate-ktx.version
+2026-09-27T02:07:58.4502078Z         6  1981-01-01 01:01   META-INF/androidx.savedstate_savedstate.version
+2026-09-27T02:07:58.4502631Z         6  1981-01-01 01:01   META-INF/androidx.startup_startup-runtime.version
+2026-09-27T02:07:58.4503160Z         6  1981-01-01 01:01   META-INF/androidx.tracing_tracing.version
+2026-09-27T02:07:58.4503770Z         6  1981-01-01 01:01   META-INF/androidx.versionedparcelable_versionedparcelable.version
+2026-09-27T02:07:58.4504365Z         5  1981-01-01 01:01   META-INF/kotlinx_coroutines_android.version
+2026-09-27T02:07:58.4504856Z         5  1981-01-01 01:01   META-INF/kotlinx_coroutines_core.version
+2026-09-27T02:07:58.4505354Z       112  1981-01-01 01:01   META-INF/services/java.security.Provider
+2026-09-27T02:07:58.4505951Z        54  1981-01-01 01:01   META-INF/services/kotlinx.coroutines.CoroutineExceptionHandler
+2026-09-27T02:07:58.4506848Z        52  1981-01-01 01:01   META-INF/services/kotlinx.coroutines.internal.MainDispatcherFactory
+2026-09-27T02:07:58.4507473Z      1252  1981-01-01 01:01   META-INF/versions/11/OSGI-INF/MANIFEST.MF
+2026-09-27T02:07:58.4507984Z      1252  1981-01-01 01:01   META-INF/versions/15/OSGI-INF/MANIFEST.MF
+2026-09-27T02:07:58.4508487Z      1252  1981-01-01 01:01   META-INF/versions/21/OSGI-INF/MANIFEST.MF
+2026-09-27T02:07:58.4508944Z       141  1981-01-01 01:01   arsclib.properties
+2026-09-27T02:07:58.4509401Z    134514  1981-01-01 01:01   frameworks/android/android-22.apk
+2026-09-27T02:07:58.4509880Z    132735  1981-01-01 01:01   frameworks/android/android-23.apk
+2026-09-27T02:07:58.4510394Z    141273  1981-01-01 01:01   frameworks/android/android-24.apk
+2026-09-27T02:07:58.4511506Z    143184  1981-01-01 01:01   frameworks/android/android-25.apk
+2026-09-27T02:07:58.4512632Z    150430  1981-01-01 01:01   frameworks/android/android-26.apk
+2026-09-27T02:07:58.4513308Z    153078  1981-01-01 01:01   frameworks/android/android-27.apk
+2026-09-27T02:07:58.4513785Z    159728  1981-01-01 01:01   frameworks/android/android-28.apk
+2026-09-27T02:07:58.4514253Z    174763  1981-01-01 01:01   frameworks/android/android-29.apk
+2026-09-27T02:07:58.4514719Z    179149  1981-01-01 01:01   frameworks/android/android-30.apk
+2026-09-27T02:07:58.4515166Z    188812  1981-01-01 01:01   frameworks/android/android-31.apk
+2026-09-27T02:07:58.4515857Z    192052  1981-01-01 01:01   frameworks/android/android-32.apk
+2026-09-27T02:07:58.4516305Z    236952  1981-01-01 01:01   frameworks/android/android-33.apk
+2026-09-27T02:07:58.4516755Z    237832  1981-01-01 01:01   frameworks/android/android-34.apk
+2026-09-27T02:07:58.4517253Z       865  1981-01-01 01:01   kotlin/annotation/annotation.kotlin_builtins
+2026-09-27T02:07:58.4517806Z      3635  1981-01-01 01:01   kotlin/collections/collections.kotlin_builtins
+2026-09-27T02:07:58.4518346Z       137  1981-01-01 01:01   kotlin/coroutines/coroutines.kotlin_builtins
+2026-09-27T02:07:58.4518884Z       583  1981-01-01 01:01   kotlin/internal/internal.kotlin_builtins
+2026-09-27T02:07:58.4519371Z     18653  1981-01-01 01:01   kotlin/kotlin.kotlin_builtins
+2026-09-27T02:07:58.4519834Z      3349  1981-01-01 01:01   kotlin/ranges/ranges.kotlin_builtins
+2026-09-27T02:07:58.4520318Z      2370  1981-01-01 01:01   kotlin/reflect/reflect.kotlin_builtins
+2026-09-27T02:07:58.4520863Z      4708  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_any.txt
+2026-09-27T02:07:58.4522052Z      4971  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_common.txt
+2026-09-27T02:07:58.4522687Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_cyrillic.txt
+2026-09-27T02:07:58.4523322Z      1489  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_english.txt
+2026-09-27T02:07:58.4523938Z      1224  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_french.txt
+2026-09-27T02:07:58.4524537Z      1852  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_german.txt
+2026-09-27T02:07:58.4525153Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_hebrew.txt
+2026-09-27T02:07:58.4525771Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_hungarian.txt
+2026-09-27T02:07:58.4526394Z      2228  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_polish.txt
+2026-09-27T02:07:58.4527006Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_romanian.txt
+2026-09-27T02:07:58.4527625Z      1427  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_russian.txt
+2026-09-27T02:07:58.4528520Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_approx_spanish.txt
+2026-09-27T02:07:58.4529803Z      1952  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_any.txt
+2026-09-27T02:07:58.4530814Z      1736  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_approx_common.txt
+2026-09-27T02:07:58.4531697Z      1095  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_common.txt
+2026-09-27T02:07:58.4532512Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_cyrillic.txt
+2026-09-27T02:07:58.4533156Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_english.txt
+2026-09-27T02:07:58.4533750Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_french.txt
+2026-09-27T02:07:58.4534345Z       826  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_german.txt
+2026-09-27T02:07:58.4534946Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_hebrew.txt
+2026-09-27T02:07:58.4535552Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_hungarian.txt
+2026-09-27T02:07:58.4536152Z       875  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_polish.txt
+2026-09-27T02:07:58.4536749Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_romanian.txt
+2026-09-27T02:07:58.4537360Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_russian.txt
+2026-09-27T02:07:58.4537948Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_exact_spanish.txt
+2026-09-27T02:07:58.4538546Z      2983  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_hebrew_common.txt
+2026-09-27T02:07:58.4539121Z      4874  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_lang.txt
+2026-09-27T02:07:58.4539820Z       888  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_languages.txt
+2026-09-27T02:07:58.4540385Z      9451  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_any.txt
+2026-09-27T02:07:58.4541250Z      2366  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_cyrillic.txt
+2026-09-27T02:07:58.4541895Z      2970  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_english.txt
+2026-09-27T02:07:58.4542494Z      2274  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_french.txt
+2026-09-27T02:07:58.4543095Z      2787  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_german.txt
+2026-09-27T02:07:58.4543683Z      1472  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_hebrew.txt
+2026-09-27T02:07:58.4544291Z      1960  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_hungarian.txt
+2026-09-27T02:07:58.4544907Z      4167  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_polish.txt
+2026-09-27T02:07:58.4546009Z      1526  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_romanian.txt
+2026-09-27T02:07:58.4547461Z      3980  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_russian.txt
+2026-09-27T02:07:58.4548120Z      2073  1981-01-01 01:01   org/apache/commons/codec/language/bm/ash_rules_spanish.txt
+2026-09-27T02:07:58.4548724Z      4043  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_any.txt
+2026-09-27T02:07:58.4549332Z       991  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_arabic.txt
+2026-09-27T02:07:58.4549951Z      5120  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_common.txt
+2026-09-27T02:07:58.4550574Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_cyrillic.txt
+2026-09-27T02:07:58.4551456Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_czech.txt
+2026-09-27T02:07:58.4552077Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_dutch.txt
+2026-09-27T02:07:58.4552687Z      1489  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_english.txt
+2026-09-27T02:07:58.4553299Z       942  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_french.txt
+2026-09-27T02:07:58.4553893Z      1853  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_german.txt
+2026-09-27T02:07:58.4554503Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_greek.txt
+2026-09-27T02:07:58.4555309Z       845  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_greeklatin.txt
+2026-09-27T02:07:58.4555960Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_hebrew.txt
+2026-09-27T02:07:58.4556587Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_hungarian.txt
+2026-09-27T02:07:58.4557208Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_italian.txt
+2026-09-27T02:07:58.4557821Z      2183  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_polish.txt
+2026-09-27T02:07:58.4558460Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_portuguese.txt
+2026-09-27T02:07:58.4559104Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_romanian.txt
+2026-09-27T02:07:58.4559722Z      1437  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_russian.txt
+2026-09-27T02:07:58.4560333Z       868  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_spanish.txt
+2026-09-27T02:07:58.4561152Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_approx_turkish.txt
+2026-09-27T02:07:58.4561879Z      1226  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_any.txt
+2026-09-27T02:07:58.4562623Z      1769  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_approx_common.txt
+2026-09-27T02:07:58.4564177Z       816  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_arabic.txt
+2026-09-27T02:07:58.4565226Z      1093  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_common.txt
+2026-09-27T02:07:58.4565846Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_cyrillic.txt
+2026-09-27T02:07:58.4566447Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_czech.txt
+2026-09-27T02:07:58.4567048Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_dutch.txt
+2026-09-27T02:07:58.4567646Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_english.txt
+2026-09-27T02:07:58.4568262Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_french.txt
+2026-09-27T02:07:58.4568858Z       826  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_german.txt
+2026-09-27T02:07:58.4569442Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_greek.txt
+2026-09-27T02:07:58.4570069Z       817  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_greeklatin.txt
+2026-09-27T02:07:58.4570679Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_hebrew.txt
+2026-09-27T02:07:58.4571603Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_hungarian.txt
+2026-09-27T02:07:58.4572234Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_italian.txt
+2026-09-27T02:07:58.4572831Z       874  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_polish.txt
+2026-09-27T02:07:58.4573458Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_portuguese.txt
+2026-09-27T02:07:58.4574082Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_romanian.txt
+2026-09-27T02:07:58.4574690Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_russian.txt
+2026-09-27T02:07:58.4575292Z       832  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_spanish.txt
+2026-09-27T02:07:58.4575896Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_exact_turkish.txt
+2026-09-27T02:07:58.4576498Z      2845  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_hebrew_common.txt
+2026-09-27T02:07:58.4577071Z      7594  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_lang.txt
+2026-09-27T02:07:58.4577642Z       951  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_languages.txt
+2026-09-27T02:07:58.4578223Z     13059  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_any.txt
+2026-09-27T02:07:58.4578989Z      2208  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_arabic.txt
+2026-09-27T02:07:58.4579884Z      2300  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_cyrillic.txt
+2026-09-27T02:07:58.4581402Z      1561  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_czech.txt
+2026-09-27T02:07:58.4582415Z      1867  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_dutch.txt
+2026-09-27T02:07:58.4583039Z      3013  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_english.txt
+2026-09-27T02:07:58.4583646Z      2778  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_french.txt
+2026-09-27T02:07:58.4584241Z      2735  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_german.txt
+2026-09-27T02:07:58.4584834Z      2918  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_greek.txt
+2026-09-27T02:07:58.4585447Z      3041  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_greeklatin.txt
+2026-09-27T02:07:58.4586075Z      1462  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_hebrew.txt
+2026-09-27T02:07:58.4586688Z      1887  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_hungarian.txt
+2026-09-27T02:07:58.4587299Z      1873  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_italian.txt
+2026-09-27T02:07:58.4588070Z      4112  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_polish.txt
+2026-09-27T02:07:58.4588690Z      2598  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_portuguese.txt
+2026-09-27T02:07:58.4589318Z      1509  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_romanian.txt
+2026-09-27T02:07:58.4589932Z      3042  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_russian.txt
+2026-09-27T02:07:58.4590534Z      2382  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_spanish.txt
+2026-09-27T02:07:58.4591457Z      1386  1981-01-01 01:01   org/apache/commons/codec/language/bm/gen_rules_turkish.txt
+2026-09-27T02:07:58.4592050Z       803  1981-01-01 01:01   org/apache/commons/codec/language/bm/lang.txt
+2026-09-27T02:07:58.4592629Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_any.txt
+2026-09-27T02:07:58.4593228Z      3195  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_common.txt
+2026-09-27T02:07:58.4593846Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_french.txt
+2026-09-27T02:07:58.4594450Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_hebrew.txt
+2026-09-27T02:07:58.4595053Z       830  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_italian.txt
+2026-09-27T02:07:58.4595689Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_portuguese.txt
+2026-09-27T02:07:58.4596428Z       831  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_approx_spanish.txt
+2026-09-27T02:07:58.4597615Z       817  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_any.txt
+2026-09-27T02:07:58.4598860Z      1685  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_approx_common.txt
+2026-09-27T02:07:58.4599511Z      1109  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_common.txt
+2026-09-27T02:07:58.4600113Z       815  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_french.txt
+2026-09-27T02:07:58.4600710Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_hebrew.txt
+2026-09-27T02:07:58.4601656Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_italian.txt
+2026-09-27T02:07:58.4602288Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_portuguese.txt
+2026-09-27T02:07:58.4602908Z       812  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_exact_spanish.txt
+2026-09-27T02:07:58.4603514Z      2187  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_hebrew_common.txt
+2026-09-27T02:07:58.4604282Z      2431  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_lang.txt
+2026-09-27T02:07:58.4604855Z       849  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_languages.txt
+2026-09-27T02:07:58.4605426Z      4632  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_any.txt
+2026-09-27T02:07:58.4606024Z      2224  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_french.txt
+2026-09-27T02:07:58.4606619Z      1459  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_hebrew.txt
+2026-09-27T02:07:58.4607221Z      1848  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_italian.txt
+2026-09-27T02:07:58.4607842Z      2573  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_portuguese.txt
+2026-09-27T02:07:58.4608458Z      2480  1981-01-01 01:01   org/apache/commons/codec/language/bm/sep_rules_spanish.txt
+2026-09-27T02:07:58.4609029Z      3545  1981-01-01 01:01   org/apache/commons/codec/language/dmrules.txt
+2026-09-27T02:07:58.4609628Z     42868  1981-01-01 01:01   org/bouncycastle/pkix/CertPathReviewerMessages.properties
+2026-09-27T02:07:58.4610284Z     49608  1981-01-01 01:01   org/bouncycastle/pkix/CertPathReviewerMessages_de.properties
+2026-09-27T02:07:58.4611177Z    118306  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL1.bin.properties
+2026-09-27T02:07:58.4623010Z    350101  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL3.bin.properties
+2026-09-27T02:07:58.4624169Z    752652  1981-01-01 01:01   org/bouncycastle/pqc/crypto/picnic/lowmcL5.bin.properties
+2026-09-27T02:07:58.4625231Z     42868  1981-01-01 01:01   org/bouncycastle/x509/CertPathReviewerMessages.properties
+2026-09-27T02:07:58.4626287Z     49608  1981-01-01 01:01   org/bouncycastle/x509/CertPathReviewerMessages_de.properties
+2026-09-27T02:07:58.4626790Z ---------                     -------
+2026-09-27T02:07:58.4627123Z 109656332                     289 files
+2026-09-27T02:07:58.4627593Z All 10 pinned runtime bundle descriptors verified inside Manager APK.
