@@ -43,6 +43,12 @@ interface EmulationEngine : AutoCloseable {
     fun setKeys(vararg keys: RetroKey)
 
     /**
+     * Sets the active analog stick coordinate axes for upcoming frames.
+     * Normalized range: [-1.0f, 1.0f] for both X and Y.
+     */
+    fun setAnalogAxis(axisX: Float, axisY: Float) {}
+
+    /**
      * Returns a direct [IntBuffer] containing native ARGB pixels for display rendering.
      */
     fun getVideoBuffer(): IntBuffer?
@@ -214,6 +220,12 @@ class NativeEmulationEngine(
 
     override fun setKeys(vararg keys: RetroKey) {
         setKeyMask(RetroKey.maskOf(*keys))
+    }
+
+    override fun setAnalogAxis(axisX: Float, axisY: Float) = synchronized(lock) {
+        try {
+            core.nativeSetAnalogAxis(axisX, axisY)
+        } catch (_: UnsatisfiedLinkError) {}
     }
 
     override fun getVideoBuffer(): IntBuffer? = synchronized(lock) {

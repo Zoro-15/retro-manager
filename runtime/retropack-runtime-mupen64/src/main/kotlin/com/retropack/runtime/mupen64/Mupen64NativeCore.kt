@@ -60,7 +60,7 @@ object Mupen64NativeCore : NativeCoreBridge {
     override fun nativeSaveState(slot: Int, filePath: String): Boolean = mupenSaveState(slot, filePath)
     override fun nativeLoadState(slot: Int, filePath: String): Boolean = mupenLoadState(slot, filePath)
 
-    fun nativeSetAnalogAxis(axisX: Float, axisY: Float) = mupenSetAnalogAxis(axisX, axisY)
+    override fun nativeSetAnalogAxis(axisX: Float, axisY: Float) = mupenSetAnalogAxis(axisX, axisY)
 
     private external fun mupenInit(internalStoragePath: String): Boolean
     private external fun mupenLoadRom(romPath: String): Boolean
