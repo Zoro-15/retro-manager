@@ -14,6 +14,7 @@
 3. **Sprint 1 (SNES & Sega Genesis — Snes9x + Genesis Plus GX)**: ✅ Fully operational via Commits `882db7e6`, `d0e40489`, and `e64186b9`. Verified 100% green on remote GitHub Actions CI ([Run 36287368925](https://github.com/Zoro-15/retro-manager/actions/runs/36287368925), [Run 36287368915](https://github.com/Zoro-15/retro-manager/actions/runs/36287368915), and [Run 36287471663](https://github.com/Zoro-15/retro-manager/actions/runs/36287471663)).
 4. **Sprint 2 (NES & PC Engine — FCEUmm + Beetle PCE Fast)**: ✅ Fully operational via Commits `b9566fda`, `ac2a1f57`, and `381d85b9`. Verified 100% green on remote GitHub Actions CI ([Run 36288077682](https://github.com/Zoro-15/retro-manager/actions/runs/36288077682), [Run 36288077687](https://github.com/Zoro-15/retro-manager/actions/runs/36288077687), and [Run 36288174690](https://github.com/Zoro-15/retro-manager/actions/runs/36288174690)).
 5. **Sprint 3 (Sony PlayStation 1 & Arcade / Neo Geo — PCSX ReARMed + FinalBurn Neo)**: ✅ Fully operational via Commits `6d9dfb64`, `5796a6ab`, `2bffa4bd`, `b82758f7`, and `2ceb17c6`. Verified 100% green on remote GitHub Actions CI ([Run 36289411239](https://github.com/Zoro-15/retro-manager/actions/runs/36289411239), [Run 36289411367](https://github.com/Zoro-15/retro-manager/actions/runs/36289411367), and [Run 36289665567](https://github.com/Zoro-15/retro-manager/actions/runs/36289665567)).
+6. **Sprint 4 (Nintendo DS & Sony PSP — melonDS + PPSSPP)**: ✅ Fully operational via Commits `4479fbad`, `13697409`, and `ad8741d0`. Verified 100% green on remote GitHub Actions CI ([Run 36290214292](https://github.com/Zoro-15/retro-manager/actions/runs/36290214292), [Run 36290214267](https://github.com/Zoro-15/retro-manager/actions/runs/36290214267), and [Run 36290435553](https://github.com/Zoro-15/retro-manager/actions/runs/36290435553)).
 
 ### The Proven 3-Part Modular Pattern
 Each core pair follows the proven 3-part delivery pattern:
@@ -228,7 +229,15 @@ graph TD
 
 ---
 
-## 📦 SPRINT 4: The Handheld Heavyweights (Nintendo DS & Sony PSP)
+## 📦 SPRINT 4: The Handheld Heavyweights (Nintendo DS & Sony PSP) — ✅ COMPLETED & CI VERIFIED
+* **Commit History**:
+  * Part 1: Native rasterizer, NDS/PSP header parser, dual-screen stacked & XMB widescreen pipeline, 44.1 kHz stereo synthesis, SRAM/Flash durability (`4479fbad`)
+  * Part 2: Touch overlays for NDS & PSP with authentic button colors, stylus digitizer routing, analog nub support, and gamepad mappings (`13697409`)
+  * Part 3: Proguard keep rules and native bridge test suites (`ad8741d0`)
+* **Remote CI Status**: 100% Green
+  * [Android CI Run 36290214267](https://github.com/Zoro-15/retro-manager/actions/runs/36290214267) — `success`
+  * [Tests Run 36290214292](https://github.com/Zoro-15/retro-manager/actions/runs/36290214292) — `success`
+  * [CI Logs Archive Run 36290435553](https://github.com/Zoro-15/retro-manager/actions/runs/36290435553) — `success`
 
 ### Target 4.1: Nintendo DS (melonDS)
 - **Module Path**: [`runtime/retropack-runtime-melonds`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-melonds)
@@ -238,17 +247,17 @@ graph TD
 - **Control Layout**: D-Pad, A, B, X, Y, L, R, Start, Select + Direct Bottom-Screen Stylus Touch Digitizer
 
 #### Execution Tasks:
-1. **Part 1 (Native Engine & Video Pipeline)**:
+1. **Part 1 (Native Engine & Video Pipeline)**: ✅
    - In [`melonds-jni.cpp`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-melonds/src/main/cpp/melonds-jni.cpp), implement active dual-screen frame 0 renderer (Top Screen 3D engine, Bottom Screen 2D/Touch engine).
    - Implement NDS ROM header inspection: parse `$0x000` (Game Title), `$0x00C` (Game Code, e.g. `CPUE` for Pokemon Platinum), ARM9/ARM7 entry points, and save memory type (EEPROM vs Flash vs NAND).
    - Wire stylus digitizer JNI bridge: `melondsSetTouch(x, y, isTouching)`.
    - Implement Flash/EEPROM save durability.
-2. **Part 2 (Display, Colors & Overlay Layout)**:
+2. **Part 2 (Display, Colors & Overlay Layout)**: ✅
    - In [`TouchLayout.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt), refine `fun nds(...)`:
      - Maintain clear unoccluded viewport over bottom screen.
      - Stylus touch event routing in `TouchOverlayView.onStylusTouch`.
      - Diamond action cluster: A, B, X, Y.
-3. **Part 3 (Packaging & Validation)**:
+3. **Part 3 (Packaging & Validation)**: ✅
    - Add `consumer-rules.pro` for `retropack-runtime-melonds`.
    - Update `MelondsNativeCoreTest.kt`.
    - Push and verify remote CI.
@@ -263,17 +272,17 @@ graph TD
 - **Control Layout**: D-Pad, Left Analog Nub, Action Symbols (Cross, Circle, Square, Triangle), L/R Triggers, Select, Start, Home
 
 #### Execution Tasks:
-1. **Part 1 (Native Engine & Video Pipeline)**:
+1. **Part 1 (Native Engine & Video Pipeline)**: ✅
    - In [`ppsspp-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-ppsspp/src/main/cpp/ppsspp-jni.c), implement active widescreen frame 0 renderer ($480 \times 272$).
    - Implement ISO9660 & CSO header inspection: parse `DISC_ID` (e.g. `ULUS10041`) from `UMD_DATA.BIN` / `PARAM.SFO`.
    - Implement analog nub JNI bridge: `ppssppSetAnalogAxis(axisX, axisY)`.
    - Implement Memory Stick `SAVEDATA` durability.
-2. **Part 2 (Display, Colors & Overlay Layout)**:
+2. **Part 2 (Display, Colors & Overlay Layout)**: ✅
    - In [`TouchLayout.kt`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt), refine `fun psp(...)`:
      - 16:9 Widescreen gutter ergonomics.
      - Left analog nub with `ANALOG_FREE` snap mode.
      - PlayStation transparent symbol overlays.
-3. **Part 3 (Packaging & Validation)**:
+3. **Part 3 (Packaging & Validation)**: ✅
    - Add `consumer-rules.pro` for `retropack-runtime-ppsspp`.
    - Update `PpssppNativeCoreTest.kt`.
    - Push and verify remote CI.
