@@ -159,4 +159,27 @@ class GamepadMapperTest {
         assertEquals(0f, stickX)
         assertEquals(0f, stickY)
     }
+
+    @Test
+    fun `maps physical gamepad X, Y, C, Z, and MODE buttons`() {
+        val mapper = GamepadMapper()
+        var reportedMask = -1
+        mapper.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_X))
+        assertEquals(RetroKey.KEY_X, reportedMask)
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_Y))
+        assertEquals(RetroKey.KEY_X or RetroKey.KEY_Y, reportedMask)
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_C))
+        assertEquals(RetroKey.KEY_X or RetroKey.KEY_Y or RetroKey.KEY_C, reportedMask)
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_Z))
+        assertEquals(RetroKey.KEY_X or RetroKey.KEY_Y or RetroKey.KEY_C or RetroKey.KEY_Z, reportedMask)
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_MODE))
+        assertEquals(RetroKey.KEY_X or RetroKey.KEY_Y or RetroKey.KEY_C or RetroKey.KEY_Z or RetroKey.KEY_MODE, reportedMask)
+    }
 }
+
