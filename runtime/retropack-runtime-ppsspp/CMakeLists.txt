@@ -38,6 +38,7 @@ target_link_libraries(retropack-runtime-ppsspp PRIVATE
     OpenSLES
     android
     log
+    m
 )
 
 target_link_options(retropack-runtime-ppsspp PRIVATE

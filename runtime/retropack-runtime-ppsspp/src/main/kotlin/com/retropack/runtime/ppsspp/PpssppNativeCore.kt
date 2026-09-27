@@ -60,12 +60,15 @@ object PpssppNativeCore : NativeCoreBridge {
     override fun nativeSaveState(slot: Int, filePath: String): Boolean = ppssppSaveState(slot, filePath)
     override fun nativeLoadState(slot: Int, filePath: String): Boolean = ppssppLoadState(slot, filePath)
 
+    override fun nativeSetAnalogAxis(axisX: Float, axisY: Float) = ppssppSetAnalogAxis(axisX, axisY)
+
     private external fun ppssppInit(internalStoragePath: String): Boolean
     private external fun ppssppLoadRom(romPath: String): Boolean
     private external fun ppssppUnloadRom()
     private external fun ppssppDestroy()
     private external fun ppssppRunFrame(): Boolean
     private external fun ppssppSetKeys(keyMask: Int)
+    private external fun ppssppSetAnalogAxis(axisX: Float, axisY: Float)
     private external fun ppssppGetVideoBuffer(): IntBuffer?
     private external fun ppssppGetAudioSamples(outSamples: ShortArray, maxSamples: Int): Int
     private external fun ppssppGetAudioAvailable(): Int
