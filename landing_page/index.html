@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetroPack — On-Device Retro Game APK Forge</title>
+  <meta name="description" content="RetroPack transforms legally-owned retro game ROMs — Game Boy to PSP — into autonomous, first-class, standalone Android applications. Forged entirely on-device. No desktop. No cloud. No companion apps.">
+  <meta name="theme-color" content="#090A0F">
+  <meta property="og:title" content="RetroPack — On-Device Retro Game APK Forge">
+  <meta property="og:description" content="Turn your legally-owned retro cartridges into real Android apps. 10 canonical cores. 15-step verified pipeline. 100% on-device.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/sections.css">
+  <link rel="stylesheet" href="assets/css/effects.css">
+</head>
+<body data-dmg="off">
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ══════════════════ BOOT PRELOADER ══════════════════ -->
+  <div id="boot" aria-hidden="true">
+    <div class="boot-inner">
+      <div class="boot-logo">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" aria-hidden="true">
+          <rect x="4" y="2" width="16" height="13" rx="2" stroke="url(#bootg)" stroke-width="1.6"/>
+          <path d="M8 15v3h8v-3" stroke="url(#bootg)" stroke-width="1.6"/>
+          <rect x="9" y="18" width="6" height="4" rx="1" stroke="url(#bootg)" stroke-width="1.6"/>
+          <path d="M8 6h3M13 6h3M8 9.5h8" stroke="url(#bootg)" stroke-width="1.2" stroke-linecap="round"/>
+          <defs><linearGradient id="bootg" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#818CF8"/><stop offset="1" stop-color="#06B6D4"/></linearGradient></defs>
+        </svg>
+        <span class="boot-word">RETROPACK</span>
+      </div>
+      <div class="boot-lines" id="bootLines"></div>
+      <div class="boot-bar"><div class="boot-bar-fill" id="bootBarFill"></div></div>
+      <div class="boot-hint">PRESS START</div>
+    </div>
+    <div class="boot-flash" id="bootFlash"></div>
+  </div>
+
+  <!-- ══════════════════ GLOBAL FX LAYERS ══════════════════ -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="crt-overlay" aria-hidden="true">
+    <div class="crt-roll"></div>
+  </div>
+  <div class="cursor-dot" aria-hidden="true"></div>
+  <div class="cursor-ring" aria-hidden="true"></div>
+  <div id="scrollProgress" aria-hidden="true"></div>
+
+  <!-- ══════════════════ NAVIGATION ══════════════════ -->
+  <header id="nav">
+    <nav class="nav-inner container" aria-label="Primary">
+      <a class="nav-brand" href="#top" data-magnetic>
+        <svg class="nav-logo" viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+          <rect x="4" y="2" width="16" height="13" rx="2" stroke="url(#navg)" stroke-width="1.7"/>
+          <path d="M8 15v3h8v-3" stroke="url(#navg)" stroke-width="1.7"/>
+          <rect x="9" y="18" width="6" height="4" rx="1" stroke="url(#navg)" stroke-width="1.7"/>
+          <path d="M8 6h3M13 6h3M8 9.5h8" stroke="url(#navg)" stroke-width="1.3" stroke-linecap="round"/>
+          <defs><linearGradient id="navg" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#818CF8"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs>
+        </svg>
+        <span class="nav-word">RETRO<em>PACK</em></span>
+      </a>
+
+      <ul class="nav-links" id="navMenu">
+        <li><a href="#forge" data-nav-link>The Forge</a></li>
+        <li><a href="#pipeline" data-nav-link>Pipeline</a></li>
+        <li><a href="#platforms" data-nav-link>Platforms</a></li>
+        <li><a href="#features" data-nav-link>Features</a></li>
+        <li><a href="#architecture" data-nav-link>Architecture</a></li>
+        <li><a href="#proof" data-nav-link>Proof</a></li>
+        <li class="nav-cta-mobile"><a class="btn btn-primary btn-sm" href="https://github.com/Zoro-15/retro-manager" target="_blank" rel="noopener">GitHub Repo</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="dmgToggle" class="dmg-toggle" type="button" aria-pressed="false" title="Toggle DMG pea-green phosphor" data-magnetic>
+          <span class="dmg-led" aria-hidden="true"></span>
+          <span class="dmg-label">DMG</span>
+        </button>
+        <a class="btn btn-primary btn-sm nav-github" href="https://github.com/Zoro-15/retro-manager" target="_blank" rel="noopener" data-magnetic>
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>GitHub</span>
+        </a>
+        <button id="navToggle" class="nav-toggle" type="button" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+  <span id="top"></span>
+
+  <!-- ══════════════════ HERO ══════════════════ -->
+  <section class="hero" aria-label="Intro">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="glow glow-indigo"></div>
+      <div class="glow glow-teal"></div>
+      <div class="glow glow-violet"></div>
+      <div class="hero-grid-floor"></div>
+    </div>
+
+    <div class="container hero-layout">
+      <div class="hero-copy">
+        <div class="hero-eyebrow" data-reveal>
+          <span class="eyebrow-pixel">ON-DEVICE APK FORGE</span>
+          <span class="eyebrow-version">v0.1.0 · 10 CORES · ANDROID 8→16</span>
+        </div>
+
+        <h1 class="hero-title">
+          <span class="line" data-reveal data-reveal-delay="80">YOUR ROMS,</span>
+          <span class="line" data-reveal data-reveal-delay="160">REBORN AS</span>
+          <span class="line line-accent" data-reveal data-reveal-delay="240"><span class="glitch" data-text="REAL APPS.">REAL APPS.</span></span>
+        </h1>
+
+        <p class="hero-sub" data-reveal data-reveal-delay="320">
+          RetroPack transforms legally-owned retro cartridges — <strong>Game&nbsp;Boy to PSP</strong> — into
+          autonomous, first-class Android applications with icons, save files and launcher presence of their own.
+          Forged <strong>entirely on your phone</strong>. No desktop. No cloud. No companion apps.
+        </p>
+
+        <div class="hero-cta" data-reveal data-reveal-delay="400">
+          <a class="btn btn-primary btn-lg" href="#pipeline" data-magnetic>
+            <span class="btn-shine" aria-hidden="true"></span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" aria-hidden="true"><path d="M8 3.5v17l14-8.5-14-8.5Z" fill="currentColor"/></svg>
+            <span>Watch the Forge run</span>
+          </a>
+          <a class="btn btn-ghost btn-lg" href="#platforms" data-magnetic>
+            <span>Explore 10 cores</span>
+          </a>
+        </div>
+
+        <div class="hero-meta" data-reveal data-reveal-delay="480">
+          <div class="hero-meta-item"><span class="meta-dot dot-green"></span>CI · 41 suites · 100% green</div>
+          <div class="hero-meta-item"><span class="meta-dot dot-teal"></span>16 KB page-aligned · Android 15/16</div>
+          <div class="hero-meta-item"><span class="meta-dot dot-amber"></span>Your ROMs remain your ROMs</div>
+        </div>
+      </div>
+
+      <div class="hero-visual" data-reveal data-reveal-delay="300">
+        <div class="hero-stage">
+          <!-- floating cartridge -->
+          <div class="float-chip chip-cart" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none">
+              <rect x="4" y="4" width="16" height="14" rx="2" stroke="#818CF8" stroke-width="1.5"/>
+              <path d="M8 18v2h8v-2" stroke="#818CF8" stroke-width="1.5"/>
+              <rect x="8" y="7" width="8" height="6" rx="1" stroke="#22D3EE" stroke-width="1.2"/>
+              <path d="M9.5 8.5h2M13 8.5h1.5M9.5 10.5h5" stroke="#22D3EE" stroke-width="0.9" stroke-linecap="round"/>
+            </svg>
+            <div class="chip-cart-label">TOBU&nbsp;TOBU&nbsp;GIRL<span>.gbc</span></div>
+          </div>
+
+          <!-- phone mockup -->
+          <div class="phone" role="img" aria-label="A generated RetroPack standalone game running on an Android phone">
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-screen">
+                <canvas id="phoneCanvas" width="270" height="480"></canvas>
+                <div class="phone-hud">
+                  <div class="phone-hud-top">
+                    <span class="hud-title">TOBU TOBU GIRL</span>
+                    <span class="hud-batt"><i></i><i></i><i></i></span>
+                  </div>
+                  <div class="hud-rec" aria-hidden="true">● REC</div>
+                </div>
+                <div class="phone-touch" aria-hidden="true">
+                  <div class="touch-dpad">
+                    <span class="dp dp-up"></span><span class="dp dp-left"></span><span class="dp dp-right"></span><span class="dp dp-down"></span>
+                    <span class="dp dp-center"></span>
+                  </div>
+                  <div class="touch-ab">
+                    <span class="ab ab-b">B</span><span class="ab ab-a">A</span>
+                  </div>
+                  <div class="touch-start">START</div>
+                </div>
+                <div class="phone-scanlines"></div>
+                <div class="phone-glass"></div>
+              </div>
+              <div class="phone-shine" aria-hidden="true"></div>
+            </div>
+            <div class="phone-shadow" aria-hidden="true"></div>
+          </div>
+
+          <!-- floating verification chips -->
+          <div class="float-chip chip-signed" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none"><path d="M12 2 4 5.5v5.1c0 5 3.4 9.6 8 11.4 4.6-1.8 8-6.4 8-11.4V5.5L12 2Z" stroke="#34D399" stroke-width="1.6"/><path d="m8.8 11.8 2.2 2.2 4.2-4.4" stroke="#34D399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>SIGNED · v1 + v2 + v3</span>
+          </div>
+          <div class="float-chip chip-pkg" aria-hidden="true">
+            <span class="pkg-hash">com.retropack.game.tobu_7f3a91c2e0</span>
+          </div>
+          <div class="float-chip chip-sram" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"><path d="M5 19h14M7 16V9m5 7V5m5 11v-4" stroke="#FBBF24" stroke-width="1.7" stroke-linecap="round"/><path d="M4 21c0-1.1.9-2 2-2s2 .9 2 2" stroke="#FBBF24" stroke-width="1.4"/></svg>
+            <span>SRAM · fsync ✓</span>
+          </div>
+
+          <!-- trajectory dashes: cart -> phone -->
+          <svg class="hero-trail" viewBox="0 0 200 140" aria-hidden="true">
+            <path d="M20 30 C 80 10, 140 40, 178 108" stroke="#22D3EE" stroke-width="1.4" stroke-dasharray="3 7" fill="none" opacity="0.5" class="trail-anim"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- platform marquee -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track" id="heroMarquee">
+        <span class="mq-item">GAME BOY</span><span class="mq-dot">◆</span>
+        <span class="mq-item">GAME BOY COLOR</span><span class="mq-dot">◆</span>
+        <span class="mq-item">GAME BOY ADVANCE</span><span class="mq-dot">◆</span>
+        <span class="mq-item">SUPER NINTENDO</span><span class="mq-dot">◆</span>
+        <span class="mq-item">SEGA GENESIS</span><span class="mq-dot">◆</span>
+        <span class="mq-item">NES</span><span class="mq-dot">◆</span>
+        <span class="mq-item">NINTENDO 64</span><span class="mq-dot">◆</span>
+        <span class="mq-item">PLAYSTATION</span><span class="mq-dot">◆</span>
+        <span class="mq-item">PSP</span><span class="mq-dot">◆</span>
+        <span class="mq-item">NINTENDO DS</span><span class="mq-dot">◆</span>
+        <span class="mq-item">TURBOGRAFX-16</span><span class="mq-dot">◆</span>
+        <span class="mq-item">NEO GEO</span><span class="mq-dot">◆</span>
+        <span class="mq-item">ARCADE · CPS-1/2/3</span><span class="mq-dot">◆</span>
+        <span class="mq-item">MASTER SYSTEM</span><span class="mq-dot">◆</span>
+        <span class="mq-item">GAME GEAR</span><span class="mq-dot">◆</span>
+      </div>
+      <div class="marquee-fade left"></div>
+      <div class="marquee-fade right"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ STATS BAND ══════════════════ -->
+  <section class="stats" aria-label="Key numbers">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat" data-reveal>
+          <div class="stat-value"><span data-counter="10">0</span></div>
+          <div class="stat-label">canonical<br>emulator cores</div>
+        </div>
+        <div class="stat" data-reveal data-reveal-delay="60">
+          <div class="stat-value"><span data-counter="16">0</span><em>+</em></div>
+          <div class="stat-label">platforms<br>GB → PSP</div>
+        </div>
+        <div class="stat" data-reveal data-reveal-delay="120">
+          <div class="stat-value"><span data-counter="15">0</span></div>
+          <div class="stat-label">verified<br>pipeline steps</div>
+        </div>
+        <div class="stat" data-reveal data-reveal-delay="180">
+          <div class="stat-value"><span data-counter="100">0</span><em>%</em></div>
+          <div class="stat-label">forged<br>on-device</div>
+        </div>
+        <div class="stat" data-reveal data-reveal-delay="240">
+          <div class="stat-value"><span data-counter="0">0</span></div>
+          <div class="stat-label">cloud calls ·<br>companion apps</div>
+        </div>
+        <div class="stat" data-reveal data-reveal-delay="300">
+          <div class="stat-value"><span data-counter="41">0</span></div>
+          <div class="stat-label">CI suites<br>100% green</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ THE FORGE · 3 STEPS ══════════════════ -->
+  <section class="forge section" id="forge" aria-label="How it works">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>THE FORGE</span>
+        <h2 class="section-title">Three taps from<span class="grad-text"> cartridge to launcher.</span></h2>
+        <p class="section-sub">
+          A 3-step Material&nbsp;3 stepper with dark cards, a floating dock and a live terminal sheet.
+          No command line. No desktop toolchain. Just your phone, your ROM, and 15 verified stages of engineering.
+        </p>
+      </header>
+
+      <div class="forge-grid">
+        <article class="forge-card" data-tilt data-reveal>
+          <div class="forge-num">01</div>
+          <div class="forge-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect x="4" y="4" width="16" height="14" rx="2" stroke="#818CF8" stroke-width="1.6"/><path d="M8 18v2h8v-2" stroke="#818CF8" stroke-width="1.6"/><rect x="8" y="7" width="8" height="6" rx="1" stroke="#22D3EE" stroke-width="1.3"/><path d="M9.5 8.5h2M13 8.5h1.5M9.5 10.5h5" stroke="#22D3EE" stroke-width="0.9" stroke-linecap="round"/></svg>
+          </div>
+          <h3 class="forge-title">Select your ROM</h3>
+          <p class="forge-copy">
+            Pick any legally-owned <code>.gb</code>, <code>.gbc</code>, <code>.gba</code>, <code>.smc</code>, <code>.md</code>,
+            <code>.nes</code>, <code>.z64</code>, <code>.pbp</code>, <code>.nds</code>, <code>.cue</code> or arcade set.
+            Headers are parsed at byte level — Nintendo logo validated, MBC detected, checksums streamed
+            <strong>CRC32 / MD5 / SHA-1 / SHA-256</strong> in a single zero-heap pass.
+          </p>
+          <ul class="forge-tags">
+            <li>IPS / UPS patches on-the-fly</li>
+            <li>Archive auto-extraction</li>
+            <li>Multi-disc detection</li>
+          </ul>
+        </article>
+
+        <article class="forge-card" data-tilt data-reveal data-reveal-delay="90">
+          <div class="forge-num">02</div>
+          <div class="forge-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><path d="M12 2 4 5.5v5.1c0 5 3.4 9.6 8 11.4 4.6-1.8 8-6.4 8-11.4V5.5L12 2Z" stroke="#34D399" stroke-width="1.6"/><path d="m8.8 11.8 2.2 2.2 4.2-4.4" stroke="#34D399" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 class="forge-title">Forge its identity</h3>
+          <p class="forge-copy">
+            Name your game. Boxart is auto-scraped from the open-source <strong>Libretro Thumbnails</strong> library and
+            composed into adaptive launcher icons. Choose touch layout, shader, bezel and controller mapping —
+            all written into <code>retropack.json</code> inside the package.
+          </p>
+          <ul class="forge-tags">
+            <li>Adaptive icon live preview</li>
+            <li>Deterministic package name</li>
+            <li>Per-console touch layouts</li>
+          </ul>
+        </article>
+
+        <article class="forge-card" data-tilt data-reveal data-reveal-delay="180">
+          <div class="forge-num">03</div>
+          <div class="forge-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none"><rect x="5" y="2.5" width="14" height="19" rx="3" stroke="#A855F7" stroke-width="1.6"/><path d="M10.5 2.5h3" stroke="#A855F7" stroke-width="1.6" stroke-linecap="round"/><rect x="8.5" y="5" width="7" height="10" rx="1.5" stroke="#22D3EE" stroke-width="1.3"/><circle cx="10.5" cy="17.8" r="1" fill="#22D3EE"/></svg>
+          </div>
+          <h3 class="forge-title">Install a real app</h3>
+          <p class="forge-copy">
+            The template is mutated, aligned and <strong>cryptographically signed on-device</strong> — v1 + v2 + v3 in a
+            single pass — then installed through the system package installer. It launches from your launcher,
+            keeps its own saves, and updates in place without losing progress.
+          </p>
+          <ul class="forge-tags">
+            <li>In-place versionCode bump</li>
+            <li>Self-contained APK output</li>
+            <li>Zero dynamic code loading</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PIPELINE · LIVE TERMINAL ══════════════════ -->
+  <section class="pipeline section" id="pipeline" aria-label="The 15-step pipeline">
+    <div class="pipeline-bg" aria-hidden="true">
+      <div class="glow glow-indigo"></div>
+    </div>
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>THE 15-STEP PIPELINE</span>
+        <h2 class="section-title">Every byte,<span class="grad-text"> accounted for.</span></h2>
+        <p class="section-sub">
+          This is the actual BuildEngine sequence — replayed live below. Checksums in, signed artifact out.
+          If any stage fails, the error names the exact layer. <strong>Failure is data.</strong>
+        </p>
+      </header>
+
+      <div class="pipeline-layout">
+        <div class="terminal" data-reveal id="terminal">
+          <div class="terminal-chrome">
+            <span class="term-dot td-red"></span>
+            <span class="term-dot td-amber"></span>
+            <span class="term-dot td-green"></span>
+            <span class="term-title">retropack — build · mgba-unified</span>
+            <button class="term-replay" id="terminalReplay" type="button" title="Replay build">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none"><path d="M4 4v6h6M4.5 10A8.5 8.5 0 1 1 6 16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>replay</span>
+            </button>
+          </div>
+          <div class="terminal-body" id="terminalBody" aria-live="polite"></div>
+          <div class="terminal-progress"><div class="terminal-progress-fill" id="terminalProgress"></div></div>
+        </div>
+
+        <aside class="pipeline-side">
+          <div class="pipeline-card" data-reveal data-reveal-delay="100">
+            <h4 class="pc-title">The toolchain, verbatim</h4>
+            <ul class="pc-list">
+              <li><span class="pc-chip">ARSCLib</span><span>Structured AXML mutation — string pools re-indexed, label inlined.</span></li>
+              <li><span class="pc-chip">zipflinger</span><span>16 KB page alignment padding for uncompressed <code>.so</code> libraries.</span></li>
+              <li><span class="pc-chip">apksig</span><span>v1 + v2 + v3 signatures applied in a single pass, then re-verified.</span></li>
+              <li><span class="pc-chip">HybridKeystore</span><span>AES-256-GCM at rest, RSA/EC keys, PKCS#12 export. Device-bound.</span></li>
+            </ul>
+          </div>
+          <div class="pipeline-card" data-reveal data-reveal-delay="180">
+            <h4 class="pc-title">Trust anchors</h4>
+            <p class="pc-copy">
+              The generic template APK ships with <strong>bytecode SHA-256 trust anchors</strong>. After every mutation,
+              protected entries — <code>classes.dex</code> and <code>lib/arm64-v8a/*.so</code> — are re-hashed and asserted.
+              If a single byte drifts, the build refuses to sign.
+            </p>
+            <div class="pc-proof">
+              <span class="pc-check">✓ template pinned</span>
+              <span class="pc-check">✓ entries re-hashed</span>
+              <span class="pc-check">✓ artifact verified</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PLATFORMS · RUNTIME REGISTRY ══════════════════ -->
+  <section class="platforms section" id="platforms" aria-label="Supported platforms">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>RUNTIME REGISTRY</span>
+        <h2 class="section-title">Ten canonical cores.<span class="grad-text"> Zero forks.</span></h2>
+        <p class="section-sub">
+          Every engine is a pinned, untouched upstream release integrated through CMake and a JNI bridge.
+          RetroPack never forks an emulator — new platforms simply register behind <code>RuntimeTemplate</code>,
+          and the Manager never learns a single core's name.
+        </p>
+      </header>
+
+      <div class="platforms-grid">
+        <article class="plat-card" data-tilt data-reveal style="--plat:#8BAC0F">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="5" width="18" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 15v4M17 15v4M6 19h12" stroke="currentColor" stroke-width="1.5"/><rect x="7" y="7.5" width="4" height="5" rx="0.5" stroke="currentColor" stroke-width="1.1"/><path d="M13 8h4M13 10h4M13 12h2.5" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg></div>
+          <h3 class="plat-name">mGBA</h3>
+          <span class="plat-version">v0.10.5 · unified</span>
+          <div class="plat-chips">
+            <span>Game Boy</span><span>Game Boy Color</span><span>Game Boy Advance</span>
+          </div>
+          <div class="plat-cap"><i></i>rewind · savestates · turbo</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="60" style="--plat:#8B5CF6">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 10.5 10.2 8.3l2.2 2.2-2.2 2.2L8 10.5Zm4.4 4.4 1.4-1.4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="15" cy="13" r="1.2" fill="currentColor"/><path d="M16.5 9.5h1M18.5 9.5h1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <h3 class="plat-name">Snes9x</h3>
+          <span class="plat-version">canonical upstream</span>
+          <div class="plat-chips">
+            <span>Super Nintendo</span><span>Super Famicom</span>
+          </div>
+          <div class="plat-cap"><i></i>Mode-7 · MSU-1 accuracy</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="120" style="--plat:#0EA5E9">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M6 9h4v6H6zM11 9h2v6h-2zM14.5 9h1.5v6h-1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><path d="M18.5 10.5v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+          <h3 class="plat-name">Genesis Plus GX</h3>
+          <span class="plat-version">6-button ready</span>
+          <div class="plat-chips">
+            <span>Genesis / Mega Drive</span><span>Master System</span><span>Game Gear</span>
+          </div>
+          <div class="plat-cap"><i></i>authentic 6-button layouts</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="180" style="--plat:#EF4444">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h4v4H7z" stroke="currentColor" stroke-width="1.2"/><circle cx="14.5" cy="10.5" r="1" fill="currentColor"/><circle cx="17" cy="10.5" r="1" fill="currentColor"/><circle cx="14.5" cy="13.5" r="1" fill="currentColor"/><circle cx="17" cy="13.5" r="1" fill="currentColor"/></svg></div>
+          <h3 class="plat-name">FCEUmm</h3>
+          <span class="plat-version">Famicom faithful</span>
+          <div class="plat-chips">
+            <span>NES</span><span>Famicom</span><span>Disk System</span>
+          </div>
+          <div class="plat-cap"><i></i>FDS · mapper coverage</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="240" style="--plat:#10B981">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="4" y="5" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v4h3" stroke="currentColor" stroke-width="1.2"/><circle cx="13.5" cy="7.5" r="1" fill="currentColor"/><rect x="7" y="12" width="6" height="3" rx="0.5" stroke="currentColor" stroke-width="1.1"/></svg></div>
+          <h3 class="plat-name">Mupen64Plus</h3>
+          <span class="plat-version">analog native</span>
+          <div class="plat-chips">
+            <span>Nintendo 64</span>
+          </div>
+          <div class="plat-cap"><i></i>C-buttons · Z · rumble</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="300" style="--plat:#F97316">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="12" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M13 9.5h5M13 12h5M13 14.5h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <h3 class="plat-name">Beetle PCE Fast</h3>
+          <span class="plat-version">CD-ROM² ready</span>
+          <div class="plat-chips">
+            <span>PC Engine</span><span>TurboGrafx-16</span><span>SuperGrafx</span>
+          </div>
+          <div class="plat-cap"><i></i>in-game disc switcher</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="360" style="--plat:#94A3B8">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="2.5" y="6" width="19" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="12" r="2" stroke="currentColor" stroke-width="1.3"/><circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="1.3"/><circle cx="17" cy="12" r="2" stroke="currentColor" stroke-width="1.3"/></svg></div>
+          <h3 class="plat-name">PCSX-ReARMed</h3>
+          <span class="plat-version">arm64 tuned</span>
+          <div class="plat-chips">
+            <span>PlayStation 1</span>
+          </div>
+          <div class="plat-cap"><i></i>rumble · multi-disc</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="420" style="--plat:#A855F7">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M9.5 3.5 8 6h8l-1.5-2.5" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><circle cx="10" cy="9" r="0.8" fill="currentColor"/><circle cx="14" cy="9" r="0.8" fill="currentColor"/></svg></div>
+          <h3 class="plat-name">melonDS</h3>
+          <span class="plat-version">dual screen</span>
+          <div class="plat-chips">
+            <span>Nintendo DS</span><span>DSi</span>
+          </div>
+          <div class="plat-cap"><i></i>stacked vertical layout</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="480" style="--plat:#38BDF8">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><rect x="3" y="5.5" width="18" height="10" rx="1.8" stroke="currentColor" stroke-width="1.5"/><path d="M8 15.5v3M16 15.5v3M6.5 18.5h11" stroke="currentColor" stroke-width="1.5"/><circle cx="15.5" cy="8.5" r="1" fill="currentColor"/><path d="M6.5 8.5h6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <h3 class="plat-name">PPSSPP</h3>
+          <span class="plat-version">upscaled widescreen</span>
+          <div class="plat-chips">
+            <span>PlayStation Portable</span>
+          </div>
+          <div class="plat-cap"><i></i>2× internal resolution</div>
+        </article>
+
+        <article class="plat-card" data-tilt data-reveal data-reveal-delay="540" style="--plat:#EAB308">
+          <div class="plat-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 6.5v2M12 15.5v2M6.5 12h2M15.5 12h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="12" cy="12" r="2.4" stroke="currentColor" stroke-width="1.3"/></svg></div>
+          <h3 class="plat-name">FinalBurn Neo</h3>
+          <span class="plat-version">coin-op cabinet</span>
+          <div class="plat-chips">
+            <span>Arcade</span><span>Neo Geo</span><span>CPS-1 · 2 · 3</span>
+          </div>
+          <div class="plat-cap"><i></i>ROMset verification</div>
+        </article>
+      </div>
+
+      <p class="platforms-note" data-reveal>
+        <span class="note-pixel">REGISTRY NOTE</span>
+        Each core ships as a <strong>prebuilt, SHA-256-pinned template APK</strong> with protected bytecode entries.
+        Supporting a new console is a new registry row — never an architectural mutation.
+      </p>
+    </div>
+  </section>
+
+  <!-- ══════════════════ FEATURES · BENTO ══════════════════ -->
+  <section class="features section" id="features" aria-label="Features">
+    <div class="features-bg" aria-hidden="true">
+      <div class="glow glow-violet"></div>
+      <div class="glow glow-teal"></div>
+    </div>
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>THE SOPHISTICATED EDGES</span>
+        <h2 class="section-title">Boring core.<span class="grad-text"> Living edges.</span></h2>
+        <p class="section-sub">
+          The contracts stay small and auditable — the magic lives in the runtime adapters.
+          Every card below is a shipped, tested subsystem of the generated games and the Manager.
+        </p>
+      </header>
+
+      <div class="bento">
+        <!-- SHADER LAB (large, interactive) -->
+        <article class="bento-card b-shader" data-reveal>
+          <div class="bento-head">
+            <h3 class="bento-title">The Shader Lab</h3>
+            <span class="bento-tag">interactive — tap a shader</span>
+          </div>
+          <p class="bento-copy">
+            Five curated GLSL post-processors run as a 2-pass FBO pipeline over the framebuffer.
+            Switch them live, mid-game, from the pause HUD.
+          </p>
+          <div class="shader-demo">
+            <div class="shader-screen" id="shaderPreview" data-shader="crt">
+              <div class="shader-scene" aria-hidden="true">
+                <span class="ss-sun"></span><span class="ss-mountain m1"></span><span class="ss-mountain m2"></span>
+                <span class="ss-grid"></span><span class="ss-hero"></span>
+              </div>
+              <div class="shader-fx crt" aria-hidden="true"></div>
+              <div class="shader-fx lcd" aria-hidden="true"></div>
+              <div class="shader-fx dmg" aria-hidden="true"></div>
+              <div class="shader-fx boost" aria-hidden="true"></div>
+            </div>
+            <div class="shader-picker" role="tablist" aria-label="Shader presets">
+              <button class="shader-chip is-active" data-shader="crt" type="button" role="tab" aria-selected="true">crt_scanlines</button>
+              <button class="shader-chip" data-shader="lcd" type="button" role="tab" aria-selected="false">lcd_dotmatrix</button>
+              <button class="shader-chip" data-shader="dmg" type="button" role="tab" aria-selected="false">dmg_pea_green</button>
+              <button class="shader-chip" data-shader="sharp" type="button" role="tab" aria-selected="false">sharp_bilinear</button>
+              <button class="shader-chip" data-shader="boost" type="button" role="tab" aria-selected="false">color_boost</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- AUDIO -->
+        <article class="bento-card b-audio" data-tilt data-reveal data-reveal-delay="60">
+          <div class="bento-head">
+            <h3 class="bento-title">Oboe low-latency audio</h3>
+            <span class="bento-metric">&lt;15<span>ms</span></span>
+          </div>
+          <p class="bento-copy">
+            Native C++ <strong>AAudio</strong> with OpenSL&nbsp;ES fallback, pulling PCM straight from a lock-free ring buffer.
+            Zero-GC audio threading — no underruns, no pops.
+          </p>
+          <div class="wave" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="bento-foot">WSOLA time-stretch keeps pitch sane at ×8 fast-forward</div>
+        </article>
+
+        <!-- AUTO RESUME -->
+        <article class="bento-card b-resume" data-tilt data-reveal data-reveal-delay="120">
+          <div class="bento-head">
+            <h3 class="bento-title">Instant auto-resume</h3>
+            <span class="bento-metric">&lt;250<span>ms</span></span>
+          </div>
+          <p class="bento-copy">
+            Backgrounded? A silent savestate snapshot is fsync'd before the OS can kill you.
+            Relaunch lands on the <strong>exact frame</strong> you left — number slots stay untouched.
+          </p>
+          <div class="bento-foot">dirty-gated · atomic · crash-safe fallback</div>
+        </article>
+
+        <!-- CONTROLLER -->
+        <article class="bento-card b-pad" data-reveal data-reveal-delay="180">
+          <div class="bento-head">
+            <h3 class="bento-title">Controller forge</h3>
+          </div>
+          <p class="bento-copy">
+            Visual remapping on a glowing SVG gamepad. Xbox, DualSense, Switch&nbsp;Pro, 8BitDo, Razer&nbsp;Kishi —
+            with deadzone calibration and per-console profiles.
+          </p>
+          <div class="pad-visual" aria-hidden="true">
+            <svg viewBox="0 0 200 100" fill="none">
+              <path class="pad-body" d="M50 30c-18 0-32 12-38 34-4 16 2 26 14 26 9 0 13-8 22-8h64c9 0 13 8 22 8 12 0 18-10 14-26-6-22-20-34-38-34H50Z" stroke="currentColor" stroke-width="2"/>
+              <circle class="pad-btn pb-a" cx="150" cy="42" r="7" stroke="currentColor" stroke-width="1.6"/>
+              <circle class="pad-btn pb-b" cx="166" cy="56" r="7" stroke="currentColor" stroke-width="1.6"/>
+              <circle class="pad-btn pb-x" cx="134" cy="56" r="7" stroke="currentColor" stroke-width="1.6"/>
+              <circle class="pad-btn pb-y" cx="150" cy="70" r="7" stroke="currentColor" stroke-width="1.6"/>
+              <circle class="pad-btn pb-s1" cx="86" cy="46" r="4" stroke="currentColor" stroke-width="1.4"/>
+              <circle class="pad-btn pb-s2" cx="114" cy="46" r="4" stroke="currentColor" stroke-width="1.4"/>
+              <path class="pad-dpad" d="M56 44h-8v-8h-8v8h-8v8h8v8h8v-8h8v-8Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </article>
+
+        <!-- BEZELS -->
+        <article class="bento-card b-bezel" data-tilt data-reveal data-reveal-delay="240">
+          <div class="bento-head">
+            <h3 class="bento-title">OLED pure-black bezels</h3>
+            <span class="bento-metric">−40<span>%</span></span>
+          </div>
+          <p class="bento-copy">
+            Letterbox bars become authentic DMG, GBA or 90s Trinitron frames — or true <strong>#000000</strong>
+            overlays that switch OLED pixels off to save battery.
+          </p>
+          <div class="bezel-preview" aria-hidden="true"><span></span></div>
+          <div class="bento-foot">JSON-calibrated viewport cutouts · landscape &amp; portrait</div>
+        </article>
+
+        <!-- BOXART -->
+        <article class="bento-card b-boxart" data-tilt data-reveal data-reveal-delay="300">
+          <div class="bento-head">
+            <h3 class="bento-title">Boxart scraping</h3>
+          </div>
+          <p class="bento-copy">
+            Official art pulled from open-source <strong>Libretro Thumbnails</strong>, with region fallbacks,
+            then composed into adaptive icons — live preview across launcher shapes.
+          </p>
+          <div class="boxart-shapes" aria-hidden="true">
+            <span class="shape squircle"></span><span class="shape circle"></span><span class="shape rounded"></span>
+          </div>
+          <div class="bento-foot">Named_Boxarts → Named_Titles → Named_Snaps fallback chain</div>
+        </article>
+
+        <!-- SAVE STATES -->
+        <article class="bento-card b-states" data-tilt data-reveal data-reveal-delay="360">
+          <div class="bento-head">
+            <h3 class="bento-title">Ten-slot savestates</h3>
+            <span class="bento-metric">×10</span>
+          </div>
+          <p class="bento-copy">
+            Thumbnail grids with timestamps and play duration. Quick save, quick load,
+            <strong>rewind</strong>, and ×1.5 → ×8 turbo.
+          </p>
+          <div class="state-slots" aria-hidden="true">
+            <span class="slot filled"></span><span class="slot filled"></span><span class="slot"></span>
+            <span class="slot"></span><span class="slot"></span><span class="slot"></span>
+            <span class="slot"></span><span class="slot"></span><span class="slot"></span><span class="slot"></span>
+          </div>
+        </article>
+
+        <!-- HAPTICS -->
+        <article class="bento-card b-haptics" data-tilt data-reveal data-reveal-delay="420">
+          <div class="bento-head">
+            <h3 class="bento-title">Audio-reactive haptics</h3>
+          </div>
+          <p class="bento-copy">
+            Native rumble for DualShock &amp; Rumble Pak — and for silent consoles, a sub-bass transient
+            detector turns explosions into tactile pulses.
+          </p>
+          <div class="haptic-bars" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+          <div class="bento-foot">PRIMITIVE_CLICK · THUD · HEAVY_CLICK composition</div>
+        </article>
+
+        <!-- VRR -->
+        <article class="bento-card b-vrr" data-tilt data-reveal data-reveal-delay="480">
+          <div class="bento-head">
+            <h3 class="bento-title">VRR motion sync</h3>
+            <span class="bento-metric">144<span>Hz</span></span>
+          </div>
+          <p class="bento-copy">
+            Integer frame-rate sync on 90 / 120 / 144 Hz panels. Optional <strong>black frame insertion</strong>
+            recreates CRT zero-persistence clarity.
+          </p>
+          <div class="bento-foot">Surface.setFrameRate negotiation · no GPU spin-wait</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PHILOSOPHY TICKER ══════════════════ -->
+  <section class="philosophy" aria-label="Engineering philosophies">
+    <div class="marquee marquee-slow" aria-hidden="true">
+      <div class="marquee-track">
+        <span class="phil-item"><b>№1</b> Architecture is a constraint, not a suggestion</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№4</b> Evidence over claims</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№5</b> Correctness before coverage</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№6</b> Boring core, sophisticated edges</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№7</b> No hidden coupling</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№9</b> Failure is data</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№11</b> User content remains user content</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№13</b> Stand on proven shoulders</span><span class="phil-sep">/</span>
+        <span class="phil-item"><b>№14</b> Respect lineage &amp; attribution</span><span class="phil-sep">/</span>
+      </div>
+      <div class="marquee-fade left"></div>
+      <div class="marquee-fade right"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ ARCHITECTURE ══════════════════ -->
+  <section class="architecture section" id="architecture" aria-label="Architecture">
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>SEPARATION OF POWERS</span>
+        <h2 class="section-title">Manager <span class="mono-neq">≠</span> Runtime <span class="mono-neq">≠</span><span class="grad-text"> Template <span class="mono-neq">≠</span> Signer.</span></h2>
+        <p class="section-sub">
+          Seven architectural layers with frozen boundaries. The Manager understands runtime
+          <em>capabilities</em>, never implementation. The Runtime Host understands <em>emulation contracts</em>,
+          never game titles. The generated APK understands <em>nothing but itself</em>.
+        </p>
+      </header>
+
+      <!-- flow diagram -->
+      <div class="arch-flow" data-reveal>
+        <div class="arch-node an-rom">
+          <span class="an-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><rect x="4" y="4" width="16" height="14" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 18v2h8v-2" stroke="currentColor" stroke-width="1.6"/><rect x="8" y="7" width="8" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/></svg>
+          </span>
+          <span class="an-label">ROM<br><em>user-owned</em></span>
+        </div>
+        <div class="arch-link" aria-hidden="true"><svg viewBox="0 0 60 12" preserveAspectRatio="none"><path d="M2 6h48" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 6"/><path d="m46 2 8 4-8 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <div class="arch-node">
+          <span class="an-label-sm">ANALYZE</span>
+          <span class="an-sub">headers · hashes</span>
+        </div>
+        <div class="arch-link" aria-hidden="true"><svg viewBox="0 0 60 12" preserveAspectRatio="none"><path d="M2 6h48" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 6"/><path d="m46 2 8 4-8 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <div class="arch-node">
+          <span class="an-label-sm">RUNTIME</span>
+          <span class="an-sub">registry row</span>
+        </div>
+        <div class="arch-link" aria-hidden="true"><svg viewBox="0 0 60 12" preserveAspectRatio="none"><path d="M2 6h48" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 6"/><path d="m46 2 8 4-8 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <div class="arch-node">
+          <span class="an-label-sm">PACKAGE</span>
+          <span class="an-sub">15-step forge</span>
+        </div>
+        <div class="arch-link" aria-hidden="true"><svg viewBox="0 0 60 12" preserveAspectRatio="none"><path d="M2 6h48" stroke="currentColor" stroke-width="1.6" stroke-dasharray="4 6"/><path d="m46 2 8 4-8 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg></div>
+        <div class="arch-node an-apk">
+          <span class="an-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M5 2.5h9.5L19 7v14.5H5V2.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 12.5h7M8.5 15.5h7M8.5 18h4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+          </span>
+          <span class="an-label">APK<br><em>standalone</em></span>
+        </div>
+      </div>
+
+      <div class="arch-grid">
+        <article class="arch-card" data-tilt data-reveal>
+          <span class="arch-idx">L·01</span>
+          <h3 class="arch-title">The Manager</h3>
+          <p class="arch-copy">
+            A Jetpack Compose Material&nbsp;3 orchestrator. Talks to runtimes through declarative
+            <code>BuildRequest</code> payloads and capability descriptors. Contains zero emulator-specific
+            logic — adding a 17th platform is a registry entry, not a rewrite.
+          </p>
+        </article>
+        <article class="arch-card" data-tilt data-reveal data-reveal-delay="80">
+          <span class="arch-idx">L·02</span>
+          <h3 class="arch-title">The Runtime Host</h3>
+          <p class="arch-copy">
+            The generic template APK: fullscreen immersive <code>GameActivity</code>, atomic ROM staging with
+            SHA-256 validation, POSIX <code>mmap</code> loading, GLES rendering, Oboe audio, and touch + HID input
+            coordination. Knows nothing about which game it runs.
+          </p>
+        </article>
+        <article class="arch-card" data-tilt data-reveal data-reveal-delay="160">
+          <span class="arch-idx">L·03</span>
+          <h3 class="arch-title">The Transformer</h3>
+          <p class="arch-copy">
+            The 15-step engine: streaming asset injection, ARSCLib AXML mutation, icon layer replacement,
+            zipflinger alignment and apksig signing — all pure-Java, all on-device, no compiler toolchain
+            ever touches your phone.
+          </p>
+        </article>
+        <article class="arch-card" data-tilt data-reveal data-reveal-delay="240">
+          <span class="arch-idx">L·04</span>
+          <h3 class="arch-title">The Signing Identity</h3>
+          <p class="arch-copy">
+            A hybrid keystore with an AES-256-GCM-encrypted master key, software RSA/EC signing keys and
+            PKCS#12 export. Device-bound by design — no embedded release keys, ever. Sideload-grade identity
+            with real cryptographic provenance.
+          </p>
+        </article>
+      </div>
+
+      <div class="arch-physics" data-reveal>
+        <span class="ap-title">HARDWARE PHYSICS · 5/5 INVARIANTS</span>
+        <div class="ap-chips">
+          <span class="ap-chip">16 KB page alignment</span>
+          <span class="ap-chip">uncompressed <code>.so</code></span>
+          <span class="ap-chip">fully-qualified GameActivity</span>
+          <span class="ap-chip">single-pass v1/v2/v3</span>
+          <span class="ap-chip">POSIX fsync durability</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ PROOF ══════════════════ -->
+  <section class="proof section" id="proof" aria-label="Verification and proof">
+    <div class="proof-bg" aria-hidden="true"><div class="glow glow-green"></div></div>
+    <div class="container">
+      <header class="section-head" data-reveal>
+        <span class="eyebrow"><i class="eyebrow-sq"></i>EVIDENCE OVER CLAIMS</span>
+        <h2 class="section-title">Green is not a vibe.<span class="grad-text"> It's a contract.</span></h2>
+        <p class="section-sub">
+          GitHub Actions CI builds and tests every commit across 4 modules. Verification ran against
+          three canonical public-domain homebrew ROMs — real games, real hardware paths, real saves.
+        </p>
+      </header>
+
+      <div class="proof-grid">
+        <article class="proof-card pc-ci" data-reveal>
+          <div class="proof-ring" style="--pct:100">
+            <div class="ring-track"></div>
+            <div class="ring-fill"></div>
+            <div class="ring-num"><span data-counter="100">0</span><em>%</em></div>
+          </div>
+          <h3 class="proof-title">CI · build &amp; verify</h3>
+          <p class="proof-copy">41 test suites across <code>:core</code>, <code>:runtime</code>, <code>:template-apk</code> and <code>:app</code> — zero failures, every commit.</p>
+        </article>
+
+        <article class="proof-card pc-law" data-tilt data-reveal data-reveal-delay="80">
+          <div class="proof-big"><span data-counter="22">0</span><em>/22</em></div>
+          <h3 class="proof-title">Constitutional Laws</h3>
+          <p class="proof-copy">Architectural invariants enforced from the keystore to the JNI bridge — each one testable, each one tested.</p>
+        </article>
+
+        <article class="proof-card pc-phys" data-tilt data-reveal data-reveal-delay="160">
+          <div class="proof-big"><span data-counter="5">0</span><em>/5</em></div>
+          <h3 class="proof-title">Low-level physics</h3>
+          <p class="proof-copy">16 KB alignment, uncompressed natives, qualified activity, single-pass signatures, fsync durability — verified on-device.</p>
+        </article>
+
+        <article class="proof-card pc-rom" data-reveal data-reveal-delay="240">
+          <div class="rom-badges">
+            <span class="rom-badge">TOBU TOBU GIRL <em>DELUXE</em></span>
+            <span class="rom-badge">DANGAN <em>GB</em></span>
+            <span class="rom-badge">ANGUNA <em>WARRIORS OF THE DEMIS</em></span>
+          </div>
+          <h3 class="proof-title">Homebrew fixture matrix</h3>
+          <p class="proof-copy">Public-domain ROMs exercised through build → install → launch → input → A/V sync → save durability. Legal, reproducible, honest.</p>
+        </article>
+      </div>
+
+      <!-- the oath -->
+      <div class="oath" data-reveal>
+        <span class="oath-pixel">THE OATH · NON-GOALS</span>
+        <ul class="oath-list">
+          <li><i>✕</i> Never bundles or distributes copyrighted ROMs</li>
+          <li><i>✕</i> Never becomes a ROM library frontend</li>
+          <li><i>✕</i> Never forks an emulator core</li>
+          <li><i>✕</i> Never executes dynamic code</li>
+          <li><i>✕</i> Never ships an embedded release key</li>
+        </ul>
+        <p class="oath-note">Your cartridges. Your APKs. Your keys. Personal sideloading, preservation and device portability — nothing else.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ CTA ══════════════════ -->
+  <section class="cta section" id="cta" aria-label="Get started">
+    <div class="cta-bg" aria-hidden="true">
+      <div class="glow glow-indigo"></div>
+      <div class="glow glow-violet"></div>
+      <div class="cta-grid-floor"></div>
+    </div>
+    <div class="container cta-inner">
+      <span class="cta-pixel" data-reveal>INSERT COIN TO CONTINUE</span>
+      <h2 class="cta-title">
+        <span class="line" data-reveal data-reveal-delay="80">STOP EMULATING.</span>
+        <span class="line grad-text" data-reveal data-reveal-delay="180">START FORGING.</span>
+      </h2>
+      <p class="cta-sub" data-reveal data-reveal-delay="260">
+        Clone the repository, open it in Android Studio, and build the Manager.
+        Or read the five-document specification first — it is genuinely good reading.
+      </p>
+      <div class="cta-box" data-reveal data-reveal-delay="340">
+        <code id="cloneCmd">git clone https://github.com/Zoro-15/retro-manager.git</code>
+        <button id="copyClone" class="btn btn-copy" type="button" data-magnetic>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span>copy</span>
+        </button>
+        <span class="copy-toast" id="copyToast">copied ✓</span>
+      </div>
+      <div class="cta-actions" data-reveal data-reveal-delay="420">
+        <a class="btn btn-primary btn-lg" href="https://github.com/Zoro-15/retro-manager" target="_blank" rel="noopener" data-magnetic>
+          <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>Open the repository</span>
+        </a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/Zoro-15/retro-manager/blob/main/README.md" target="_blank" rel="noopener" data-magnetic>
+          <span>Read the specification</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════ FOOTER ══════════════════ -->
+  <footer class="footer" aria-label="Footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <a class="nav-brand" href="#top">
+            <svg class="nav-logo" viewBox="0 0 24 24" width="22" height="22" fill="none" aria-hidden="true">
+              <rect x="4" y="2" width="16" height="13" rx="2" stroke="url(#ftg)" stroke-width="1.7"/>
+              <path d="M8 15v3h8v-3" stroke="url(#ftg)" stroke-width="1.7"/>
+              <rect x="9" y="18" width="6" height="4" rx="1" stroke="url(#ftg)" stroke-width="1.7"/>
+              <path d="M8 6h3M13 6h3M8 9.5h8" stroke="url(#ftg)" stroke-width="1.3" stroke-linecap="round"/>
+              <defs><linearGradient id="ftg" x1="4" y1="2" x2="20" y2="22"><stop stop-color="#818CF8"/><stop offset="1" stop-color="#22D3EE"/></linearGradient></defs>
+            </svg>
+            <span class="nav-word">RETRO<em>PACK</em></span>
+          </a>
+          <p class="footer-tagline">An on-device retro game APK packager.<br>Forged by hand, verified by CI.</p>
+          <div class="footer-dots" aria-hidden="true">
+            <span class="fd fd-gb"></span><span class="fd fd-gbc"></span><span class="fd fd-gba"></span>
+            <span class="fd fd-snes"></span><span class="fd fd-gen"></span><span class="fd fd-nes"></span>
+            <span class="fd fd-n64"></span><span class="fd fd-psx"></span><span class="fd fd-nds"></span>
+            <span class="fd fd-psp"></span>
+          </div>
+        </div>
+
+        <nav class="footer-col" aria-label="Project">
+          <h4 class="fc-title">Project</h4>
+          <a href="https://github.com/Zoro-15/retro-manager" target="_blank" rel="noopener">Repository</a>
+          <a href="https://github.com/Zoro-15/retro-manager/actions" target="_blank" rel="noopener">CI Workflows</a>
+          <a href="https://github.com/Zoro-15/retro-manager/blob/main/roadmap.md" target="_blank" rel="noopener">Roadmap</a>
+          <a href="https://github.com/Zoro-15/retro-manager/blob/main/architechture.md" target="_blank" rel="noopener">Architecture Spec</a>
+          <a href="https://github.com/Zoro-15/retro-manager/blob/main/non_goals.md" target="_blank" rel="noopener">Non-Goals</a>
+        </nav>
+
+        <nav class="footer-col" aria-label="Foundations">
+          <h4 class="fc-title">Grounded foundations</h4>
+          <a href="https://github.com/AkuaTech/ksupatcher" target="_blank" rel="noopener">ksupatcher · GPL-3.0</a>
+          <a href="https://github.com/prashantchataut/Retra" target="_blank" rel="noopener">Retra · GPL-3.0</a>
+          <a href="https://github.com/TrebuchetDynamics/garnacha-boy-android" target="_blank" rel="noopener">garnacha-boy · MIT</a>
+          <a href="https://github.com/tytydraco/Ludere" target="_blank" rel="noopener">Ludere · GPL-3.0</a>
+          <a href="https://mgba.io" target="_blank" rel="noopener">mGBA · MPL-2.0</a>
+        </nav>
+
+        <nav class="footer-col" aria-label="Toolchain">
+          <h4 class="fc-title">Toolchain</h4>
+          <a href="https://github.com/REAndroid/ARSCLib" target="_blank" rel="noopener">ARSCLib</a>
+          <a href="https://developer.android.com/reference/tools/zipflinger" target="_blank" rel="noopener">zipflinger</a>
+          <a href="https://developer.android.com/tools/apksig" target="_blank" rel="noopener">apksig</a>
+          <a href="https://github.com/google/oboe" target="_blank" rel="noopener">Oboe</a>
+          <a href="https://thumbnails.libretro.com" target="_blank" rel="noopener">Libretro Thumbnails</a>
+        </nav>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="fb-left">
+          <span class="fb-pixel">NO WARRANTY · SIDeload-GRADE</span>
+          Not affiliated with Nintendo, Sony, Sega, NEC, SNK or any rights holder.
+          Emulates hardware; distributes nothing but engineering.
+        </p>
+        <p class="fb-right">
+          This page: handcrafted HTML · CSS · JS — zero frameworks, zero trackers.
+          <button class="dmg-hint" id="dmgHint" type="button">Try DMG phosphor mode</button>
+        </p>
+      </div>
+      <div class="footer-rule" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    </div>
+  </footer>
+
+  <script src="assets/js/particles.js"></script>
+  <script src="assets/js/boot.js"></script>
+  <script src="assets/js/terminal.js"></script>
+  <script src="assets/js/phone.js"></script>
+  <script src="assets/js/interactions.js"></script>
+</body>
+</html>
+
