@@ -27,10 +27,12 @@ class FbNeoNativeCoreTest {
     @Test
     fun `test KeyMaskBuilder constructs valid Arcade and Neo Geo control masks`() {
         val mask = KeyMaskBuilder()
-            .press(RetroKey.A) // Neo Geo A
-            .press(RetroKey.B) // Neo Geo B
-            .press(RetroKey.X) // Neo Geo C
-            .press(RetroKey.Y) // Neo Geo D
+            .press(RetroKey.A) // Neo Geo A / LK
+            .press(RetroKey.B) // Neo Geo B / MK
+            .press(RetroKey.X) // Neo Geo C / LP
+            .press(RetroKey.Y) // Neo Geo D / MP
+            .press(RetroKey.C) // HK
+            .press(RetroKey.Z) // HP
             .press(RetroKey.START) // Start 1
             .press(RetroKey.SELECT) // Coin 1
             .build()
@@ -39,6 +41,8 @@ class FbNeoNativeCoreTest {
         assertTrue((mask and RetroKey.KEY_B) != 0)
         assertTrue((mask and RetroKey.KEY_X) != 0)
         assertTrue((mask and RetroKey.KEY_Y) != 0)
+        assertTrue((mask and RetroKey.KEY_C) != 0)
+        assertTrue((mask and RetroKey.KEY_Z) != 0)
         assertTrue((mask and RetroKey.KEY_START) != 0)
         assertTrue((mask and RetroKey.KEY_SELECT) != 0)
         assertEquals(0, mask and RetroKey.KEY_UP)
@@ -51,6 +55,9 @@ class FbNeoNativeCoreTest {
         }
         assertThrows(UnsatisfiedLinkError::class.java) {
             FbNeoNativeCore.nativeGetSramSize()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            FbNeoNativeCore.nativeRunFrame()
         }
     }
 }

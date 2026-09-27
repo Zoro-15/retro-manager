@@ -64,5 +64,20 @@ class PcsxNativeCoreTest {
         assertThrows(UnsatisfiedLinkError::class.java) {
             PcsxNativeCore.nativeGetSramSize()
         }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PcsxNativeCore.nativeRunFrame()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PcsxNativeCore.nativeEjectDisc()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PcsxNativeCore.nativeInsertDisc(0, "/tmp/disc1.iso")
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PcsxNativeCore.nativeGetDiscCount()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PcsxNativeCore.nativeGetCurrentDisc()
+        }
     }
 }

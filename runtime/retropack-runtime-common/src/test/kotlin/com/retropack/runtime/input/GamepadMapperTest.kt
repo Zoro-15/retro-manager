@@ -198,5 +198,27 @@ class GamepadMapperTest {
         assertTrue((reportedMask and RetroKey.KEY_SELECT) != 0)
         assertTrue((reportedMask and RetroKey.KEY_START) != 0)
     }
+
+    @Test
+    fun `maps PS1 DualShock and Arcade controller profiles accurately`() {
+        val mapper = GamepadMapper()
+        var reportedMask = 0
+        mapper.onKeyMaskChanged = { mask -> reportedMask = mask }
+
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_L2))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_R2))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_THUMBL))
+        mapper.handleKeyEvent(KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BUTTON_THUMBR))
+
+        assertTrue((reportedMask and RetroKey.KEY_L2) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_R2) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_L3) != 0)
+        assertTrue((reportedMask and RetroKey.KEY_R3) != 0)
+
+        assertEquals("L2 TRIGGER", GamepadMapper.getKeyLabel(KeyEvent.KEYCODE_BUTTON_L2))
+        assertEquals("R2 TRIGGER", GamepadMapper.getKeyLabel(KeyEvent.KEYCODE_BUTTON_R2))
+        assertEquals("L3 STICK", GamepadMapper.getKeyLabel(KeyEvent.KEYCODE_BUTTON_THUMBL))
+        assertEquals("R3 STICK", GamepadMapper.getKeyLabel(KeyEvent.KEYCODE_BUTTON_THUMBR))
+    }
 }
 
