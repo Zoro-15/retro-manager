@@ -152,8 +152,8 @@ class TouchLayout(
                 "arcade", "fbneo", "neogeo", "cps", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)
                 "psx", "ps1", "ps" -> ps1(width, height, opacity, turboEnabled, comboEnabled)
                 "n64" -> n64(width, height, opacity, turboEnabled, comboEnabled)
-                "psp" -> psp(width, height, opacity, turboEnabled, comboEnabled)
-                "nds" -> nds(width, height, opacity, turboEnabled, comboEnabled)
+                "psp", "ppsspp", "ppsspp-unified" -> psp(width, height, opacity, turboEnabled, comboEnabled)
+                "nds", "dsi", "melonds", "melonds-unified" -> nds(width, height, opacity, turboEnabled, comboEnabled)
                 else -> create(width, height, opacity, turboEnabled, comboEnabled)
             }
         }
@@ -632,7 +632,7 @@ class TouchLayout(
         /**
          * PlayStation Portable (PSP) layout.
          */
-        fun psp(
+         fun psp(
             width: Float,
             height: Float,
             opacity: Float = DEFAULT_OPACITY,
@@ -666,12 +666,22 @@ class TouchLayout(
             controls.add(VirtualControl(ID_A, RetroKey.A, "●", ControlShape.CIRCLE, faceCenterX + spacing, mainY, faceRadius, faceRadius))
             controls.add(VirtualControl(ID_B, RetroKey.B, "✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing, faceRadius, faceRadius))
 
+            if (turboEnabled) {
+                val turboRadius = faceRadius * 0.72f
+                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "T✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing + faceRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "T●", ControlShape.CIRCLE, faceCenterX + spacing + faceRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
+            }
+
             // Select & Start
             val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
             val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
             val sysY = if (isLandscape) height * 0.90f else height * 0.93f
             controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "SELECT", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
             controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
+
+            if (comboEnabled) {
+                controls.add(VirtualControl(ID_MODE, RetroKey.MODE, "HOME", ControlShape.PILL, width * 0.50f, sysY, smallHalfW * 0.9f, smallHalfH))
+            }
 
             return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "psp")
         }
@@ -712,6 +722,16 @@ class TouchLayout(
             controls.add(VirtualControl(ID_Y, RetroKey.Y, "Y", ControlShape.CIRCLE, diamondCenterX - spacing, mainY, diamondRadius, diamondRadius))
             controls.add(VirtualControl(ID_A, RetroKey.A, "A", ControlShape.CIRCLE, diamondCenterX + spacing, mainY, diamondRadius, diamondRadius))
             controls.add(VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE, diamondCenterX, mainY + spacing, diamondRadius, diamondRadius))
+
+            if (turboEnabled) {
+                val turboRadius = diamondRadius * 0.72f
+                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "TB", ControlShape.CIRCLE, diamondCenterX, mainY + spacing + diamondRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "TA", ControlShape.CIRCLE, diamondCenterX + spacing + diamondRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
+            }
+
+            if (comboEnabled) {
+                controls.add(VirtualControl(ID_COMBO_AB, null, "A+B", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.75f, mainY + spacing * 2.2f, diamondRadius * 0.95f, diamondRadius * 0.50f, customKeyMask = RetroKey.KEY_A or RetroKey.KEY_B))
+            }
 
             // Select & Start
             val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
