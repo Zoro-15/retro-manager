@@ -174,7 +174,25 @@ class TouchOverlayView @JvmOverloads constructor(
     /** Stylus touch callback for Nintendo DS: (ndsX: 0..255, ndsY: 0..191, isTouching: Boolean) */
     var onStylusTouch: ((x: Int, y: Int, isTouching: Boolean) -> Unit)? = null
 
-    var layout: TouchLayout = TouchLayout.create(1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
+    /** Analog stick deflection callback: (normX: -1.0f..1.0f, normY: -1.0f..1.0f) */
+    var onAnalogAxisChanged: ((Float, Float) -> Unit)? = null
+
+    var platform: String = "gba"
+        set(value) {
+            field = value.lowercase().trim()
+            val isN64 = field == "n64" || field == "z64" || field == "v64"
+            if (isN64 && dpadType == DpadType.CLASSIC_CROSS) {
+                dpadType = DpadType.FIXED_JOYSTICK
+                joystickSnapMode = JoystickSnapMode.ANALOG_FREE
+            }
+            val w = if (width > 0) width.toFloat() else layout.width
+            val h = if (height > 0) height.toFloat() else layout.height
+            if (w > 0f && h > 0f) {
+                updateLayout(w, h)
+            }
+        }
+
+    var layout: TouchLayout = TouchLayout.createForPlatform(platform, 1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
         private set
 
     val clusterScales = mutableMapOf<String, Float>()
@@ -275,7 +293,7 @@ class TouchOverlayView @JvmOverloads constructor(
         val isLandscape = if (width > 0 && height > 0) width > height else layout.width > layout.height
         val w = if (width > 0) width.toFloat() else layout.width
         val h = if (height > 0) height.toFloat() else layout.height
-        val defaultLayout = TouchLayout.create(w, h, opacity, turboEnabled, comboMacroEnabled)
+        val defaultLayout = TouchLayout.createForPlatform(platform, w, h, opacity, turboEnabled, comboMacroEnabled)
         val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
         val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
 
@@ -298,7 +316,7 @@ class TouchOverlayView @JvmOverloads constructor(
     fun updateLayout(width: Float, height: Float) {
         if (width > 0f && height > 0f) {
             val isLandscape = width > height
-            val defaultLayout = TouchLayout.create(width, height, opacity, turboEnabled, comboMacroEnabled)
+            val defaultLayout = TouchLayout.createForPlatform(platform, width, height, opacity, turboEnabled, comboMacroEnabled)
             val savedPositions = ControlsPreferences.loadLayoutPositions(context, isLandscape)
             val savedScales = ControlsPreferences.loadLayoutScales(context, isLandscape)
 
@@ -333,7 +351,8 @@ class TouchOverlayView @JvmOverloads constructor(
             clusterScales.putAll(savedScales)
         }
 
-        var newLayout = TouchLayout.create(
+        var newLayout = TouchLayout.createForPlatform(
+            platform,
             if (width > 0) width.toFloat() else layout.width,
             if (height > 0) height.toFloat() else layout.height,
             opacity, turboEnabled, comboMacroEnabled
@@ -357,7 +376,7 @@ class TouchOverlayView @JvmOverloads constructor(
         val h = if (height > 0) height.toFloat() else layout.height
         val isLandscape = w > h
         clusterScales.clear()
-        layout = TouchLayout.create(w, h, opacity, turboEnabled, comboMacroEnabled)
+        layout = TouchLayout.createForPlatform(platform, w, h, opacity, turboEnabled, comboMacroEnabled)
         ControlsPreferences.clearCustomLayout(context, isLandscape)
         syncJoystickGeometry()
         onLayoutReset?.invoke()
@@ -508,6 +527,7 @@ class TouchOverlayView @JvmOverloads constructor(
 
                     if (joystick.isActive && joystick.pointerId == id) {
                         val res = joystick.update(px, py)
+                        onAnalogAxisChanged?.invoke(res.normX, res.normY)
                         if (res.detentCrossed && !res.isDeadzone) {
                             triggerDetentHaptic()
                         }
@@ -520,6 +540,7 @@ class TouchOverlayView @JvmOverloads constructor(
                     activePointers.remove(id)
                     if (joystick.isActive && joystick.pointerId == id) {
                         joystick.onUp()
+                        onAnalogAxisChanged?.invoke(0f, 0f)
                         dynamicDpadActive = false
                         dynamicDpadPointerId = null
                     }
@@ -528,6 +549,7 @@ class TouchOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 activePointers.clear()
                 joystick.onUp()
+                onAnalogAxisChanged?.invoke(0f, 0f)
                 dynamicDpadActive = false
                 dynamicDpadPointerId = null
                 onStylusTouch?.invoke(0, 0, false)
@@ -686,6 +708,7 @@ class TouchOverlayView @JvmOverloads constructor(
         if (activePointers.isNotEmpty() || currentKeyMask != RetroKey.NO_KEYS_MASK) {
             activePointers.clear()
             joystick.onUp()
+            onAnalogAxisChanged?.invoke(0f, 0f)
             dynamicDpadActive = false
             dynamicDpadPointerId = null
             val oldMask = currentKeyMask
@@ -744,8 +767,20 @@ class TouchOverlayView @JvmOverloads constructor(
     private fun getControlColors(control: VirtualControl, isPressed: Boolean): Triple<Int, Int, Int> {
         val (fill, stroke, text) = when (control.id) {
             TouchLayout.ID_DPAD -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
-            TouchLayout.ID_A -> Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
-            TouchLayout.ID_B -> Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_A -> if (platform in setOf("n64", "z64", "v64")) {
+                Triple(Color.argb(210, 20, 80, 200), Color.argb(255, 60, 130, 240), Color.WHITE)
+            } else {
+                Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_B -> if (platform in setOf("n64", "z64", "v64")) {
+                Triple(Color.argb(210, 20, 150, 60), Color.argb(255, 50, 200, 90), Color.WHITE)
+            } else {
+                Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
+            }
+            TouchLayout.ID_C_UP, TouchLayout.ID_C_DOWN, TouchLayout.ID_C_LEFT, TouchLayout.ID_C_RIGHT ->
+                Triple(Color.argb(210, 230, 175, 10), Color.argb(255, 255, 205, 30), Color.argb(255, 40, 30, 10))
+            TouchLayout.ID_Z ->
+                Triple(Color.argb(200, 60, 65, 75), Color.argb(240, 100, 110, 125), Color.WHITE)
             TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             TouchLayout.ID_COMBO_AB -> Triple(theme.comboFillColor, theme.accentColor, Color.WHITE)
             TouchLayout.ID_L, TouchLayout.ID_R -> Triple(theme.shoulderFillColor, theme.shoulderStrokeColor, theme.shoulderTextColor)

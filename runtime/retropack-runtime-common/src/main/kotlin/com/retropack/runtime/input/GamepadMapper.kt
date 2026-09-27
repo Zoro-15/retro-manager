@@ -106,11 +106,20 @@ class GamepadMapper(
     /** Callback invoked whenever the physical gamepad keymask changes. */
     var onKeyMaskChanged: ((Int) -> Unit)? = null
 
+    /** Callback invoked whenever physical gamepad analog stick deflection changes (-1.0f..1.0f). */
+    var onAnalogAxisChanged: ((Float, Float) -> Unit)? = null
+
     /**
      * Callback triggered when physical controller input is first detected,
      * used by runtime UI to auto-hide virtual touch controls.
      */
     var onGamepadDetected: (() -> Unit)? = null
+
+    @Volatile
+    private var lastAnalogX: Float = 0f
+
+    @Volatile
+    private var lastAnalogY: Float = 0f
 
     @Volatile
     private var buttonMask: Int = RetroKey.NO_KEYS_MASK
@@ -243,6 +252,15 @@ class GamepadMapper(
         if (stickY < -axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_UP
         if (stickY > axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_DOWN
 
+        // Dispatch analog stick deflection (-1.0f..1.0f)
+        val filteredX = if (Math.abs(stickX) < axisDeadzone) 0f else stickX.coerceIn(-1.0f, 1.0f)
+        val filteredY = if (Math.abs(stickY) < axisDeadzone) 0f else stickY.coerceIn(-1.0f, 1.0f)
+        if (filteredX != lastAnalogX || filteredY != lastAnalogY) {
+            lastAnalogX = filteredX
+            lastAnalogY = filteredY
+            onAnalogAxisChanged?.invoke(filteredX, filteredY)
+        }
+
         // 3. Analog Triggers (L2 / R2 or Brake / Gas)
         val lTrigger = Math.max(
             event.getAxisValue(MotionEvent.AXIS_LTRIGGER),
@@ -255,8 +273,16 @@ class GamepadMapper(
         if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L
         if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R
 
+        // 4. Right Analog Stick (AXIS_Z / AXIS_RZ) -> N64 C-Buttons
+        val rStickX = event.getAxisValue(MotionEvent.AXIS_Z)
+        val rStickY = event.getAxisValue(MotionEvent.AXIS_RZ)
+        if (rStickX < -axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_LEFT
+        if (rStickX > axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_RIGHT
+        if (rStickY < -axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_UP
+        if (rStickY > axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_DOWN
+
         // If any axis is active, notify controller detected
-        if (newAxisMask != RetroKey.NO_KEYS_MASK) {
+        if (newAxisMask != RetroKey.NO_KEYS_MASK || filteredX != 0f || filteredY != 0f) {
             onGamepadDetected?.invoke()
         }
 
@@ -279,6 +305,11 @@ class GamepadMapper(
      * Resets all pressed button and axis states to neutral.
      */
     fun reset() {
+        if (lastAnalogX != 0f || lastAnalogY != 0f) {
+            lastAnalogX = 0f
+            lastAnalogY = 0f
+            onAnalogAxisChanged?.invoke(0f, 0f)
+        }
         synchronized(maskLock) {
             val oldMask = (buttonMask or axisMask) and RetroKey.ALL_KEYS_MASK
             buttonMask = RetroKey.NO_KEYS_MASK

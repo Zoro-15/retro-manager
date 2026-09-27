@@ -33,8 +33,13 @@ class EmulationHost(
         touchOverlay = touchOverlay,
         gamepadMapper = gamepadMapper,
         sensorController = sensorController,
-        onKeyMaskDispatched = { mask -> engine.setKeyMask(mask) }
+        onKeyMaskDispatched = { mask -> engine.setKeyMask(mask) },
+        onAnalogAxisDispatched = { ax, ay -> engine.setAnalogAxis(ax, ay) }
     )
+
+    fun setAnalogAxis(axisX: Float, axisY: Float) {
+        engine.setAnalogAxis(axisX, axisY)
+    }
 
     var onFrameRenderRequested: (() -> Unit)? = null
 

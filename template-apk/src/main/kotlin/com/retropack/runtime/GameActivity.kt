@@ -127,9 +127,12 @@ open class GameActivity : Activity() {
         val effectiveOpacity = ControlsPreferences.loadOpacity(this, config.controls.touchOpacity)
         val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
         val effectiveHapticIntensity = ControlsPreferences.loadHapticIntensity(this, 1.0f)
+        val isN64 = config.game.platform.equals("n64", ignoreCase = true)
         val effectiveFloatingDpad = ControlsPreferences.loadFloatingDpadEnabled(this, false)
-        val effectiveDpadType = ControlsPreferences.loadDpadType(this, if (effectiveFloatingDpad) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS)
-        val effectiveSnapMode = ControlsPreferences.loadJoystickSnapMode(this, JoystickSnapMode.RPG_GRID_4WAY)
+        val defaultDpadType = if (isN64) DpadType.FIXED_JOYSTICK else if (effectiveFloatingDpad) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
+        val defaultSnapMode = if (isN64) JoystickSnapMode.ANALOG_FREE else JoystickSnapMode.RPG_GRID_4WAY
+        val effectiveDpadType = ControlsPreferences.loadDpadType(this, defaultDpadType)
+        val effectiveSnapMode = ControlsPreferences.loadJoystickSnapMode(this, defaultSnapMode)
         val effectiveDeadzone = ControlsPreferences.loadJoystickDeadzone(this, 12.0f)
         val effectiveSensitivity = ControlsPreferences.loadJoystickSensitivity(this, 1.0f)
         val effectiveGestures = ControlsPreferences.loadGesturesEnabled(this, true)
@@ -219,6 +222,7 @@ open class GameActivity : Activity() {
         var to: TouchOverlayView? = null
         if (config.controls.touchEnabled) {
             to = createTouchOverlay()
+            to.platform = config.game.platform
             to.opacity = effectiveOpacity
             to.hapticFeedbackEnabledState = effectiveHaptics
             to.hapticIntensity = effectiveHapticIntensity
@@ -449,8 +453,8 @@ open class GameActivity : Activity() {
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
-                it.dpadType = DpadType.CLASSIC_CROSS
-                it.joystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY
+                it.dpadType = if (isN64) DpadType.FIXED_JOYSTICK else DpadType.CLASSIC_CROSS
+                it.joystickSnapMode = if (isN64) JoystickSnapMode.ANALOG_FREE else JoystickSnapMode.RPG_GRID_4WAY
                 it.gesturesEnabled = true
                 it.theme = TouchTheme.CLASSIC_INDIGO
                 it.turboEnabled = false

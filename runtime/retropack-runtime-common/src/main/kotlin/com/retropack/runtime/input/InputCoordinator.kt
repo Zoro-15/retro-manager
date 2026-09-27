@@ -15,7 +15,8 @@ class InputCoordinator(
     val touchOverlay: TouchOverlayView? = null,
     val gamepadMapper: GamepadMapper = GamepadMapper(),
     val sensorController: SensorController? = null,
-    private val onKeyMaskDispatched: (Int) -> Unit = {}
+    private val onKeyMaskDispatched: (Int) -> Unit = {},
+    private val onAnalogAxisDispatched: (Float, Float) -> Unit = { _, _ -> }
 ) {
     var autoHideTouchOnGamepad: Boolean = true
 
@@ -44,12 +45,20 @@ class InputCoordinator(
             }
         }
 
+        touchOverlay?.onAnalogAxisChanged = { ax, ay ->
+            onAnalogAxisDispatched(ax, ay)
+        }
+
         // Wire gamepad mapper callbacks
         gamepadMapper.onKeyMaskChanged = { mask ->
             synchronized(maskLock) {
                 gamepadMask = mask
                 dispatchCompositeMask()
             }
+        }
+
+        gamepadMapper.onAnalogAxisChanged = { ax, ay ->
+            onAnalogAxisDispatched(ax, ay)
         }
 
         gamepadMapper.onGamepadDetected = {
@@ -88,6 +97,13 @@ class InputCoordinator(
     }
 
     /**
+     * Updates analog axis deflection directly (-1.0f..1.0f).
+     */
+    fun updateAnalogAxis(axisX: Float, axisY: Float) {
+        onAnalogAxisDispatched(axisX, axisY)
+    }
+
+    /**
      * Resets all touch, gamepad, and sensor key states with a single consolidated dispatch.
      */
     fun reset() {
@@ -104,6 +120,7 @@ class InputCoordinator(
             sensorMask = RetroKey.NO_KEYS_MASK
             dispatchCompositeMask()
         }
+        onAnalogAxisDispatched(0f, 0f)
     }
 
     private fun dispatchCompositeMask() {
