@@ -145,7 +145,7 @@ class TouchLayout(
             return when (platform.lowercase()) {
                 "snes", "sfc", "smc" -> snes(width, height, opacity, turboEnabled, comboEnabled)
                 "genesis", "megadrive", "md", "smd", "gen", "sms", "gg" -> genesis(width, height, opacity, turboEnabled, comboEnabled)
-                "nes" -> nes(width, height, opacity, turboEnabled, comboEnabled)
+                "nes", "fds", "unf" -> nes(width, height, opacity, turboEnabled, comboEnabled)
                 "pce", "tg16", "sgx" -> pce(width, height, opacity, turboEnabled, comboEnabled)
                 "arcade", "fbneo", "neogeo", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)
                 "psx", "ps1" -> ps1(width, height, opacity, turboEnabled, comboEnabled)
@@ -407,6 +407,12 @@ class TouchLayout(
             controls.add(VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE, rightCenterX - btnRadius * 1.3f, mainY + btnRadius * 0.4f, btnRadius, btnRadius))
             controls.add(VirtualControl(ID_A, RetroKey.A, "A", ControlShape.CIRCLE, rightCenterX + btnRadius * 1.3f, mainY - btnRadius * 0.3f, btnRadius, btnRadius))
 
+            if (turboEnabled) {
+                val turboRadius = btnRadius * 0.72f
+                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "TB", ControlShape.CIRCLE, rightCenterX - btnRadius * 1.3f, mainY + btnRadius * 0.4f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "TA", ControlShape.CIRCLE, rightCenterX + btnRadius * 1.3f, mainY - btnRadius * 0.3f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+            }
+
             val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
             val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
             val sysY = if (isLandscape) height * 0.90f else height * 0.93f
@@ -592,6 +598,12 @@ class TouchLayout(
 
             controls.add(VirtualControl(ID_B, RetroKey.B, "II", ControlShape.CIRCLE, rightCenterX - btnRadius * 1.3f, mainY + btnRadius * 0.4f, btnRadius, btnRadius))
             controls.add(VirtualControl(ID_A, RetroKey.A, "I", ControlShape.CIRCLE, rightCenterX + btnRadius * 1.3f, mainY - btnRadius * 0.3f, btnRadius, btnRadius))
+
+            if (turboEnabled) {
+                val turboRadius = btnRadius * 0.72f
+                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "T2", ControlShape.CIRCLE, rightCenterX - btnRadius * 1.3f, mainY + btnRadius * 0.4f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "T1", ControlShape.CIRCLE, rightCenterX + btnRadius * 1.3f, mainY - btnRadius * 0.3f - btnRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+            }
 
             val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
             val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f

@@ -767,6 +767,8 @@ class TouchOverlayView @JvmOverloads constructor(
     private fun getControlColors(control: VirtualControl, isPressed: Boolean): Triple<Int, Int, Int> {
         val isSnes = platform in setOf("snes", "sfc", "smc")
         val isGenesis = platform in setOf("genesis", "md", "smd", "gen", "sms", "gg", "megadrive")
+        val isNes = platform in setOf("nes", "fds", "unf")
+        val isPce = platform in setOf("pce", "tg16", "sgx")
 
         val (fill, stroke, text) = when (control.id) {
             TouchLayout.ID_DPAD -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
@@ -777,6 +779,10 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 220, 45, 45), Color.WHITE)
+                isNes ->
+                    Triple(Color.argb(230, 220, 30, 30), Color.argb(255, 240, 75, 75), Color.WHITE)
+                isPce ->
+                    Triple(Color.argb(230, 235, 100, 20), Color.argb(255, 255, 140, 50), Color.WHITE)
                 else ->
                     Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
@@ -787,6 +793,10 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 210, 210, 215), Color.WHITE)
+                isNes ->
+                    Triple(Color.argb(230, 220, 30, 30), Color.argb(255, 240, 75, 75), Color.WHITE)
+                isPce ->
+                    Triple(Color.argb(230, 235, 100, 20), Color.argb(255, 255, 140, 50), Color.WHITE)
                 else ->
                     Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
             }
@@ -819,7 +829,11 @@ class TouchOverlayView @JvmOverloads constructor(
             }
             TouchLayout.ID_C_UP, TouchLayout.ID_C_DOWN, TouchLayout.ID_C_LEFT, TouchLayout.ID_C_RIGHT ->
                 Triple(Color.argb(210, 230, 175, 10), Color.argb(255, 255, 205, 30), Color.argb(255, 40, 30, 10))
-            TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> when {
+                isNes -> Triple(Color.argb(220, 180, 25, 25), Color.argb(255, 240, 80, 80), Color.WHITE)
+                isPce -> Triple(Color.argb(220, 200, 80, 15), Color.argb(255, 255, 140, 50), Color.WHITE)
+                else -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
+            }
             TouchLayout.ID_COMBO_AB -> Triple(theme.comboFillColor, theme.accentColor, Color.WHITE)
             TouchLayout.ID_L, TouchLayout.ID_R -> if (isSnes) {
                 Triple(Color.argb(210, 85, 90, 105), Color.argb(255, 130, 135, 150), Color.WHITE)
@@ -831,12 +845,21 @@ class TouchOverlayView @JvmOverloads constructor(
             } else {
                 Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             }
-            TouchLayout.ID_START -> if (isGenesis) {
-                Triple(Color.argb(220, 30, 30, 35), Color.argb(255, 220, 45, 45), Color.WHITE)
+            TouchLayout.ID_START -> when {
+                isGenesis ->
+                    Triple(Color.argb(220, 30, 30, 35), Color.argb(255, 220, 45, 45), Color.WHITE)
+                isPce ->
+                    Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 235, 100, 20), Color.WHITE)
+                isNes ->
+                    Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 90, 90, 100), Color.argb(255, 220, 30, 30))
+                else ->
+                    Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
+            }
+            TouchLayout.ID_SELECT -> if (isNes) {
+                Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 90, 90, 100), Color.argb(255, 220, 30, 30))
             } else {
                 Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             }
-            TouchLayout.ID_SELECT -> Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             else -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
         }
 
