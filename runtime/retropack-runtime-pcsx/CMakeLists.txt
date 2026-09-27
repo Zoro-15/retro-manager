@@ -39,6 +39,7 @@ target_link_libraries(retropack-runtime-pcsx PRIVATE
     OpenSLES
     android
     log
+    m
 )
 
 target_link_options(retropack-runtime-pcsx PRIVATE
