@@ -14,6 +14,8 @@ public class KeyEvent {
     public static final int KEYCODE_BUTTON_R1 = 103;
     public static final int KEYCODE_BUTTON_L2 = 104;
     public static final int KEYCODE_BUTTON_R2 = 105;
+    public static final int KEYCODE_BUTTON_THUMBL = 106;
+    public static final int KEYCODE_BUTTON_THUMBR = 107;
     public static final int KEYCODE_BUTTON_START = 108;
     public static final int KEYCODE_BUTTON_SELECT = 109;
 
