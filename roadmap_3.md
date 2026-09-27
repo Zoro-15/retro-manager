@@ -112,7 +112,15 @@ graph TD
 
 ---
 
-## 📦 SPRINT 2: The 8-Bit Bedrock (NES & PC Engine)
+## 📦 SPRINT 2: The 8-Bit Bedrock (NES & PC Engine) — ✅ COMPLETED & CI VERIFIED
+* **Commit History**:
+  * Part 1: Native rasterizer, iNES/PCE header parser, APU/PSG synthesis, SRAM/BRAM durability (`b9566fda`)
+  * Part 2: Touch overlays for NES & PCE with turbo buttons, authentic colors, and gamepad mappings (`ac2a1f57`)
+  * Part 3: Proguard keep rules and native bridge test suites (`381d85b9`)
+* **Remote CI Status**: 100% Green
+  * [Android CI Run 36288077687](https://github.com/Zoro-15/retro-manager/actions/runs/36288077687) — `success`
+  * [Tests Run 36288077682](https://github.com/Zoro-15/retro-manager/actions/runs/36288077682) — `success`
+  * [CI Logs Archive Run 36288174690](https://github.com/Zoro-15/retro-manager/actions/runs/36288174690) — `success`
 
 ### Target 2.1: NES / Famicom (FCEUmm)
 - **Module Path**: [`runtime/retropack-runtime-fceumm`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-fceumm)
