@@ -1,0 +1,988 @@
+﻿2026-09-27T12:30:28.5064014Z Current runner version: '2.337.0'
+2026-09-27T12:30:28.5098980Z ##[group]Runner Image Provisioner
+2026-09-27T12:30:28.5100312Z Hosted Compute Agent
+2026-09-27T12:30:28.5101503Z Version: 20260828.587
+2026-09-27T12:30:28.5102607Z Commit: abac92662cab4cc7352de4f9f9d2e2419aad9c29
+2026-09-27T12:30:28.5103951Z Build Date: 2026-08-28T16:44:25Z
+2026-09-27T12:30:28.5105118Z Worker ID: {9d4a9e40-a4af-4448-80e6-19b2eab62aa9}
+2026-09-27T12:30:28.5106391Z Azure Region: eastus
+2026-09-27T12:30:28.5107284Z ##[endgroup]
+2026-09-27T12:30:28.5109614Z ##[group]Operating System
+2026-09-27T12:30:28.5110636Z Ubuntu
+2026-09-27T12:30:28.5111824Z 24.04.5
+2026-09-27T12:30:28.5112859Z LTS
+2026-09-27T12:30:28.5113699Z ##[endgroup]
+2026-09-27T12:30:28.5114552Z ##[group]Runner Image
+2026-09-27T12:30:28.5115696Z Image: ubuntu-24.04
+2026-09-27T12:30:28.5116663Z Version: 20260920.314.1
+2026-09-27T12:30:28.5118743Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260920.314/images/ubuntu/Ubuntu2404-Readme.md
+2026-09-27T12:30:28.5121761Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260920.314
+2026-09-27T12:30:28.5123490Z ##[endgroup]
+2026-09-27T12:30:28.5125284Z ##[group]GITHUB_TOKEN Permissions
+2026-09-27T12:30:28.5127900Z Contents: read
+2026-09-27T12:30:28.5128903Z Metadata: read
+2026-09-27T12:30:28.5129858Z ##[endgroup]
+2026-09-27T12:30:28.5133558Z Secret source: Actions
+2026-09-27T12:30:28.5135351Z Cache mode: write
+2026-09-27T12:30:28.5136757Z Prepare workflow directory
+2026-09-27T12:30:28.5689381Z Prepare all required actions
+2026-09-27T12:30:28.5760570Z Getting action download info
+2026-09-27T12:30:28.8046467Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+2026-09-27T12:30:28.9099364Z Download action repository 'actions/setup-java@v5' (SHA:b6effb05e454b25005698d916606bdc6ffcbf961)
+2026-09-27T12:30:29.1387508Z Download action repository 'gradle/actions@v4' (SHA:ed408507eac070d1f99cc633dbcf757c94c7933a)
+2026-09-27T12:30:29.7028006Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-09-27T12:30:30.0096853Z Complete job name: Runtime tests (gated)
+2026-09-27T12:30:30.1150881Z ##[group]Run actions/checkout@v4
+2026-09-27T12:30:30.1152512Z with:
+2026-09-27T12:30:30.1153357Z   repository: Zoro-15/retro-manager
+2026-09-27T12:30:30.1162815Z   token: ***
+2026-09-27T12:30:30.1163621Z   ssh-strict: true
+2026-09-27T12:30:30.1164432Z   ssh-user: git
+2026-09-27T12:30:30.1165261Z   persist-credentials: true
+2026-09-27T12:30:30.1166177Z   clean: true
+2026-09-27T12:30:30.1167011Z   sparse-checkout-cone-mode: true
+2026-09-27T12:30:30.1167998Z   fetch-depth: 1
+2026-09-27T12:30:30.1168804Z   fetch-tags: false
+2026-09-27T12:30:30.1169645Z   show-progress: true
+2026-09-27T12:30:30.1170499Z   lfs: false
+2026-09-27T12:30:30.1171424Z   submodules: false
+2026-09-27T12:30:30.1172290Z   set-safe-directory: true
+2026-09-27T12:30:30.1173248Z   allow-unsafe-pr-checkout: false
+2026-09-27T12:30:30.1174526Z env:
+2026-09-27T12:30:30.1175345Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:30:30.1176296Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:30:30.1177224Z ##[endgroup]
+2026-09-27T12:30:30.2207703Z Syncing repository: Zoro-15/retro-manager
+2026-09-27T12:30:30.2211426Z ##[group]Getting Git version info
+2026-09-27T12:30:30.2212900Z Working directory is '/home/runner/work/retro-manager/retro-manager'
+2026-09-27T12:30:30.2214865Z [command]/usr/bin/git version
+2026-09-27T12:30:30.2314017Z git version 2.55.0
+2026-09-27T12:30:30.2338536Z ##[endgroup]
+2026-09-27T12:30:30.2356427Z Temporarily overriding HOME='/home/runner/work/_temp/9e430c3b-08ed-4107-93e7-4b82ee456226' before making global git config changes
+2026-09-27T12:30:30.2361047Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-27T12:30:30.2365295Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/retro-manager/retro-manager
+2026-09-27T12:30:30.2414291Z Deleting the contents of '/home/runner/work/retro-manager/retro-manager'
+2026-09-27T12:30:30.2421498Z ##[group]Initializing the repository
+2026-09-27T12:30:30.2426465Z [command]/usr/bin/git init /home/runner/work/retro-manager/retro-manager
+2026-09-27T12:30:30.2540408Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-09-27T12:30:30.2542822Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-09-27T12:30:30.2544631Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-09-27T12:30:30.2546043Z hint: call:
+2026-09-27T12:30:30.2546775Z hint:
+2026-09-27T12:30:30.2547712Z hint: 	git config --global init.defaultBranch <name>
+2026-09-27T12:30:30.2548860Z hint:
+2026-09-27T12:30:30.2549952Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-09-27T12:30:30.2551931Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-09-27T12:30:30.2553356Z hint:
+2026-09-27T12:30:30.2554144Z hint: 	git branch -m <name>
+2026-09-27T12:30:30.2555062Z hint:
+2026-09-27T12:30:30.2556207Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-09-27T12:30:30.2563885Z Initialized empty Git repository in /home/runner/work/retro-manager/retro-manager/.git/
+2026-09-27T12:30:30.2576033Z [command]/usr/bin/git remote add origin https://github.com/Zoro-15/retro-manager
+2026-09-27T12:30:30.2644833Z ##[endgroup]
+2026-09-27T12:30:30.2647981Z ##[group]Disabling automatic garbage collection
+2026-09-27T12:30:30.2650745Z [command]/usr/bin/git config --local gc.auto 0
+2026-09-27T12:30:30.2663767Z ##[endgroup]
+2026-09-27T12:30:30.2665110Z ##[group]Setting up auth
+2026-09-27T12:30:30.2678235Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-27T12:30:30.2718937Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-27T12:30:30.3090664Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-27T12:30:30.3128980Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-27T12:30:30.3360414Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-27T12:30:30.3390267Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-27T12:30:30.3614616Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-09-27T12:30:30.3654256Z ##[endgroup]
+2026-09-27T12:30:30.3655642Z ##[group]Fetching the repository
+2026-09-27T12:30:30.3666258Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +c053f6a985d3fbb365aec7cba0aa5a98f4f061e3:refs/remotes/pull/41/merge
+2026-09-27T12:30:30.8562352Z From https://github.com/Zoro-15/retro-manager
+2026-09-27T12:30:30.8564478Z  * [new ref]         c053f6a985d3fbb365aec7cba0aa5a98f4f061e3 -> pull/41/merge
+2026-09-27T12:30:30.8567577Z ##[endgroup]
+2026-09-27T12:30:30.8568425Z ##[group]Determining the checkout info
+2026-09-27T12:30:30.8569397Z ##[endgroup]
+2026-09-27T12:30:30.8575574Z [command]/usr/bin/git sparse-checkout disable
+2026-09-27T12:30:30.8636982Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-09-27T12:30:30.8668708Z ##[group]Checking out the ref
+2026-09-27T12:30:30.8673356Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/41/merge
+2026-09-27T12:30:30.9170401Z Note: switching to 'refs/remotes/pull/41/merge'.
+2026-09-27T12:30:30.9171044Z 
+2026-09-27T12:30:30.9171825Z You are in 'detached HEAD' state. You can look around, make experimental
+2026-09-27T12:30:30.9172924Z changes and commit them, and you can discard any commits you make in this
+2026-09-27T12:30:30.9174015Z state without impacting any branches by switching back to a branch.
+2026-09-27T12:30:30.9174423Z 
+2026-09-27T12:30:30.9174741Z If you want to create a new branch to retain commits you create, you may
+2026-09-27T12:30:30.9175436Z do so (now or later) by using -c with the switch command. Example:
+2026-09-27T12:30:30.9175784Z 
+2026-09-27T12:30:30.9175965Z   git switch -c <new-branch-name>
+2026-09-27T12:30:30.9176215Z 
+2026-09-27T12:30:30.9176421Z Or undo this operation with:
+2026-09-27T12:30:30.9176724Z 
+2026-09-27T12:30:30.9176995Z   git switch -
+2026-09-27T12:30:30.9177454Z 
+2026-09-27T12:30:30.9178059Z Turn off this advice by setting config variable advice.detachedHead to false
+2026-09-27T12:30:30.9178867Z 
+2026-09-27T12:30:30.9179732Z HEAD is now at c053f6a Merge 5dadb37ecf92938b8ca0ab43e23859f821e85b12 into 9c2ca0773d2ce6d2b46931dfe3b7fab57caa1331
+2026-09-27T12:30:30.9183028Z ##[endgroup]
+2026-09-27T12:30:30.9230636Z [command]/usr/bin/git log -1 --format=%H
+2026-09-27T12:30:30.9257463Z c053f6a985d3fbb365aec7cba0aa5a98f4f061e3
+2026-09-27T12:30:30.9579249Z ##[group]Run actions/setup-java@v5
+2026-09-27T12:30:30.9579744Z with:
+2026-09-27T12:30:30.9580109Z   distribution: temurin
+2026-09-27T12:30:30.9580555Z   java-version: 17
+2026-09-27T12:30:30.9580914Z   cache: gradle
+2026-09-27T12:30:30.9581595Z   java-package: jdk
+2026-09-27T12:30:30.9581980Z   check-latest: false
+2026-09-27T12:30:30.9582358Z   set-default: true
+2026-09-27T12:30:30.9582735Z   verify-signature: false
+2026-09-27T12:30:30.9583134Z   server-id: github
+2026-09-27T12:30:30.9583526Z   server-username: GITHUB_ACTOR
+2026-09-27T12:30:30.9583947Z   server-password: GITHUB_TOKEN
+2026-09-27T12:30:30.9584366Z   overwrite-settings: true
+2026-09-27T12:30:30.9584763Z   job-status: success
+2026-09-27T12:30:30.9587749Z   token: ***
+2026-09-27T12:30:30.9588147Z   show-download-progress: false
+2026-09-27T12:30:30.9588554Z env:
+2026-09-27T12:30:30.9588916Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:30:30.9589332Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:30:30.9589748Z ##[endgroup]
+2026-09-27T12:30:31.1085404Z ##[group]Installed distributions
+2026-09-27T12:30:31.1294536Z Resolved Java 17.0.20+1 from tool-cache
+2026-09-27T12:30:31.1295228Z Setting Java 17.0.20+1 as the default
+2026-09-27T12:30:31.1307487Z Creating toolchains.xml for JDK version 17 from temurin
+2026-09-27T12:30:31.1384197Z Writing to /home/runner/.m2/toolchains.xml
+2026-09-27T12:30:31.1384866Z 
+2026-09-27T12:30:31.1385193Z Java configuration:
+2026-09-27T12:30:31.1385927Z   Distribution: temurin
+2026-09-27T12:30:31.1386680Z   Version: 17.0.20+1
+2026-09-27T12:30:31.1387606Z   Path: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:31.1388304Z 
+2026-09-27T12:30:31.1389170Z ##[endgroup]
+2026-09-27T12:30:31.1428832Z Creating settings.xml with server-id: github
+2026-09-27T12:30:31.1429871Z Writing to /home/runner/.m2/settings.xml
+2026-09-27T12:30:31.1432511Z Configured MAVEN_ARGS to include -ntp to suppress Maven transfer progress logs. Set 'show-download-progress: true' to keep the download progress output.
+2026-09-27T12:30:31.4005486Z Cache hit for: setup-java-Linux-x64-gradle-aedaaa22e70e0d4699790f23e7f951a296c7401ccc5eb333285829ff934a7f79
+2026-09-27T12:30:31.4804021Z Received 381261 of 381261 (100.0%), 10.1 MBs/sec
+2026-09-27T12:30:31.4842183Z Cache Size: ~0 MB (381261 B)
+2026-09-27T12:30:31.4921636Z [command]/usr/bin/tar -xf /home/runner/work/_temp/8eba07d4-5f74-4232-b262-3ce7b44144aa/cache.tzst -P -C /home/runner/work/retro-manager/retro-manager --use-compress-program unzstd
+2026-09-27T12:30:31.7302877Z Cache restored successfully
+2026-09-27T12:30:31.7308537Z Cache restored from key: setup-java-Linux-x64-gradle-aedaaa22e70e0d4699790f23e7f951a296c7401ccc5eb333285829ff934a7f79
+2026-09-27T12:30:31.8880427Z Cache hit for: setup-java-Linux-x64-gradle-wrapper-e96453a026d08b6ffcfb90eebd2e835169be8f4498a73e85ea1ac79cce81d823
+2026-09-27T12:30:31.9295607Z Received 564 of 564 (100.0%), 0.0 MBs/sec
+2026-09-27T12:30:31.9296720Z Cache Size: ~0 MB (564 B)
+2026-09-27T12:30:31.9320309Z [command]/usr/bin/tar -xf /home/runner/work/_temp/9acbfcf8-6ea6-4353-95e5-8d4565f7b8b3/cache.tzst -P -C /home/runner/work/retro-manager/retro-manager --use-compress-program unzstd
+2026-09-27T12:30:31.9373745Z Cache restored successfully
+2026-09-27T12:30:31.9377226Z gradle-wrapper cache restored from key: setup-java-Linux-x64-gradle-wrapper-e96453a026d08b6ffcfb90eebd2e835169be8f4498a73e85ea1ac79cce81d823
+2026-09-27T12:30:31.9894847Z ##[group]Run gradle/actions/setup-gradle@v4
+2026-09-27T12:30:31.9895372Z with:
+2026-09-27T12:30:31.9895741Z   cache-disabled: false
+2026-09-27T12:30:31.9896134Z   cache-read-only: true
+2026-09-27T12:30:31.9896518Z   cache-write-only: false
+2026-09-27T12:30:31.9896938Z   cache-overwrite-existing: false
+2026-09-27T12:30:31.9897372Z   cache-cleanup: on-success
+2026-09-27T12:30:31.9897835Z   gradle-home-cache-includes: caches
+notifications
+
+2026-09-27T12:30:31.9898322Z   add-job-summary: always
+2026-09-27T12:30:31.9898742Z   add-job-summary-as-pr-comment: never
+2026-09-27T12:30:31.9899227Z   dependency-graph: disabled
+2026-09-27T12:30:31.9899704Z   dependency-graph-report-dir: dependency-graph-reports
+2026-09-27T12:30:31.9900238Z   dependency-graph-continue-on-failure: true
+2026-09-27T12:30:31.9900713Z   build-scan-publish: false
+2026-09-27T12:30:31.9901305Z   validate-wrappers: true
+2026-09-27T12:30:31.9901730Z   allow-snapshot-wrappers: false
+2026-09-27T12:30:31.9902205Z   gradle-home-cache-strict-match: false
+2026-09-27T12:30:31.9902658Z   workflow-job-context: null
+2026-09-27T12:30:31.9905675Z   github-token: ***
+2026-09-27T12:30:31.9906033Z env:
+2026-09-27T12:30:31.9906381Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:30:31.9906798Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:30:31.9907323Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:31.9907998Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:31.9908546Z   MAVEN_ARGS: -ntp
+2026-09-27T12:30:31.9908903Z ##[endgroup]
+2026-09-27T12:30:33.5710433Z Gradle User Home already exists at /home/runner/.gradle
+2026-09-27T12:30:33.5720815Z Gradle User Home already exists: will not restore from cache.
+2026-09-27T12:30:33.5736843Z Merged default JDK locations into /home/runner/.m2/toolchains.xml
+2026-09-27T12:30:33.5943249Z ##[group]All Gradle Wrapper jars are valid
+2026-09-27T12:30:33.5944456Z ✓ Found known Gradle Wrapper JAR files:
+2026-09-27T12:30:33.5945371Z   cb0da6751c2b753a16ac168bb354870ebb1e162e9083f116729cec9c781156b8 gradle/wrapper/gradle-wrapper.jar
+2026-09-27T12:30:33.5946200Z ##[endgroup]
+2026-09-27T12:30:33.6085122Z ##[group]Run chmod +x gradlew
+2026-09-27T12:30:33.6085486Z [36;1mchmod +x gradlew[0m
+2026-09-27T12:30:33.6369939Z shell: /usr/bin/bash -e {0}
+2026-09-27T12:30:33.6370302Z env:
+2026-09-27T12:30:33.6370579Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:30:33.6370928Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:30:33.6371735Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:33.6372435Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:33.6373014Z   MAVEN_ARGS: -ntp
+2026-09-27T12:30:33.6373352Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T12:30:33.6373773Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T12:30:33.6374169Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T12:30:33.6374587Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T12:30:33.6375192Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T12:30:33.6375917Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T12:30:33.6376363Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T12:30:33.6376731Z ##[endgroup]
+2026-09-27T12:30:33.6534864Z ##[group]Run env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test :runtime:retropack-runtime-mgba:test :runtime:retropack-runtime-snes9x:test :runtime:retropack-runtime-genesis:test :runtime:retropack-runtime-fceumm:test :runtime:retropack-runtime-pce:test :runtime:retropack-runtime-fbneo:test :runtime:retropack-runtime-pcsx:test :runtime:retropack-runtime-mupen64:test :runtime:retropack-runtime-ppsspp:test :runtime:retropack-runtime-melonds:test --no-daemon --stacktrace
+2026-09-27T12:30:33.6538819Z [36;1menv -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test :runtime:retropack-runtime-mgba:test :runtime:retropack-runtime-snes9x:test :runtime:retropack-runtime-genesis:test :runtime:retropack-runtime-fceumm:test :runtime:retropack-runtime-pce:test :runtime:retropack-runtime-fbneo:test :runtime:retropack-runtime-pcsx:test :runtime:retropack-runtime-mupen64:test :runtime:retropack-runtime-ppsspp:test :runtime:retropack-runtime-melonds:test --no-daemon --stacktrace[0m
+2026-09-27T12:30:33.6605346Z shell: /usr/bin/bash -e {0}
+2026-09-27T12:30:33.6605799Z env:
+2026-09-27T12:30:33.6606023Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:30:33.6606327Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:30:33.6606813Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:33.6607409Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:30:33.6607815Z   MAVEN_ARGS: -ntp
+2026-09-27T12:30:33.6608093Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T12:30:33.6608423Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T12:30:33.6608726Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T12:30:33.6609039Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T12:30:33.6609506Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T12:30:33.6610003Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T12:30:33.6610351Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T12:30:33.6610627Z ##[endgroup]
+2026-09-27T12:30:34.1171555Z Downloading https://services.gradle.org/distributions/gradle-9.5.1-bin.zip
+2026-09-27T12:30:36.5378587Z .............10%.............20%..............30%.............40%.............50%..............60%.............70%..............80%.............90%.............100%
+2026-09-27T12:30:37.9565222Z 
+2026-09-27T12:30:37.9566021Z Welcome to Gradle 9.5.1!
+2026-09-27T12:30:37.9566490Z 
+2026-09-27T12:30:37.9566842Z Here are the highlights of this release:
+2026-09-27T12:30:37.9599939Z  - Task provenance in reports and failure messages
+2026-09-27T12:30:37.9601093Z  - Type-safe accessors for precompiled Kotlin Settings plugins
+2026-09-27T12:30:37.9601931Z 
+2026-09-27T12:30:37.9602511Z For more details see https://docs.gradle.org/9.5.1/release-notes.html
+2026-09-27T12:30:37.9602857Z 
+2026-09-27T12:30:38.0594203Z To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+2026-09-27T12:30:39.3558483Z Daemon will be stopped at the end of the build 
+2026-09-27T12:31:15.5568705Z 
+2026-09-27T12:31:15.5609221Z > Configure project :app
+2026-09-27T12:31:15.5613626Z w: file:///home/runner/work/retro-manager/retro-manager/app/build.gradle.kts:39:5: 'fun BaseAppModuleExtension.kotlinOptions(configure: Action<KotlinJvmOptions>): Unit' is deprecated. The kotlinOptions types are deprecated, please migrate to the compilerOptions types. More details are here: https://kotl.in/u1r8ln.
+2026-09-27T12:31:27.3556729Z 
+2026-09-27T12:31:27.3558232Z > Task :runtime:retropack-runtime-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.2558575Z > Task :runtime:retropack-runtime-common:processResources NO-SOURCE
+2026-09-27T12:31:29.2582647Z > Task :runtime:retropack-runtime-common:processTestResources NO-SOURCE
+2026-09-27T12:31:29.2593010Z > Task :runtime:retropack-runtime-mgba:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.2594558Z > Task :runtime:retropack-runtime-mgba:processResources NO-SOURCE
+2026-09-27T12:31:29.2595733Z > Task :runtime:retropack-runtime-mgba:processTestResources NO-SOURCE
+2026-09-27T12:31:29.2597300Z > Task :runtime:retropack-runtime-snes9x:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.2598600Z > Task :runtime:retropack-runtime-snes9x:processResources NO-SOURCE
+2026-09-27T12:31:29.2599683Z > Task :runtime:retropack-runtime-snes9x:processTestResources NO-SOURCE
+2026-09-27T12:31:29.2600969Z > Task :runtime:retropack-runtime-genesis:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.2602523Z > Task :runtime:retropack-runtime-genesis:processResources NO-SOURCE
+2026-09-27T12:31:29.3569712Z > Task :runtime:retropack-runtime-genesis:processTestResources NO-SOURCE
+2026-09-27T12:31:29.3631092Z > Task :runtime:retropack-runtime-fceumm:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.3632597Z > Task :runtime:retropack-runtime-fceumm:processResources NO-SOURCE
+2026-09-27T12:31:29.3662125Z > Task :runtime:retropack-runtime-fceumm:processTestResources NO-SOURCE
+2026-09-27T12:31:29.3732404Z > Task :runtime:retropack-runtime-pce:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.3787906Z > Task :runtime:retropack-runtime-pce:processResources NO-SOURCE
+2026-09-27T12:31:29.3812331Z > Task :runtime:retropack-runtime-pce:processTestResources NO-SOURCE
+2026-09-27T12:31:29.3932268Z > Task :runtime:retropack-runtime-fbneo:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.3972449Z > Task :runtime:retropack-runtime-fbneo:processResources NO-SOURCE
+2026-09-27T12:31:29.3992234Z > Task :runtime:retropack-runtime-fbneo:processTestResources NO-SOURCE
+2026-09-27T12:31:29.4013709Z > Task :runtime:retropack-runtime-pcsx:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.4014424Z > Task :runtime:retropack-runtime-pcsx:processResources NO-SOURCE
+2026-09-27T12:31:29.4014930Z > Task :runtime:retropack-runtime-pcsx:processTestResources NO-SOURCE
+2026-09-27T12:31:29.4015543Z > Task :runtime:retropack-runtime-mupen64:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.4016175Z > Task :runtime:retropack-runtime-mupen64:processResources NO-SOURCE
+2026-09-27T12:31:29.4016681Z > Task :runtime:retropack-runtime-mupen64:processTestResources NO-SOURCE
+2026-09-27T12:31:29.4017277Z > Task :runtime:retropack-runtime-ppsspp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.4017877Z > Task :runtime:retropack-runtime-ppsspp:processResources NO-SOURCE
+2026-09-27T12:31:29.4018369Z > Task :runtime:retropack-runtime-ppsspp:processTestResources NO-SOURCE
+2026-09-27T12:31:29.4018971Z > Task :runtime:retropack-runtime-melonds:checkKotlinGradlePluginConfigurationErrors SKIPPED
+2026-09-27T12:31:29.4019598Z > Task :runtime:retropack-runtime-melonds:processResources NO-SOURCE
+2026-09-27T12:31:29.4020103Z > Task :runtime:retropack-runtime-melonds:processTestResources NO-SOURCE
+2026-09-27T12:31:48.5559926Z > Task :runtime:retropack-runtime-common:compileKotlin
+2026-09-27T12:31:50.5565765Z > Task :runtime:retropack-runtime-common:compileJava
+2026-09-27T12:31:50.5582153Z > Task :runtime:retropack-runtime-common:classes
+2026-09-27T12:31:50.6592263Z > Task :runtime:retropack-runtime-common:jar
+2026-09-27T12:31:52.0570057Z > Task :runtime:retropack-runtime-genesis:compileKotlin
+2026-09-27T12:31:52.0602307Z > Task :runtime:retropack-runtime-snes9x:compileKotlin
+2026-09-27T12:31:52.0631957Z > Task :runtime:retropack-runtime-mgba:compileKotlin
+2026-09-27T12:31:52.8574995Z > Task :runtime:retropack-runtime-genesis:compileJava
+2026-09-27T12:31:53.1577308Z > Task :runtime:retropack-runtime-mgba:compileJava
+2026-09-27T12:31:53.1642073Z > Task :runtime:retropack-runtime-mgba:classes
+2026-09-27T12:31:53.2572326Z > Task :runtime:retropack-runtime-mgba:jar
+2026-09-27T12:31:54.1582899Z > Task :runtime:retropack-runtime-mgba:compileTestKotlin
+2026-09-27T12:31:54.1591947Z > Task :runtime:retropack-runtime-snes9x:compileJava
+2026-09-27T12:31:54.1611896Z > Task :runtime:retropack-runtime-mgba:compileTestJava NO-SOURCE
+2026-09-27T12:31:54.1701966Z > Task :runtime:retropack-runtime-mgba:testClasses UP-TO-DATE
+2026-09-27T12:31:56.1558778Z 
+2026-09-27T12:31:56.1572215Z > Task :runtime:retropack-runtime-mgba:test
+2026-09-27T12:31:56.1601642Z 
+2026-09-27T12:31:56.1614347Z MgbaNativeCoreTest > test MgbaNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:31:56.3571496Z 
+2026-09-27T12:31:56.3602405Z > Task :runtime:retropack-runtime-snes9x:classes
+2026-09-27T12:31:56.3621884Z > Task :runtime:retropack-runtime-snes9x:jar
+2026-09-27T12:31:56.4556930Z > Task :runtime:retropack-runtime-genesis:classes
+2026-09-27T12:31:56.5572563Z > Task :runtime:retropack-runtime-genesis:jar
+2026-09-27T12:31:57.4563998Z > Task :runtime:retropack-runtime-fceumm:compileKotlin
+2026-09-27T12:31:57.4642405Z > Task :runtime:retropack-runtime-snes9x:compileTestKotlin
+2026-09-27T12:31:57.4702186Z > Task :runtime:retropack-runtime-genesis:compileTestKotlin
+2026-09-27T12:31:58.0562574Z > Task :runtime:retropack-runtime-fceumm:compileJava
+2026-09-27T12:31:58.0563439Z > Task :runtime:retropack-runtime-snes9x:compileTestJava NO-SOURCE
+2026-09-27T12:31:58.0564034Z > Task :runtime:retropack-runtime-snes9x:testClasses UP-TO-DATE
+2026-09-27T12:31:58.1612888Z > Task :runtime:retropack-runtime-common:compileTestKotlin
+2026-09-27T12:31:58.9600241Z 
+2026-09-27T12:31:58.9632134Z > Task :runtime:retropack-runtime-snes9x:test
+2026-09-27T12:31:58.9661639Z 
+2026-09-27T12:31:58.9693674Z Snes9xNativeCoreTest > test KeyMaskBuilder constructs valid SNES 12-button control masks() PASSED
+2026-09-27T12:31:58.9721723Z 
+2026-09-27T12:31:58.9726034Z Snes9xNativeCoreTest > test Snes9xNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:31:58.9727217Z 
+2026-09-27T12:31:58.9728306Z Snes9xNativeCoreTest > test Snes9xNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:31:58.9729451Z 
+2026-09-27T12:31:58.9730215Z Snes9xNativeCoreTest > test Snes9xNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:31:58.9731732Z 
+2026-09-27T12:31:58.9732248Z > Task :runtime:retropack-runtime-common:compileTestJava NO-SOURCE
+2026-09-27T12:31:58.9733596Z > Task :runtime:retropack-runtime-common:testClasses UP-TO-DATE
+2026-09-27T12:32:00.3560780Z 
+2026-09-27T12:32:00.3606024Z > Task :runtime:retropack-runtime-common:test
+2026-09-27T12:32:00.3611538Z 
+2026-09-27T12:32:00.3672615Z AudioDriftControllerTest > calculates samples per frame correctly for 44100 Hz stereo at 60 fps() PASSED
+2026-09-27T12:32:00.3685122Z 
+2026-09-27T12:32:00.3686034Z AudioDriftControllerTest > detects buffer overflow and drops excess samples to bound latency() PASSED
+2026-09-27T12:32:00.3687074Z 
+2026-09-27T12:32:00.3687741Z AudioDriftControllerTest > evaluates normal buffer occupancy as pass through() PASSED
+2026-09-27T12:32:00.3688629Z 
+2026-09-27T12:32:00.3689156Z AudioDriftControllerTest > reset clears all statistics() PASSED
+2026-09-27T12:32:00.3689875Z 
+2026-09-27T12:32:00.3690513Z AudioDriftControllerTest > records underrun on zero available samples() PASSED
+2026-09-27T12:32:00.3691601Z 
+2026-09-27T12:32:00.3692346Z RetroAudioPlayerTest > lifecycle controls play pause stop and release() PASSED
+2026-09-27T12:32:00.3693307Z 
+2026-09-27T12:32:00.3693903Z RetroAudioPlayerTest > pumpAudio zeroes samples when muted() PASSED
+2026-09-27T12:32:00.3694684Z 
+2026-09-27T12:32:00.3695415Z RetroAudioPlayerTest > pumpAudio pulls samples and dispatches to sink when playing() PASSED
+2026-09-27T12:32:00.3696391Z 
+2026-09-27T12:32:00.3697019Z RetroAudioPlayerTest > pumpAudio ignores execution when not playing() PASSED
+2026-09-27T12:32:00.3697852Z 
+2026-09-27T12:32:00.3698507Z RetroAudioPlayerTest > initializes with default volume and unmuted state() PASSED
+2026-09-27T12:32:00.3699370Z 
+2026-09-27T12:32:00.3700427Z RetroAudioPlayerTest > mute gating silences sink and unmuting restores volume() PASSED
+2026-09-27T12:32:00.3701602Z 
+2026-09-27T12:32:00.3702147Z RetroAudioPlayerTest > clamps volume between 0 and 1() PASSED
+2026-09-27T12:32:00.3702882Z 
+2026-09-27T12:32:00.3703373Z EmulationStateTest > verify state query flags() PASSED
+2026-09-27T12:32:00.3704354Z 
+2026-09-27T12:32:00.3705050Z EmulationStateTest > verify invalid transitions throw IllegalStateException() PASSED
+2026-09-27T12:32:00.3705930Z 
+2026-09-27T12:32:00.3706478Z EmulationStateTest > verify valid lifecycle transitions() PASSED
+2026-09-27T12:32:00.3707193Z 
+2026-09-27T12:32:00.3707899Z NativeEmulationEngineTest > verify saveState and loadState slot bounds validation() PASSED
+2026-09-27T12:32:00.3708791Z 
+2026-09-27T12:32:00.3709438Z NativeEmulationEngineTest > verify close on uninitialized engine is safe() PASSED
+2026-09-27T12:32:00.3710282Z 
+2026-09-27T12:32:00.3710979Z NativeEmulationEngineTest > verify pause and resume transitions when running() PASSED
+2026-09-27T12:32:00.3712233Z 
+2026-09-27T12:32:00.3712902Z NativeEmulationEngineTest > verify key handling without active native library() PASSED
+2026-09-27T12:32:00.3713770Z 
+2026-09-27T12:32:00.3714430Z NativeEmulationEngineTest > verify initial engine state is UNINITIALIZED() PASSED
+2026-09-27T12:32:00.3715260Z 
+2026-09-27T12:32:00.3715901Z RetroKeyTest > verify KeyMaskBuilder press, release and toggle mechanics() PASSED
+2026-09-27T12:32:00.3716739Z 
+2026-09-27T12:32:00.3717400Z RetroKeyTest > verify canonical hardware bit assignments match GBA register() PASSED
+2026-09-27T12:32:00.3718250Z 
+2026-09-27T12:32:00.3718803Z RetroKeyTest > verify key mask combination and resolution() PASSED
+2026-09-27T12:32:00.3719550Z 
+2026-09-27T12:32:00.3720171Z RetroKeyTest > verify KeyMaskBuilder clamps to all-keys hardware mask() PASSED
+2026-09-27T12:32:00.3721485Z 
+2026-09-27T12:32:00.3722469Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [1] NES PASSED
+2026-09-27T12:32:00.3723701Z 
+2026-09-27T12:32:00.3724728Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [2] SNES PASSED
+2026-09-27T12:32:00.3725939Z 
+2026-09-27T12:32:00.3726941Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [3] GENESIS PASSED
+2026-09-27T12:32:00.3728178Z 
+2026-09-27T12:32:00.3729144Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [4] PCE PASSED
+2026-09-27T12:32:00.3730325Z 
+2026-09-27T12:32:00.3731578Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [5] FBNEO PASSED
+2026-09-27T12:32:00.3732733Z 
+2026-09-27T12:32:00.3733677Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [6] PCSX PASSED
+2026-09-27T12:32:00.3734820Z 
+2026-09-27T12:32:00.3735784Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [7] MUPEN64 PASSED
+2026-09-27T12:32:00.3736926Z 
+2026-09-27T12:32:00.3737823Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [8] GBA PASSED
+2026-09-27T12:32:00.3738906Z 
+2026-09-27T12:32:00.3739812Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [9] NDS PASSED
+2026-09-27T12:32:00.3741129Z 
+2026-09-27T12:32:00.3742481Z RetroSystemParameterizedTest > test RetroSystem defines valid metadata and platform mappings(RetroSystem) > [10] PSP PASSED
+2026-09-27T12:32:00.3743701Z 
+2026-09-27T12:32:00.3744638Z RetroSystemParameterizedTest > test fromPlatform handles case and whitespace insensitivity and dot prefixes() PASSED
+2026-09-27T12:32:00.3745792Z 
+2026-09-27T12:32:00.3746842Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [1] NES PASSED
+2026-09-27T12:32:00.3748109Z 
+2026-09-27T12:32:00.3749433Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [2] SNES PASSED
+2026-09-27T12:32:00.3750747Z 
+2026-09-27T12:32:00.3752070Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [3] GENESIS PASSED
+2026-09-27T12:32:00.3753651Z 
+2026-09-27T12:32:00.3754702Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [4] PCE PASSED
+2026-09-27T12:32:00.3755963Z 
+2026-09-27T12:32:00.3756996Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [5] FBNEO PASSED
+2026-09-27T12:32:00.3758290Z 
+2026-09-27T12:32:00.3759431Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [6] PCSX PASSED
+2026-09-27T12:32:00.3760692Z 
+2026-09-27T12:32:00.3761945Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [7] MUPEN64 PASSED
+2026-09-27T12:32:00.3763107Z 
+2026-09-27T12:32:00.3764027Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [8] GBA PASSED
+2026-09-27T12:32:00.3765159Z 
+2026-09-27T12:32:00.3766120Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [9] NDS PASSED
+2026-09-27T12:32:00.3767280Z 
+2026-09-27T12:32:00.3768237Z RetroSystemParameterizedTest > test KeyMaskBuilder constructs valid controller bitmasks for system(RetroSystem) > [10] PSP PASSED
+2026-09-27T12:32:00.3769367Z 
+2026-09-27T12:32:00.3770524Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [1] NES PASSED
+2026-09-27T12:32:00.3772269Z 
+2026-09-27T12:32:00.3773481Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [2] SNES PASSED
+2026-09-27T12:32:00.3774911Z 
+2026-09-27T12:32:00.3776174Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [3] GENESIS PASSED
+2026-09-27T12:32:00.3777575Z 
+2026-09-27T12:32:00.3778749Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [4] PCE PASSED
+2026-09-27T12:32:00.3780481Z 
+2026-09-27T12:32:00.3781945Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [5] FBNEO PASSED
+2026-09-27T12:32:00.3783416Z 
+2026-09-27T12:32:00.3784626Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [6] PCSX PASSED
+2026-09-27T12:32:00.3786120Z 
+2026-09-27T12:32:00.3787395Z RetroSystemParameterizedTest > test LibretroNativeCore dynamically instantiates and handles host JVM link failure gracefully(RetroSystem) > [7] MUPEN64 PASSED
+2026-09-27T12:32:00.3788886Z 
+2026-09-27T12:32:00.3789611Z ScaleModeTest > verify ASPECT_FIT viewport calculation on portrait display() PASSED
+2026-09-27T12:32:00.3790547Z 
+2026-09-27T12:32:00.3791410Z ScaleModeTest > verify INTEGER_FIT enforces minimum 1x scale() PASSED
+2026-09-27T12:32:00.3792262Z 
+2026-09-27T12:32:00.3792982Z ScaleModeTest > verify INTEGER_FIT viewport calculation on portrait display() PASSED
+2026-09-27T12:32:00.3793915Z 
+2026-09-27T12:32:00.3794482Z ScaleModeTest > verify ScaleMode config resolution() PASSED
+2026-09-27T12:32:00.3795353Z 
+2026-09-27T12:32:00.3796188Z ScaleModeTest > verify INTEGER_FIT viewport calculation on landscape display() PASSED
+2026-09-27T12:32:00.3797110Z 
+2026-09-27T12:32:00.3797888Z ScaleModeTest > verify invalid dimensions throw IllegalArgumentException() PASSED
+2026-09-27T12:32:00.3798807Z 
+2026-09-27T12:32:00.3799780Z ScaleModeTest > verify ASPECT_FIT viewport calculation on landscape display() PASSED
+2026-09-27T12:32:00.3800744Z 
+2026-09-27T12:32:00.3801595Z EmulationHostTest > close releases engine and stops loop() PASSED
+2026-09-27T12:32:00.3802425Z 
+2026-09-27T12:32:00.3803055Z EmulationHostTest > saveState and loadState delegate to engine() PASSED
+2026-09-27T12:32:00.3804210Z 
+2026-09-27T12:32:00.3804780Z EmulationHostTest > setScaleMode updates renderer() PASSED
+2026-09-27T12:32:00.3805544Z 
+2026-09-27T12:32:00.3806259Z EmulationHostTest > loadGame initializes engine, loads ROM, and restores SRAM() PASSED
+2026-09-27T12:32:00.3807214Z 
+2026-09-27T12:32:00.3807933Z EmulationHostTest > pause and stop trigger synchronous save durability flush() PASSED
+2026-09-27T12:32:00.3808959Z 
+2026-09-27T12:32:00.3809730Z EmulationHostTest > fast forward multiplier and audio mute update loop configuration() PASSED
+2026-09-27T12:32:00.3810699Z 
+2026-09-27T12:32:00.3811760Z EmulationHostTest > stepFrame steps engine and advances emulation() PASSED
+2026-09-27T12:32:00.3812690Z 
+2026-09-27T12:32:00.3813352Z EmulationHostTest > input coordinator forwards inputs to engine() PASSED
+2026-09-27T12:32:00.3814197Z 
+2026-09-27T12:32:00.3814892Z RomStagerTest > stageRom rejects mismatched SHA-256 and cleans up temp file() PASSED
+2026-09-27T12:32:00.3815815Z 
+2026-09-27T12:32:00.3816416Z RomStagerTest > isRomStaged validates presence and checksum() PASSED
+2026-09-27T12:32:00.3817241Z 
+2026-09-27T12:32:00.3817937Z RomStagerTest > stageRom writes stream to destination atomically with fsync() PASSED
+2026-09-27T12:32:00.3818889Z 
+2026-09-27T12:32:00.3819526Z RuntimeConfigTest > parses canonical retropack json correctly() PASSED
+2026-09-27T12:32:00.3820364Z 
+2026-09-27T12:32:00.3821020Z RuntimeConfigTest > roundtrip serialization preserves configuration() PASSED
+2026-09-27T12:32:00.3822172Z 
+2026-09-27T12:32:00.3822718Z RuntimeConfigTest > parses aspect fit scale mode() PASSED
+2026-09-27T12:32:00.3823445Z 
+2026-09-27T12:32:00.3824085Z RuntimeConfigTest > parses empty json with safe default values() PASSED
+2026-09-27T12:32:00.3824959Z 
+2026-09-27T12:32:00.3825849Z ControlsPreferencesTest > persists and loads custom cluster positions for portrait and landscape() PASSED
+2026-09-27T12:32:00.3826934Z 
+2026-09-27T12:32:00.3827808Z ControlsPreferencesTest > clearCustomLayout removes custom coordinates for specified orientation() PASSED
+2026-09-27T12:32:00.3828931Z 
+2026-09-27T12:32:00.3829743Z ControlsPreferencesTest > persists and loads fast-forward and feature hub preferences() PASSED
+2026-09-27T12:32:00.3830762Z 
+2026-09-27T12:32:00.3831706Z ControlsPreferencesTest > persists and loads opacity, haptics, and scale mode() PASSED
+2026-09-27T12:32:00.3832677Z 
+2026-09-27T12:32:00.3833455Z ControlsPreferencesTest > persists and loads cluster scales for portrait and landscape() PASSED
+2026-09-27T12:32:00.3834667Z 
+2026-09-27T12:32:00.3835206Z GamepadMapperTest > maps keyboard fallback keys() PASSED
+2026-09-27T12:32:00.3835935Z 
+2026-09-27T12:32:00.3836557Z GamepadMapperTest > maps shoulder buttons and start select() PASSED
+2026-09-27T12:32:00.3837375Z 
+2026-09-27T12:32:00.3838004Z GamepadMapperTest > maps standard gamepad buttons to GBA keys() PASSED
+2026-09-27T12:32:00.3838833Z 
+2026-09-27T12:32:00.3839543Z GamepadMapperTest > reset clears all button and axis states() PASSED
+2026-09-27T12:32:00.3840374Z 
+2026-09-27T12:32:00.3840982Z GamepadMapperTest > maps hat switch and analog triggers() PASSED
+2026-09-27T12:32:00.3842008Z 
+2026-09-27T12:32:00.3842596Z GamepadMapperTest > maps NES and PC Engine controller profiles accurately() PASSED
+2026-09-27T12:32:00.3843358Z 
+2026-09-27T12:32:00.3843855Z GamepadMapperTest > maps analog stick axes with deadzone() PASSED
+2026-09-27T12:32:00.3844539Z 
+2026-09-27T12:32:00.3845191Z GamepadMapperTest > maps physical gamepad X, Y, C, Z, and MODE buttons() PASSED
+2026-09-27T12:32:00.3846000Z 
+2026-09-27T12:32:00.3846686Z GamepadMapperTest > maps PS1 DualShock and Arcade controller profiles accurately() PASSED
+2026-09-27T12:32:00.3847719Z 
+2026-09-27T12:32:00.3848989Z GamepadMapperTest > dispatches analog stick deflection and maps right stick to C-buttons() PASSED
+2026-09-27T12:32:00.3850054Z 
+2026-09-27T12:32:00.3850844Z GamepadRemapTest > single button remap updates mapping for specific key() PASSED
+2026-09-27T12:32:00.3852038Z 
+2026-09-27T12:32:00.3852624Z GamepadRemapTest > reset defaults restores canonical mapping() PASSED
+2026-09-27T12:32:00.3853777Z 
+2026-09-27T12:32:00.3854467Z GamepadRemapTest > interactive wizard steps through all 10 buttons sequentially() PASSED
+2026-09-27T12:32:00.3855358Z 
+2026-09-27T12:32:00.3856003Z GamepadRemapTest > auto-detection sets descriptor and loads profile() PASSED
+2026-09-27T12:32:00.3856857Z 
+2026-09-27T12:32:00.3857574Z HapticEngineTest > triggerPress dispatches press haptic with clamped intensity() PASSED
+2026-09-27T12:32:00.3858547Z 
+2026-09-27T12:32:00.3859198Z HapticEngineTest > triggerRelease dispatches subtle release tick() PASSED
+2026-09-27T12:32:00.3860077Z 
+2026-09-27T12:32:00.3860935Z HapticEngineTest > triggerTick and triggerHeavy dispatch corresponding waveforms() PASSED
+2026-09-27T12:32:00.3862168Z 
+2026-09-27T12:32:00.3862799Z InputCoordinatorTest > combines touch and gamepad key masks() PASSED
+2026-09-27T12:32:00.3863647Z 
+2026-09-27T12:32:00.3864175Z InputCoordinatorTest > reset clears all inputs() PASSED
+2026-09-27T12:32:00.3865067Z 
+2026-09-27T12:32:00.3865858Z InputCoordinatorTest > auto hides touch overlay when gamepad is detected() PASSED
+2026-09-27T12:32:00.3866792Z 
+2026-09-27T12:32:00.3867389Z InputCoordinatorTest > dispatches and resets analog axis() PASSED
+2026-09-27T12:32:00.3868209Z 
+2026-09-27T12:32:00.3868930Z RetroGestureDetectorTest > two finger swipe left triggers quick save shortcut() PASSED
+2026-09-27T12:32:00.3869887Z 
+2026-09-27T12:32:00.3870627Z RetroGestureDetectorTest > two finger swipe right triggers quick load shortcut() PASSED
+2026-09-27T12:32:00.3871868Z 
+2026-09-27T12:32:00.3872547Z RetroGestureDetectorTest > three finger tap toggles quick menu() PASSED
+2026-09-27T12:32:00.3873440Z 
+2026-09-27T12:32:00.3874202Z SensorControllerTest > zero-point calibration offsets neutral resting position() PASSED
+2026-09-27T12:32:00.3875182Z 
+2026-09-27T12:32:00.3875998Z SensorControllerTest > dpad emulation mode synthesizes tilt steering left and right() PASSED
+2026-09-27T12:32:00.3876985Z 
+2026-09-27T12:32:00.3877592Z SensorControllerTest > disabling sensor clears active keymask() PASSED
+2026-09-27T12:32:00.3878330Z 
+2026-09-27T12:32:00.3878928Z SensorControllerTest > native gyro mode produces normalized tilt coordinates() PASSED
+2026-09-27T12:32:00.3879758Z 
+2026-09-27T12:32:00.3880540Z TouchLayoutPlatformTest > test SNES touch layout contains X, Y, A, B and L, R shoulders() PASSED
+2026-09-27T12:32:00.3881909Z 
+2026-09-27T12:32:00.3882661Z TouchLayoutPlatformTest > test Genesis 6-button touch layout contains ABC and XYZ() PASSED
+2026-09-27T12:32:00.3883651Z 
+2026-09-27T12:32:00.3884402Z TouchLayoutPlatformTest > test N64 touch layout contains C-Buttons and Z-Trigger() PASSED
+2026-09-27T12:32:00.3885359Z 
+2026-09-27T12:32:00.3886185Z TouchLayoutPlatformTest > test PS1 touch layout contains Dual Shoulders and 4 Face Buttons() PASSED
+2026-09-27T12:32:00.3887199Z 
+2026-09-27T12:32:00.3888090Z TouchLayoutTest > multi-touch pointer resolution aggregates key mask() PASSED
+2026-09-27T12:32:00.3889164Z 
+2026-09-27T12:32:00.3889796Z TouchLayoutTest > dpad hit testing detects cardinal directions() PASSED
+2026-09-27T12:32:00.3890624Z 
+2026-09-27T12:32:00.3891568Z TouchLayoutTest > evaluates clusters and discovers all standard control groups() PASSED
+2026-09-27T12:32:00.3892533Z 
+2026-09-27T12:32:00.3893178Z TouchLayoutTest > creates landscape layout for wide aspect ratio() PASSED
+2026-09-27T12:32:00.3894025Z 
+2026-09-27T12:32:00.3894709Z TouchLayoutTest > createForPlatform creates authentic Nintendo DS layout() PASSED
+2026-09-27T12:32:00.3895555Z 
+2026-09-27T12:32:00.3896138Z TouchLayoutTest > creates portrait layout for tall aspect ratio() PASSED
+2026-09-27T12:32:00.3896890Z 
+2026-09-27T12:32:00.3898142Z TouchLayoutTest > dpad hit testing detects diagonal directions() PASSED
+2026-09-27T12:32:00.3899009Z 
+2026-09-27T12:32:00.3899695Z TouchLayoutTest > withClusterScale scales cluster controls around anchor center() PASSED
+2026-09-27T12:32:00.3900581Z 
+2026-09-27T12:32:00.3901588Z TouchLayoutTest > thumb roll assist activates both buttons when rolling across A and B corridor() PASSED
+2026-09-27T12:32:00.3902898Z 
+2026-09-27T12:32:00.3903705Z TouchLayoutTest > withClusterPosition translates all controls in cluster maintaining relative spacing() PASSED
+2026-09-27T12:32:00.3904686Z 
+2026-09-27T12:32:00.3905448Z TouchLayoutTest > 20 percent hitbox expansion detects touches slightly outside visual boundary() PASSED
+2026-09-27T12:32:00.3906465Z 
+2026-09-27T12:32:00.3907030Z TouchLayoutTest > action and shoulder buttons hit test accurately() PASSED
+2026-09-27T12:32:00.3907732Z 
+2026-09-27T12:32:00.3908285Z TouchLayoutTest > custom layout overrides opacity and control positioning() PASSED
+2026-09-27T12:32:00.3909020Z 
+2026-09-27T12:32:00.3909555Z TouchLayoutTest > findClusterAt identifies touched control cluster() PASSED
+2026-09-27T12:32:00.3910242Z 
+2026-09-27T12:32:00.3910781Z TouchLayoutTest > withSuperpowers adds turbo and combo macro buttons() PASSED
+2026-09-27T12:32:00.3911764Z 
+2026-09-27T12:32:00.3912502Z TouchLayoutTest > normalized cluster coordinates apply accurately across resolutions() PASSED
+2026-09-27T12:32:00.3913428Z 
+2026-09-27T12:32:00.3913930Z TouchLayoutTest > dpad hit testing ignores center deadzone() PASSED
+2026-09-27T12:32:00.3914582Z 
+2026-09-27T12:32:00.3915120Z TouchLayoutTest > createForPlatform creates authentic PSP layout() PASSED
+2026-09-27T12:32:00.3915875Z 
+2026-09-27T12:32:00.3916571Z TouchOverlayTest > inactivity auto-dimming fades opacity down to 10 percent after 4000ms() PASSED
+2026-09-27T12:32:00.3917451Z 
+2026-09-27T12:32:00.3918245Z TouchOverlayTest > controls visibility toggle clears active pointers and hides view() PASSED
+2026-09-27T12:32:00.3919130Z 
+2026-09-27T12:32:00.3919799Z TouchOverlayTest > multi touch pointers track concurrent presses() PASSED
+2026-09-27T12:32:00.3920548Z 
+2026-09-27T12:32:00.3921350Z TouchOverlayTest > edit mode reset button restores default coordinates() PASSED
+2026-09-27T12:32:00.3922183Z 
+2026-09-27T12:32:00.3922968Z TouchOverlayTest > reveals controls on touch when hidden and revealOnTouchWhenHidden is enabled() PASSED
+2026-09-27T12:32:00.3923927Z 
+2026-09-27T12:32:00.3924530Z TouchOverlayTest > edit mode drag updates cluster coordinates in real time() PASSED
+2026-09-27T12:32:00.3925339Z 
+2026-09-27T12:32:00.3926055Z TouchOverlayTest > single touch down on button A triggers key mask changed and haptic feedback() PASSED
+2026-09-27T12:32:00.3926961Z 
+2026-09-27T12:32:00.3927681Z TouchOverlayTest > setClusterScale clamps within 0_5x to 2_0x and scales cluster hitboxes() PASSED
+2026-09-27T12:32:00.3928571Z 
+2026-09-27T12:32:00.3929062Z TouchOverlayTest > touch up clears active key mask() PASSED
+2026-09-27T12:32:00.3929702Z 
+2026-09-27T12:32:00.3930610Z TouchOverlayTest > floating dynamic dpad mode centers on touch down in left screen half and calculates directional deflection() PASSED
+2026-09-27T12:32:00.3931930Z 
+2026-09-27T12:32:00.3932617Z TouchOverlayTest > touch down and touch up trigger dual-state haptic feedback() PASSED
+2026-09-27T12:32:00.3933478Z 
+2026-09-27T12:32:00.3934440Z TouchOverlayTest > edit mode save button invokes callback and persists layout() PASSED
+2026-09-27T12:32:00.3935446Z 
+2026-09-27T12:32:00.3936251Z TouchOverlayTest > isEditMode clears active key masks and suppresses input emissions() PASSED
+2026-09-27T12:32:00.3937246Z 
+2026-09-27T12:32:00.3938083Z TouchOverlayTest > fixed joystick mode tracks knob deflection and fires detent ticks() PASSED
+2026-09-27T12:32:00.3939149Z 
+2026-09-27T12:32:00.3939927Z TouchThemeTest > fromId fallback defaults to classic indigo for null or unknown id() PASSED
+2026-09-27T12:32:00.3940861Z 
+2026-09-27T12:32:00.3941846Z TouchThemeTest > all four predefined themes are discoverable by id() PASSED
+2026-09-27T12:32:00.3942760Z 
+2026-09-27T12:32:00.3943715Z TouchThemeTest > themes define valid fill, stroke, and accent color tokens() PASSED
+2026-09-27T12:32:00.3944639Z 
+2026-09-27T12:32:00.3945402Z VirtualJoystickTest > 8-way action mode balances 45-degree octagonal sector gates() PASSED
+2026-09-27T12:32:00.3946418Z 
+2026-09-27T12:32:00.3947436Z VirtualJoystickTest > rpg 4-way grid mode enforces 60-degree cardinal windows and 30-degree diagonal windows() PASSED
+2026-09-27T12:32:00.3948804Z 
+2026-09-27T12:32:00.3949588Z VirtualJoystickTest > dynamic floating mode anchors center to touch coordinates() PASSED
+2026-09-27T12:32:00.3950755Z 
+2026-09-27T12:32:00.3951771Z VirtualJoystickTest > smooth angle clamping clamps knob displacement to base radius() PASSED
+2026-09-27T12:32:00.3952970Z 
+2026-09-27T12:32:00.3953889Z VirtualJoystickTest > detent crossed flags sector quadrant transitions and deadzone exits() PASSED
+2026-09-27T12:32:00.3954846Z 
+2026-09-27T12:32:00.3955684Z VirtualJoystickTest > deadzone core ignores jitter below deadzone radius() PASSED
+2026-09-27T12:32:00.3956557Z 
+2026-09-27T12:32:00.3957352Z VirtualJoystickTest > spring snap back resets knob coordinates to center on release() PASSED
+2026-09-27T12:32:00.3958357Z 
+2026-09-27T12:32:00.3959072Z SaveManagerTest > verify flush returns false when sram size is zero() PASSED
+2026-09-27T12:32:00.3959911Z 
+2026-09-27T12:32:00.3960578Z SaveManagerTest > verify backup file rotation on successive flushes() PASSED
+2026-09-27T12:32:00.3995243Z 
+2026-09-27T12:32:00.3995955Z SaveManagerTest > verify atomic posix fsync flush produces valid save file() PASSED
+2026-09-27T12:32:00.3996778Z 
+2026-09-27T12:32:00.3997387Z SaveManagerTest > verify restore loads data into SRAM and cleans stale tmp() PASSED
+2026-09-27T12:32:00.3998185Z 
+2026-09-27T12:32:00.3998761Z SaveManagerTest > verify dirty gating prevents redundant writes() PASSED
+2026-09-27T12:32:00.3999529Z 
+2026-09-27T12:32:00.4000248Z SaveManagerTest > verify restore falls back to backup file when primary save is missing() PASSED
+2026-09-27T12:32:00.4001402Z 
+2026-09-27T12:32:00.4002091Z SaveManagerTest > verify checkAndMarkDirty detects buffer modification() PASSED
+2026-09-27T12:32:00.4002931Z 
+2026-09-27T12:32:00.4003545Z SaveStateManagerTest > deleteSlot removes state, thumbnail, and metadata() PASSED
+2026-09-27T12:32:00.4004322Z 
+2026-09-27T12:32:00.4004938Z SaveStateManagerTest > getSlotInfo describes empty and saved slots accurately() PASSED
+2026-09-27T12:32:00.4005786Z 
+2026-09-27T12:32:00.4006490Z SaveStateManagerTest > formatRelativeTime computes human-readable timestamps() PASSED
+2026-09-27T12:32:00.4007397Z 
+2026-09-27T12:32:00.4008065Z SaveStateManagerTest > downsampleFrame scales 240x160 buffer to 120x80 pixels() PASSED
+2026-09-27T12:32:00.4008934Z 
+2026-09-27T12:32:00.4009534Z SaveStateManagerTest > loadState restores emulator state from disk() PASSED
+2026-09-27T12:32:00.4010319Z 
+2026-09-27T12:32:00.4011062Z SaveStateManagerTest > saveState writes state snapshot, thumbnail png, and metadata json() PASSED
+2026-09-27T12:32:00.4012322Z 
+2026-09-27T12:32:00.4012946Z BezelOverlayTest > bezel toggle state controls drawing behavior() PASSED
+2026-09-27T12:32:00.4013758Z 
+2026-09-27T12:32:00.4014526Z BezelOverlayTest > renderForTesting executes cleanly in portrait and landscape modes() PASSED
+2026-09-27T12:32:00.4015514Z 
+2026-09-27T12:32:00.4016332Z InGameSettingsOverlayTest > edit controls button dismisses dialog and invokes callback() PASSED
+2026-09-27T12:32:00.4017354Z 
+2026-09-27T12:32:00.4018147Z InGameSettingsOverlayTest > opacity selector updates opacity value and notifies callback() PASSED
+2026-09-27T12:32:00.4019120Z 
+2026-09-27T12:32:00.4019770Z InGameSettingsOverlayTest > show and hide toggle visibility and state() PASSED
+2026-09-27T12:32:00.4020594Z 
+2026-09-27T12:32:00.4021480Z InGameSettingsOverlayTest > haptics toggle switches haptics state() PASSED
+2026-09-27T12:32:00.4022325Z 
+2026-09-27T12:32:00.4023100Z InGameSettingsOverlayTest > scale mode selector changes scaling mode and notifies callback() PASSED
+2026-09-27T12:32:00.4024051Z 
+2026-09-27T12:32:00.4025074Z MoreFeaturesSheetTest > toggles for mute, turbo, and macro switch states() PASSED
+2026-09-27T12:32:00.4025951Z 
+2026-09-27T12:32:00.4026686Z MoreFeaturesSheetTest > tapping load state button invokes load callback and dismisses sheet() PASSED
+2026-09-27T12:32:00.4027600Z 
+2026-09-27T12:32:00.4028465Z MoreFeaturesSheetTest > sensor mode pills and calibration button trigger callbacks() PASSED
+2026-09-27T12:32:00.4029330Z 
+2026-09-27T12:32:00.4030160Z MoreFeaturesSheetTest > edit controls button dismisses sheet and launches layout editor() PASSED
+2026-09-27T12:32:00.4031114Z 
+2026-09-27T12:32:00.4032081Z MoreFeaturesSheetTest > speed selector updates fast-forward multiplier and notifies callback() PASSED
+2026-09-27T12:32:00.4032974Z 
+2026-09-27T12:32:00.4033673Z MoreFeaturesSheetTest > gamepad remap button dismisses sheet and launches remap overlay() PASSED
+2026-09-27T12:32:00.4034572Z 
+2026-09-27T12:32:00.4035253Z MoreFeaturesSheetTest > touch theme and display shader toggles update preferences() PASSED
+2026-09-27T12:32:00.4036146Z 
+2026-09-27T12:32:00.4036856Z MoreFeaturesSheetTest > show and hide toggle visibility and trigger dismissal callback() PASSED
+2026-09-27T12:32:00.4037735Z 
+2026-09-27T12:32:00.4038452Z MoreFeaturesSheetTest > floating dpad and gestures toggles update state and invoke callbacks() PASSED
+2026-09-27T12:32:00.4039366Z 
+2026-09-27T12:32:00.4040179Z MoreFeaturesSheetTest > tapping slot cards updates selectedSlot and triggers save action() PASSED
+2026-09-27T12:32:00.4041520Z 
+2026-09-27T12:32:00.4042590Z MoreFeaturesSheetTest > dpad type and joystick snap mode segmented buttons update state and fire callbacks() PASSED
+2026-09-27T12:32:00.4043893Z 
+2026-09-27T12:32:00.4044809Z QuickMenuOverlayTest > expanded menu toggles controls on joystick satellite button tap() PASSED
+2026-09-27T12:32:00.4045981Z 
+2026-09-27T12:32:00.4046909Z QuickMenuOverlayTest > tapping FAB expands satellite buttons and triggers haptic() PASSED
+2026-09-27T12:32:00.4048009Z 
+2026-09-27T12:32:00.4048836Z QuickMenuOverlayTest > expanded menu cycles fast-forward speed on satellite 2 tap() PASSED
+2026-09-27T12:32:00.4049730Z 
+2026-09-27T12:32:00.4050336Z QuickMenuOverlayTest > renderForTesting executes onDraw without error() PASSED
+2026-09-27T12:32:00.4051358Z 
+2026-09-27T12:32:00.4052089Z QuickMenuOverlayTest > expanded menu opens more sheet and collapses menu on more button tap() PASSED
+2026-09-27T12:32:00.4053002Z 
+2026-09-27T12:32:00.4053606Z QuickMenuOverlayTest > collapsed FAB ignores touches outside its circle() PASSED
+2026-09-27T12:32:00.4054398Z 
+2026-09-27T12:32:00.4055404Z QuickMenuOverlayTest > expanded menu opens settings dialog and collapses menu on settings button tap() PASSED
+2026-09-27T12:32:00.4056417Z 
+2026-09-27T12:32:00.4056995Z RetroGlRendererTest > executes lifecycle callbacks without errors() PASSED
+2026-09-27T12:32:00.4057807Z 
+2026-09-27T12:32:00.4058515Z RetroGlRendererTest > RetroSurfaceView delegates scale mode and dimensions to renderer() PASSED
+2026-09-27T12:32:00.4059421Z 
+2026-09-27T12:32:00.4060085Z RetroGlRendererTest > updates native dimensions for Game Boy and Game Boy Advance() PASSED
+2026-09-27T12:32:00.4060998Z 
+2026-09-27T12:32:00.4061825Z RetroGlRendererTest > initializes with default integer fit and GBA dimensions() PASSED
+2026-09-27T12:32:00.4062712Z 
+2026-09-27T12:32:00.4063307Z RetroGlRendererTest > handles null frame buffer gracefully() PASSED
+2026-09-27T12:32:00.4064071Z 
+2026-09-27T12:32:00.4064608Z RetroGlRendererTest > updates scale mode correctly() PASSED
+2026-09-27T12:32:00.4065479Z 
+2026-09-27T12:32:00.4066292Z RetroGlShaderTest > native dimensions updates dirty viewport properly() PASSED
+2026-09-27T12:32:00.4067341Z 
+2026-09-27T12:32:00.4068160Z RetroGlShaderTest > fragment shader sources contain CRT scanlines and LCD dotmatrix routines() PASSED
+2026-09-27T12:32:00.4069165Z 
+2026-09-27T12:32:00.4069820Z RetroGlShaderTest > renderer properties manage shader modes and scale modes() PASSED
+2026-09-27T12:32:00.4070645Z 
+2026-09-27T12:32:00.4071641Z > Task :runtime:retropack-runtime-genesis:compileTestJava NO-SOURCE
+2026-09-27T12:32:00.4072721Z > Task :runtime:retropack-runtime-genesis:testClasses UP-TO-DATE
+2026-09-27T12:32:01.0564125Z 
+2026-09-27T12:32:01.0565001Z > Task :runtime:retropack-runtime-genesis:test
+2026-09-27T12:32:01.0565724Z 
+2026-09-27T12:32:01.0566594Z GenesisNativeCoreTest > test GenesisNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:01.0568017Z 
+2026-09-27T12:32:01.0568924Z GenesisNativeCoreTest > test GenesisNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:01.0575772Z 
+2026-09-27T12:32:01.0576631Z GenesisNativeCoreTest > test KeyMaskBuilder constructs valid Sega Genesis 6-button arcade masks() PASSED
+2026-09-27T12:32:01.0577703Z 
+2026-09-27T12:32:01.0578898Z GenesisNativeCoreTest > test GenesisNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:01.0579892Z 
+2026-09-27T12:32:01.0580354Z > Task :runtime:retropack-runtime-fceumm:classes
+2026-09-27T12:32:01.1623989Z > Task :runtime:retropack-runtime-fceumm:jar
+2026-09-27T12:32:01.7602010Z > Task :runtime:retropack-runtime-pce:compileKotlin
+2026-09-27T12:32:01.8559573Z > Task :runtime:retropack-runtime-fceumm:compileTestKotlin
+2026-09-27T12:32:01.9563140Z > Task :runtime:retropack-runtime-fbneo:compileKotlin
+2026-09-27T12:32:01.9592248Z > Task :runtime:retropack-runtime-pcsx:compileKotlin
+2026-09-27T12:32:02.1582487Z > Task :runtime:retropack-runtime-pce:compileJava
+2026-09-27T12:32:02.1612305Z > Task :runtime:retropack-runtime-fceumm:compileTestJava NO-SOURCE
+2026-09-27T12:32:02.1631908Z > Task :runtime:retropack-runtime-fceumm:testClasses UP-TO-DATE
+2026-09-27T12:32:02.9571891Z 
+2026-09-27T12:32:02.9609236Z > Task :runtime:retropack-runtime-fceumm:test
+2026-09-27T12:32:02.9661604Z 
+2026-09-27T12:32:02.9692420Z FceummNativeCoreTest > test FceummNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:02.9721482Z 
+2026-09-27T12:32:02.9742269Z FceummNativeCoreTest > test KeyMaskBuilder constructs valid NES 8-button control masks() PASSED
+2026-09-27T12:32:02.9743100Z 
+2026-09-27T12:32:02.9782329Z FceummNativeCoreTest > test FceummNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:02.9841567Z 
+2026-09-27T12:32:02.9902567Z FceummNativeCoreTest > test FceummNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:02.9961573Z 
+2026-09-27T12:32:02.9992019Z > Task :runtime:retropack-runtime-pce:classes
+2026-09-27T12:32:03.0052052Z > Task :runtime:retropack-runtime-pce:jar
+2026-09-27T12:32:03.2562720Z > Task :runtime:retropack-runtime-fbneo:compileJava
+2026-09-27T12:32:03.2594257Z > Task :runtime:retropack-runtime-fbneo:classes
+2026-09-27T12:32:03.2611945Z > Task :runtime:retropack-runtime-fbneo:jar
+2026-09-27T12:32:03.7586173Z > Task :runtime:retropack-runtime-pcsx:compileJava
+2026-09-27T12:32:03.7611999Z > Task :runtime:retropack-runtime-pcsx:classes
+2026-09-27T12:32:03.7625243Z > Task :runtime:retropack-runtime-pcsx:jar
+2026-09-27T12:32:03.8557770Z > Task :runtime:retropack-runtime-pce:compileTestKotlin
+2026-09-27T12:32:03.8612349Z > Task :runtime:retropack-runtime-pce:compileTestJava NO-SOURCE
+2026-09-27T12:32:03.8672009Z > Task :runtime:retropack-runtime-pce:testClasses UP-TO-DATE
+2026-09-27T12:32:04.1556477Z > Task :runtime:retropack-runtime-fbneo:compileTestKotlin
+2026-09-27T12:32:04.5559402Z > Task :runtime:retropack-runtime-pcsx:compileTestKotlin
+2026-09-27T12:32:04.9556670Z 
+2026-09-27T12:32:04.9582471Z > Task :runtime:retropack-runtime-pce:test
+2026-09-27T12:32:04.9611706Z 
+2026-09-27T12:32:04.9642335Z PceNativeCoreTest > test KeyMaskBuilder constructs valid PCE control masks() PASSED
+2026-09-27T12:32:04.9659677Z 
+2026-09-27T12:32:04.9668409Z PceNativeCoreTest > test PceNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:04.9691651Z 
+2026-09-27T12:32:04.9692841Z PceNativeCoreTest > test PceNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:04.9693337Z 
+2026-09-27T12:32:04.9693712Z PceNativeCoreTest > test PceNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:04.9694164Z 
+2026-09-27T12:32:04.9694373Z > Task :runtime:retropack-runtime-fbneo:compileTestJava NO-SOURCE
+2026-09-27T12:32:04.9695034Z > Task :runtime:retropack-runtime-fbneo:testClasses UP-TO-DATE
+2026-09-27T12:32:05.6564432Z 
+2026-09-27T12:32:05.6565339Z > Task :runtime:retropack-runtime-fbneo:test
+2026-09-27T12:32:05.6565826Z 
+2026-09-27T12:32:05.6566413Z FbNeoNativeCoreTest > test KeyMaskBuilder constructs valid Arcade and Neo Geo control masks() PASSED
+2026-09-27T12:32:05.6567098Z 
+2026-09-27T12:32:05.6567437Z FbNeoNativeCoreTest > test FbNeoNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:05.6567857Z 
+2026-09-27T12:32:05.6568435Z FbNeoNativeCoreTest > test FbNeoNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:05.6569312Z 
+2026-09-27T12:32:05.6569999Z FbNeoNativeCoreTest > test FbNeoNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:05.6570845Z 
+2026-09-27T12:32:05.6571497Z > Task :runtime:retropack-runtime-pcsx:compileTestJava NO-SOURCE
+2026-09-27T12:32:05.6572361Z > Task :runtime:retropack-runtime-pcsx:testClasses UP-TO-DATE
+2026-09-27T12:32:06.2564824Z 
+2026-09-27T12:32:06.2566654Z > Task :runtime:retropack-runtime-pcsx:test
+2026-09-27T12:32:06.2567546Z 
+2026-09-27T12:32:06.2568478Z PcsxNativeCoreTest > test KeyMaskBuilder constructs valid PS1 DualShock control masks() PASSED
+2026-09-27T12:32:06.2573826Z 
+2026-09-27T12:32:06.2574728Z PcsxNativeCoreTest > test PcsxNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:06.2579996Z 
+2026-09-27T12:32:06.2587167Z PcsxNativeCoreTest > test PcsxNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:06.2588207Z 
+2026-09-27T12:32:06.2588964Z PcsxNativeCoreTest > test PcsxNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:06.6591957Z 
+2026-09-27T12:32:06.6661830Z > Task :runtime:retropack-runtime-mupen64:compileKotlin
+2026-09-27T12:32:06.9556676Z > Task :runtime:retropack-runtime-ppsspp:compileKotlin
+2026-09-27T12:32:06.9612517Z > Task :runtime:retropack-runtime-mupen64:compileJava
+2026-09-27T12:32:06.9658778Z > Task :runtime:retropack-runtime-mupen64:classes
+2026-09-27T12:32:07.0572426Z > Task :runtime:retropack-runtime-melonds:compileKotlin
+2026-09-27T12:32:07.0573622Z > Task :runtime:retropack-runtime-mupen64:jar
+2026-09-27T12:32:07.4567553Z > Task :runtime:retropack-runtime-ppsspp:compileJava
+2026-09-27T12:32:07.4581943Z > Task :runtime:retropack-runtime-ppsspp:classes
+2026-09-27T12:32:07.5592393Z > Task :runtime:retropack-runtime-ppsspp:jar
+2026-09-27T12:32:07.6585425Z > Task :runtime:retropack-runtime-mupen64:compileTestKotlin
+2026-09-27T12:32:07.9556737Z > Task :runtime:retropack-runtime-melonds:compileJava
+2026-09-27T12:32:07.9582601Z > Task :runtime:retropack-runtime-mupen64:compileTestJava NO-SOURCE
+2026-09-27T12:32:07.9612191Z > Task :runtime:retropack-runtime-mupen64:testClasses UP-TO-DATE
+2026-09-27T12:32:08.1556768Z > Task :runtime:retropack-runtime-ppsspp:compileTestKotlin
+2026-09-27T12:32:08.8558098Z 
+2026-09-27T12:32:08.8559549Z > Task :runtime:retropack-runtime-mupen64:test
+2026-09-27T12:32:08.8560713Z 
+2026-09-27T12:32:08.8561657Z Mupen64NativeCoreTest > test KeyMaskBuilder constructs valid N64 control masks() PASSED
+2026-09-27T12:32:08.8564492Z 
+2026-09-27T12:32:08.8565365Z Mupen64NativeCoreTest > test Mupen64NativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:08.8566477Z 
+2026-09-27T12:32:08.8567305Z Mupen64NativeCoreTest > test Mupen64NativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:08.8568315Z 
+2026-09-27T12:32:08.8569039Z Mupen64NativeCoreTest > test Mupen64NativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:08.8570328Z 
+2026-09-27T12:32:08.8570862Z > Task :runtime:retropack-runtime-ppsspp:compileTestJava NO-SOURCE
+2026-09-27T12:32:08.8572186Z > Task :runtime:retropack-runtime-ppsspp:testClasses UP-TO-DATE
+2026-09-27T12:32:09.4555401Z 
+2026-09-27T12:32:09.4556421Z > Task :runtime:retropack-runtime-ppsspp:test
+2026-09-27T12:32:09.4557223Z 
+2026-09-27T12:32:09.4558043Z PpssppNativeCoreTest > test PpssppNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:09.4558783Z 
+2026-09-27T12:32:09.4559471Z PpssppNativeCoreTest > test KeyMaskBuilder constructs valid PSP control masks() PASSED
+2026-09-27T12:32:09.4560189Z 
+2026-09-27T12:32:09.4561043Z PpssppNativeCoreTest > test PpssppNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:09.4562065Z 
+2026-09-27T12:32:09.4562950Z PpssppNativeCoreTest > test PpssppNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:09.4563759Z 
+2026-09-27T12:32:09.4564248Z > Task :runtime:retropack-runtime-melonds:classes
+2026-09-27T12:32:09.5592480Z > Task :runtime:retropack-runtime-melonds:jar
+2026-09-27T12:32:09.8556766Z > Task :runtime:retropack-runtime-melonds:compileTestKotlin
+2026-09-27T12:32:09.8571145Z > Task :runtime:retropack-runtime-melonds:compileTestJava NO-SOURCE
+2026-09-27T12:32:09.8582214Z > Task :runtime:retropack-runtime-melonds:testClasses UP-TO-DATE
+2026-09-27T12:32:10.8555261Z 
+2026-09-27T12:32:10.8556235Z > Task :runtime:retropack-runtime-melonds:test
+2026-09-27T12:32:10.8556770Z 
+2026-09-27T12:32:10.8557585Z MelondsNativeCoreTest > test MelondsNativeCore satisfies NativeCoreBridge interface contract() PASSED
+2026-09-27T12:32:10.8558392Z 
+2026-09-27T12:32:10.8559109Z MelondsNativeCoreTest > test MelondsNativeCore handles load failure gracefully without crashing on host JVM() PASSED
+2026-09-27T12:32:10.8559629Z 
+2026-09-27T12:32:10.8560061Z MelondsNativeCoreTest > test MelondsNativeCore state functions fail gracefully when library is not loaded() PASSED
+2026-09-27T12:32:10.8560536Z 
+2026-09-27T12:32:10.8560847Z MelondsNativeCoreTest > test KeyMaskBuilder constructs valid Nintendo DS control masks() PASSED
+2026-09-27T12:32:10.8561894Z gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_2-1790512243484.json
+2026-09-27T12:32:10.9482071Z 
+2026-09-27T12:32:10.9492232Z [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+2026-09-27T12:32:10.9493633Z 
+2026-09-27T12:32:10.9494367Z Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+2026-09-27T12:32:10.9495067Z 
+2026-09-27T12:32:10.9495837Z You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+2026-09-27T12:32:10.9496797Z 
+2026-09-27T12:32:10.9497771Z For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+2026-09-27T12:32:10.9498851Z 
+2026-09-27T12:32:10.9499039Z BUILD SUCCESSFUL in 1m 37s
+2026-09-27T12:32:10.9499492Z 55 actionable tasks: 55 executed
+2026-09-27T12:32:10.9500563Z Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html
+2026-09-27T12:32:11.2826522Z ##[group]Run actions/upload-artifact@v4
+2026-09-27T12:32:11.2826842Z with:
+2026-09-27T12:32:11.2827059Z   name: junit-runtime
+2026-09-27T12:32:11.2827335Z   path: runtime/*/build/test-results/test/*.xml
+
+2026-09-27T12:32:11.2827660Z   if-no-files-found: error
+2026-09-27T12:32:11.2827910Z   retention-days: 30
+2026-09-27T12:32:11.2828138Z   compression-level: 6
+2026-09-27T12:32:11.2828361Z   overwrite: false
+2026-09-27T12:32:11.2828594Z   include-hidden-files: false
+2026-09-27T12:32:11.2829114Z env:
+2026-09-27T12:32:11.2829426Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:32:11.2829683Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:32:11.2830040Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:32:11.2830565Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:32:11.2830964Z   MAVEN_ARGS: -ntp
+2026-09-27T12:32:11.2831489Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T12:32:11.2832086Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T12:32:11.2832397Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T12:32:11.2832706Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T12:32:11.2833169Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T12:32:11.2833665Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T12:32:11.2834004Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T12:32:11.2834275Z ##[endgroup]
+2026-09-27T12:32:11.4610619Z (node:3066) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-27T12:32:11.4612084Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-27T12:32:11.4960869Z With the provided path, there will be 40 files uploaded
+2026-09-27T12:32:11.4961999Z Artifact name is valid!
+2026-09-27T12:32:11.4962444Z Root directory input is valid!
+2026-09-27T12:32:11.6967852Z Beginning upload of artifact content to blob storage
+2026-09-27T12:32:11.7581063Z (node:3066) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-27T12:32:11.8276865Z Uploaded bytes 29127
+2026-09-27T12:32:11.8465115Z Finished uploading artifact content to blob storage!
+2026-09-27T12:32:11.8466489Z SHA256 digest of uploaded artifact zip is f2c79cc5d93a7f3c40f62b0a415c64cefa43d0f1f1b5a476df798368634a5e13
+2026-09-27T12:32:11.8468313Z Finalizing artifact upload
+2026-09-27T12:32:12.0407670Z Artifact junit-runtime.zip successfully finalized. Artifact ID 10931354628
+2026-09-27T12:32:12.0409167Z Artifact junit-runtime has been successfully uploaded! Final size is 29127 bytes. Artifact ID is 10931354628
+2026-09-27T12:32:12.0415598Z Artifact download URL: https://github.com/Zoro-15/retro-manager/actions/runs/36319209028/artifacts/10931354628
+2026-09-27T12:32:12.0563634Z ##[group]Run actions/upload-artifact@v4
+2026-09-27T12:32:12.0563956Z with:
+2026-09-27T12:32:12.0564183Z   name: test-reports-runtime
+2026-09-27T12:32:12.0564469Z   path: runtime/*/build/reports/tests
+
+2026-09-27T12:32:12.0564773Z   if-no-files-found: warn
+2026-09-27T12:32:12.0565019Z   retention-days: 30
+2026-09-27T12:32:12.0565252Z   compression-level: 6
+2026-09-27T12:32:12.0565596Z   overwrite: false
+2026-09-27T12:32:12.0565964Z   include-hidden-files: false
+2026-09-27T12:32:12.0566224Z env:
+2026-09-27T12:32:12.0566429Z   PERF_TOTAL_BUDGET_SEC: 600
+2026-09-27T12:32:12.0566689Z   PERF_CLASS_BUDGET_SEC: 120
+2026-09-27T12:32:12.0567045Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:32:12.0567563Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-27T12:32:12.0567966Z   MAVEN_ARGS: -ntp
+2026-09-27T12:32:12.0568229Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-27T12:32:12.0568583Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-27T12:32:12.0568906Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-27T12:32:12.0569217Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-27T12:32:12.0569680Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-27T12:32:12.0570186Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-27T12:32:12.0570524Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-27T12:32:12.0570805Z ##[endgroup]
+2026-09-27T12:32:12.2210465Z (node:3078) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-09-27T12:32:12.2211894Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-09-27T12:32:12.2849614Z With the provided path, there will be 87 files uploaded
+2026-09-27T12:32:12.2850155Z Artifact name is valid!
+2026-09-27T12:32:12.2850426Z Root directory input is valid!
+2026-09-27T12:32:12.4879149Z Beginning upload of artifact content to blob storage
+2026-09-27T12:32:12.5874732Z (node:3078) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-09-27T12:32:12.6443413Z Uploaded bytes 107619
+2026-09-27T12:32:12.6623175Z Finished uploading artifact content to blob storage!
+2026-09-27T12:32:12.6624340Z SHA256 digest of uploaded artifact zip is 8ff672f9650487cc04bca7ebbf9abdaa8e2fb4074aa2755049ce740eb70ad1b9
+2026-09-27T12:32:12.6625964Z Finalizing artifact upload
+2026-09-27T12:32:12.8632562Z Artifact test-reports-runtime.zip successfully finalized. Artifact ID 10932415119
+2026-09-27T12:32:12.8634545Z Artifact test-reports-runtime has been successfully uploaded! Final size is 107619 bytes. Artifact ID is 10932415119
+2026-09-27T12:32:12.8635729Z Artifact download URL: https://github.com/Zoro-15/retro-manager/actions/runs/36319209028/artifacts/10932415119
+2026-09-27T12:32:12.8864660Z Post job cleanup.
+2026-09-27T12:32:13.1381406Z In post-action step
+2026-09-27T12:32:13.1394252Z Cache will not be saved: not restored in main action step.
+2026-09-27T12:32:13.1398874Z Generating Job Summary
+2026-09-27T12:32:13.1418130Z Completed post-action step
+2026-09-27T12:32:13.1548773Z Post job cleanup.
+2026-09-27T12:32:13.2880767Z Cache hit occurred on the gradle-wrapper primary key setup-java-Linux-x64-gradle-wrapper-e96453a026d08b6ffcfb90eebd2e835169be8f4498a73e85ea1ac79cce81d823, not saving cache.
+2026-09-27T12:32:13.2883364Z Cache hit occurred on the primary key setup-java-Linux-x64-gradle-aedaaa22e70e0d4699790f23e7f951a296c7401ccc5eb333285829ff934a7f79, not saving cache.
+2026-09-27T12:32:13.3044979Z Post job cleanup.
+2026-09-27T12:32:13.3981744Z [command]/usr/bin/git version
+2026-09-27T12:32:13.4029316Z git version 2.55.0
+2026-09-27T12:32:13.4073554Z Temporarily overriding HOME='/home/runner/work/_temp/f3f8d51f-09d6-40a0-982f-ecbedf116a79' before making global git config changes
+2026-09-27T12:32:13.4074888Z Adding repository directory to the temporary git global config as a safe directory
+2026-09-27T12:32:13.4080109Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/retro-manager/retro-manager
+2026-09-27T12:32:13.4119530Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-09-27T12:32:13.4175974Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-09-27T12:32:13.4443274Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-09-27T12:32:13.4471714Z http.https://github.com/.extraheader
+2026-09-27T12:32:13.4484281Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-09-27T12:32:13.4535496Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-09-27T12:32:13.4795417Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-09-27T12:32:13.4854710Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-09-27T12:32:13.5250203Z Cleaning up orphan processes
+2026-09-27T12:32:13.5526719Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/upload-artifact@v4, gradle/actions/setup-gradle@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
