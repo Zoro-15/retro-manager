@@ -111,6 +111,8 @@ class TouchLayout(
         const val ID_R = "btn_r"
         const val ID_L2 = "btn_l2"
         const val ID_R2 = "btn_r2"
+        const val ID_L3 = "btn_l3"
+        const val ID_R3 = "btn_r3"
         const val ID_START = "btn_start"
         const val ID_SELECT = "btn_select"
         const val ID_MODE = "btn_mode"
@@ -147,8 +149,8 @@ class TouchLayout(
                 "genesis", "megadrive", "md", "smd", "gen", "sms", "gg" -> genesis(width, height, opacity, turboEnabled, comboEnabled)
                 "nes", "fds", "unf" -> nes(width, height, opacity, turboEnabled, comboEnabled)
                 "pce", "tg16", "sgx" -> pce(width, height, opacity, turboEnabled, comboEnabled)
-                "arcade", "fbneo", "neogeo", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)
-                "psx", "ps1" -> ps1(width, height, opacity, turboEnabled, comboEnabled)
+                "arcade", "fbneo", "neogeo", "cps", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)
+                "psx", "ps1", "ps" -> ps1(width, height, opacity, turboEnabled, comboEnabled)
                 "n64" -> n64(width, height, opacity, turboEnabled, comboEnabled)
                 "psp" -> psp(width, height, opacity, turboEnabled, comboEnabled)
                 "nds" -> nds(width, height, opacity, turboEnabled, comboEnabled)
@@ -463,12 +465,25 @@ class TouchLayout(
             controls.add(VirtualControl(ID_A, RetroKey.A, "●", ControlShape.CIRCLE, faceCenterX + spacing, mainY, faceRadius, faceRadius))
             controls.add(VirtualControl(ID_B, RetroKey.B, "✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing, faceRadius, faceRadius))
 
+            if (turboEnabled) {
+                val turboRadius = faceRadius * 0.72f
+                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "T✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing + faceRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
+                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "T●", ControlShape.CIRCLE, faceCenterX + spacing + faceRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
+            }
+
             // Select & Start
             val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
             val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
             val sysY = if (isLandscape) height * 0.90f else height * 0.93f
             controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "SELECT", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
             controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
+
+            if (comboEnabled) {
+                val stickBtnW = if (isLandscape) unit * 0.06f else unit * 0.08f
+                val stickBtnH = if (isLandscape) unit * 0.035f else unit * 0.04f
+                controls.add(VirtualControl(ID_L3, RetroKey.L3, "L3", ControlShape.PILL, if (isLandscape) width * 0.25f else width * 0.20f, sysY, stickBtnW, stickBtnH))
+                controls.add(VirtualControl(ID_R3, RetroKey.R3, "R3", ControlShape.PILL, if (isLandscape) width * 0.75f else width * 0.80f, sysY, stickBtnW, stickBtnH))
+            }
 
             return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "psx")
         }

@@ -40,8 +40,10 @@ class GamepadMapper(
             // Gamepad Shoulder Buttons
             map[KeyEvent.KEYCODE_BUTTON_L1] = RetroKey.L
             map[KeyEvent.KEYCODE_BUTTON_R1] = RetroKey.R
-            map[KeyEvent.KEYCODE_BUTTON_L2] = RetroKey.L
-            map[KeyEvent.KEYCODE_BUTTON_R2] = RetroKey.R
+            map[KeyEvent.KEYCODE_BUTTON_L2] = RetroKey.L2
+            map[KeyEvent.KEYCODE_BUTTON_R2] = RetroKey.R2
+            map[KeyEvent.KEYCODE_BUTTON_THUMBL] = RetroKey.L3
+            map[KeyEvent.KEYCODE_BUTTON_THUMBR] = RetroKey.R3
 
             // Gamepad System Buttons
             map[KeyEvent.KEYCODE_BUTTON_START] = RetroKey.START
@@ -79,6 +81,8 @@ class GamepadMapper(
                 KeyEvent.KEYCODE_BUTTON_R1 -> "R1 TRIGGER"
                 KeyEvent.KEYCODE_BUTTON_L2 -> "L2 TRIGGER"
                 KeyEvent.KEYCODE_BUTTON_R2 -> "R2 TRIGGER"
+                KeyEvent.KEYCODE_BUTTON_THUMBL -> "L3 STICK"
+                KeyEvent.KEYCODE_BUTTON_THUMBR -> "R3 STICK"
                 KeyEvent.KEYCODE_BUTTON_START -> "START"
                 KeyEvent.KEYCODE_BUTTON_SELECT -> "SELECT"
                 KeyEvent.KEYCODE_DPAD_UP -> "DPAD UP"
@@ -276,8 +280,8 @@ class GamepadMapper(
             event.getAxisValue(MotionEvent.AXIS_RTRIGGER),
             event.getAxisValue(MotionEvent.AXIS_GAS)
         )
-        if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L
-        if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R
+        if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L or RetroKey.KEY_L2
+        if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R or RetroKey.KEY_R2
 
         // 4. Right Analog Stick (AXIS_Z / AXIS_RZ) -> N64 C-Buttons
         val rStickX = event.getAxisValue(MotionEvent.AXIS_Z)
