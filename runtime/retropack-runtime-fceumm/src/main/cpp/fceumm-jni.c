@@ -25,12 +25,53 @@
 
 #ifdef HAVE_FCEUMM_CORE
 // Real upstream FCEUmm headers
-#include <types.h>
+#include <fceu-types.h>
 #include <fceu.h>
 #include <cart.h>
 #include <sound.h>
 #include <state.h>
 #include <driver.h>
+#include <ines.h>
+#include <unif.h>
+
+// Driver callbacks required by FCEUmm core
+void FCEUD_Message(const char *s) {
+    LOGI("[FCEUmm] %s", s ? s : "");
+}
+
+void FCEUD_PrintError(const char *s) {
+    LOGE("[FCEUmm Error] %s", s ? s : "");
+}
+
+void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char *str) {
+    (void)duration;
+    if (level == RETRO_LOG_ERROR) {
+        LOGE("[FCEUmm] %s", str ? str : "");
+    } else if (level == RETRO_LOG_WARN) {
+        LOGW("[FCEUmm] %s", str ? str : "");
+    } else {
+        LOGI("[FCEUmm] %s", str ? str : "");
+    }
+}
+
+void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...) {
+    char temp[1024];
+    va_list ap;
+    va_start(ap, format);
+    vsnprintf(temp, sizeof(temp), format, ap);
+    va_end(ap);
+    FCEUD_DispMessage(level, duration, temp);
+}
+
+void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
+    (void)index; (void)r; (void)g; (void)b;
+}
+
+const char *GetKeyboard(void) {
+    return "";
+}
+
+static uint32_t s_nes_joypad = 0;
 #endif
 
 static struct {
@@ -432,6 +473,8 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuInit(
     FCEUI_Initialize();
     FCEUI_Sound(44100);
     FCEUI_SetSoundVolume(100);
+    FCEUI_SetInput(0, SI_GAMEPAD, &s_nes_joypad, 0);
+    FCEUI_SetInput(1, SI_GAMEPAD, &s_nes_joypad, 0);
 #endif
 
     g_fceu.initialized = true;
@@ -455,7 +498,7 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuLoadRom(
     parse_nes_rom_header(native_path);
 
 #ifdef HAVE_FCEUMM_CORE
-    if (!FCEUI_LoadGame((char*)native_path, 0)) {
+    if (!FCEUI_LoadGame(native_path, NULL, 0, NULL)) {
         LOGE("FCEUmm failed to load ROM: %s", native_path);
         pthread_mutex_unlock(&g_fceu.lock);
         (*env)->ReleaseStringUTFChars(env, romPath, native_path);
@@ -498,7 +541,10 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuDestroy(JNIEnv* env, jobj
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_fceu.lock);
 #ifdef HAVE_FCEUMM_CORE
-    FCEUI_CloseGame();
+    if (g_fceu.rom_loaded) {
+        FCEUI_CloseGame();
+    }
+    FCEUI_Kill();
 #endif
     if (g_fceu.audio_rb) {
         ringbuffer_destroy(g_fceu.audio_rb);
@@ -523,7 +569,8 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuRunFrame(JNIEnv* env, job
 
 #ifdef HAVE_FCEUMM_CORE
     // 1. Pass Joypad 1 key inputs
-    FCEU_UpdateInput(0, nes_pad);
+    s_nes_joypad = (uint32_t)nes_pad;
+    FCEU_UpdateInput();
 
     // 2. Emulate 1 frame
     uint8_t* gfx_buf = NULL;
@@ -634,6 +681,14 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuGetVideoSize(JNIEnv* env,
 JNIEXPORT jint JNICALL
 Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuGetSramSize(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
+#ifdef HAVE_FCEUMM_CORE
+    if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0]) {
+        return (jint) iNESCart.SaveGameLen[0];
+    }
+    if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0]) {
+        return (jint) UNIFCart.SaveGameLen[0];
+    }
+#endif
     return (jint) g_fceu.sram_size;
 }
 
@@ -654,8 +709,20 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuReadSram(
     jbyte* dst = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, outBuffer, NULL);
     if (dst) {
 #ifdef HAVE_FCEUMM_CORE
-        if (CartSaveData) {
-            memcpy(dst, CartSaveData, copy_len);
+        uint8_t* sram_src = NULL;
+        uint32_t sram_sz = 0;
+        if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0]) {
+            sram_src = iNESCart.SaveGame[0];
+            sram_sz = iNESCart.SaveGameLen[0];
+        } else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0]) {
+            sram_src = UNIFCart.SaveGame[0];
+            sram_sz = UNIFCart.SaveGameLen[0];
+        }
+        if (sram_src && sram_sz > 0) {
+            size_t to_copy = len < sram_sz ? len : sram_sz;
+            memcpy(dst, sram_src, to_copy);
+        } else {
+            memcpy(dst, g_fceu.sram, copy_len);
         }
 #else
         memcpy(dst, g_fceu.sram, copy_len);
@@ -684,9 +751,20 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuWriteSram(
     jbyte* src = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, inBuffer, NULL);
     if (src) {
 #ifdef HAVE_FCEUMM_CORE
-        if (CartSaveData) {
-            memcpy(CartSaveData, src, copy_len);
+        uint8_t* sram_dst = NULL;
+        uint32_t sram_sz = 0;
+        if (iNESCart.battery && iNESCart.SaveGame[0] && iNESCart.SaveGameLen[0]) {
+            sram_dst = iNESCart.SaveGame[0];
+            sram_sz = iNESCart.SaveGameLen[0];
+        } else if (UNIFCart.battery && UNIFCart.SaveGame[0] && UNIFCart.SaveGameLen[0]) {
+            sram_dst = UNIFCart.SaveGame[0];
+            sram_sz = UNIFCart.SaveGameLen[0];
         }
+        if (sram_dst && sram_sz > 0) {
+            size_t to_copy = len < sram_sz ? len : sram_sz;
+            memcpy(sram_dst, src, to_copy);
+        }
+        memcpy(g_fceu.sram, src, copy_len);
 #else
         memcpy(g_fceu.sram, src, copy_len);
 #endif
@@ -708,8 +786,20 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuSaveState(
     pthread_mutex_lock(&g_fceu.lock);
     bool ok = false;
 #ifdef HAVE_FCEUMM_CORE
-    FCEUI_SaveState((char*)path);
-    ok = true;
+    size_t max_state_size = 2 * 1024 * 1024;
+    uint8_t* state_buf = (uint8_t*)malloc(max_state_size);
+    if (state_buf) {
+        size_t actual_size = (size_t)FCEUSS_Save_Mem(state_buf, max_state_size);
+        if (actual_size > 0) {
+            FILE* f = fopen(path, "wb");
+            if (f) {
+                fwrite(state_buf, 1, actual_size, f);
+                fclose(f);
+                ok = true;
+            }
+        }
+        free(state_buf);
+    }
 #else
     FILE* f = fopen(path, "wb");
     if (f) {
@@ -735,8 +825,22 @@ Java_com_retropack_runtime_fceumm_FceummNativeCore_fceuLoadState(
     pthread_mutex_lock(&g_fceu.lock);
     bool ok = false;
 #ifdef HAVE_FCEUMM_CORE
-    FCEUI_LoadState((char*)path);
-    ok = true;
+    FILE* f = fopen(path, "rb");
+    if (f) {
+        fseek(f, 0, SEEK_END);
+        long fsize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        if (fsize > 0) {
+            uint8_t* state_buf = (uint8_t*)malloc((size_t)fsize);
+            if (state_buf) {
+                if (fread(state_buf, 1, (size_t)fsize, f) == (size_t)fsize) {
+                    ok = (FCEUSS_Load_Mem(state_buf, (size_t)fsize) != 0);
+                }
+                free(state_buf);
+            }
+        }
+        fclose(f);
+    }
 #else
     FILE* f = fopen(path, "rb");
     if (f) {

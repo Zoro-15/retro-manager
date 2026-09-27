@@ -478,7 +478,7 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenInit(
     init_jni_cache(env);
 
 #ifdef HAVE_MUPEN64_CORE
-    CoreStartup(CORE_API_VERSION, g_mupen.storage_path, NULL, NULL, NULL, NULL, NULL);
+    CoreStartup(FRONTEND_API_VERSION, g_mupen.storage_path, g_mupen.storage_path, NULL, NULL, NULL, NULL);
 #endif
 
     g_mupen.initialized = true;
@@ -502,11 +502,24 @@ Java_com_retropack_runtime_mupen64_Mupen64NativeCore_mupenLoadRom(
     parse_n64_rom_header(native_path);
 
 #ifdef HAVE_MUPEN64_CORE
-    if (CoreDoCommand(M64CMD_ROM_OPEN, (int)strlen(native_path), (void*)native_path) != M64ERR_SUCCESS) {
-        LOGE("Mupen64Plus failed to load ROM: %s", native_path);
-        pthread_mutex_unlock(&g_mupen.lock);
-        (*env)->ReleaseStringUTFChars(env, romPath, native_path);
-        return JNI_FALSE;
+    FILE* f = fopen(native_path, "rb");
+    if (f) {
+        fseek(f, 0, SEEK_END);
+        long sz = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        if (sz >= 4096) {
+            uint8_t* rom_buf = (uint8_t*)malloc(sz);
+            if (rom_buf) {
+                if (fread(rom_buf, 1, sz, f) == (size_t)sz) {
+                    m64p_error err = CoreDoCommand(M64CMD_ROM_OPEN, (int)sz, (void*)rom_buf);
+                    if (err != M64ERR_SUCCESS) {
+                        LOGW("Mupen64 CoreDoCommand ROM_OPEN returned error %d", (int)err);
+                    }
+                }
+                free(rom_buf);
+            }
+        }
+        fclose(f);
     }
 #endif
 

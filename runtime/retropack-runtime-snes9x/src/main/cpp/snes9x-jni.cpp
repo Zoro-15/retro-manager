@@ -30,10 +30,104 @@
 // Real upstream Snes9x C++ headers
 #include <snes9x.h>
 #include <memmap.h>
-#include <apu.h>
+#include <apu/apu.h>
 #include <controls.h>
 #include <gfx.h>
 #include <snapshot.h>
+
+bool8 S9xInitUpdate(void) {
+    return TRUE;
+}
+
+bool8 S9xDeinitUpdate(int width, int height) {
+    if (width > SNES_MAX_WIDTH) width = SNES_MAX_WIDTH;
+    if (height > SNES_MAX_HEIGHT) height = SNES_MAX_HEIGHT;
+    g_snes9x.video_width = width;
+    g_snes9x.video_height = height;
+
+    uint16_t* src = GFX.Screen;
+    int pitch_pixels = GFX.Pitch >> 1;
+
+    for (int y = 0; y < height; y++) {
+        uint16_t* src_row = src + y * pitch_pixels;
+        uint32_t* dst_row = g_snes9x.video_buffer + y * width;
+        for (int x = 0; x < width; x++) {
+            uint16_t px = src_row[x];
+            uint32_t r = ((px >> 11) & 0x1F) * 255 / 31;
+            uint32_t g = ((px >> 5) & 0x3F) * 255 / 63;
+            uint32_t b = (px & 0x1F) * 255 / 31;
+            dst_row[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+    return TRUE;
+}
+
+bool8 S9xOpenSoundDevice(void) {
+    return TRUE;
+}
+
+void S9xAutoSaveSRAM(void) {}
+
+void S9xExit(void) {}
+
+void S9xMessage(int type, int number, const char *message) {
+    (void)type; (void)number;
+    LOGI("Snes9x: %s", message ? message : "");
+}
+
+bool8 S9xOpenSnapshotFile(const char* filepath, bool8 read_only, STREAM *file) {
+    if (read_only) {
+        *file = OPEN_STREAM(filepath, "rb");
+        return (*file != 0) ? TRUE : FALSE;
+    } else {
+        *file = OPEN_STREAM(filepath, "wb");
+        return (*file != 0) ? TRUE : FALSE;
+    }
+}
+
+void S9xCloseSnapshotFile(STREAM file) {
+    CLOSE_STREAM(file);
+}
+
+const char* S9xBasename(const char* in) {
+    const char* slash = strrchr(in, '/');
+    if (!slash) slash = strrchr(in, '\\');
+    return slash ? slash + 1 : in;
+}
+
+std::string S9xGetFilename(std::string in, s9x_getdirtype type) {
+    (void)type;
+    return in;
+}
+
+std::string S9xGetFilenameInc(std::string in, s9x_getdirtype type) {
+    (void)type;
+    return in;
+}
+
+void S9xInitInputDevices(void) {}
+void S9xHandlePortCommand(s9xcommand_t cmd, short val1, short val2) {
+    (void)cmd; (void)val1; (void)val2;
+}
+bool S9xPollButton(unsigned int id, bool *pressed) {
+    (void)id; (void)pressed;
+    return false;
+}
+bool S9xPollPointer(unsigned int id, short *x, short *y) {
+    (void)id; (void)x; (void)y;
+    return false;
+}
+bool S9xPollAxis(unsigned int id, short *val) {
+    (void)id; (void)val;
+    return false;
+}
+void S9xToggleSoundChannel(int c) {
+    (void)c;
+}
+void S9xExtraUsage(void) {}
+void S9xParseArg(char **argv, int &index, int argc) {
+    (void)argv; (void)index; (void)argc;
+}
 #endif
 
 static struct {
@@ -508,9 +602,26 @@ Java_com_retropack_runtime_snes_Snes9xNativeCore_snesInit(
     Settings.SupportHiRes = true;
     Memory.Init();
     S9xInitAPU();
-    S9xInitSound(44100, 0);
+    S9xInitSound(0);
     S9xSetSoundMute(false);
     S9xGraphicsInit();
+
+    S9xInitInputDevices();
+    S9xSetController(0, CTL_JOYPAD, 0, 0, 0, 0);
+    S9xSetController(1, CTL_JOYPAD, 1, 0, 0, 0);
+    S9xUnmapAllControls();
+    S9xMapButton(0, S9xGetCommandT("Joypad1 B"), false);
+    S9xMapButton(1, S9xGetCommandT("Joypad1 Y"), false);
+    S9xMapButton(2, S9xGetCommandT("Joypad1 Select"), false);
+    S9xMapButton(3, S9xGetCommandT("Joypad1 Start"), false);
+    S9xMapButton(4, S9xGetCommandT("Joypad1 Up"), false);
+    S9xMapButton(5, S9xGetCommandT("Joypad1 Down"), false);
+    S9xMapButton(6, S9xGetCommandT("Joypad1 Left"), false);
+    S9xMapButton(7, S9xGetCommandT("Joypad1 Right"), false);
+    S9xMapButton(8, S9xGetCommandT("Joypad1 A"), false);
+    S9xMapButton(9, S9xGetCommandT("Joypad1 X"), false);
+    S9xMapButton(10, S9xGetCommandT("Joypad1 L"), false);
+    S9xMapButton(11, S9xGetCommandT("Joypad1 R"), false);
 #endif
 
     g_snes9x.initialized = true;
@@ -604,17 +715,31 @@ Java_com_retropack_runtime_snes_Snes9xNativeCore_snesRunFrame(JNIEnv* env, jobje
 
 #ifdef HAVE_SNES9X_CORE
     // 1. Pass Joypad 1 key states
-    uint32_t snes_keys = map_retro_keys_to_snes(g_snes9x.key_mask);
-    Movie.Pad[0] = snes_keys;
+    S9xReportButton(0, (g_snes9x.key_mask & (1 << 1)) != 0); // B
+    S9xReportButton(1, (g_snes9x.key_mask & (1 << 11)) != 0); // Y
+    S9xReportButton(2, (g_snes9x.key_mask & (1 << 2)) != 0); // Select
+    S9xReportButton(3, (g_snes9x.key_mask & (1 << 3)) != 0); // Start
+    S9xReportButton(4, (g_snes9x.key_mask & (1 << 6)) != 0); // Up
+    S9xReportButton(5, (g_snes9x.key_mask & (1 << 7)) != 0); // Down
+    S9xReportButton(6, (g_snes9x.key_mask & (1 << 5)) != 0); // Left
+    S9xReportButton(7, (g_snes9x.key_mask & (1 << 4)) != 0); // Right
+    S9xReportButton(8, (g_snes9x.key_mask & (1 << 0)) != 0); // A
+    S9xReportButton(9, (g_snes9x.key_mask & (1 << 10)) != 0); // X
+    S9xReportButton(10, (g_snes9x.key_mask & (1 << 9)) != 0); // L
+    S9xReportButton(11, (g_snes9x.key_mask & (1 << 8)) != 0); // R
 
-    // 2. Run emulation loop for 1 frame
+    // 2. Run emulation loop for 1 frame (S9xMainLoop calls S9xDeinitUpdate)
     S9xMainLoop();
 
     // 3. Resample sound into ring buffer
-    int16_t sound_buf[2048];
-    int samples = S9xMixSamples(sound_buf, 1024);
-    if (samples > 0 && g_snes9x.audio_rb) {
-        ringbuffer_write(g_snes9x.audio_rb, sound_buf, samples * 2);
+    int samples = S9xGetSampleCount();
+    if (samples > 0) {
+        int16_t sound_buf[2048];
+        int to_mix = samples > 2048 ? 2048 : samples;
+        S9xMixSamples((uint8_t*)sound_buf, to_mix);
+        if (g_snes9x.audio_rb) {
+            ringbuffer_write(g_snes9x.audio_rb, sound_buf, to_mix);
+        }
     }
 #else
     // Standalone active rasterization & audio synthesis engine

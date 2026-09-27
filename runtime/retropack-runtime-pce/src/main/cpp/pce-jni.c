@@ -27,13 +27,7 @@
 #define PCE_BRAM_SIZE 0x800 // 2 KB standard PC Engine Backup RAM
 
 #ifdef HAVE_BEETLE_PCE_CORE
-// Real upstream Beetle PCE Fast / Mednafen C/C++ headers
-#include <mednafen/mednafen.h>
-#include <mednafen/pce_fast/pce.h>
-#include <mednafen/pce_fast/vdc.h>
-#include <mednafen/pce_fast/psg.h>
-#include <mednafen/pce_fast/huc.h>
-#include <mednafen/pce_fast/input.h>
+#include <libretro.h>
 #endif
 
 static struct {
@@ -85,6 +79,122 @@ static struct {
     .byte_buffer_as_int_buffer = NULL,
     .byte_order_native = NULL,
 };
+
+#ifdef HAVE_BEETLE_PCE_CORE
+static bool cb_pce_environment(unsigned cmd, void *data) {
+    switch (cmd) {
+        case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT: {
+            const enum retro_pixel_format *fmt = (const enum retro_pixel_format *)data;
+            return (*fmt == RETRO_PIXEL_FORMAT_RGB565);
+        }
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
+            const char **dir = (const char **)data;
+            *dir = g_pce.storage_path;
+            return true;
+        }
+        case RETRO_ENVIRONMENT_GET_CAN_DUPE: {
+            bool *b = (bool *)data;
+            *b = true;
+            return true;
+        }
+        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
+        case RETRO_ENVIRONMENT_SET_GEOMETRY:
+        case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
+            return true;
+        case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: {
+            bool *b = (bool *)data;
+            *b = false;
+            return true;
+        }
+        case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+            return false;
+        case RETRO_ENVIRONMENT_SET_MESSAGE: {
+            const struct retro_message *msg = (const struct retro_message *)data;
+            if (msg && msg->msg) {
+                LOGI("[Beetle-PCE] %s", msg->msg);
+            }
+            return true;
+        }
+        default:
+            return false;
+    }
+}
+
+static void cb_pce_video_refresh(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (!data) return;
+    if (width > PCE_MAX_WIDTH) width = PCE_MAX_WIDTH;
+    if (height > PCE_MAX_HEIGHT) height = PCE_MAX_HEIGHT;
+
+    g_pce.video_width = (int)width;
+    g_pce.video_height = (int)height;
+
+    const uint16_t *src = (const uint16_t *)data;
+    size_t src_stride = pitch / sizeof(uint16_t);
+
+    for (unsigned y = 0; y < height; y++) {
+        const uint16_t *row_src = src + y * src_stride;
+        uint32_t *row_dst = g_pce.video_buffer + y * width;
+        for (unsigned x = 0; x < width; x++) {
+            uint16_t p = row_src[x];
+            // RGB565 to ARGB8888
+            uint32_t r = (p >> 11) & 0x1F;
+            uint32_t g = (p >> 5) & 0x3F;
+            uint32_t b = p & 0x1F;
+            r = (r * 255) / 31;
+            g = (g * 255) / 63;
+            b = (b * 255) / 31;
+            row_dst[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
+}
+
+static void cb_pce_audio_sample(int16_t left, int16_t right) {
+    if (!g_pce.audio_rb) return;
+    int16_t samples[2] = { left, right };
+    ringbuffer_write(g_pce.audio_rb, samples, 2);
+}
+
+static size_t cb_pce_audio_sample_batch(const int16_t *data, size_t frames) {
+    if (!g_pce.audio_rb || !data || frames == 0) return 0;
+    ringbuffer_write(g_pce.audio_rb, data, frames * 2);
+    return frames;
+}
+
+static void cb_pce_input_poll(void) {
+}
+
+static int16_t cb_pce_input_state(unsigned port, unsigned device, unsigned index, unsigned id) {
+    (void)index;
+    if (port != 0 || device != RETRO_DEVICE_JOYPAD) return 0;
+
+    uint32_t mask = g_pce.key_mask;
+    switch (id) {
+        case RETRO_DEVICE_ID_JOYPAD_A:      // PCE Button I
+            return ((mask & (1 << 0)) || ((mask & (1 << 10)) && (g_pce.turbo_counter & 2))) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_B:      // PCE Button II
+            return ((mask & (1 << 1)) || ((mask & (1 << 11)) && (g_pce.turbo_counter & 2))) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_SELECT: // Select
+            return (mask & (1 << 2)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_START:  // Run
+            return (mask & (1 << 3)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_UP:
+            return (mask & (1 << 6)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_DOWN:
+            return (mask & (1 << 7)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_LEFT:
+            return (mask & (1 << 5)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+            return (mask & (1 << 4)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_Y:      // PCE Button III
+            return (mask & (1 << 8)) ? 1 : 0;
+        case RETRO_DEVICE_ID_JOYPAD_X:      // PCE Button IV
+            return (mask & (1 << 9)) ? 1 : 0;
+        default:
+            return 0;
+    }
+}
+#endif
 
 // Canonical 9-bit RGB Palette table (512 colors: 3-bit R, 3-bit G, 3-bit B) -> ARGB8888
 static uint32_t s_pce_palette[512];
@@ -469,10 +579,13 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceInit(
     init_jni_cache(env);
 
 #ifdef HAVE_BEETLE_PCE_CORE
-    // Upstream Beetle PCE Fast initialization
-    MDFNI_Initialize(g_pce.storage_path);
-    PCE_Init();
-    PSG_Init();
+    retro_set_environment(cb_pce_environment);
+    retro_set_video_refresh(cb_pce_video_refresh);
+    retro_set_audio_sample(cb_pce_audio_sample);
+    retro_set_audio_sample_batch(cb_pce_audio_sample_batch);
+    retro_set_input_poll(cb_pce_input_poll);
+    retro_set_input_state(cb_pce_input_state);
+    retro_init();
 #endif
 
     g_pce.initialized = true;
@@ -496,13 +609,18 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceLoadRom(
     parse_pce_rom_header(native_path);
 
 #ifdef HAVE_BEETLE_PCE_CORE
-    if (!PCE_Load(native_path)) {
+    struct retro_game_info game_info = {
+        .path = native_path,
+        .data = NULL,
+        .size = 0,
+        .meta = NULL
+    };
+    if (!retro_load_game(&game_info)) {
         LOGE("Beetle PCE Fast failed to load ROM: %s", native_path);
         pthread_mutex_unlock(&g_pce.lock);
         (*env)->ReleaseStringUTFChars(env, romPath, native_path);
         return JNI_FALSE;
     }
-    PCE_Reset();
 #endif
 
     g_pce.rom_loaded = true;
@@ -527,7 +645,7 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceUnloadRom(JNIEnv* env, jobject t
     pthread_mutex_lock(&g_pce.lock);
 #ifdef HAVE_BEETLE_PCE_CORE
     if (g_pce.rom_loaded) {
-        PCE_Close();
+        retro_unload_game();
     }
 #endif
     g_pce.rom_loaded = false;
@@ -540,8 +658,10 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceDestroy(JNIEnv* env, jobject thi
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_pce.lock);
 #ifdef HAVE_BEETLE_PCE_CORE
-    PCE_Close();
-    MDFNI_Kill();
+    if (g_pce.rom_loaded) {
+        retro_unload_game();
+    }
+    retro_deinit();
 #endif
     if (g_pce.audio_rb) {
         ringbuffer_destroy(g_pce.audio_rb);
@@ -566,18 +686,7 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceRunFrame(JNIEnv* env, jobject th
     uint16_t pad = map_retro_keys_to_pce(g_pce.key_mask, g_pce.turbo_counter);
 
 #ifdef HAVE_BEETLE_PCE_CORE
-    // 1. Pass Joypad inputs
-    PCE_SetInput(0, pad);
-
-    // 2. Emulate 1 system frame
-    PCE_EmulateFrame();
-
-    // 3. Audio stream into ring buffer
-    int16_t sound_buf[2048];
-    int samples = PSG_GetAudioSamples(sound_buf, 1024);
-    if (samples > 0 && g_pce.audio_rb) {
-        ringbuffer_write(g_pce.audio_rb, sound_buf, samples * 2);
-    }
+    retro_run();
 #else
     // Standalone active rasterization & audio synthesis engine
     render_pce_active_frame(g_pce.frame_count, pad);
@@ -660,6 +769,10 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceGetVideoSize(JNIEnv* env, jobjec
 JNIEXPORT jint JNICALL
 Java_com_retropack_runtime_pce_PceNativeCore_pceGetSramSize(JNIEnv* env, jobject thiz) {
     (void) env; (void) thiz;
+#ifdef HAVE_BEETLE_PCE_CORE
+    size_t sz = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    if (sz > 0) return (jint) sz;
+#endif
     return (jint) g_pce.sram_size;
 }
 
@@ -679,8 +792,11 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceReadSram(
         size_t len = (size_t)(*env)->GetArrayLength(env, outBuffer);
         size_t copy_len = len < PCE_BRAM_SIZE ? len : PCE_BRAM_SIZE;
 #ifdef HAVE_BEETLE_PCE_CORE
-        if (PCE_GetBRAM()) {
-            memcpy(dst, PCE_GetBRAM(), copy_len);
+        void* sram = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+        size_t sram_sz = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+        if (sram && sram_sz > 0) {
+            size_t to_copy = len < sram_sz ? len : sram_sz;
+            memcpy(dst, sram, to_copy);
         } else {
             memcpy(dst, g_pce.bram, copy_len);
         }
@@ -710,11 +826,16 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceWriteSram(
         size_t len = (size_t)(*env)->GetArrayLength(env, inBuffer);
         size_t copy_len = len < PCE_BRAM_SIZE ? len : PCE_BRAM_SIZE;
 #ifdef HAVE_BEETLE_PCE_CORE
-        if (PCE_GetBRAM()) {
-            memcpy(PCE_GetBRAM(), src, copy_len);
+        void* sram = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+        size_t sram_sz = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+        if (sram && sram_sz > 0) {
+            size_t to_copy = len < sram_sz ? len : sram_sz;
+            memcpy(sram, src, to_copy);
         }
-#endif
         memcpy(g_pce.bram, src, copy_len);
+#else
+        memcpy(g_pce.bram, src, copy_len);
+#endif
         (*env)->ReleasePrimitiveArrayCritical(env, inBuffer, src, 0);
     }
 
@@ -733,8 +854,21 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceSaveState(
     pthread_mutex_lock(&g_pce.lock);
     bool ok = false;
 #ifdef HAVE_BEETLE_PCE_CORE
-    PCE_SaveState(path);
-    ok = true;
+    size_t sz = retro_serialize_size();
+    if (sz > 0) {
+        void* buf = malloc(sz);
+        if (buf) {
+            if (retro_serialize(buf, sz)) {
+                FILE* f = fopen(path, "wb");
+                if (f) {
+                    fwrite(buf, 1, sz, f);
+                    fclose(f);
+                    ok = true;
+                }
+            }
+            free(buf);
+        }
+    }
 #else
     FILE* f = fopen(path, "wb");
     if (f) {
@@ -760,8 +894,22 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceLoadState(
     pthread_mutex_lock(&g_pce.lock);
     bool ok = false;
 #ifdef HAVE_BEETLE_PCE_CORE
-    PCE_LoadState(path);
-    ok = true;
+    FILE* f = fopen(path, "rb");
+    if (f) {
+        fseek(f, 0, SEEK_END);
+        long fsize = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        if (fsize > 0) {
+            void* buf = malloc((size_t)fsize);
+            if (buf) {
+                if (fread(buf, 1, (size_t)fsize, f) == (size_t)fsize) {
+                    ok = retro_unserialize(buf, (size_t)fsize);
+                }
+                free(buf);
+            }
+        }
+        fclose(f);
+    }
 #else
     FILE* f = fopen(path, "rb");
     if (f) {
@@ -796,7 +944,13 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceInsertDisc(
 
     pthread_mutex_lock(&g_pce.lock);
 #ifdef HAVE_BEETLE_PCE_CORE
-    if (!PCE_Load(native_path)) {
+    struct retro_game_info game_info = {
+        .path = native_path,
+        .data = NULL,
+        .size = 0,
+        .meta = NULL
+    };
+    if (!retro_load_game(&game_info)) {
         LOGE("Beetle PCE Fast failed to mount disc %d: %s", discIndex, native_path);
         pthread_mutex_unlock(&g_pce.lock);
         (*env)->ReleaseStringUTFChars(env, discPath, native_path);
@@ -822,3 +976,4 @@ Java_com_retropack_runtime_pce_PceNativeCore_pceGetCurrentDisc(JNIEnv* env, jobj
     (void) env; (void) thiz;
     return (jint) g_pce.current_disc;
 }
+

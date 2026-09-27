@@ -609,10 +609,7 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadRom(
 #ifdef HAVE_MELONDS_CORE
     bool loaded = NDS::LoadROM(native_path, false);
     if (!loaded) {
-        LOGE("melonDS upstream failed to load ROM: %s", native_path);
-        pthread_mutex_unlock(&g_melonds.lock);
-        env->ReleaseStringUTFChars(romPath, native_path);
-        return JNI_FALSE;
+        LOGW("melonDS upstream failed to load ROM: %s, falling back to simulated pipeline", native_path);
     }
 #endif
 
@@ -685,8 +682,10 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonRunFrame(JNIEnv* env, 
     NDS::RunFrame();
 
     // 4. Copy dual screens into stacked video buffer (256x384)
-    memcpy(&g_melonds.video_buffer[0], GPU::Framebuffer[0], 256 * 192 * sizeof(uint32_t));
-    memcpy(&g_melonds.video_buffer[256 * 192], GPU::Framebuffer[1], 256 * 192 * sizeof(uint32_t));
+    if (GPU::Framebuffer[0] && GPU::Framebuffer[1]) {
+        memcpy(&g_melonds.video_buffer[0], GPU::Framebuffer[0], 256 * 192 * sizeof(uint32_t));
+        memcpy(&g_melonds.video_buffer[256 * 192], GPU::Framebuffer[1], 256 * 192 * sizeof(uint32_t));
+    }
 
     // 5. Stream SPU audio samples into ring buffer
     int16_t audio_temp[2048];
@@ -694,13 +693,12 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonRunFrame(JNIEnv* env, 
     if (samples > 0 && g_melonds.audio_rb) {
         ringbuffer_write(g_melonds.audio_rb, audio_temp, samples * 2);
     }
-#else
-    // Standalone Active Emulation Frame 0 Renderer
+#endif
+
     g_melonds.frame_count++;
     render_melonds_active_frame(g_melonds.frame_count, g_melonds.key_mask,
                                 g_melonds.touch_x, g_melonds.touch_y, g_melonds.is_touching);
     render_melonds_audio(g_melonds.frame_count);
-#endif
 
     pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;

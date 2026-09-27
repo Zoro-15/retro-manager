@@ -31,9 +31,11 @@
 #include <genesis.h>
 #include <sound.h>
 #include <vdp_ctrl.h>
+#include <vdp_render.h>
 #include <system.h>
 #include <state.h>
 #include <loadrom.h>
+#include <zlib.h>
 #endif
 
 static struct {
@@ -98,6 +100,64 @@ static inline uint16_t map_retro_keys_to_genesis(uint32_t mask) {
     if (mask & (1 << 7))  pad |= 0x0002; // DOWN
     return pad;
 }
+
+#ifdef HAVE_GENESIS_CORE
+t_config config;
+static uint16_t g_genesis_screen[720 * 576];
+
+void error(char *format, ...) {
+    va_list ap;
+    va_start(ap, format);
+    __android_log_vprint(ANDROID_LOG_DEBUG, LOG_TAG, format, ap);
+    va_end(ap);
+}
+
+void set_config_defaults(void) {
+    int i;
+    memset(&config, 0, sizeof(config));
+    config.psg_preamp = 150;
+    config.fm_preamp = 100;
+    config.cdda_volume = 100;
+    config.pcm_volume = 100;
+    config.hq_fm = 1;
+    config.hq_psg = 1;
+    config.filter = 1;
+    config.low_freq = 200;
+    config.high_freq = 8000;
+    config.lg = 100;
+    config.mg = 100;
+    config.hg = 100;
+    config.lp_range = 0x9999;
+    config.ym2612 = YM2612_DISCRETE;
+    config.ym2413 = 2;
+    config.addr_error = 1;
+    config.cd_latency = 1;
+
+    input.system[0] = SYSTEM_GAMEPAD;
+    input.system[1] = SYSTEM_GAMEPAD;
+    config.gun_cursor[0] = 1;
+    config.gun_cursor[1] = 1;
+    for (i = 0; i < MAX_INPUTS; i++) {
+        config.input[i].padtype = DEVICE_PAD2B | DEVICE_PAD3B | DEVICE_PAD6B;
+    }
+}
+
+void osd_input_update(void) {
+    input.pad[0] = map_retro_keys_to_genesis(g_genesis.key_mask);
+}
+
+int load_archive(char *filename, unsigned char *buffer, int maxsize, char *extension) {
+    if (extension && strlen(filename) >= 3) {
+        strncpy(extension, &filename[strlen(filename) - 3], 3);
+        extension[3] = 0;
+    }
+    gzFile f = gzopen(filename, "rb");
+    if (!f) return 0;
+    int read_bytes = gzread(f, buffer, maxsize);
+    gzclose(f);
+    return read_bytes;
+}
+#endif
 
 // 5x7 Minimal Monospace Font Table (ASCII 32 to 90)
 static const uint8_t FONT_5X7[59][5] = {
@@ -486,21 +546,11 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisInit(
 
 #ifdef HAVE_GENESIS_CORE
     set_config_defaults();
-    config.psg_preamp = 150;
-    config.fm_preamp = 100;
-    config.hq_fm = 1;
-    config.psg_boost_noise = 1;
-    config.filter = 1;
-    config.lp_range = 0x9999;
-    config.low_freq = 880;
-    config.high_freq = 5000;
-    config.lg = 1.0;
-    config.mg = 1.0;
-    config.hg = 1.0;
-    config.system = 0;
-    config.region_detect = 0;
-    config.vmode = 0;
-    config.overscan = 0;
+    memset(&bitmap, 0, sizeof(bitmap));
+    bitmap.width = 720;
+    bitmap.height = 576;
+    bitmap.pitch = 720 * 2;
+    bitmap.data = (uint8_t*)g_genesis_screen;
     audio_init(44100, 60.0);
     system_init();
 #endif
@@ -575,6 +625,7 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisDestroy(JNIEnv* env,
     pthread_mutex_lock(&g_genesis.lock);
 #ifdef HAVE_GENESIS_CORE
     system_shutdown();
+    audio_shutdown();
 #endif
     if (g_genesis.audio_rb) {
         ringbuffer_destroy(g_genesis.audio_rb);
@@ -603,6 +654,33 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisRunFrame(JNIEnv* env
 
     // 2. Emulate single system frame
     system_frame(0);
+
+    // Blit active viewport from bitmap.data (RGB565) to g_genesis.video_buffer (0xFFRRGGBB)
+    int vx = bitmap.viewport.x;
+    int vy = bitmap.viewport.y;
+    int vw = bitmap.viewport.w;
+    int vh = bitmap.viewport.h;
+    if (vw <= 0) vw = GENESIS_DEFAULT_WIDTH;
+    if (vh <= 0) vh = GENESIS_DEFAULT_HEIGHT;
+    if (vw > GENESIS_MAX_WIDTH) vw = GENESIS_MAX_WIDTH;
+    if (vh > GENESIS_MAX_HEIGHT) vh = GENESIS_MAX_HEIGHT;
+
+    g_genesis.video_width = vw;
+    g_genesis.video_height = vh;
+
+    uint16_t* src_base = (uint16_t*)bitmap.data;
+    int stride = bitmap.pitch / 2;
+    for (int y = 0; y < vh; y++) {
+        uint16_t* src_row = src_base + (vy + y) * stride + vx;
+        uint32_t* dst_row = g_genesis.video_buffer + y * vw;
+        for (int x = 0; x < vw; x++) {
+            uint16_t px = src_row[x];
+            uint32_t r = ((px >> 11) & 0x1F) * 255 / 31;
+            uint32_t g = ((px >> 5) & 0x3F) * 255 / 63;
+            uint32_t b = (px & 0x1F) * 255 / 31;
+            dst_row[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        }
+    }
 
     // 3. Audio stream into ring buffer
     int16_t audio_samples[2048];
@@ -766,11 +844,16 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisSaveState(
     pthread_mutex_lock(&g_genesis.lock);
     bool ok = false;
 #ifdef HAVE_GENESIS_CORE
-    FILE* f = fopen(path, "wb");
-    if (f) {
-        state_save((unsigned char*)f);
-        fclose(f);
-        ok = true;
+    uint8_t* state_buf = (uint8_t*)malloc(STATE_SIZE);
+    if (state_buf) {
+        int bytes = state_save(state_buf);
+        FILE* f = fopen(path, "wb");
+        if (f) {
+            fwrite(state_buf, 1, (size_t)bytes, f);
+            fclose(f);
+            ok = true;
+        }
+        free(state_buf);
     }
 #else
     FILE* f = fopen(path, "wb");
@@ -799,9 +882,18 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisLoadState(
 #ifdef HAVE_GENESIS_CORE
     FILE* f = fopen(path, "rb");
     if (f) {
-        state_load((unsigned char*)f);
+        fseek(f, 0, SEEK_END);
+        long sz = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        if (sz > 0 && sz <= STATE_SIZE) {
+            uint8_t* state_buf = (uint8_t*)malloc((size_t)sz);
+            if (state_buf) {
+                fread(state_buf, 1, (size_t)sz, f);
+                ok = state_load(state_buf) > 0;
+                free(state_buf);
+            }
+        }
         fclose(f);
-        ok = true;
     }
 #else
     FILE* f = fopen(path, "rb");
