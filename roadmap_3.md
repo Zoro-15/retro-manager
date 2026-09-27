@@ -12,6 +12,8 @@
 1. **Tier 1 (GB / GBC / GBA — mGBA)**: ✅ Fully operational with native upstream C execution, audio ringbuffer, and battery SRAM durability.
 2. **Phase 13.1 (Nintendo 64 — Mupen64Plus-Next)**: ✅ Fully operational via Commits `98182f6e`, `321f8e93`, and `73f08042`. Verified 100% green on remote GitHub Actions CI ([Run 36285694683](https://github.com/Zoro-15/retro-manager/actions/runs/36285694683) and [Run 36285694598](https://github.com/Zoro-15/retro-manager/actions/runs/36285694598)).
 3. **Sprint 1 (SNES & Sega Genesis — Snes9x + Genesis Plus GX)**: ✅ Fully operational via Commits `882db7e6`, `d0e40489`, and `e64186b9`. Verified 100% green on remote GitHub Actions CI ([Run 36287368925](https://github.com/Zoro-15/retro-manager/actions/runs/36287368925), [Run 36287368915](https://github.com/Zoro-15/retro-manager/actions/runs/36287368915), and [Run 36287471663](https://github.com/Zoro-15/retro-manager/actions/runs/36287471663)).
+4. **Sprint 2 (NES & PC Engine — FCEUmm + Beetle PCE Fast)**: ✅ Fully operational via Commits `b9566fda`, `ac2a1f57`, and `381d85b9`. Verified 100% green on remote GitHub Actions CI ([Run 36288077682](https://github.com/Zoro-15/retro-manager/actions/runs/36288077682), [Run 36288077687](https://github.com/Zoro-15/retro-manager/actions/runs/36288077687), and [Run 36288174690](https://github.com/Zoro-15/retro-manager/actions/runs/36288174690)).
+5. **Sprint 3 (Sony PlayStation 1 & Arcade / Neo Geo — PCSX ReARMed + FinalBurn Neo)**: ✅ Fully operational via Commits `6d9dfb64`, `5796a6ab`, `2bffa4bd`, `b82758f7`, and `2ceb17c6`. Verified 100% green on remote GitHub Actions CI ([Run 36289411239](https://github.com/Zoro-15/retro-manager/actions/runs/36289411239), [Run 36289411367](https://github.com/Zoro-15/retro-manager/actions/runs/36289411367), and [Run 36289665567](https://github.com/Zoro-15/retro-manager/actions/runs/36289665567)).
 
 ### The Proven 3-Part Modular Pattern
 Each core pair follows the proven 3-part delivery pattern:
@@ -171,7 +173,7 @@ graph TD
 
 ---
 
-## 📦 SPRINT 3: The 32-Bit & Arcade Titans (PS1 & FinalBurn Neo)
+## 📦 SPRINT 3: The 32-Bit & Arcade Titans (PS1 & FinalBurn Neo) — ✅ COMPLETED & CI VERIFIED
 
 ### Target 3.1: Sony PlayStation 1 (PCSX ReARMed)
 - **Module Path**: [`runtime/retropack-runtime-pcsx`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-pcsx)
@@ -181,12 +183,12 @@ graph TD
 - **Control Layout**: PlayStation 4-Symbol Cluster (Cross, Circle, Square, Triangle), L1, R1, L2, R2, Dual Analog Sticks (L3, R3), Select, Start
 
 #### Execution Tasks:
-1. **Part 1 (Native Engine & Video Pipeline)**:
+1. **Part 1 (Native Engine & Video Pipeline)**: ✅
    - In [`pcsx-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-pcsx/src/main/cpp/pcsx-jni.c), implement active frame 0 rendering.
    - Implement PS-X ISO / EXE header parser: inspect Primary Volume Descriptor (`CD001`) at sector 16, resolve `SYSTEM.CNF`, parse `BOOT = cdrom:\<TITLE_ID>;1`.
    - Support Multi-Disc `.m3u` playlist indexing and virtual tray open/close signals.
    - Implement 128 KB Memory Card 1 (`.mcr` / `.sav`) durability.
-2. **Part 2 (Display, Colors & Overlay Layout)**:
+2. **Part 2 (Display, Colors & Overlay Layout)**: ✅
    - Expand [`TouchLayout.ps1()`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt):
      - Cross: Blue ($\times$)
      - Circle: Red ($\bigcirc$)
@@ -195,7 +197,7 @@ graph TD
      - Dual shoulder pills (L1/L2 and R1/R2)
      - Dual analog thumbsticks with L3 and R3 click triggers
    - Wire `platform in setOf("psx", "ps1", "ps")`.
-3. **Part 3 (Packaging & Validation)**:
+3. **Part 3 (Packaging & Validation)**: ✅
    - Add `consumer-rules.pro` for `retropack-runtime-pcsx`.
    - Update `PcsxNativeCoreTest.kt`.
    - Push and verify remote CI.
@@ -210,16 +212,16 @@ graph TD
 - **Control Layout**: Neo Geo 4-Button Curved Row (A, B, C, D) / Capcom 6-Button Grid (LP, MP, HP, LK, MK, HK) + Coin + 1P Start
 
 #### Execution Tasks:
-1. **Part 1 (Native Engine & Video Pipeline)**:
+1. **Part 1 (Native Engine & Video Pipeline)**: ✅
    - In [`fbneo-jni.c`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.c), implement active arcade frame 0 rasterizer.
    - Implement Arcade ZIP/ROM archive parser: verify CRC32/SHA-1 of core program ROMs against FBNeo driver table.
    - Implement Coin insertion and 1P/2P start inputs.
    - Wire NVRAM / High Score table durability.
-2. **Part 2 (Display, Colors & Overlay Layout)**:
+2. **Part 2 (Display, Colors & Overlay Layout)**: ✅
    - Ensure [`TouchLayout.arcade()`](file:///c:/Users/ok/Documents/retro%20manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/input/TouchLayout.kt#L526) is wired to `TouchOverlayView`.
    - Neo Geo colored buttons: A (Red), B (Yellow), C (Green), D (Blue).
    - Coin and 1P Start system buttons.
-3. **Part 3 (Packaging & Validation)**:
+3. **Part 3 (Packaging & Validation)**: ✅
    - Add `consumer-rules.pro` for `retropack-runtime-fbneo`.
    - Update `FbNeoNativeCoreTest.kt`.
    - Push and verify remote CI.
