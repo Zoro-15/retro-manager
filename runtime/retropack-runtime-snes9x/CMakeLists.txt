@@ -34,6 +34,7 @@ target_link_libraries(retropack-runtime-snes9x PRIVATE
     OpenSLES
     android
     log
+    m
 )
 
 target_link_options(retropack-runtime-snes9x PRIVATE
