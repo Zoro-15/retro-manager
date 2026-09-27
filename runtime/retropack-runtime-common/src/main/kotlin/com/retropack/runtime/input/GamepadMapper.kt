@@ -280,8 +280,8 @@ class GamepadMapper(
             event.getAxisValue(MotionEvent.AXIS_RTRIGGER),
             event.getAxisValue(MotionEvent.AXIS_GAS)
         )
-        if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L or RetroKey.KEY_L2
-        if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R or RetroKey.KEY_R2
+        if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L
+        if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R
 
         // 4. Right Analog Stick (AXIS_Z / AXIS_RZ) -> N64 C-Buttons
         val rStickX = event.getAxisValue(MotionEvent.AXIS_Z)
