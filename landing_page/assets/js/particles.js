@@ -13,12 +13,12 @@
 
   const ctx = canvas.getContext('2d');
   const COLORS = [
-    'rgba(129, 140, 248, A)',   // indigo bright
-    'rgba(99, 102, 241, A)',    // indigo
-    'rgba(34, 211, 238, A)',    // teal bright
-    'rgba(6, 182, 212, A)',     // teal
-    'rgba(192, 132, 252, A)',   // violet bright
-    'rgba(232, 236, 244, A)',   // ink
+    'rgba(0, 245, 155, A)',    // laser mint
+    'rgba(16, 185, 129, A)',   // emerald
+    'rgba(110, 231, 183, A)',  // light mint
+    'rgba(52, 211, 153, A)',   // sea green
+    'rgba(255, 255, 255, A)',  // crisp starlight
+    'rgba(5, 150, 105, A)',    // deep emerald
   ];
 
   let W = 0, H = 0, DPR = 1;
