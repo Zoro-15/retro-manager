@@ -36,6 +36,7 @@ target_link_libraries(retropack-runtime-fceumm PRIVATE
     OpenSLES
     android
     log
+    m
 )
 
 target_link_options(retropack-runtime-fceumm PRIVATE
