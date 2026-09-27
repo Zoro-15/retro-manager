@@ -35,6 +35,7 @@ class PpssppNativeCoreTest {
             .press(RetroKey.R) // R trigger
             .press(RetroKey.START)
             .press(RetroKey.SELECT)
+            .press(RetroKey.MODE) // Home
             .build()
 
         assertTrue((mask and RetroKey.KEY_A) != 0)
@@ -45,6 +46,7 @@ class PpssppNativeCoreTest {
         assertTrue((mask and RetroKey.KEY_R) != 0)
         assertTrue((mask and RetroKey.KEY_START) != 0)
         assertTrue((mask and RetroKey.KEY_SELECT) != 0)
+        assertTrue((mask and RetroKey.KEY_MODE) != 0)
         assertEquals(0, mask and RetroKey.KEY_UP)
     }
 
@@ -55,6 +57,12 @@ class PpssppNativeCoreTest {
         }
         assertThrows(UnsatisfiedLinkError::class.java) {
             PpssppNativeCore.nativeGetSramSize()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PpssppNativeCore.nativeRunFrame()
+        }
+        assertThrows(UnsatisfiedLinkError::class.java) {
+            PpssppNativeCore.nativeSetAnalogAxis(0.5f, -0.5f)
         }
     }
 }
