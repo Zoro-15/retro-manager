@@ -103,6 +103,7 @@ target_include_directories(retropack-runtime-fbneo PRIVATE
     "${FBNEO_SOURCE_DIR}/src/burn/drv/neogeo"
     "${FBNEO_SOURCE_DIR}/src/burner"
     "${FBNEO_SOURCE_DIR}/src/burner/libretro"
+    "${FBNEO_SOURCE_DIR}/src/burner/libretro/libretro-common/include"
     "${FBNEO_SOURCE_DIR}/src/cpu"
     "${FBNEO_SOURCE_DIR}/src/cpu/m68k"
     "${FBNEO_SOURCE_DIR}/src/cpu/z80"

@@ -25,6 +25,9 @@ if(EXISTS "${PCE_SOURCE_DIR}/libretro.c")
         -DFRONTEND_SUPPORTS_RGB565=1
         -DSTATIC_LINKING=1
         -DINLINE=inline
+        -DMEDNAFEN_VERSION_NUMERIC=931
+        -DMEDNAFEN_VERSION=\"0.9.31\"
+        -D_LOW_ACCURACY_
     )
 
     set(PCE_CORE_SRCS

@@ -36,6 +36,8 @@
 #include <SPU.h>
 #include <SPI.h>
 #include <NDSCart.h>
+#include <memory>
+static std::unique_ptr<melonDS::NDS> s_nds_instance;
 #endif
 
 static struct {
@@ -583,8 +585,9 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonInit(
     init_jni_cache(env);
 
 #ifdef HAVE_MELONDS_CORE
-    NDS::Init();
-    NDS::SetDirectBoot(true);
+    if (!s_nds_instance) {
+        s_nds_instance = std::make_unique<melonDS::NDS>();
+    }
 #endif
 
     g_melonds.initialized = true;
@@ -607,9 +610,24 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadRom(
     inspect_nds_rom(native_path);
 
 #ifdef HAVE_MELONDS_CORE
-    bool loaded = NDS::LoadROM(native_path, false);
-    if (!loaded) {
-        LOGW("melonDS upstream failed to load ROM: %s, falling back to simulated pipeline", native_path);
+    if (s_nds_instance) {
+        FILE* rf = fopen(native_path, "rb");
+        if (rf) {
+            fseek(rf, 0, SEEK_END);
+            long flen = ftell(rf);
+            fseek(rf, 0, SEEK_SET);
+            if (flen > 0) {
+                auto rdata = std::make_unique<uint8_t[]>(flen);
+                fread(rdata.get(), 1, flen, rf);
+                auto cart = melonDS::NDSCart::ParseROM(std::move(rdata), (uint32_t)flen);
+                if (cart) {
+                    s_nds_instance->SetNDSCart(std::move(cart));
+                    s_nds_instance->SetupDirectBoot(native_path);
+                    s_nds_instance->Reset();
+                }
+            }
+            fclose(rf);
+        }
     }
 #endif
 
@@ -633,8 +651,8 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonUnloadRom(JNIEnv* env,
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_melonds.lock);
 #ifdef HAVE_MELONDS_CORE
-    if (g_melonds.rom_loaded) {
-        NDS::DeInit();
+    if (g_melonds.rom_loaded && s_nds_instance) {
+        s_nds_instance->Stop();
     }
 #endif
     g_melonds.rom_loaded = false;
@@ -647,7 +665,10 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonDestroy(JNIEnv* env, j
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_melonds.lock);
 #ifdef HAVE_MELONDS_CORE
-    NDS::DeInit();
+    if (s_nds_instance) {
+        s_nds_instance->Stop();
+        s_nds_instance.reset();
+    }
 #endif
     if (g_melonds.audio_rb) {
         ringbuffer_destroy(g_melonds.audio_rb);
@@ -668,30 +689,14 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonRunFrame(JNIEnv* env, 
     }
 
 #ifdef HAVE_MELONDS_CORE
-    // 1. Pass keypad bits (A, B, Select, Start, Right, Left, Up, Down, R, L, X, Y)
-    NDS::SetKeyMask(~g_melonds.key_mask);
-
-    // 2. Pass touch stylus state
-    if (g_melonds.is_touching) {
-        NDS::SetTouchPos(g_melonds.touch_x, g_melonds.touch_y);
-    } else {
-        NDS::ReleaseTouch();
-    }
-
-    // 3. Emulate NDS frame (~560,190 ARM9/ARM7 cycles)
-    NDS::RunFrame();
-
-    // 4. Copy dual screens into stacked video buffer (256x384)
-    if (GPU::Framebuffer[0] && GPU::Framebuffer[1]) {
-        memcpy(&g_melonds.video_buffer[0], GPU::Framebuffer[0], 256 * 192 * sizeof(uint32_t));
-        memcpy(&g_melonds.video_buffer[256 * 192], GPU::Framebuffer[1], 256 * 192 * sizeof(uint32_t));
-    }
-
-    // 5. Stream SPU audio samples into ring buffer
-    int16_t audio_temp[2048];
-    int samples = SPU::ReadOutput(audio_temp, 1024);
-    if (samples > 0 && g_melonds.audio_rb) {
-        ringbuffer_write(g_melonds.audio_rb, audio_temp, samples * 2);
+    if (s_nds_instance) {
+        s_nds_instance->KeyInput = ~g_melonds.key_mask;
+        if (g_melonds.is_touching) {
+            s_nds_instance->TouchScreen((uint16_t)g_melonds.touch_x, (uint16_t)g_melonds.touch_y);
+        } else {
+            s_nds_instance->ReleaseScreen();
+        }
+        s_nds_instance->RunFrame();
     }
 #endif
 

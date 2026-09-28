@@ -49,6 +49,7 @@ target_include_directories(retropack-runtime-genesis PRIVATE
     "${GENESIS_SOURCE_DIR}/core/m68k"
     "${GENESIS_SOURCE_DIR}/core/z80"
     "${GENESIS_SOURCE_DIR}/core/sound"
+    "${GENESIS_SOURCE_DIR}/core/sound/minimp3"
     "${GENESIS_SOURCE_DIR}/core/cart_hw"
     "${GENESIS_SOURCE_DIR}/core/cart_hw/svp"
     "${GENESIS_SOURCE_DIR}/core/input_hw"

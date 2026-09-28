@@ -161,6 +161,28 @@ void S9xExtraUsage(void) {}
 void S9xParseArg(char **argv, int &index, int argc) {
     (void)argv; (void)index; (void)argc;
 }
+const char* S9xGetDirectory(s9x_getdirtype type) {
+    (void)type;
+    return g_snes9x.storage_path;
+}
+void S9xParsePortConfig(ConfigFile& conf, int pass) {
+    (void)conf;
+    (void)pass;
+}
+bool8 S9xContinueUpdate(int width, int height) {
+    (void)width;
+    (void)height;
+    return TRUE;
+}
+void S9xSyncSpeed(void) {}
+const char* S9xStringInput(const char* message) {
+    (void)message;
+    return NULL;
+}
+std::string S9xGetFilenameInc(std::string in, s9x_getdirtype type) {
+    (void)type;
+    return in;
+}
 #endif
 
 static inline uint32_t map_retro_keys_to_snes(uint32_t mask) {

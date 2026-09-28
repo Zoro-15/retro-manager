@@ -35,6 +35,9 @@
 #include <m64p_common.h>
 #include <m64p_frontend.h>
 #include <m64p_config.h>
+#ifndef FRONTEND_API_VERSION
+#define FRONTEND_API_VERSION 0x020106
+#endif
 #endif
 
 static struct {

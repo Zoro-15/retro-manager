@@ -457,7 +457,7 @@ static void render_ppsspp_active_frame(uint64_t frame, uint32_t pad, int16_t sx,
 
     float rotY = (float) frame * 0.025f;
     float rotX = sinf((float) frame * 0.015f) * 0.30f;
-    Point2D proj[6];
+    PspPoint2D proj[6];
     for (int i = 0; i < 6; i++) {
         proj[i] = project_3d_point(vertices[i], rotX, rotY, w / 2, 125, 230.0f);
     }

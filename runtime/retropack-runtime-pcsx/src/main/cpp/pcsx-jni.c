@@ -38,6 +38,8 @@
 #include <spu.h>
 #include <sio.h>
 #include <cdrom.h>
+#include <cdriso.h>
+#include <misc.h>
 #endif
 
 static struct {
@@ -624,12 +626,11 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxInit(
 
 #ifdef HAVE_PCSX_CORE
     // Upstream PCSX ReARMed HLE initialization
-    Config.Hle = 1; // Direct HLE BIOS boot without scph5501.bin requirement
+    Config.HLE = 1; // Direct HLE BIOS boot without scph5501.bin requirement
     Config.Xa = 1;
     Config.Cdda = 1;
-    Config.RCntFix = 0;
-    Config.Cpu = 0; // Dynamic recompiler
-    psxInit();
+    Config.Cpu = CPU_INTERPRETER;
+    EmuInit();
 #endif
 
     g_pcsx.initialized = true;
@@ -652,10 +653,10 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxLoadRom(
     inspect_psx_disc(native_path);
 
 #ifdef HAVE_PCSX_CORE
-    if (psxLoad(native_path) != 0) {
-        LOGW("PCSX ReARMed psxLoad returned non-zero for %s, falling back to simulated rasterizer", native_path);
+    if (ISOopen(native_path) != 0) {
+        LOGW("PCSX ReARMed ISOopen returned non-zero for %s, falling back to simulated rasterizer", native_path);
     } else {
-        psxReset();
+        EmuReset();
     }
 #endif
 
@@ -679,7 +680,8 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxUnloadRom(JNIEnv* env, jobjec
     pthread_mutex_lock(&g_pcsx.lock);
 #ifdef HAVE_PCSX_CORE
     if (g_pcsx.rom_loaded) {
-        psxShutdown();
+        ISOclose();
+        EmuShutdown();
     }
 #endif
     g_pcsx.rom_loaded = false;
@@ -692,7 +694,8 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxDestroy(JNIEnv* env, jobject 
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_pcsx.lock);
 #ifdef HAVE_PCSX_CORE
-    psxShutdown();
+    ISOclose();
+    EmuShutdown();
 #endif
     if (g_pcsx.audio_rb) {
         ringbuffer_destroy(g_pcsx.audio_rb);
@@ -715,19 +718,9 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxRunFrame(JNIEnv* env, jobject
     uint16_t pad = map_retro_keys_to_psx(g_pcsx.key_mask);
 
 #ifdef HAVE_PCSX_CORE
-    // 1. Pass Joypad 1 buttons
-    PAD1_Buttons = pad;
-
-    // 2. Emulate 1 system frame
+    // Emulate 1 system frame
     if (psxCpu) {
-        psxCpu->Execute();
-    }
-
-    // 3. Audio stream into ring buffer
-    int16_t sound_buf[2048];
-    int samples = SPU_GetSamples(sound_buf, 1024);
-    if (samples > 0 && g_pcsx.audio_rb) {
-        ringbuffer_write(g_pcsx.audio_rb, sound_buf, samples * 2);
+        psxCpu->Execute(&psxRegs);
     }
 #endif
 
@@ -830,11 +823,7 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxReadSram(
         size_t len = (size_t)(*env)->GetArrayLength(env, outBuffer);
         size_t copy_len = len < PSX_MCD_SIZE ? len : PSX_MCD_SIZE;
 #ifdef HAVE_PCSX_CORE
-        if (Mcd1Data) {
-            memcpy(dst, Mcd1Data, copy_len);
-        } else {
-            memcpy(dst, g_pcsx.mcd, copy_len);
-        }
+        memcpy(dst, Mcd1Data, copy_len);
 #else
         memcpy(dst, g_pcsx.mcd, copy_len);
 #endif
@@ -861,9 +850,7 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxWriteSram(
         size_t len = (size_t)(*env)->GetArrayLength(env, inBuffer);
         size_t copy_len = len < PSX_MCD_SIZE ? len : PSX_MCD_SIZE;
 #ifdef HAVE_PCSX_CORE
-        if (Mcd1Data) {
-            memcpy(Mcd1Data, src, copy_len);
-        }
+        memcpy(Mcd1Data, src, copy_len);
 #endif
         memcpy(g_pcsx.mcd, src, copy_len);
         (*env)->ReleasePrimitiveArrayCritical(env, inBuffer, src, 0);
@@ -914,7 +901,7 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxEjectDisc(JNIEnv* env, jobjec
     g_pcsx.tray_open = true;
     LOGI("PCSX ReARMed CD-ROM tray opened / disc ejected");
 #ifdef HAVE_PCSX_CORE
-    CDR_close();
+    ISOclose();
 #endif
     pthread_mutex_unlock(&g_pcsx.lock);
     return JNI_TRUE;
@@ -930,8 +917,8 @@ Java_com_retropack_runtime_pcsx_PcsxNativeCore_pcsxInsertDisc(
 
     pthread_mutex_lock(&g_pcsx.lock);
 #ifdef HAVE_PCSX_CORE
-    CDR_close();
-    if (psxLoad(native_path) != 0) {
+    ISOclose();
+    if (ISOopen(native_path) != 0) {
         LOGE("PCSX ReARMed failed to mount disc %d: %s", discIndex, native_path);
         pthread_mutex_unlock(&g_pcsx.lock);
         (*env)->ReleaseStringUTFChars(env, discPath, native_path);

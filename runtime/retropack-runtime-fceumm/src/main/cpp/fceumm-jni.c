@@ -58,14 +58,6 @@ void FCEUD_DispMessage(enum retro_log_level level, unsigned duration, const char
     }
 }
 
-void FCEU_DispMessage(enum retro_log_level level, unsigned duration, const char *format, ...) {
-    char temp[1024];
-    va_list ap;
-    va_start(ap, format);
-    vsnprintf(temp, sizeof(temp), format, ap);
-    va_end(ap);
-    FCEUD_DispMessage(level, duration, temp);
-}
 
 void FCEUD_SetPalette(uint16_t index, uint8_t r, uint8_t g, uint8_t b) {
     (void)index; (void)r; (void)g; (void)b;
