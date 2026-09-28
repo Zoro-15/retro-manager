@@ -80,8 +80,18 @@ class RetroGlRenderer(
     private val texCoordBuffer: FloatBuffer = RetroGlShader.createTexCoordBuffer()
     private val textureArray = IntArray(1)
 
+    // Tracks the dimensions currently allocated in VRAM so that per-frame uploads
+    // can use glTexSubImage2D instead of re-allocating texture storage every frame.
+    @Volatile
+    private var allocatedTextureWidth: Int = 0
+
+    @Volatile
+    private var allocatedTextureHeight: Int = 0
+
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        allocatedTextureWidth = 0
+        allocatedTextureHeight = 0
 
         // Precompile default passthrough program
         loadProgramForMode(shaderMode)
@@ -146,17 +156,35 @@ class RetroGlRenderer(
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
 
-        GLES20.glTexImage2D(
-            GLES20.GL_TEXTURE_2D,
-            0,
-            GLES20.GL_RGBA,
-            nativeWidth,
-            nativeHeight,
-            0,
-            GLES20.GL_RGBA,
-            GLES20.GL_UNSIGNED_BYTE,
-            buffer
-        )
+        if (allocatedTextureWidth != nativeWidth || allocatedTextureHeight != nativeHeight) {
+            // Dimensions changed: (re)allocate texture storage, then record it.
+            GLES20.glTexImage2D(
+                GLES20.GL_TEXTURE_2D,
+                0,
+                GLES20.GL_RGBA,
+                nativeWidth,
+                nativeHeight,
+                0,
+                GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE,
+                buffer
+            )
+            allocatedTextureWidth = nativeWidth
+            allocatedTextureHeight = nativeHeight
+        } else {
+            // Same dimensions: upload pixels in-place without reallocating VRAM.
+            GLES20.glTexSubImage2D(
+                GLES20.GL_TEXTURE_2D,
+                0,
+                0,
+                0,
+                nativeWidth,
+                nativeHeight,
+                GLES20.GL_RGBA,
+                GLES20.GL_UNSIGNED_BYTE,
+                buffer
+            )
+        }
 
         if (samplerHandle >= 0) {
             GLES20.glUniform1i(samplerHandle, 0)
@@ -270,5 +298,7 @@ class RetroGlRenderer(
         }
         programs.clear()
         currentProgram = 0
+        allocatedTextureWidth = 0
+        allocatedTextureHeight = 0
     }
 }
