@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.InputStream
 
 object UriUtils {
@@ -49,6 +50,24 @@ object UriUtils {
                 os.flush()
             } ?: throw IllegalStateException("Could not open output stream for URI: $uri")
         }
+    }
+
+    fun copyUriToTempFile(context: Context, uri: Uri, targetFile: File): File? {
+        return try {
+            targetFile.parentFile?.mkdirs()
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                targetFile.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 64 * 1024)
+                }
+            }
+            if (targetFile.exists() && targetFile.length() > 0) targetFile else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getStagingDirectory(context: Context): File {
+        return File(context.cacheDir, "rom_staging").also { it.mkdirs() }
     }
 
     fun formatFileSize(bytes: Long): String {

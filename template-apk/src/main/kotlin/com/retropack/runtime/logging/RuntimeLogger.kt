@@ -2,6 +2,7 @@ package com.retropack.runtime.logging
 
 import android.content.Context
 import android.os.Build
+import android.os.Environment
 import java.io.BufferedWriter
 import java.io.File
 import java.io.FileWriter
@@ -15,22 +16,36 @@ import java.util.concurrent.ConcurrentLinkedQueue
 /**
  * High-reliability, crash-consistent diagnostic logger for the RetroPack standalone runtime.
  *
- * Captures lifecycle milestones, ROM staging status, JNI bridge calls, OpenGL frame pacing,
- * and uncaught exceptions directly to a persistent, shareable log file on disk.
+ * Implements accessible public logging and single-session persistence:
+ * - On game launch, initializes a dedicated log file in the public Download directory:
+ *   `/sdcard/Download/logs/<app_slug>/<app_slug>.log`
+ *   (e.g., `/sdcard/Download/logs/tobu_tobu_girl/tobu_tobu_girl.log`).
+ * - Records all startup, ROM staging, JNI bridge calls, frame pacing, and errors during the
+ *   critical 2-minute launch window with immediate disk flush.
+ * - Flushes and preserves all logs even if the user closes the game before 2 minutes.
+ * - Also maintains an internal fallback in app-specific storage.
+ * - Automatically hooks into uncaught exceptions to guarantee crash logs are written before process death.
  */
 object RuntimeLogger {
 
     const val LOG_FILENAME = "retropack_runtime.log"
+    const val LAUNCH_RECORDING_WINDOW_MS = 120_000L // 2 minutes (120s)
     private const val MAX_MEMORY_LINES = 500
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US)
     private val memoryLogBuffer = ConcurrentLinkedQueue<String>()
 
     @Volatile
-    private var activeLogFile: File? = null
+    private var activeInternalLogFile: File? = null
 
     @Volatile
-    private var writer: BufferedWriter? = null
+    private var activePublicLogFile: File? = null
+
+    @Volatile
+    private var internalWriter: BufferedWriter? = null
+
+    @Volatile
+    private var publicWriter: BufferedWriter? = null
 
     @Volatile
     private var defaultUncaughtHandler: Thread.UncaughtExceptionHandler? = null
@@ -38,25 +53,68 @@ object RuntimeLogger {
     @Volatile
     private var isInitialized = false
 
+    @Volatile
+    private var launchTimestamp: Long = 0L
+
     val logFile: File?
-        get() = activeLogFile
+        get() = activePublicLogFile ?: activeInternalLogFile
+
+    val publicLogFile: File?
+        get() = activePublicLogFile
+
+    val internalLogFile: File?
+        get() = activeInternalLogFile
 
     /**
      * Initializes continuous file logging for the runtime host.
      */
     fun start(context: Context) = init(context)
 
+    /**
+     * Resolves the public Download logs folder: `/sdcard/Download/logs/<appSlug>`.
+     */
+    fun resolvePublicDownloadLogsDir(appSlug: String): File {
+        val downloadDir: File = runCatching<File?> {
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        }.getOrNull()?.takeIf { !it.path.isNullOrBlank() } ?: File(System.getProperty("user.home", "/sdcard"), "Download")
+
+        val target = File(downloadDir, "logs/$appSlug")
+        runCatching { target.mkdirs() }
+        return target
+    }
+
+    private fun deriveAppSlug(context: Context?): String {
+        if (context == null) return "game"
+        val pkg = runCatching { context.packageName }.getOrNull() ?: return "game"
+        return when {
+            pkg.contains("manager") -> "manager"
+            pkg.contains("retropack") -> pkg.substringAfterLast(".").ifEmpty { "game" }
+            else -> pkg.substringAfterLast(".").ifEmpty { "game" }
+        }
+    }
+
     @Synchronized
-    fun init(context: Context? = null, logDir: File? = null) {
+    fun init(context: Context? = null, logDir: File? = null, publicLogDir: File? = null, slug: String? = null) {
         if (isInitialized) return
 
+        launchTimestamp = System.currentTimeMillis()
+        val appSlug = slug ?: deriveAppSlug(context)
+
         try {
+            // 1. Internal / App-specific logging destination
             val targetDir = logDir ?: context?.let { it.getExternalFilesDir(null) ?: it.filesDir } ?: File(System.getProperty("java.io.tmpdir"), "retropack_logs")
             targetDir.mkdirs()
-            val file = File(targetDir, LOG_FILENAME)
-            activeLogFile = file
+            val internalFile = File(targetDir, LOG_FILENAME)
+            activeInternalLogFile = internalFile
+            internalWriter = BufferedWriter(FileWriter(internalFile, false), 8192)
 
-            writer = BufferedWriter(FileWriter(file, false), 8192)
+            // 2. Public Download logging destination: /sdcard/Download/logs/<appSlug>/<appSlug>.log
+            val targetPublicDir = publicLogDir ?: resolvePublicDownloadLogsDir(appSlug)
+            runCatching { targetPublicDir.mkdirs() }
+            val publicFile = File(targetPublicDir, "$appSlug.log")
+            activePublicLogFile = publicFile
+            publicWriter = runCatching { BufferedWriter(FileWriter(publicFile, false), 8192) }.getOrNull()
+
             isInitialized = true
 
             // Install crash trap
@@ -69,8 +127,8 @@ object RuntimeLogger {
 
             // Write diagnostic header
             i("System", "==================================================")
-            i("System", "RETROPACK STANDALONE RUNTIME DIAGNOSTIC LOG")
-            i("System", "Started At: ${dateFormat.format(Date())}")
+            i("System", "RETROPACK STANDALONE RUNTIME DIAGNOSTIC LOG ($appSlug)")
+            i("System", "Started At: ${dateFormat.format(Date(launchTimestamp))}")
             i("System", "Package: ${context?.packageName ?: "com.retropack.runtime"}")
             try {
                 i("System", "Device: ${Build.MANUFACTURER} ${Build.MODEL} (Android SDK ${Build.VERSION.SDK_INT})")
@@ -79,7 +137,9 @@ object RuntimeLogger {
                 // JVM stub environment
             }
             i("System", "Internal FilesDir: ${context?.filesDir?.absolutePath ?: targetDir.absolutePath}")
-            i("System", "Target Log Path: ${file.absolutePath}")
+            i("System", "Public Log Path: ${publicFile.absolutePath}")
+            i("System", "Internal Log Path: ${internalFile.absolutePath}")
+            i("System", "Launch Auto-Record: 2 Minutes Active Window")
             i("System", "==================================================")
 
             // Start background logcat service if running on Android
@@ -112,9 +172,13 @@ object RuntimeLogger {
             memoryLogBuffer.poll()
         }
 
+        val now = System.currentTimeMillis()
+        val isWithin2MinWindow = (now - launchTimestamp) <= LAUNCH_RECORDING_WINDOW_MS
+        val shouldForceFlush = isWithin2MinWindow || level == "ERROR" || level == "WARN"
+
         synchronized(this) {
             try {
-                writer?.let { w ->
+                internalWriter?.let { w ->
                     w.write(formatted)
                     w.newLine()
                     if (throwable != null) {
@@ -124,11 +188,24 @@ object RuntimeLogger {
                         w.write(traceStr)
                         if (!traceStr.endsWith("\n")) w.newLine()
                     }
-                    w.flush()
+                    if (shouldForceFlush) w.flush()
                 }
-            } catch (_: Throwable) {
-                // Fall back to stderr
-            }
+            } catch (_: Throwable) {}
+
+            try {
+                publicWriter?.let { pw ->
+                    pw.write(formatted)
+                    pw.newLine()
+                    if (throwable != null) {
+                        val sw = StringWriter()
+                        throwable.printStackTrace(PrintWriter(sw))
+                        val traceStr = sw.toString()
+                        pw.write(traceStr)
+                        if (!traceStr.endsWith("\n")) pw.newLine()
+                    }
+                    if (shouldForceFlush) pw.flush()
+                }
+            } catch (_: Throwable) {}
         }
     }
 
@@ -139,7 +216,11 @@ object RuntimeLogger {
     @Synchronized
     fun flush() {
         try {
-            writer?.flush()
+            internalWriter?.flush()
+        } catch (_: Throwable) {}
+
+        try {
+            publicWriter?.flush()
         } catch (_: Throwable) {}
     }
 
@@ -151,8 +232,10 @@ object RuntimeLogger {
             i("System", "RETROPACK RUNTIME SHUTTING DOWN NORMALLY")
             i("System", "==================================================")
             flush()
-            writer?.close()
-            writer = null
+            internalWriter?.close()
+            publicWriter?.close()
+            internalWriter = null
+            publicWriter = null
 
             if (context != null) {
                 try {

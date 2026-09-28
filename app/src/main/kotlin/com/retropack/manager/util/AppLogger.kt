@@ -2,6 +2,7 @@ package com.retropack.manager.util
 
 import android.content.Context
 import android.os.Build
+import android.os.Environment
 import android.util.Log
 import java.io.File
 import java.io.FileWriter
@@ -15,21 +16,29 @@ import java.util.TimeZone
 /**
  * Diagnostic Session Logger for RetroPack Manager.
  *
- * Implements strict single-session persistence:
- * - On app launch, purges any previous logs and initializes a fresh `latest_session.log` in app data.
- * - Stores all operational, transformation, diagnostic, and crash logs for the current/last session.
- * - Automatically hooks into uncaught exceptions to guarantee crash logs are flushed to disk before process death.
+ * Implements accessible public logging and single-session persistence:
+ * - On app launch, initializes a dedicated log file in the public Download directory:
+ *   `/sdcard/Download/logs/manager/manager.log`
+ *   (and `/sdcard/Download/logs/<app_slug>/<app_slug>.log` for specific components).
+ * - Records all events during the critical 2-minute launch window with immediate disk flush.
+ * - Flushes and preserves all logs even if the user closes the app before 2 minutes.
+ * - Also maintains an internal fallback in app-private storage for resilient in-app reading.
+ * - Automatically hooks into uncaught exceptions to guarantee crash logs are written before process death.
  */
 object AppLogger {
 
     private const val LOG_DIR_NAME = "logs"
     private const val SESSION_LOG_FILE = "latest_session.log"
     private const val TAG_PREFIX = "RetroPack"
+    const val LAUNCH_RECORDING_WINDOW_MS = 120_000L // 2 minutes (120s)
 
     private val lock = Any()
-    private var logFile: File? = null
-    private var fileWriter: FileWriter? = null
+    private var internalLogFile: File? = null
+    private var publicLogFile: File? = null
+    private var internalWriter: FileWriter? = null
+    private var publicWriter: FileWriter? = null
     private var isInitialized = false
+    private var launchTimestamp: Long = 0L
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).apply {
         timeZone = TimeZone.getDefault()
@@ -37,50 +46,79 @@ object AppLogger {
 
     /**
      * Initializes the logger for the current application session using Context.
-     * Overwrites previous session logs to guarantee only the latest session is retained in app data.
      */
-    fun init(context: Context) {
+    fun init(context: Context, appSlug: String = "manager") {
         val baseDir = runCatching { context.filesDir }.getOrNull()
             ?: File("/data/data/${runCatching { context.packageName }.getOrDefault("com.retropack.manager")}/files")
         val pkg = runCatching { context.packageName }.getOrDefault("com.retropack.manager")
-        init(baseDir, pkg)
+        
+        val publicDir = resolvePublicDownloadLogsDir(appSlug)
+        init(baseDir = baseDir, packageName = pkg, publicLogDir = publicDir, appSlug = appSlug)
     }
 
     /**
-     * Initializes the logger using base files directory (for JVM unit tests or decoupled components).
+     * Initializes the logger using explicit base and public directories (for JVM unit tests or decoupled components).
      */
-    fun init(baseDir: File, packageName: String = "com.retropack.manager") {
+    fun init(
+        baseDir: File,
+        packageName: String = "com.retropack.manager",
+        publicLogDir: File? = null,
+        appSlug: String = "manager"
+    ) {
         synchronized(lock) {
             if (isInitialized) return
 
-            try {
-                val logsDir = File(baseDir, LOG_DIR_NAME).apply { mkdirs() }
+            launchTimestamp = System.currentTimeMillis()
 
-                // Clean up any historical log files to strictly retain only the latest session
-                logsDir.listFiles()?.forEach { file ->
+            try {
+                // 1. Setup Internal App-Private Session Log
+                val internalLogsDir = File(baseDir, LOG_DIR_NAME).apply { mkdirs() }
+                internalLogsDir.listFiles()?.forEach { file ->
                     runCatching { file.delete() }
                 }
+                val internalTarget = File(internalLogsDir, SESSION_LOG_FILE)
+                internalLogFile = internalTarget
+                internalWriter = runCatching { FileWriter(internalTarget, false) }.getOrNull()
 
-                val targetFile = File(logsDir, SESSION_LOG_FILE)
-                logFile = targetFile
-                fileWriter = FileWriter(targetFile, false) // Fresh overwrite
+                // 2. Setup Public Download Log Directory: /sdcard/Download/logs/<appSlug>/<appSlug>.log
+                val targetPublicDir = publicLogDir ?: resolvePublicDownloadLogsDir(appSlug)
+                runCatching { targetPublicDir.mkdirs() }
+                val publicTarget = File(targetPublicDir, "$appSlug.log")
+                publicLogFile = publicTarget
+                publicWriter = runCatching { FileWriter(publicTarget, false) }.getOrNull()
 
-                writeHeader(packageName)
+                writeHeader(packageName, appSlug)
                 setupCrashHandler()
                 isInitialized = true
 
-                i("AppLogger", "RetroPack Session Logger initialized. Storing latest session at: ${targetFile.absolutePath}")
+                i("AppLogger", "RetroPack Session Logger initialized.")
+                i("AppLogger", "Public Log Target: ${publicTarget.absolutePath}")
+                i("AppLogger", "Internal Log Target: ${internalTarget.absolutePath}")
+                i("AppLogger", "Launch recording window active for 2 minutes (immediate auto-flush).")
             } catch (e: Exception) {
                 runCatching { Log.e(TAG_PREFIX, "Failed to initialize AppLogger: ${e.message}", e) }
             }
         }
     }
 
-    private fun writeHeader(packageName: String) {
+    /**
+     * Resolves the public Download logs folder: `/sdcard/Download/logs/<appSlug>`.
+     */
+    fun resolvePublicDownloadLogsDir(appSlug: String = "manager"): File {
+        val downloadDir: File = runCatching<File> {
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        }.getOrNull() ?: File(System.getProperty("user.home", "/sdcard"), "Download")
+
+        val target = File(downloadDir, "logs/$appSlug")
+        runCatching { target.mkdirs() }
+        return target
+    }
+
+    private fun writeHeader(packageName: String, appSlug: String) {
         val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
-        val startTime = isoFormat.format(Date())
+        val startTime = isoFormat.format(Date(launchTimestamp))
         val runtime = Runtime.getRuntime()
         val maxMemMb = runtime.maxMemory() / (1024 * 1024)
         val totalMemMb = runtime.totalMemory() / (1024 * 1024)
@@ -91,19 +129,22 @@ object AppLogger {
 
         val header = buildString {
             appendLine("================================================================================")
-            appendLine("                      RETROPACK MANAGER - SESSION DIAGNOSTIC LOG                ")
+            appendLine("                   RETROPACK - SESSION DIAGNOSTIC LOG ($appSlug)                ")
             appendLine("================================================================================")
             appendLine("Session Started      : $startTime")
+            appendLine("Component / Slug     : $appSlug")
             appendLine("Package Name         : $packageName")
             appendLine("Android OS Version   : $osVersion")
             appendLine("Device Model         : $deviceModel")
             appendLine("CPU ABIs             : $cpuAbis")
             appendLine("JVM Max / Total Mem  : $maxMemMb MB / $totalMemMb MB")
+            appendLine("Storage Location     : sdcard/Download/logs/$appSlug/$appSlug.log")
+            appendLine("Launch Auto-Record   : 2 Minutes Active Window")
             appendLine("16 KB Page Alignment : Enforced")
             appendLine("================================================================================")
             appendLine()
         }
-        writeRaw(header)
+        writeRaw(header, forceFlush = true)
     }
 
     private fun setupCrashHandler() {
@@ -161,35 +202,63 @@ object AppLogger {
             appendLine()
         }
 
-        writeRaw(formattedLog)
+        // Flush immediately if within the 2-minute launch window or on errors/warnings
+        val now = System.currentTimeMillis()
+        val isWithin2MinWindow = (now - launchTimestamp) <= LAUNCH_RECORDING_WINDOW_MS
+        val shouldForceFlush = isWithin2MinWindow || level == LogLevel.ERROR || level == LogLevel.WARN
+
+        writeRaw(formattedLog, forceFlush = shouldForceFlush)
     }
 
-    private fun writeRaw(text: String) {
+    private fun writeRaw(text: String, forceFlush: Boolean = false) {
         synchronized(lock) {
             try {
-                fileWriter?.write(text)
-                fileWriter?.flush()
+                internalWriter?.write(text)
+                if (forceFlush) internalWriter?.flush()
             } catch (e: Exception) {
-                runCatching { Log.e(TAG_PREFIX, "Error writing to session log: ${e.message}") }
+                runCatching { Log.e(TAG_PREFIX, "Error writing to internal session log: ${e.message}") }
             }
-        }
-    }
 
-    fun flush() {
-        synchronized(lock) {
             try {
-                fileWriter?.flush()
-            } catch (_: Exception) {
+                publicWriter?.write(text)
+                if (forceFlush) publicWriter?.flush()
+            } catch (e: Exception) {
+                runCatching { Log.e(TAG_PREFIX, "Error writing to public session log: ${e.message}") }
             }
         }
     }
 
     /**
-     * Retrieves the latest session log file handle if available.
+     * Flushes all buffered log lines to disk immediately.
+     */
+    fun flush() {
+        synchronized(lock) {
+            try {
+                internalWriter?.flush()
+            } catch (_: Exception) {}
+
+            try {
+                publicWriter?.flush()
+            } catch (_: Exception) {}
+        }
+    }
+
+    /**
+     * Retrieves the latest public session log file (`sdcard/Download/logs/manager/manager.log`).
+     */
+    fun getPublicLogFile(): File? {
+        synchronized(lock) {
+            return publicLogFile?.takeIf { it.exists() }
+        }
+    }
+
+    /**
+     * Retrieves the latest session log file handle if available (prioritizing public, falling back to internal).
      */
     fun getLatestLogFile(context: Context? = null): File? {
         synchronized(lock) {
-            if (logFile?.exists() == true) return logFile
+            if (publicLogFile?.exists() == true) return publicLogFile
+            if (internalLogFile?.exists() == true) return internalLogFile
             val baseDir = context?.filesDir ?: return null
             val file = File(File(baseDir, LOG_DIR_NAME), SESSION_LOG_FILE)
             return if (file.exists()) file else null
@@ -207,17 +276,20 @@ object AppLogger {
     /**
      * Clears the session log file.
      */
-    fun clearLatestLog(context: Context? = null, baseDir: File? = null) {
+    fun clearLatestLog(context: Context? = null, baseDir: File? = null, publicLogDir: File? = null) {
         synchronized(lock) {
             try {
-                val targetDir = baseDir ?: context?.filesDir ?: logFile?.parentFile?.parentFile
-                getLatestLogFile(context)?.delete()
-                fileWriter?.close()
-                fileWriter = null
+                val targetDir = baseDir ?: context?.filesDir ?: internalLogFile?.parentFile?.parentFile
+                internalLogFile?.delete()
+                publicLogFile?.delete()
+                internalWriter?.close()
+                publicWriter?.close()
+                internalWriter = null
+                publicWriter = null
                 isInitialized = false
                 if (targetDir != null) {
                     val pkg = context?.let { runCatching { it.packageName }.getOrNull() } ?: "com.retropack.manager"
-                    init(targetDir, pkg)
+                    init(baseDir = targetDir, packageName = pkg, publicLogDir = publicLogDir)
                 }
             } catch (e: Exception) {
                 runCatching { Log.e(TAG_PREFIX, "Failed to clear session log: ${e.message}") }

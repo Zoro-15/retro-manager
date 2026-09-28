@@ -148,6 +148,50 @@ class ArchiveExtractorTest {
     }
 
     @Test
+    fun `isRar5 correctly detects RAR5 magic bytes and rejects gracefully`() {
+        val rar5Header = byteArrayOf(0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x01, 0x00)
+        assertTrue(ArchiveExtractor.isRar5(rar5Header))
+        assertTrue(ArchiveExtractor.isArchive(rar5Header, "game.rar"))
+
+        val rar4Header = byteArrayOf(0x52, 0x61, 0x72, 0x21, 0x1A, 0x07, 0x00)
+        assertFalse(ArchiveExtractor.isRar5(rar4Header))
+
+        val ex = org.junit.jupiter.api.assertThrows<InvalidRomException> {
+            ArchiveExtractor.extractCandidateRom(rar5Header, "game.rar")
+        }
+        assertTrue(ex.message!!.contains("RAR 5.0"))
+    }
+
+    @Test
+    fun `extractCandidateRomToDisk unpacks ZIP directly to output directory`() {
+        val gbaHeader = ByteArray(0xC0).apply {
+            this[0xB2] = 0x96.toByte()
+            val title = "POKEMON EMER"
+            System.arraycopy(title.toByteArray(), 0, this, 0xA0, title.length)
+            this[0xBD] = GbaRomParser.calculateHeaderChecksum(this).toByte()
+        }
+
+        val tempZip = java.io.File.createTempFile("test_zip_", ".zip")
+        val outDir = java.io.File(tempZip.parentFile, "out_${System.currentTimeMillis()}").also { it.mkdirs() }
+        try {
+            java.util.zip.ZipOutputStream(tempZip.outputStream()).use { zos ->
+                zos.putNextEntry(ZipEntry("game.gba"))
+                zos.write(gbaHeader)
+                zos.closeEntry()
+            }
+
+            val result = ArchiveExtractor.extractCandidateRomToDisk(tempZip, outDir)
+            assertTrue(result.isExtractedFromArchive)
+            assertEquals("game.gba", result.candidateFileName)
+            assertTrue(result.file.exists())
+            assertEquals(gbaHeader.size.toLong(), result.file.length())
+        } finally {
+            tempZip.delete()
+            outDir.deleteRecursively()
+        }
+    }
+
+    @Test
     fun `SUPPORTED_ROM_EXTENSIONS contains all 10 console architectures`() {
         val expected = listOf(
             ".gba", ".gbc", ".gb",

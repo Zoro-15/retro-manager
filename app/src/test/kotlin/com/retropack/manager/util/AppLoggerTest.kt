@@ -1,5 +1,6 @@
 package com.retropack.manager.util
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -11,7 +12,13 @@ class AppLoggerTest {
 
     @Test
     fun `AppLogger writes logs and reads latest session log text`(@TempDir tempDir: File) {
-        AppLogger.init(tempDir, "com.retropack.manager")
+        val publicLogDir = File(tempDir, "public_logs/manager")
+        AppLogger.init(
+            baseDir = tempDir,
+            packageName = "com.retropack.manager",
+            publicLogDir = publicLogDir,
+            appSlug = "manager"
+        )
 
         AppLogger.i("TestTag", "Testing info message")
         AppLogger.d("TestTag", "Testing debug message")
@@ -24,17 +31,27 @@ class AppLoggerTest {
         assertNotNull(logFile)
         assertTrue(logFile!!.exists())
 
+        val publicFile = AppLogger.getPublicLogFile()
+        assertNotNull(publicFile)
+        assertTrue(publicFile!!.exists())
+        assertEquals("manager.log", publicFile!!.name)
+
         val logContent = AppLogger.readLatestLogText()
-        assertTrue(logContent.contains("RETROPACK MANAGER - SESSION DIAGNOSTIC LOG"))
+        assertTrue(logContent.contains("RETROPACK - SESSION DIAGNOSTIC LOG"))
         assertTrue(logContent.contains("Testing info message"))
         assertTrue(logContent.contains("Testing error message"))
         assertTrue(logContent.contains("Test Exception"))
 
         // Re-initializing simulates a new app launch: must purge old log and recreate fresh log
-        AppLogger.clearLatestLog(baseDir = tempDir)
+        AppLogger.clearLatestLog(baseDir = tempDir, publicLogDir = publicLogDir)
         val refreshedText = AppLogger.readLatestLogText()
-        assertTrue(refreshedText.contains("RETROPACK MANAGER - SESSION DIAGNOSTIC LOG"))
+        assertTrue(refreshedText.contains("RETROPACK - SESSION DIAGNOSTIC LOG"))
         assertFalse(refreshedText.contains("Test Exception"))
     }
-}
 
+    @Test
+    fun `AppLogger resolves public download logs directory structure`() {
+        val dir = AppLogger.resolvePublicDownloadLogsDir("manager")
+        assertTrue(dir.path.replace("\\", "/").contains("logs/manager"))
+    }
+}

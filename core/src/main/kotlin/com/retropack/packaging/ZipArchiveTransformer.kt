@@ -1,6 +1,7 @@
 package com.retropack.packaging
 
 import com.android.zipflinger.BytesSource
+import com.android.zipflinger.Sources
 import com.android.zipflinger.ZipArchive
 import com.android.zipflinger.ZipSource
 import java.io.File
@@ -24,13 +25,14 @@ object ZipArchiveTransformer {
 
     /**
      * Transforms [templateApk] into [outputApk] by streaming unmodified template entries via
-     * zero-copy [ZipSource], injecting [injectedEntries], stripping stale signature residue,
+     * zero-copy [ZipSource], injecting [injectedEntries] and [injectedFiles], stripping stale signature residue,
      * and aligning native libraries to 16 KB boundaries.
      */
     fun transform(
         templateApk: File,
         outputApk: File,
-        injectedEntries: Map<String, ByteArray>
+        injectedEntries: Map<String, ByteArray> = emptyMap(),
+        injectedFiles: Map<String, File> = emptyMap()
     ) {
         require(templateApk.exists()) { "Template APK does not exist: ${templateApk.absolutePath}" }
 
@@ -49,7 +51,7 @@ object ZipArchiveTransformer {
             }
 
             // Skip entries being overridden by injected replacements
-            if (injectedEntries.containsKey(name)) {
+            if (injectedEntries.containsKey(name) || injectedFiles.containsKey(name)) {
                 continue
             }
 
@@ -76,9 +78,15 @@ object ZipArchiveTransformer {
             // 1. Transfer selected zero-copy template entries directly without heap allocation
             archive.add(zipSource)
 
-            // 2. Inject mutated and added entries (Steps 6, 7, 8)
+            // 2. Inject mutated and added entries from memory (Steps 6, 7, 8)
             for ((name, bytes) in injectedEntries) {
                 val source = createSourceForEntry(name, bytes)
+                archive.add(source)
+            }
+
+            // 3. Inject large asset files directly from disk without heap memory spikes
+            for ((name, file) in injectedFiles) {
+                val source = Sources.from(file.toPath(), name, Deflater.DEFAULT_COMPRESSION)
                 archive.add(source)
             }
         }

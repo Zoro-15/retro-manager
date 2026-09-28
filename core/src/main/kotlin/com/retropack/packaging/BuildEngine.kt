@@ -6,6 +6,7 @@ import com.retropack.domain.model.BuildStageRecord
 import com.retropack.domain.model.ChecksumRecords
 import com.retropack.domain.rom.GbRomParser
 import com.retropack.domain.rom.GbaRomParser
+import com.retropack.domain.rom.RomParser
 import com.retropack.domain.rom.StreamChecksum
 import com.retropack.domain.rom.StreamChecksumResult
 import com.retropack.domain.runtime.RuntimeRegistry
@@ -55,7 +56,7 @@ object BuildEngine {
      */
     fun build(
         request: BuildRequest,
-        romBytes: ByteArray,
+        romBytes: ByteArray? = null,
         signingIdentity: SigningIdentity,
         outputDir: File,
         iconForegroundBytes: ByteArray? = null,
@@ -66,7 +67,9 @@ object BuildEngine {
         verifiedTemplate: VerifiedTemplate? = null,
         additionalDiscBytes: List<Pair<String, ByteArray>> = emptyList(),
         coreLibraries: Map<String, ByteArray> = emptyMap(),
-        coreStagingDir: File? = null
+        coreStagingDir: File? = null,
+        romFile: File? = null,
+        additionalDiscFiles: List<Pair<String, File>> = emptyList()
     ): BuildResult {
         val totalStartTime = System.currentTimeMillis()
         val stageRecords = mutableListOf<BuildStageRecord>()
@@ -112,21 +115,33 @@ object BuildEngine {
             // STEP 1: Streamed Checksums & Header Analysis
             lateinit var checksumResult: StreamChecksumResult
             recordStage(1, "Checksums & Header Analysis", "Calculating streamed checksums and validating ROM headers", System.currentTimeMillis()) {
-                require(romBytes.isNotEmpty()) { "ROM bytes cannot be empty" }
-                // Skip the 4-digest re-hash when the caller already hashed
-                // these exact bytes at ingest; headers always re-parse.
-                checksumResult = if (precomputedChecksums != null) {
-                    StreamChecksumResult(precomputedChecksums, romBytes.size.toLong())
-                } else {
-                    StreamChecksum.calculate(ByteArrayInputStream(romBytes))
+                require((romBytes != null && romBytes.isNotEmpty()) || (romFile != null && romFile.exists() && romFile.length() > 0)) {
+                    "ROM source cannot be empty (either romFile or non-empty romBytes must be provided)"
                 }
 
-                when (request.content.platform.lowercase(Locale.ROOT)) {
-                    "gb", "gbc" -> {
-                        GbRomParser.parse(romBytes)
+                val totalLen = romFile?.length() ?: romBytes?.size?.toLong() ?: 0L
+                checksumResult = if (precomputedChecksums != null) {
+                    StreamChecksumResult(precomputedChecksums, totalLen)
+                } else if (romFile != null) {
+                    StreamChecksum.calculate(romFile)
+                } else {
+                    StreamChecksum.calculate(ByteArrayInputStream(romBytes!!))
+                }
+
+                if (romBytes != null) {
+                    when (request.content.platform.lowercase(Locale.ROOT)) {
+                        "gb", "gbc" -> {
+                            GbRomParser.parse(romBytes)
+                        }
+                        "gba" -> {
+                            GbaRomParser.parse(romBytes)
+                        }
                     }
-                    "gba" -> {
-                        GbaRomParser.parse(romBytes)
+                } else if (romFile != null) {
+                    when (request.content.platform.lowercase(Locale.ROOT)) {
+                        "gb", "gbc", "gba" -> {
+                            RomParser.parse(romFile)
+                        }
                     }
                 }
             }
@@ -203,26 +218,39 @@ object BuildEngine {
             }
 
             // STEP 6: Streamed Asset Injection
-            lateinit var assetEntries: Map<String, ByteArray>
+            val memoryAssetEntries = mutableMapOf<String, ByteArray>()
+            val fileAssetEntries = mutableMapOf<String, File>()
             recordStage(6, "Streamed Asset Injection", "Generating retropack.json config and preparing game.rom asset", System.currentTimeMillis()) {
                 val configJson = generateRuntimeConfigJson(request, checksumResult.checksums.sha256)
-                val baseEntries = RomAssetInjector.prepareAssetEntries(romBytes, configJson).toMutableMap()
-                if (additionalDiscBytes.isNotEmpty() || !request.content.m3uPlaylist.isNullOrBlank()) {
-                    val discMap = mutableMapOf<String, ByteArray>()
-                    additionalDiscBytes.forEachIndexed { _, pair ->
-                        val entryPath = if (pair.first.startsWith("assets/discs/")) pair.first else "assets/discs/${pair.first}"
-                        discMap[entryPath] = pair.second
-                    }
-                    val discEntries = RomAssetInjector.prepareMultiDiscAssetEntries(
-                        discEntries = discMap,
-                        configJson = configJson,
-                        m3uContent = request.content.m3uPlaylist
-                    )
-                    discEntries.forEach { (path, data) ->
-                        baseEntries[path] = data
+                RomAssetInjector.sanitizeEntryPath(RomAssetInjector.CONFIG_ENTRY)
+                memoryAssetEntries[RomAssetInjector.CONFIG_ENTRY] = configJson.toByteArray(java.nio.charset.StandardCharsets.UTF_8)
+
+                if (romFile != null) {
+                    RomAssetInjector.sanitizeEntryPath(RomAssetInjector.ROM_ENTRY)
+                    fileAssetEntries[RomAssetInjector.ROM_ENTRY] = romFile
+                } else if (romBytes != null) {
+                    RomAssetInjector.sanitizeEntryPath(RomAssetInjector.ROM_ENTRY)
+                    memoryAssetEntries[RomAssetInjector.ROM_ENTRY] = romBytes
+                }
+
+                if (additionalDiscFiles.isNotEmpty()) {
+                    for ((name, file) in additionalDiscFiles) {
+                        val path = if (name.startsWith("assets/discs/")) name else "assets/discs/$name"
+                        RomAssetInjector.sanitizeEntryPath(path)
+                        fileAssetEntries[path] = file
                     }
                 }
-                assetEntries = baseEntries
+                if (additionalDiscBytes.isNotEmpty()) {
+                    for ((name, bytes) in additionalDiscBytes) {
+                        val path = if (name.startsWith("assets/discs/")) name else "assets/discs/$name"
+                        RomAssetInjector.sanitizeEntryPath(path)
+                        memoryAssetEntries[path] = bytes
+                    }
+                }
+                if (!request.content.m3uPlaylist.isNullOrBlank()) {
+                    RomAssetInjector.sanitizeEntryPath(RomAssetInjector.M3U_ENTRY)
+                    memoryAssetEntries[RomAssetInjector.M3U_ENTRY] = request.content.m3uPlaylist.toByteArray(java.nio.charset.StandardCharsets.UTF_8)
+                }
             }
 
             // STEP 7: Structured AXML Mutation
@@ -263,7 +291,7 @@ object BuildEngine {
             recordStage(10, "16 KB Page Zipalign", "Assembling archive and aligning uncompressed .so libraries to 16,384 bytes", System.currentTimeMillis()) {
                 val allInjected = mutableMapOf<String, ByteArray>()
                 allInjected["AndroidManifest.xml"] = mutatedManifestBytes
-                allInjected.putAll(assetEntries)
+                allInjected.putAll(memoryAssetEntries)
                 if (iconEntries != null) {
                     allInjected.putAll(iconEntries!!)
                 }
@@ -281,7 +309,8 @@ object BuildEngine {
                 ZipArchiveTransformer.transform(
                     templateApk = templateFile,
                     outputApk = scratchApk!!,
-                    injectedEntries = allInjected
+                    injectedEntries = allInjected,
+                    injectedFiles = fileAssetEntries
                 )
             }
 
