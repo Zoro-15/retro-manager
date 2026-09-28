@@ -1,0 +1,640 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 09:06:33 UTC
+Total Execution : 207.88s (3m 27s)
+Overall Result  : 12/16 Targets Passed (4 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Common Native Runtime                  PASS        47.35s     runtime-common.log
+[02] mGBA (GBA)                             PASS        10.44s     runtime-mgba.log
+[03] Snes9x (SNES)                          PASS        23.25s     runtime-snes9x.log
+[04] Genesis Plus GX (MD/GEN)               PASS         5.44s     runtime-genesis.log
+[05] FCEUmm (NES)                           PASS         9.40s     runtime-fceumm.log
+[06] Beetle PCE Fast (PC Engine)            PASS         3.82s     runtime-pce.log
+[07] FBNeo (Arcade / NeoGeo)                FAIL [!]     4.06s     runtime-fbneo.log
+[08] PCSX ReARMed (PS1)                     PASS         3.65s     runtime-pcsx.log
+[09] Mupen64Plus-Next (N64)                 FAIL [!]     1.79s     runtime-mupen64.log
+[10] PPSSPP (PSP)                           FAIL [!]    21.61s     runtime-ppsspp.log
+[11] melonDS (NDS)                          PASS        31.17s     runtime-melonds.log
+[12] Template APK (Standalone Game Runner)  FAIL [!]     9.61s     template-apk.log
+[13] 16 KB ELF Page-Size Alignment Gate     PASS         0.10s     verify-16kb.log
+[14] Trust Anchor Rotation & Staging        PASS         0.09s     rotate-anchors.log
+[15] Manager APK (Main App)                 PASS        29.65s     app-manager.log
+[16] Unit Tests (App & Template)            PASS         6.40s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [07]: FBNeo (Arcade / NeoGeo) (ID: runtime-fbneo)
+### Command : ./gradlew :runtime:retropack-runtime-fbneo:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-fbneo.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 145] ---
+    L0003: > Task :runtime:retropack-runtime-fbneo:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0007: C/C++: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -Wl,--allow-multiple-definition -Wl,-z,muldefs -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0008: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1
+    L0009: C/C++: >>> referenced by burn.cpp
+    L0010: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+    L0011: C/C++: >>> did you mean: BurnDrvNeoGeoMVS
+    L0012: C/C++: >>> defined in: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+>>> [ERROR] L0013: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1F
+    L0014: C/C++: >>> referenced by burn.cpp
+    L0015: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0016: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1FZ
+    L0017: C/C++: >>> referenced by burn.cpp
+    L0018: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0019: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV2F
+    L0020: C/C++: >>> referenced by burn.cpp
+    L0021: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0022: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV4F
+    L0023: C/C++: >>> referenced by burn.cpp
+    L0024: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0025: C/C++: ld.lld: error: undefined symbol: m68ki_fake_push_32
+    L0026: C/C++: >>> referenced by m68kcpu.h:1639 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1639)
+    L0027: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x18)
+    L0028: C/C++: >>> referenced by m68kcpu.h:1640 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1640)
+    L0029: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x1C)
+    L0030: C/C++: >>> referenced by m68kcpu.h:1641 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1641)
+    L0031: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x20)
+    L0032: C/C++: >>> referenced 13 more times
+>>> [ERROR] L0033: C/C++: ld.lld: error: undefined symbol: m68ki_push_16
+    L0034: C/C++: >>> referenced by m68kcpu.h:1649 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1649)
+    L0035: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x40)
+    L0036: C/C++: >>> referenced by m68kcpu.h:1655 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1655)
+    L0037: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x4C)
+    L0038: C/C++: >>> referenced by m68kcpu.h:1661 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1661)
+    L0039: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x58)
+    L0040: C/C++: >>> referenced 49 more times
+>>> [ERROR] L0041: C/C++: ld.lld: error: undefined symbol: m68ki_fake_push_16
+    L0042: C/C++: >>> referenced by m68kcpu.h:1652 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1652)
+    L0043: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x44)
+    L0044: C/C++: >>> referenced by m68kcpu.h:1658 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1658)
+    L0045: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x50)
+    L0046: C/C++: >>> referenced by m68kcpu.h:1664 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1664)
+    L0047: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x5C)
+    L0048: C/C++: >>> referenced 3 more times
+>>> [ERROR] L0049: C/C++: ld.lld: error: undefined symbol: m68ki_push_32
+    L0050: C/C++: >>> referenced by m68kcpu.h:1667 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1667)
+    L0051: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x64)
+    L0052: C/C++: >>> referenced by m68kcpu.h:1676 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1676)
+    L0053: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x84)
+    L0054: C/C++: >>> referenced by m68kcpu.h:1696 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1696)
+    L0055: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x30)
+    L0056: C/C++: >>> referenced 63 more times
+>>> [ERROR] L0057: C/C++: ld.lld: error: undefined symbol: m68ki_init_exception
+    L0058: C/C++: >>> referenced by m68kcpu.h:2016 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2016)
+    L0059: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x98)
+    L0060: C/C++: >>> referenced by m68kcpu.h:2016 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2016)
+    L0061: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0062: C/C++: ld.lld: error: undefined symbol: m68ki_read_32_fc
+    L0063: C/C++: >>> referenced by m68kcpu.h:2022 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2022)
+    L0064: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0xC8)
+    L0065: C/C++: >>> referenced by m68kcpu.h:2026 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2026)
+    L0066: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0xF4)
+    L0067: C/C++: >>> referenced by m68kcpu.h:2022 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2022)
+    L0068: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0069: C/C++: >>> referenced 210 more times
+>>> [ERROR] L0070: C/C++: ld.lld: error: undefined symbol: m68ki_stack_frame_0000
+    L0071: C/C++: >>> referenced by m68kcpu.h:2029 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2029)
+    L0072: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x118)
+    L0073: C/C++: >>> referenced by m68kcpu.h:2029 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2029)
+    L0074: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0075: C/C++: ld.lld: error: undefined symbol: m68ki_set_sm_flag
+    L0076: C/C++: >>> referenced by m68kcpu.h:2033 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2033)
+    L0077: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x154)
+    L0078: C/C++: >>> referenced by m68kcpu.h:2033 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2033)
+    L0079: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0080: C/C++: >>> referenced by m68kcpu.c:1076 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.c:1076)
+    L0081: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68k_pulse_reset)
+>>> [ERROR] L0082: C/C++: ld.lld: error: undefined symbol: m68ki_stack_frame_0001
+    L0083: C/C++: >>> referenced by m68kcpu.h:2035 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2035)
+    L0084: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x174)
+    L0085: C/C++: >>> referenced by m68kcpu.h:2035 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2035)
+    L0086: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0087: C/C++: ld.lld: error: undefined symbol: m68ki_jump
+    L0088: C/C++: >>> referenced by m68kcpu.h:2038 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2038)
+    L0089: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x180)
+    L0090: C/C++: >>> referenced by m68kcpu.h:2038 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2038)
+    L0091: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0092: C/C++: >>> referenced by m68kcpu.c:623 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.c:623)
+    L0093: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68k_set_reg)
+    L0094: C/C++: >>> referenced 23 more times
+>>> [ERROR] L0095: C/C++: ld.lld: error: undefined symbol: m68ki_exception_illegal
+    L0096: C/C++: >>> referenced by m68kops.c:16468 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:16468)
+    L0097: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_illegal)
+    L0098: C/C++: >>> referenced by m68kops.c:9656 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:9656)
+    L0099: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_chk_32_d)
+    L0100: C/C++: >>> referenced by m68kops.c:9679 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:9679)
+    L0101: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_chk_32_ai)
+    L0102: C/C++: >>> referenced 280 more times
+>>> [ERROR] L0103: C/C++: ld.lld: error: undefined symbol: m68ki_exception_1010
+    L0104: C/C++: >>> referenced by m68kops.c:12 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:12)
+    L0105: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_1010)
+>>> [ERROR] L0106: C/C++: ld.lld: error: undefined symbol: m68ki_exception_1111
+    L0107: C/C++: >>> referenced by m68kops.c:18 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:18)
+    L0108: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_1111)
+    L0109: C/C++: >>> referenced by m68kops.c:12183 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:12183)
+    L0110: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_cpbcc_32)
+    L0111: C/C++: >>> referenced by m68kops.c:12209 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:12209)
+    L0112: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_cpgen_32)
+    L0113: C/C++: >>> referenced 5 more times
+>>> [ERROR] L0114: C/C++: ld.lld: error: undefined symbol: m68ki_branch_8
+    L0115: C/C++: >>> referenced by m68kops.c:8082 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:8082)
+    L0116: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_bra_8)
+    L0117: C/C++: >>> referenced by m68kops.c:8343 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:8343)
+    L0118: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_bsr_8)
+    L0119: C/C++: >>> referenced by m68kops.c:4070 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:4070)
+    L0120: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_bhi_8)
+    L0121: C/C++: >>> referenced 29 more times
+>>> [ERROR] L0122: C/C++: ld.lld: error: undefined symbol: m68ki_read_imm_16
+    L0123: C/C++: >>> referenced by m68kops.c:23148 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:23148)
+    L0124: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_movep_16_er)
+    L0125: C/C++: >>> referenced by m68kfpu.c:753 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kfpu.c:753)
+    L0126: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68040_fpu_op0)
+    L0127: C/C++: >>> referenced by m68kops.c:23157 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:23157)
+    L0128: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_movep_32_er)
+    L0129: C/C++: >>> referenced 734 more times
+>>> [ERROR] L0130: C/C++: ld.lld: error: too many errors emitted, stopping now (use --error-limit=0 to see all errors)
+>>> [ERROR] L0131: C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0132: C/C++: ninja: build stopped: subcommand failed.
+    L0133: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790586285593.json
+    L0134: 
+    L0135: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0136: 
+>>> [ERROR] L0137: FAILURE: Build failed with an exception.
+    L0138: 
+    L0139: * What went wrong:
+>>> [ERROR] L0140: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0141: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0142:   [1/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o
+    L0143:   [2/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o
+    L0144:   [3/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o
+    L0145:   [4/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o
+
+--- [Snippet #2 | Lines 183 to 339] ---
+    L0183:   [42/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o
+    L0184:   [43/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o
+    L0185:   [44/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0186:   [45/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0187:   [46/46] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0188:   FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0189:   : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -Wl,--allow-multiple-definition -Wl,-z,muldefs -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+--- [Snippet #3 | Lines 344 to 354] ---
+    [... remaining failure trace truncated; total snippets capped at 150 lines ...]
+
+
+################################################################################
+### Target [09]: Mupen64Plus-Next (N64) (ID: runtime-mupen64)
+### Command : ./gradlew :runtime:retropack-runtime-mupen64:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-mupen64.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 43] ---
+    L0003: > Task :runtime:retropack-runtime-mupen64:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp/mupen64-jni.c:65:22: error: use of undeclared identifier 'g_mupen'
+    L0009: C/C++:    65 |     return (uint32_t)g_mupen.video_width;
+    L0010: C/C++:       |                      ^
+    L0011: C/C++: 1 error generated.
+    L0012: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790586293289.json
+    L0013: 
+    L0014: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0015: 
+>>> [ERROR] L0016: FAILURE: Build failed with an exception.
+    L0017: 
+    L0018: * What went wrong:
+>>> [ERROR] L0019: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0020: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0021:   [1/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/callbacks.c.o
+    L0022:   [2/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/frontend.c.o
+    L0023:   [3/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0024:   [4/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/ringbuffer.c.o
+    L0025:   [5/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0026:   [6/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+>>> [ERROR] L0027:   FAILED: CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+    L0028:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0029:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp/mupen64-jni.c:65:22: error: use of undeclared identifier 'g_mupen'
+    L0030:      65 |     return (uint32_t)g_mupen.video_width;
+    L0031:         |                      ^
+    L0032:   1 error generated.
+    L0033:   [7/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/debugger.c.o
+    L0034:   [8/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0035:   [9/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0036:   [10/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0037:   [11/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+>>> [ERROR] L0038:   ninja: build stopped: subcommand failed.
+    L0039: 
+    L0040:   C++ build system [build] failed while executing:
+    L0041:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0042:         -C \
+    L0043:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+--- [Snippet #2 | Lines 48 to 58] ---
+    L0048: > Run with --info or --debug option to get more log output.
+    L0049: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0050: > Get more help at https://help.gradle.org.
+    L0051: 
+    L0052: * Exception is:
+>>> [ERROR] L0053: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0054: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0055: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0056: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0057: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0058: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #3 | Lines 89 to 110] ---
+    L0089: [2/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/frontend.c.o
+    L0090: [3/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0091: [4/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/ringbuffer.c.o
+    L0092: [5/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0093: [6/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+>>> [ERROR] L0094: FAILED: CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+    L0095: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0096: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp/mupen64-jni.c:65:22: error: use of undeclared identifier 'g_mupen'
+    L0097:    65 |     return (uint32_t)g_mupen.video_width;
+    L0098:       |                      ^
+    L0099: 1 error generated.
+    L0100: [7/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/debugger.c.o
+    L0101: [8/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0102: [9/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0103: [10/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0104: [11/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+>>> [ERROR] L0105: ninja: build stopped: subcommand failed.
+    L0106: 
+    L0107: C++ build system [build] failed while executing:
+    L0108:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0109:       -C \
+    L0110:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+--- [Snippet #4 | Lines 218 to 239] ---
+    L0218: [2/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/frontend.c.o
+    L0219: [3/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0220: [4/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/ringbuffer.c.o
+    L0221: [5/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0222: [6/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+>>> [ERROR] L0223: FAILED: CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+    L0224: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0225: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp/mupen64-jni.c:65:22: error: use of undeclared identifier 'g_mupen'
+    L0226:    65 |     return (uint32_t)g_mupen.video_width;
+    L0227:       |                      ^
+    L0228: 1 error generated.
+    L0229: [7/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/debugger.c.o
+    L0230: [8/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0231: [9/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0232: [10/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0233: [11/88] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+>>> [ERROR] L0234: ninja: build stopped: subcommand failed.
+    L0235: 
+    L0236: C++ build system [build] failed while executing:
+    L0237:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0238:       -C \
+    L0239:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+
+################################################################################
+### Target [10]: PPSSPP (PSP) (ID: runtime-ppsspp)
+### Command : ./gradlew :runtime:retropack-runtime-ppsspp:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-ppsspp.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 116] ---
+    L0003: > Task :runtime:retropack-runtime-ppsspp:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26  ... [command-line flags truncated]
+>>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1056:8: error: unknown type name 'chd_header'
+    L0009: C/C++:  1056 |         const chd_header *header = nullptr;
+    L0010: C/C++:       |               ^
+>>> [ERROR] L0011: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1060:2: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0012: C/C++:  1060 |         core_file core;  // Must be the first struct member, for some tricky pointer casts.
+    L0013: C/C++:       |         ^~~~~~~~~
+    L0014: C/C++:       |         chd_file
+    L0015: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0016: C/C++:    12 | typedef struct chd_file chd_file;
+    L0017: C/C++:       |                         ^
+>>> [ERROR] L0018: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1060:12: error: field has incomplete type 'chd_file'
+    L0019: C/C++:  1060 |         core_file core;  // Must be the first struct member, for some tricky pointer casts.
+    L0020: C/C++:       |                   ^
+    L0021: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0022: C/C++:    12 | typedef struct chd_file chd_file;
+    L0023: C/C++:       |                ^
+>>> [ERROR] L0024: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1072:30: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0025: C/C++:  1072 |         core_file_->core.fsize = [](core_file *file) -> uint64_t {
+    L0026: C/C++:       |                                     ^~~~~~~~~
+    L0027: C/C++:       |                                     chd_file
+    L0028: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0029: C/C++:    12 | typedef struct chd_file chd_file;
+    L0030: C/C++:       |                         ^
+>>> [ERROR] L0031: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1073:42: error: member access into incomplete type 'chd_file'
+    L0032: C/C++:  1073 |                 FileLoader *loader = (FileLoader *)file->argp;
+    L0033: C/C++:       |                                                        ^
+    L0034: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0035: C/C++:    12 | typedef struct chd_file chd_file;
+    L0036: C/C++:       |                ^
+>>> [ERROR] L0037: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1076:30: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0038: C/C++:  1076 |         core_file_->core.fseek = [](core_file *file, int64_t offset, int seekType) -> int {
+    L0039: C/C++:       |                                     ^~~~~~~~~
+    L0040: C/C++:       |                                     chd_file
+    L0041: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0042: C/C++:    12 | typedef struct chd_file chd_file;
+    L0043: C/C++:       |                         ^
+>>> [ERROR] L0044: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1087:43: error: member access into incomplete type 'chd_file'
+    L0045: C/C++:  1087 |                         FileLoader *loader = (FileLoader *)file->argp;
+    L0046: C/C++:       |                                                                ^
+    L0047: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0048: C/C++:    12 | typedef struct chd_file chd_file;
+    L0049: C/C++:       |                ^
+>>> [ERROR] L0050: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1096:73: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0051: C/C++:  1096 |         core_file_->core.fread = [](void *out_data, size_t size, size_t count, core_file *file) {
+    L0052: C/C++:       |                                                                                ^~~~~~~~~
+    L0053: C/C++:       |                                                                                chd_file
+    L0054: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0055: C/C++:    12 | typedef struct chd_file chd_file;
+    L0056: C/C++:       |                         ^
+>>> [ERROR] L0057: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1098:42: error: member access into incomplete type 'chd_file'
+    L0058: C/C++:  1098 |                 FileLoader *loader = (FileLoader *)file->argp;
+    L0059: C/C++:       |                                                        ^
+    L0060: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0061: C/C++:    12 | typedef struct chd_file chd_file;
+    L0062: C/C++:       |                ^
+>>> [ERROR] L0063: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1104:31: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0064: C/C++:  1104 |         core_file_->core.fclose = [](core_file *file) {
+    L0065: C/C++:       |                                      ^~~~~~~~~
+    L0066: C/C++:       |                                      chd_file
+    L0067: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0068: C/C++:    12 | typedef struct chd_file chd_file;
+    L0069: C/C++:       |                         ^
+>>> [ERROR] L0070: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1162:56: error: use of undeclared identifier 'CHD_OPEN_READ'
+    L0071: C/C++:  1162 |         chd_error err = chd_open_core_file(&core_file_->core, CHD_OPEN_READ, NULL, &file);
+    L0072: C/C++:       |                                                               ^
+>>> [ERROR] L0073: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1164:78: error: use of undeclared identifier 'chd_error_string'
+    L0074: C/C++:  1164 |                 errorString_ = StringFromFormat("CHD error: %s: %s", paths[depth].c_str(), chd_error_string(err));
+    L0075: C/C++:       |                                                                                            ^
+>>> [ERROR] L0076: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1169:18: error: use of undeclared identifier 'chd_get_header'
+    L0077: C/C++:  1169 |         impl_->header = chd_get_header(impl_->chd);
+    L0078: C/C++:       |                         ^
+>>> [ERROR] L0079: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1181:3: error: use of undeclared identifier 'chd_close'; did you mean 'pgd_close'?
+    L0080: C/C++:  1181 |                 chd_close(impl_->chd);
+    L0081: C/C++:       |                 ^~~~~~~~~
+    L0082: C/C++:       |                 pgd_close
+    L0083: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libkirk/amctrl.h:67:5: note: 'pgd_close' declared here
+    L0084: C/C++:    67 | int pgd_close(PGD_DESC *pgd);
+    L0085: C/C++:       |     ^
+>>> [ERROR] L0086: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1181:13: error: cannot initialize a parameter of type 'PGD_DESC *' with an lvalue of type 'chd_file *'
+    L0087: C/C++:  1181 |                 chd_close(impl_->chd);
+    L0088: C/C++:       |                           ^~~~~~~~~~
+    L0089: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: 'chd_file' is not defined, but forward declared here; conversion would be valid if it was derived from 'PGD_DESC'
+    L0090: C/C++:    12 | typedef struct chd_file chd_file;
+    L0091: C/C++:       |                ^
+    L0092: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libkirk/amctrl.h:67:25: note: passing argument to parameter 'pgd' here
+    L0093: C/C++:    67 | int pgd_close(PGD_DESC *pgd);
+    L0094: C/C++:       |                         ^
+>>> [ERROR] L0095: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1199:19: error: use of undeclared identifier 'chd_read'
+    L0096: C/C++:  1199 |                 chd_error err = chd_read(impl_->chd, hunk, readBuffer);
+    L0097: C/C++:       |                                 ^
+>>> [ERROR] L0098: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1201:75: error: use of undeclared identifier 'chd_error_string'
+>>> [ERROR] L0099: C/C++:  1201 |                         ERROR_LOG(Log::Loader, "CHD read failed: %d %d %s", blockNumber, hunk, chd_error_string(err));
+    L0100: C/C++:       |                                                                                                ^
+    L0101: C/C++: 17 errors generated.
+    L0102: 
+    L0103: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a] FAILED
+    L0104: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790586295106.json
+    L0105: 
+    L0106: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0107: 
+>>> [ERROR] L0108: FAILURE: Build failed with an exception.
+    L0109: 
+    L0110: * What went wrong:
+>>> [ERROR] L0111: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0112: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0113:   [1/369] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/zstd.c.o
+    L0114:   [2/369] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/ringbuffer.c.o
+    L0115:   [3/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/sha256.cpp.o
+    L0116:   [4/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/md5.cpp.o
+
+--- [Snippet #2 | Lines 208 to 319] ---
+    L0208:   [96/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Dialog/SavedataParam.cpp.o
+    L0209:   [97/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Dialog/PSPSaveDialog.cpp.o
+    L0210:   [98/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/ELF/ParamSFO.cpp.o
+    L0211:   [99/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileSystems/BlobFileSystem.cpp.o
+    L0212:   [100/369] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp.o
+>>> [ERROR] L0213:   FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp.o
+    L0214:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sys ... [command-line flags truncated]
+>>> [ERROR] L0215:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1056:8: error: unknown type name 'chd_header'
+    L0216:    1056 |         const chd_header *header = nullptr;
+    L0217:         |               ^
+>>> [ERROR] L0218:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1060:2: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0219:    1060 |         core_file core;  // Must be the first struct member, for some tricky pointer casts.
+    L0220:         |         ^~~~~~~~~
+    L0221:         |         chd_file
+    L0222:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0223:      12 | typedef struct chd_file chd_file;
+    L0224:         |                         ^
+>>> [ERROR] L0225:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1060:12: error: field has incomplete type 'chd_file'
+    L0226:    1060 |         core_file core;  // Must be the first struct member, for some tricky pointer casts.
+    L0227:         |                   ^
+    L0228:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0229:      12 | typedef struct chd_file chd_file;
+    L0230:         |                ^
+>>> [ERROR] L0231:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1072:30: error: unknown type name 'core_file'; did you mean 'chd_file'?
+    L0232:    1072 |         core_file_->core.fsize = [](core_file *file) -> uint64_t {
+    L0233:         |                                     ^~~~~~~~~
+    L0234:         |                                     chd_file
+    L0235:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:25: note: 'chd_file' declared here
+    L0236:      12 | typedef struct chd_file chd_file;
+    L0237:         |                         ^
+>>> [ERROR] L0238:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/FileSystems/BlockDevices.cpp:1073:42: error: member access into incomplete type 'chd_file'
+    L0239:    1073 |                 FileLoader *loader = (FileLoader *)file->argp;
+    L0240:         |                                                        ^
+    L0241:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp/libchdr/chd.h:12:16: note: forward declaration of 'chd_file'
+    L0242:      12 | typedef struct chd_file chd_file;
+    L0243:         |                ^
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+--- [Snippet #3 | Lines 324 to 334] ---
+    [... remaining failure trace truncated; total snippets capped at 150 lines ...]
+
+
+################################################################################
+### Target [12]: Template APK (Standalone Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 308 to 611] ---
+    L0308: > Task :runtime:retropack-runtime-fbneo:configureCMakeDebug[arm64-v8a]
+    L0309: 
+    L0310: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0311: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0312: C/C++: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -Wl,--allow-multiple-definition -Wl,-z,muldefs -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0313: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1
+    L0314: C/C++: >>> referenced by burn.cpp
+    L0315: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+    L0316: C/C++: >>> did you mean: BurnDrvNeoGeoMVS
+    L0317: C/C++: >>> defined in: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+>>> [ERROR] L0318: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1F
+    L0319: C/C++: >>> referenced by burn.cpp
+    L0320: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0321: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1FZ
+    L0322: C/C++: >>> referenced by burn.cpp
+    L0323: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0324: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV2F
+    L0325: C/C++: >>> referenced by burn.cpp
+    L0326: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0327: C/C++: ld.lld: error: undefined symbol: BurnDrvNeoGeoMV4F
+    L0328: C/C++: >>> referenced by burn.cpp
+    L0329: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o:(pDriver)
+>>> [ERROR] L0330: C/C++: ld.lld: error: undefined symbol: rfopen
+    L0331: C/C++: >>> referenced by fbneo-jni.cpp:76 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:76)
+    L0332: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(BurnStateSave(char*, int))
+    L0333: C/C++: >>> referenced by fbneo-jni.cpp:87 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:87)
+    L0334: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(BurnStateLoad(char*, int, int (*)()))
+    L0335: C/C++: >>> referenced by neo_text.cpp:290 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp:290)
+    L0336: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o:(NeoTextBlendInit(int))
+    L0337: C/C++: >>> referenced 20 more times
+>>> [ERROR] L0338: C/C++: ld.lld: error: undefined symbol: rfclose
+    L0339: C/C++: >>> referenced by fbneo-jni.cpp:80 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:80)
+    L0340: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(BurnStateSave(char*, int))
+    L0341: C/C++: >>> referenced by fbneo-jni.cpp:91 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:91)
+    L0342: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(BurnStateLoad(char*, int, int (*)()))
+    L0343: C/C++: >>> referenced by neo_text.cpp:337 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp:337)
+    L0344: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o:(NeoTextBlendInit(int))
+    L0345: C/C++: >>> referenced 16 more times
+>>> [ERROR] L0346: C/C++: ld.lld: error: undefined symbol: rfwrite
+    L0347: C/C++: >>> referenced by fbneo-jni.cpp:62 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:62)
+    L0348: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(FbneoFileWriteAcb(BurnArea*))
+    L0349: C/C++: >>> referenced by ioapi.c:131 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/ioapi.c:131)
+    L0350: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o:(fwrite_file_func)
+    L0351: C/C++: >>> referenced by nvram.cpp:109 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/nvram.cpp:109)
+    L0352: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o:(BurnNvramSave(char*))
+    L0353: C/C++: >>> referenced 2 more times
+>>> [ERROR] L0354: C/C++: ld.lld: error: undefined symbol: rfread
+    L0355: C/C++: >>> referenced by fbneo-jni.cpp:69 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp/fbneo-jni.cpp:69)
+    L0356: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o:(FbneoFileReadAcb(BurnArea*))
+    L0357: C/C++: >>> referenced by ioapi.c:124 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/ioapi.c:124)
+    L0358: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o:(fread_file_func)
+    L0359: C/C++: >>> referenced by nvram.cpp:52 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/nvram.cpp:52)
+    L0360: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o:(BurnNvramLoad(char*))
+    L0361: C/C++: >>> referenced 3 more times
+>>> [ERROR] L0362: C/C++: ld.lld: error: undefined symbol: m68ki_fake_push_32
+    L0363: C/C++: >>> referenced by m68kcpu.h:1639 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1639)
+    L0364: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x18)
+    L0365: C/C++: >>> referenced by m68kcpu.h:1640 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1640)
+    L0366: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x1C)
+    L0367: C/C++: >>> referenced by m68kcpu.h:1641 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1641)
+    L0368: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x20)
+    L0369: C/C++: >>> referenced 13 more times
+>>> [ERROR] L0370: C/C++: ld.lld: error: undefined symbol: m68ki_push_16
+    L0371: C/C++: >>> referenced by m68kcpu.h:1649 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1649)
+    L0372: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x40)
+    L0373: C/C++: >>> referenced by m68kcpu.h:1655 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1655)
+    L0374: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x4C)
+    L0375: C/C++: >>> referenced by m68kcpu.h:1661 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1661)
+    L0376: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x58)
+    L0377: C/C++: >>> referenced 49 more times
+>>> [ERROR] L0378: C/C++: ld.lld: error: undefined symbol: m68ki_fake_push_16
+    L0379: C/C++: >>> referenced by m68kcpu.h:1652 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1652)
+    L0380: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x44)
+    L0381: C/C++: >>> referenced by m68kcpu.h:1658 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1658)
+    L0382: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x50)
+    L0383: C/C++: >>> referenced by m68kcpu.h:1664 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1664)
+    L0384: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x5C)
+    L0385: C/C++: >>> referenced 3 more times
+>>> [ERROR] L0386: C/C++: ld.lld: error: undefined symbol: m68ki_push_32
+    L0387: C/C++: >>> referenced by m68kcpu.h:1667 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1667)
+    L0388: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x64)
+    L0389: C/C++: >>> referenced by m68kcpu.h:1676 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1676)
+    L0390: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x84)
+    L0391: C/C++: >>> referenced by m68kcpu.h:1696 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1696)
+    L0392: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x30)
+    L0393: C/C++: >>> referenced 63 more times
+>>> [ERROR] L0394: C/C++: ld.lld: error: undefined symbol: m68ki_init_exception
+    L0395: C/C++: >>> referenced by m68kcpu.h:2016 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2016)
+    L0396: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x98)
+    L0397: C/C++: >>> referenced by m68kcpu.h:2016 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2016)
+    L0398: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0399: C/C++: ld.lld: error: undefined symbol: m68ki_read_32_fc
+    L0400: C/C++: >>> referenced by m68kcpu.h:2022 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2022)
+    L0401: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0xC8)
+    L0402: C/C++: >>> referenced by m68kcpu.h:2026 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2026)
+    L0403: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0xF4)
+    L0404: C/C++: >>> referenced by m68kops.c:2091 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:2091)
+    L0405: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_addq_32_ai)
+    L0406: C/C++: >>> referenced 210 more times
+>>> [ERROR] L0407: C/C++: ld.lld: error: undefined symbol: m68ki_stack_frame_0000
+    L0408: C/C++: >>> referenced by m68kcpu.h:2029 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2029)
+    L0409: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x118)
+    L0410: C/C++: >>> referenced by m68kcpu.h:2029 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2029)
+    L0411: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0412: C/C++: ld.lld: error: undefined symbol: m68ki_set_sm_flag
+    L0413: C/C++: >>> referenced by m68kcpu.h:2033 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2033)
+    L0414: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x154)
+    L0415: C/C++: >>> referenced by m68kcpu.h:2033 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2033)
+    L0416: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0417: C/C++: >>> referenced by m68kcpu.c:1076 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.c:1076)
+    L0418: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68k_pulse_reset)
+>>> [ERROR] L0419: C/C++: ld.lld: error: undefined symbol: m68ki_stack_frame_0001
+    L0420: C/C++: >>> referenced by m68kcpu.h:2035 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2035)
+    L0421: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x174)
+    L0422: C/C++: >>> referenced by m68kcpu.h:2035 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2035)
+    L0423: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+>>> [ERROR] L0424: C/C++: ld.lld: error: undefined symbol: m68ki_jump
+    L0425: C/C++: >>> referenced by m68kcpu.h:2038 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2038)
+    L0426: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x180)
+    L0427: C/C++: >>> referenced by m68kcpu.h:2038 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:2038)
+    L0428: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0429: C/C++: >>> referenced by m68kcpu.c:623 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.c:623)
+    L0430: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68k_set_reg)
+    L0431: C/C++: >>> referenced 23 more times
+>>> [ERROR] L0432: C/C++: ld.lld: error: undefined symbol: m68ki_exception_illegal
+    L0433: C/C++: >>> referenced by m68kops.c:16468 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:16468)
+    L0434: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_illegal)
+    L0435: C/C++: >>> referenced by m68kops.c:9656 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:9656)
+    L0436: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_chk_32_d)
+    L0437: C/C++: >>> referenced by m68kops.c:9679 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kops.c:9679)
+    L0438: C/C++: >>>               CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(m68k_op_chk_32_ai)
+    L0439: C/C++: >>> referenced 280 more times
+>>> [ERROR] L0440: C/C++: ld.lld: error: too many errors emitted, stopping now (use --error-limit=0 to see all errors)
+>>> [ERROR] L0441: C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0442: C/C++: ninja: build stopped: subcommand failed.
+    L0443: 
+    L0444: > Task :template-apk:mergeExtDexDebug
+    L0445: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790586347863.json
+    L0446: 
+    L0447: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0448: 
+>>> [ERROR] L0449: FAILURE: Build failed with an exception.
+    L0450: 
+    L0451: * What went wrong:
+>>> [ERROR] L0452: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0453: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0454:   [1/1] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0455:   FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0456:   : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -Wl,--allow-multiple-definition -Wl,-z,muldefs -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0457:   ld.lld: error: undefined symbol: BurnDrvNeoGeoMV1
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+--- [Snippet #2 | Lines 616 to 626] ---
+    [... remaining failure trace truncated; total snippets capped at 150 lines ...]
+
