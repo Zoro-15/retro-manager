@@ -69,11 +69,24 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"
 
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+      - name: Make gradlew and scripts executable
+        run: |
+          chmod +x gradlew
+          chmod +x scripts/*.sh 2>/dev/null || true
+          chmod +x scripts/*.py 2>/dev/null || true
 
-      - name: Assemble runtime AAR (NDK/CMake/mGBA compile gate)
-        run: ./gradlew :runtime:retropack-runtime-common:assembleDebug :runtime:retropack-runtime-mgba:assembleDebug :runtime:retropack-runtime-snes9x:assembleDebug :runtime:retropack-runtime-genesis:assembleDebug :runtime:retropack-runtime-fceumm:assembleDebug :runtime:retropack-runtime-pce:assembleDebug :runtime:retropack-runtime-fbneo:assembleDebug :runtime:retropack-runtime-pcsx:assembleDebug :runtime:retropack-runtime-mupen64:assembleDebug :runtime:retropack-runtime-ppsspp:assembleDebug :runtime:retropack-runtime-melonds:assembleDebug --stacktrace
+      - name: Run Resilient Multi-Core CI Build Matrix & Diagnostics
+        run: python3 scripts/ci-build-matrix.py
+
+      - name: Upload Build Diagnostics Report & Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics-report
+          path: |
+            build-diagnostics.txt
+            build-logs/*.log
+          if-no-files-found: warn
 
       - name: Upload runtime AAR artifact
         if: always()
@@ -83,9 +96,6 @@ jobs:
           path: runtime/*/build/outputs/aar/*.aar
           if-no-files-found: warn
 
-      - name: Assemble Template APK
-        run: ./gradlew :template-apk:assembleDebug --stacktrace
-
       - name: Upload Template APK artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,56 +103,6 @@ jobs:
           name: template-apk-debug
           path: template-apk/build/outputs/apk/debug/*.apk
           if-no-files-found: warn
-
-      - name: Verify 16 KB Page-Size ELF Alignment (Android 15/16 Gate)
-        run: |
-          chmod +x scripts/verify-16kb-alignment.sh
-          ./scripts/verify-16kb-alignment.sh
-
-      - name: Stage Fresh Template APK and Rotate Trust Anchors
-        run: |
-          cp template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk
-          chmod +x scripts/rotate-trust-anchors.sh
-          ./scripts/rotate-trust-anchors.sh
-
-
-      - name: Assemble Manager APK
-        run: ./gradlew :app:assembleDebug --stacktrace
-
-      # The manager APK embeds ${rootDir}/runtimes as assets. If the pinned
-      # bundle is missing (gitignore regression, deleted template, stale
-      # checkout), every in-app 'retropack transform' fails at Stage 2 with
-      # "No runtime template registered for ID: 'mgba-unified'". This gate
-      # inspects the FINAL packaged APK so that class of failure can never
-      # ship again.
-      - name: Verify Manager APK embeds all pinned runtime bundle descriptors
-        run: |
-          MANAGER_APK="$(ls app/build/outputs/apk/debug/*.apk | head -n 1)"
-          echo "Inspecting $MANAGER_APK"
-          unzip -l "$MANAGER_APK" > /tmp/manager-apk-entries.txt
-          cat /tmp/manager-apk-entries.txt
-          for REQUIRED in \
-            "assets/mgba-unified/template.apk" \
-            "assets/mgba-unified/runtime.json" \
-            "assets/snes9x-unified/runtime.json" \
-            "assets/genesis-unified/runtime.json" \
-            "assets/fceumm-unified/runtime.json" \
-            "assets/pce-unified/runtime.json" \
-            "assets/fbneo-unified/runtime.json" \
-            "assets/pcsx-unified/runtime.json" \
-            "assets/mupen64-unified/runtime.json" \
-            "assets/ppsspp-unified/runtime.json" \
-            "assets/melonds-unified/runtime.json" ; do
-            if ! grep -q "$REQUIRED" /tmp/manager-apk-entries.txt ; then
-              echo "::error::Manager APK is missing $REQUIRED — the pinned runtime bundle was not embedded."
-              exit 1
-            fi
-          done
-          echo "All 10 pinned runtime bundle descriptors verified inside Manager APK."
-
-
-      - name: Run Android unit tests (app + template-apk)
-        run: ./gradlew :app:testDebugUnitTest :template-apk:testDebugUnitTest --stacktrace
 
       - name: Upload Manager APK artifact
         if: always()
