@@ -3,11 +3,6 @@
 
 DRV		BurnDrvNeoGeo;
 DRV		BurnDrvNeoGeoMVS;
-DRV		BurnDrvNeoGeoMV1;
-DRV		BurnDrvNeoGeoMV1F;
-DRV		BurnDrvNeoGeoMV1FZ;
-DRV		BurnDrvNeoGeoMV2F;
-DRV		BurnDrvNeoGeoMV4F;
 DRV		BurnDrvNeocdz;
 DRV		BurnDrvNam1975;
 DRV		BurnDrvBstars;
@@ -700,11 +695,6 @@ DRV		BurnDrvWrldrc32;
 static struct BurnDriver* pDriver[] = {
 	&BurnDrvNeoGeo,
 	&BurnDrvNeoGeoMVS,
-	&BurnDrvNeoGeoMV1,
-	&BurnDrvNeoGeoMV1F,
-	&BurnDrvNeoGeoMV1FZ,
-	&BurnDrvNeoGeoMV2F,
-	&BurnDrvNeoGeoMV4F,
 	&BurnDrvNeocdz,
 	&BurnDrvNam1975,
 	&BurnDrvBstars,

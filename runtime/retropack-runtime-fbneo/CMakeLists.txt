@@ -24,7 +24,6 @@ if(EXISTS "${FBNEO_SOURCE_DIR}/src/burn/burn.h" OR EXISTS "${FBNEO_SOURCE_DIR}/s
         -DBUILD_NEOGEO=1
         -D__LIBRETRO__=1
         -D__LIBRETRO_OPTIMIZATIONS__=1
-        -DINLINE=inline
     )
 
     set(FBNEO_CORE_SRCS

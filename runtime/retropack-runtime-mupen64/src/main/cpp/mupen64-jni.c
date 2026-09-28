@@ -61,10 +61,6 @@ void retro_return(void) {
     // Return point for emulator loop
 }
 
-uint32_t get_retro_screen_width(void) {
-    return (uint32_t)g_mupen.video_width;
-}
-
 static struct {
     bool initialized;
     bool rom_loaded;
@@ -114,6 +110,10 @@ static struct {
     .byte_buffer_as_int_buffer = NULL,
     .byte_order_native = NULL,
 };
+
+uint32_t get_retro_screen_width(void) {
+    return (uint32_t)g_mupen.video_width;
+}
 
 /**
  * Maps RetroKey bitmask to Nintendo 64 Controller 16-bit bitmask.
