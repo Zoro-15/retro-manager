@@ -1,0 +1,891 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 08:06:59 UTC
+Total Execution : 222.57s (3m 42s)
+Overall Result  : 10/16 Targets Passed (6 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Common Native Runtime                  PASS        49.01s     runtime-common.log
+[02] mGBA (GBA)                             PASS        12.52s     runtime-mgba.log
+[03] Snes9x (SNES)                          PASS        29.06s     runtime-snes9x.log
+[04] Genesis Plus GX (MD/GEN)               PASS         6.81s     runtime-genesis.log
+[05] FCEUmm (NES)                           PASS        11.51s     runtime-fceumm.log
+[06] Beetle PCE Fast (PC Engine)            PASS         4.46s     runtime-pce.log
+[07] FBNeo (Arcade / NeoGeo)                FAIL [!]     4.90s     runtime-fbneo.log
+[08] PCSX ReARMed (PS1)                     FAIL [!]     3.03s     runtime-pcsx.log
+[09] Mupen64Plus-Next (N64)                 FAIL [!]     1.97s     runtime-mupen64.log
+[10] PPSSPP (PSP)                           FAIL [!]    18.16s     runtime-ppsspp.log
+[11] melonDS (NDS)                          FAIL [!]    21.22s     runtime-melonds.log
+[12] Template APK (Standalone Game Runner)  FAIL [!]    12.95s     template-apk.log
+[13] 16 KB ELF Page-Size Alignment Gate     PASS         0.13s     verify-16kb.log
+[14] Trust Anchor Rotation & Staging        PASS         0.13s     rotate-anchors.log
+[15] Manager APK (Main App)                 PASS        38.06s     app-manager.log
+[16] Unit Tests (App & Template)            PASS         8.60s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [07]: FBNeo (Arcade / NeoGeo) (ID: runtime-fbneo)
+### Command : ./gradlew :runtime:retropack-runtime-fbneo:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-fbneo.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 42] ---
+    L0003: > Task :runtime:retropack-runtime-fbneo:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0007: C/C++: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0008: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0009: C/C++: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0010: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0011: C/C++: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0012: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+>>> [ERROR] L0013: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0014: C/C++: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0015: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0016: C/C++: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0017: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+>>> [ERROR] L0018: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0019: C/C++: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0020: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0021: C/C++: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0022: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+>>> [ERROR] L0023: C/C++: ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0024: C/C++: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0025: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0026: C/C++: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0027: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0028: C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0029: C/C++: ninja: build stopped: subcommand failed.
+    L0030: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582710415.json
+    L0031: 
+    L0032: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0033: 
+>>> [ERROR] L0034: FAILURE: Build failed with an exception.
+    L0035: 
+    L0036: * What went wrong:
+>>> [ERROR] L0037: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0038: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0039:   [1/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o
+    L0040:   [2/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o
+    L0041:   [3/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o
+    L0042:   [4/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o
+
+--- [Snippet #2 | Lines 80 to 116] ---
+    L0080:   [42/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o
+    L0081:   [43/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o
+    L0082:   [44/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0083:   [45/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0084:   [46/46] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0085:   FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0086:   : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0087:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0088:   >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0089:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0090:   >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0091:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0092: 
+>>> [ERROR] L0093:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0094:   >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0095:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0096:   >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0097:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0098: 
+>>> [ERROR] L0099:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0100:   >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0101:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0102:   >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0103:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0104: 
+>>> [ERROR] L0105:   ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0106:   >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0107:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0108:   >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0109:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0110:   clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0111:   ninja: build stopped: subcommand failed.
+    L0112: 
+    L0113:   C++ build system [build] failed while executing:
+    L0114:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0115:         -C \
+    L0116:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #3 | Lines 121 to 131] ---
+    L0121: > Run with --info or --debug option to get more log output.
+    L0122: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0123: > Get more help at https://help.gradle.org.
+    L0124: 
+    L0125: * Exception is:
+>>> [ERROR] L0126: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0127: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0128: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0129: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0130: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0131: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 233 to 269] ---
+    L0233: [42/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o
+    L0234: [43/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o
+    L0235: [44/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0236: [45/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0237: [46/46] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0238: FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0239: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0240: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0241: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0242: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0243: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0244: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0245: 
+>>> [ERROR] L0246: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0247: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0248: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0249: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0250: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0251: 
+>>> [ERROR] L0252: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0253: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0254: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0255: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0256: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0257: 
+>>> [ERROR] L0258: ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0259: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0260: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0261: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0262: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0263: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0264: ninja: build stopped: subcommand failed.
+    L0265: 
+    L0266: C++ build system [build] failed while executing:
+    L0267:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0268:       -C \
+    L0269:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #5 | Lines 417 to 453] ---
+    L0417: [42/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o
+    L0418: [43/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o
+    L0419: [44/46] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0420: [45/46] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0421: [46/46] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0422: FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0423: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0424: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0425: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0426: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0427: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0428: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0429: 
+>>> [ERROR] L0430: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0431: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0432: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0433: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0434: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0435: 
+>>> [ERROR] L0436: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0437: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0438: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0439: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0440: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0441: 
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+
+################################################################################
+### Target [08]: PCSX ReARMed (PS1) (ID: runtime-pcsx)
+### Command : ./gradlew :runtime:retropack-runtime-pcsx:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-pcsx.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 24] ---
+    L0003: > Task :runtime:retropack-runtime-pcsx:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-pcsx:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c:20:10: fatal error: 'X11/Xlib.h' file not found
+    L0009: C/C++:    20 | #include <X11/Xlib.h>
+    L0010: C/C++:       |          ^~~~~~~~~~~~
+    L0011: C/C++: 1 error generated.
+    L0012: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582715377.json
+    L0013: 
+    L0014: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0015: 
+>>> [ERROR] L0016: FAILURE: Build failed with an exception.
+    L0017: 
+    L0018: * What went wrong:
+>>> [ERROR] L0019: Execution failed for task ':runtime:retropack-runtime-pcsx:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0020: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a'
+    L0021:   [1/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/cdrom-async.c.o
+    L0022:   [2/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/src/main/cpp/ringbuffer.c.o
+    L0023:   [3/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/cheat.c.o
+    L0024:   [4/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/src/main/cpp/pcsx-jni.c.o
+
+--- [Snippet #2 | Lines 51 to 72] ---
+    L0051:   [31/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/out.c.o
+    L0052:   [32/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/psxbios.c.o
+    L0053:   [33/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/vout_pl.c.o
+    L0054:   [34/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/prim.c.o
+    L0055:   [35/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+>>> [ERROR] L0056:   FAILED: CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+    L0057:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0058:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c:20:10: fatal error: 'X11/Xlib.h' file not found
+    L0059:      20 | #include <X11/Xlib.h>
+    L0060:         |          ^~~~~~~~~~~~
+    L0061:   1 error generated.
+    L0062:   [36/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/gpu.c.o
+    L0063:   [37/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/spu.c.o
+    L0064:   [38/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte_nf.c.o
+    L0065:   [39/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte.c.o
+    L0066:   [40/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/gpulib_if.c.o
+>>> [ERROR] L0067:   ninja: build stopped: subcommand failed.
+    L0068: 
+    L0069:   C++ build system [build] failed while executing:
+    L0070:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0071:         -C \
+    L0072:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a \
+
+--- [Snippet #3 | Lines 77 to 87] ---
+    L0077: > Run with --info or --debug option to get more log output.
+    L0078: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0079: > Get more help at https://help.gradle.org.
+    L0080: 
+    L0081: * Exception is:
+>>> [ERROR] L0082: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-pcsx:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0083: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0084: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0085: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0086: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0087: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 147 to 168] ---
+    L0147: [31/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/out.c.o
+    L0148: [32/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/psxbios.c.o
+    L0149: [33/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/vout_pl.c.o
+    L0150: [34/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/prim.c.o
+    L0151: [35/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+>>> [ERROR] L0152: FAILED: CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+    L0153: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0154: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c:20:10: fatal error: 'X11/Xlib.h' file not found
+    L0155:    20 | #include <X11/Xlib.h>
+    L0156:       |          ^~~~~~~~~~~~
+    L0157: 1 error generated.
+    L0158: [36/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/gpu.c.o
+    L0159: [37/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/spu.c.o
+    L0160: [38/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte_nf.c.o
+    L0161: [39/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte.c.o
+    L0162: [40/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/gpulib_if.c.o
+>>> [ERROR] L0163: ninja: build stopped: subcommand failed.
+    L0164: 
+    L0165: C++ build system [build] failed while executing:
+    L0166:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0167:       -C \
+    L0168:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a \
+
+--- [Snippet #5 | Lines 305 to 326] ---
+    L0305: [31/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/out.c.o
+    L0306: [32/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/psxbios.c.o
+    L0307: [33/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/vout_pl.c.o
+    L0308: [34/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/prim.c.o
+    L0309: [35/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+>>> [ERROR] L0310: FAILED: CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c.o
+    L0311: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0312: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo/draw.c:20:10: fatal error: 'X11/Xlib.h' file not found
+    L0313:    20 | #include <X11/Xlib.h>
+    L0314:       |          ^~~~~~~~~~~~
+    L0315: 1 error generated.
+    L0316: [36/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/gpulib/gpu.c.o
+    L0317: [37/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfsound/spu.c.o
+    L0318: [38/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte_nf.c.o
+    L0319: [39/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/gte.c.o
+    L0320: [40/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/plugins/dfxvideo/gpulib_if.c.o
+>>> [ERROR] L0321: ninja: build stopped: subcommand failed.
+    L0322: 
+    L0323: C++ build system [build] failed while executing:
+    L0324:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0325:       -C \
+    L0326:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a \
+
+
+################################################################################
+### Target [09]: Mupen64Plus-Next (N64) (ID: runtime-mupen64)
+### Command : ./gradlew :runtime:retropack-runtime-mupen64:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-mupen64.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 24] ---
+    L0003: > Task :runtime:retropack-runtime-mupen64:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c:127:9: error: call to undeclared function 'log_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0009: C/C++:   127 |         log_cb(RETRO_LOG_WARN, "Couldn't open storage file '%s' for writing\n", fstorage->filename);
+    L0010: C/C++:       |         ^
+    L0011: C/C++: 1 error generated.
+    L0012: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582718387.json
+    L0013: 
+    L0014: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0015: 
+>>> [ERROR] L0016: FAILURE: Build failed with an exception.
+    L0017: 
+    L0018: * What went wrong:
+>>> [ERROR] L0019: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0020: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0021:   [1/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/ringbuffer.c.o
+    L0022:   [2/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/callbacks.c.o
+    L0023:   [3/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/frontend.c.o
+    L0024:   [4/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+
+--- [Snippet #2 | Lines 26 to 47] ---
+    L0026:   [6/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0027:   [7/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0028:   [8/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0029:   [9/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+    L0030:   [10/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+>>> [ERROR] L0031:   FAILED: CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+    L0032:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0033:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c:127:9: error: call to undeclared function 'log_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0034:     127 |         log_cb(RETRO_LOG_WARN, "Couldn't open storage file '%s' for writing\n", fstorage->filename);
+    L0035:         |         ^
+    L0036:   1 error generated.
+    L0037:   [11/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart.c.o
+    L0038:   [12/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0039:   [13/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart_rom.c.o
+    L0040:   [14/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0041:   [15/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/af_rtc.c.o
+>>> [ERROR] L0042:   ninja: build stopped: subcommand failed.
+    L0043: 
+    L0044:   C++ build system [build] failed while executing:
+    L0045:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0046:         -C \
+    L0047:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+--- [Snippet #3 | Lines 52 to 62] ---
+    L0052: > Run with --info or --debug option to get more log output.
+    L0053: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0054: > Get more help at https://help.gradle.org.
+    L0055: 
+    L0056: * Exception is:
+>>> [ERROR] L0057: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0058: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0059: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0060: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0061: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0062: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 97 to 118] ---
+    L0097: [6/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0098: [7/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0099: [8/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0100: [9/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+    L0101: [10/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+>>> [ERROR] L0102: FAILED: CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+    L0103: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0104: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c:127:9: error: call to undeclared function 'log_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0105:   127 |         log_cb(RETRO_LOG_WARN, "Couldn't open storage file '%s' for writing\n", fstorage->filename);
+    L0106:       |         ^
+    L0107: 1 error generated.
+    L0108: [11/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart.c.o
+    L0109: [12/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0110: [13/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart_rom.c.o
+    L0111: [14/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0112: [15/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/af_rtc.c.o
+>>> [ERROR] L0113: ninja: build stopped: subcommand failed.
+    L0114: 
+    L0115: C++ build system [build] failed while executing:
+    L0116:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0117:       -C \
+    L0118:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+--- [Snippet #5 | Lines 230 to 251] ---
+    L0230: [6/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/api/video_capture_backend.c.o
+    L0231: [7/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/audio_plugin_compat.c.o
+    L0232: [8/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/clock_ctime_plus_delta.c.o
+    L0233: [9/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/custom/mupen64plus-core/api/config.c.o
+    L0234: [10/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+>>> [ERROR] L0235: FAILED: CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c.o
+    L0236: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0237: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/backends/file_storage.c:127:9: error: call to undeclared function 'log_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0238:   127 |         log_cb(RETRO_LOG_WARN, "Couldn't open storage file '%s' for writing\n", fstorage->filename);
+    L0239:       |         ^
+    L0240: 1 error generated.
+    L0241: [11/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart.c.o
+    L0242: [12/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/dummy_video_capture.c.o
+    L0243: [13/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/cart_rom.c.o
+    L0244: [14/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/backends/plugins_compat/input_plugin_compat.c.o
+    L0245: [15/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/cart/af_rtc.c.o
+>>> [ERROR] L0246: ninja: build stopped: subcommand failed.
+    L0247: 
+    L0248: C++ build system [build] failed while executing:
+    L0249:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0250:       -C \
+    L0251:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a \
+
+
+################################################################################
+### Target [10]: PPSSPP (PSP) (ID: runtime-ppsspp)
+### Command : ./gradlew :runtime:retropack-runtime-ppsspp:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-ppsspp.log
+################################################################################
+
+--- [Snippet #1 | Lines 4 to 27] ---
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26  ... [command-line flags truncated]
+    L0008: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/LuaContext.cpp:9:
+>>> [ERROR] L0009: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/sol/sol.hpp:3046:13: fatal error: 'lua.h' file not found
+    L0010: C/C++:  3046 |                         #include <lua.h>
+    L0011: C/C++:       |                                  ^~~~~~~
+    L0012: C/C++: 1 error generated.
+    L0013: 
+    L0014: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a] FAILED
+    L0015: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582720338.json
+    L0016: 
+    L0017: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0018: 
+>>> [ERROR] L0019: FAILURE: Build failed with an exception.
+    L0020: 
+    L0021: * What went wrong:
+>>> [ERROR] L0022: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0023: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0024:   [1/370] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/zstd.c.o
+    L0025:   [2/370] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/ringbuffer.c.o
+    L0026:   [3/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/sha1.cpp.o
+    L0027:   [4/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/md5.cpp.o
+
+--- [Snippet #2 | Lines 88 to 110] ---
+    L0088:   [65/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Config.cpp.o
+    L0089:   [66/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/WaveFile.cpp.o
+    L0090:   [67/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/HTTPFileLoader.cpp.o
+    L0091:   [68/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Core.cpp.o
+    L0092:   [69/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+>>> [ERROR] L0093:   FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+    L0094:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sys ... [command-line flags truncated]
+    L0095:   In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/LuaContext.cpp:9:
+>>> [ERROR] L0096:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/sol/sol.hpp:3046:13: fatal error: 'lua.h' file not found
+    L0097:    3046 |                         #include <lua.h>
+    L0098:         |                                  ^~~~~~~
+    L0099:   1 error generated.
+    L0100:   [70/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/CachingFileLoader.cpp.o
+    L0101:   [71/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RetryingFileLoader.cpp.o
+    L0102:   [72/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/KeyMap.cpp.o
+    L0103:   [73/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/DiskCachingFileLoader.cpp.o
+    L0104:   [74/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RamCachingFileLoader.cpp.o
+>>> [ERROR] L0105:   ninja: build stopped: subcommand failed.
+    L0106: 
+    L0107:   C++ build system [build] failed while executing:
+    L0108:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0109:         -C \
+    L0110:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+--- [Snippet #3 | Lines 115 to 125] ---
+    L0115: > Run with --info or --debug option to get more log output.
+    L0116: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0117: > Get more help at https://help.gradle.org.
+    L0118: 
+    L0119: * Exception is:
+>>> [ERROR] L0120: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0121: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0122: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0123: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0124: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0125: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 219 to 241] ---
+    L0219: [65/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Config.cpp.o
+    L0220: [66/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/WaveFile.cpp.o
+    L0221: [67/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/HTTPFileLoader.cpp.o
+    L0222: [68/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Core.cpp.o
+    L0223: [69/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+>>> [ERROR] L0224: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+    L0225: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+    L0226: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/LuaContext.cpp:9:
+>>> [ERROR] L0227: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/sol/sol.hpp:3046:13: fatal error: 'lua.h' file not found
+    L0228:  3046 |                         #include <lua.h>
+    L0229:       |                                  ^~~~~~~
+    L0230: 1 error generated.
+    L0231: [70/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/CachingFileLoader.cpp.o
+    L0232: [71/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RetryingFileLoader.cpp.o
+    L0233: [72/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/KeyMap.cpp.o
+    L0234: [73/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/DiskCachingFileLoader.cpp.o
+    L0235: [74/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RamCachingFileLoader.cpp.o
+>>> [ERROR] L0236: ninja: build stopped: subcommand failed.
+    L0237: 
+    L0238: C++ build system [build] failed while executing:
+    L0239:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0240:       -C \
+    L0241:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+--- [Snippet #5 | Lines 412 to 434] ---
+    L0412: [65/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Config.cpp.o
+    L0413: [66/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/WaveFile.cpp.o
+    L0414: [67/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/HTTPFileLoader.cpp.o
+    L0415: [68/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/Core.cpp.o
+    L0416: [69/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+>>> [ERROR] L0417: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/LuaContext.cpp.o
+    L0418: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+    L0419: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/LuaContext.cpp:9:
+>>> [ERROR] L0420: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/sol/sol.hpp:3046:13: fatal error: 'lua.h' file not found
+    L0421:  3046 |                         #include <lua.h>
+    L0422:       |                                  ^~~~~~~
+    L0423: 1 error generated.
+    L0424: [70/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/CachingFileLoader.cpp.o
+    L0425: [71/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RetryingFileLoader.cpp.o
+    L0426: [72/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/KeyMap.cpp.o
+    L0427: [73/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/DiskCachingFileLoader.cpp.o
+    L0428: [74/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/FileLoaders/RamCachingFileLoader.cpp.o
+>>> [ERROR] L0429: ninja: build stopped: subcommand failed.
+    L0430: 
+    L0431: C++ build system [build] failed while executing:
+    L0432:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0433:       -C \
+    L0434:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+
+################################################################################
+### Target [11]: melonDS (NDS) (ID: runtime-melonds)
+### Command : ./gradlew :runtime:retropack-runtime-melonds:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-melonds.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 44] ---
+    L0003: > Task :runtime:retropack-runtime-melonds:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/.cxx/Debug/4l53r62e/arm64-v8a'
+    L0007: C/C++: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-melonds.so -o ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds-jni.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds_platform.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARCodeFile.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARDatabaseDAT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/AREngine.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_ALU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_Branch.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_LoadStore.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM_InstrInfo.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CP15.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CRC32.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA_Timings.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_AES.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_Camera.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2C.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2S.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NDMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NWifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SPI_TSC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATIO.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATStorage.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FreeBIOS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACartMotionPak.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Texcache.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Mic.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ROMList.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/RTC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Savestate.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI_Firmware.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Utils.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Wifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/WifiAP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/UcodeBase.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/AACUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/G711Ucode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/GraphicsUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartCommon.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetail.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailNAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailIR.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartSD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ff.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffsystem.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffunicode.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/sha1/sha1.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/tiny-AES-c/aes.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/blip-buf/blip_buf.c.o  -lGLESv3  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0008: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::Teakra()
+    L0009: C/C++: >>> referenced by DSi_DSP.cpp:275 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:275)
+    L0010: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0011: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::SetRecvDataHandler(unsigned char, std::__ndk1::function<void ()>)
+    L0012: C/C++: >>> referenced by DSi_DSP.cpp:280 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:280)
+    L0013: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0014: C/C++: >>> referenced by DSi_DSP.cpp:281 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:281)
+    L0015: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0016: C/C++: >>> referenced by DSi_DSP.cpp:282 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:282)
+    L0017: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0018: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::SetSemaphoreHandler(std::__ndk1::function<void ()>)
+    L0019: C/C++: >>> referenced by DSi_DSP.cpp:284 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:284)
+    L0020: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0021: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::SetSharedMemoryCallback(Teakra::SharedMemoryCallback const&)
+    L0022: C/C++: >>> referenced by DSi_DSP.cpp:289 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:289)
+    L0023: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0024: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::SetAHBMCallback(Teakra::AHBMCallback const&)
+    L0025: C/C++: >>> referenced by DSi_DSP.cpp:300 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:300)
+    L0026: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0027: C/C++: ld.lld: error: undefined symbol: Teakra::Teakra::SetMicEnableCallback(std::__ndk1::function<void (bool)>)
+    L0028: C/C++: >>> referenced by DSi_DSP.cpp:302 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:302)
+    L0029: C/C++: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0030: C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0031: C/C++: ninja: build stopped: subcommand failed.
+    L0032: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582738532.json
+    L0033: 
+    L0034: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0035: 
+>>> [ERROR] L0036: FAILURE: Build failed with an exception.
+    L0037: 
+    L0038: * What went wrong:
+>>> [ERROR] L0039: Execution failed for task ':runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0040: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/.cxx/Debug/4l53r62e/arm64-v8a'
+    L0041:   [1/71] Building C object CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/ringbuffer.c.o
+    L0042:   [2/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds_platform.cpp.o
+    L0043:   [3/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds-jni.cpp.o
+    L0044:   [4/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/AREngine.cpp.o
+
+--- [Snippet #2 | Lines 107 to 147] ---
+    L0107:   [67/71] Building C object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o
+    L0108:   [68/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o
+    L0109:   [69/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o
+    L0110:   [70/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o
+    L0111:   [71/71] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+>>> [ERROR] L0112:   FAILED: ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+    L0113:   : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-melonds.so -o ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds-jni.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds_platform.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARCodeFile.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARDatabaseDAT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/AREngine.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_ALU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_Branch.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_LoadStore.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM_InstrInfo.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CP15.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CRC32.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA_Timings.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_AES.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_Camera.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2C.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2S.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NDMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NWifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SPI_TSC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATIO.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATStorage.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FreeBIOS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACartMotionPak.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Texcache.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Mic.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ROMList.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/RTC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Savestate.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI_Firmware.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Utils.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Wifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/WifiAP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/UcodeBase.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/AACUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/G711Ucode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/GraphicsUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartCommon.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetail.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailNAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailIR.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartSD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ff.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffsystem.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffunicode.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/sha1/sha1.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/tiny-AES-c/aes.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/blip-buf/blip_buf.c.o  -lGLESv3  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0114:   ld.lld: error: undefined symbol: Teakra::Teakra::Teakra()
+    L0115:   >>> referenced by DSi_DSP.cpp:275 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:275)
+    L0116:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0117: 
+>>> [ERROR] L0118:   ld.lld: error: undefined symbol: Teakra::Teakra::SetRecvDataHandler(unsigned char, std::__ndk1::function<void ()>)
+    L0119:   >>> referenced by DSi_DSP.cpp:280 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:280)
+    L0120:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0121:   >>> referenced by DSi_DSP.cpp:281 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:281)
+    L0122:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0123:   >>> referenced by DSi_DSP.cpp:282 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:282)
+    L0124:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0125: 
+>>> [ERROR] L0126:   ld.lld: error: undefined symbol: Teakra::Teakra::SetSemaphoreHandler(std::__ndk1::function<void ()>)
+    L0127:   >>> referenced by DSi_DSP.cpp:284 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:284)
+    L0128:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0129: 
+>>> [ERROR] L0130:   ld.lld: error: undefined symbol: Teakra::Teakra::SetSharedMemoryCallback(Teakra::SharedMemoryCallback const&)
+    L0131:   >>> referenced by DSi_DSP.cpp:289 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:289)
+    L0132:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0133: 
+>>> [ERROR] L0134:   ld.lld: error: undefined symbol: Teakra::Teakra::SetAHBMCallback(Teakra::AHBMCallback const&)
+    L0135:   >>> referenced by DSi_DSP.cpp:300 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:300)
+    L0136:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0137: 
+>>> [ERROR] L0138:   ld.lld: error: undefined symbol: Teakra::Teakra::SetMicEnableCallback(std::__ndk1::function<void (bool)>)
+    L0139:   >>> referenced by DSi_DSP.cpp:302 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:302)
+    L0140:   >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0141:   clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0142:   ninja: build stopped: subcommand failed.
+    L0143: 
+    L0144:   C++ build system [build] failed while executing:
+    L0145:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0146:         -C \
+    L0147:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/.cxx/Debug/4l53r62e/arm64-v8a \
+
+--- [Snippet #3 | Lines 152 to 162] ---
+    L0152: > Run with --info or --debug option to get more log output.
+    L0153: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0154: > Get more help at https://help.gradle.org.
+    L0155: 
+    L0156: * Exception is:
+>>> [ERROR] L0157: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0158: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0159: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0160: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0161: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0162: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 258 to 298] ---
+    L0258: [67/71] Building C object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o
+    L0259: [68/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o
+    L0260: [69/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o
+    L0261: [70/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o
+    L0262: [71/71] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+>>> [ERROR] L0263: FAILED: ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+    L0264: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-melonds.so -o ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds-jni.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds_platform.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARCodeFile.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARDatabaseDAT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/AREngine.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_ALU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_Branch.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_LoadStore.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM_InstrInfo.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CP15.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CRC32.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA_Timings.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_AES.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_Camera.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2C.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2S.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NDMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NWifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SPI_TSC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATIO.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATStorage.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FreeBIOS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACartMotionPak.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Texcache.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Mic.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ROMList.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/RTC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Savestate.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI_Firmware.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Utils.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Wifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/WifiAP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/UcodeBase.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/AACUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/G711Ucode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/GraphicsUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartCommon.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetail.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailNAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailIR.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartSD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ff.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffsystem.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffunicode.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/sha1/sha1.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/tiny-AES-c/aes.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/blip-buf/blip_buf.c.o  -lGLESv3  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0265: ld.lld: error: undefined symbol: Teakra::Teakra::Teakra()
+    L0266: >>> referenced by DSi_DSP.cpp:275 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:275)
+    L0267: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0268: 
+>>> [ERROR] L0269: ld.lld: error: undefined symbol: Teakra::Teakra::SetRecvDataHandler(unsigned char, std::__ndk1::function<void ()>)
+    L0270: >>> referenced by DSi_DSP.cpp:280 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:280)
+    L0271: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0272: >>> referenced by DSi_DSP.cpp:281 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:281)
+    L0273: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0274: >>> referenced by DSi_DSP.cpp:282 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:282)
+    L0275: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0276: 
+>>> [ERROR] L0277: ld.lld: error: undefined symbol: Teakra::Teakra::SetSemaphoreHandler(std::__ndk1::function<void ()>)
+    L0278: >>> referenced by DSi_DSP.cpp:284 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:284)
+    L0279: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0280: 
+>>> [ERROR] L0281: ld.lld: error: undefined symbol: Teakra::Teakra::SetSharedMemoryCallback(Teakra::SharedMemoryCallback const&)
+    L0282: >>> referenced by DSi_DSP.cpp:289 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:289)
+    L0283: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0284: 
+>>> [ERROR] L0285: ld.lld: error: undefined symbol: Teakra::Teakra::SetAHBMCallback(Teakra::AHBMCallback const&)
+    L0286: >>> referenced by DSi_DSP.cpp:300 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:300)
+    L0287: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0288: 
+>>> [ERROR] L0289: ld.lld: error: undefined symbol: Teakra::Teakra::SetMicEnableCallback(std::__ndk1::function<void (bool)>)
+    L0290: >>> referenced by DSi_DSP.cpp:302 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:302)
+    L0291: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+>>> [ERROR] L0292: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0293: ninja: build stopped: subcommand failed.
+    L0294: 
+    L0295: C++ build system [build] failed while executing:
+    L0296:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0297:       -C \
+    L0298:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/.cxx/Debug/4l53r62e/arm64-v8a \
+
+--- [Snippet #5 | Lines 471 to 511] ---
+    L0471: [67/71] Building C object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o
+    L0472: [68/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o
+    L0473: [69/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o
+    L0474: [70/71] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o
+    L0475: [71/71] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+>>> [ERROR] L0476: FAILED: ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so
+    L0477: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-melonds.so -o ../../../../build/intermediates/cxx/Debug/4l53r62e/obj/arm64-v8a/libretropack-runtime-melonds.so CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds-jni.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/melonds_platform.cpp.o CMakeFiles/retropack-runtime-melonds.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARCodeFile.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARDatabaseDAT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/AREngine.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_ALU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_Branch.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARMInterpreter_LoadStore.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ARM_InstrInfo.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CP15.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/CRC32.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DMA_Timings.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_AES.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_Camera.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2C.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_I2S.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NDMA.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_NWifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_SPI_TSC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATIO.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FATStorage.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/FreeBIOS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GBACartMotionPak.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU2D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Soft.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Texcache.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Mic.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ROMList.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/RTC.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Savestate.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPI_Firmware.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/SPU.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Utils.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Wifi.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/WifiAP.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/UcodeBase.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/AACUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/G711Ucode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSP_HLE/GraphicsUcode.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartCommon.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetail.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailNAND.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailIR.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartRetailBT.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartSD.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartHomebrew.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDSCart/CartR4.cpp.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ff.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffsystem.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/fatfs/ffunicode.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/sha1/sha1.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/tiny-AES-c/aes.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/xxhash/xxhash.c.o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/blip-buf/blip_buf.c.o  -lGLESv3  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0478: ld.lld: error: undefined symbol: Teakra::Teakra::Teakra()
+    L0479: >>> referenced by DSi_DSP.cpp:275 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:275)
+    L0480: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0481: 
+>>> [ERROR] L0482: ld.lld: error: undefined symbol: Teakra::Teakra::SetRecvDataHandler(unsigned char, std::__ndk1::function<void ()>)
+    L0483: >>> referenced by DSi_DSP.cpp:280 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:280)
+    L0484: >>>               CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/DSi_DSP.cpp.o:(melonDS::DSi_DSP::StartDSPLLE())
+    L0485: >>> referenced by DSi_DSP.cpp:281 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSi_DSP.cpp:281)
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+
+################################################################################
+### Target [12]: Template APK (Standalone Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 309 to 377] ---
+    L0309: > Task :runtime:retropack-runtime-fbneo:configureCMakeDebug[arm64-v8a]
+    L0310: 
+    L0311: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0312: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0313: C/C++: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0314: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0315: C/C++: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0316: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0317: C/C++: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0318: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+>>> [ERROR] L0319: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0320: C/C++: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0321: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0322: C/C++: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0323: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+>>> [ERROR] L0324: C/C++: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0325: C/C++: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0326: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0327: C/C++: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0328: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+>>> [ERROR] L0329: C/C++: ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0330: C/C++: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0331: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0332: C/C++: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0333: C/C++: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0334: C/C++: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0335: C/C++: ninja: build stopped: subcommand failed.
+    L0336: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790582759800.json
+    L0337: 
+    L0338: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0339: 
+>>> [ERROR] L0340: FAILURE: Build failed with an exception.
+    L0341: 
+    L0342: * What went wrong:
+>>> [ERROR] L0343: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0344: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0345:   [1/1] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0346:   FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0347:   : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0348:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0349:   >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0350:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0351:   >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0352:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0353: 
+>>> [ERROR] L0354:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0355:   >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0356:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0357:   >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0358:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0359: 
+>>> [ERROR] L0360:   ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0361:   >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0362:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0363:   >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0364:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0365: 
+>>> [ERROR] L0366:   ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0367:   >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0368:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0369:   >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0370:   >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0371:   clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0372:   ninja: build stopped: subcommand failed.
+    L0373: 
+    L0374:   C++ build system [build] failed while executing:
+    L0375:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0376:         -C \
+    L0377:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #2 | Lines 382 to 392] ---
+    L0382: > Run with --info or --debug option to get more log output.
+    L0383: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0384: > Get more help at https://help.gradle.org.
+    L0385: 
+    L0386: * Exception is:
+>>> [ERROR] L0387: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0388: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0389: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0390: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0391: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0392: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #3 | Lines 418 to 454] ---
+    L0418: 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+    L0419: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0420: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0421: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0422: [1/1] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0423: FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0424: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0425: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0426: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0427: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0428: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0429: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0430: 
+>>> [ERROR] L0431: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0432: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0433: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0434: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0435: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0436: 
+>>> [ERROR] L0437: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0438: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0439: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0440: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0441: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0442: 
+>>> [ERROR] L0443: ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0444: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0445: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0446: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0447: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0448: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0449: ninja: build stopped: subcommand failed.
+    L0450: 
+    L0451: C++ build system [build] failed while executing:
+    L0452:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0453:       -C \
+    L0454:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #4 | Lines 557 to 593] ---
+    L0557: 	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+    L0558: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0559: 	... 30 more
+    L0560: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0561: [1/1] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+>>> [ERROR] L0562: FAILED: ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so
+    L0563: : && /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -fPIC -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--no-undefined-version -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments  -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384   -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384 -shared -Wl,-soname,libretropack-runtime-fbneo.so -o ../../../../build/intermediates/cxx/Debug/1b1s4j3o/obj/arm64-v8a/libretropack-runtime-fbneo.so CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/fbneo-jni.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_gun.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/cheat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/debug_track.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/hiscore.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/load.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/timer.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sha1.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/dat.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/statec.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/zipfn.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/nvram.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/cdlist.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/ioapi.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/unzip.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_decrypt.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_palette.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_run.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_sprite.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_text.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neo_upd4990a.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/neogeo.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/fm.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ay8910.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/ymdeltat.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2203.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2608.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2610.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/snd/burn_ym2612.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/joyprocess.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/devices/resnet.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68000_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80_intf.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80ctc.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80daisy.cpp.o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/z80/z80pio.cpp.o  -lGLESv2  -lEGL  -lOpenSLES  -landroid  -llog  -lm  -lz  -latomic -lm && :
+>>> [ERROR] L0564: ld.lld: error: duplicate symbol: m68ki_stack_frame_1000
+    L0565: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0566: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1000)
+    L0567: >>> defined at m68kcpu.h:1634 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1634)
+    L0568: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1000+0x0)
+    L0569: 
+>>> [ERROR] L0570: ld.lld: error: duplicate symbol: m68ki_stack_frame_1010
+    L0571: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0572: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1010)
+    L0573: >>> defined at m68kcpu.h:1688 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1688)
+    L0574: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1010+0x0)
+    L0575: 
+>>> [ERROR] L0576: ld.lld: error: duplicate symbol: m68ki_stack_frame_1011
+    L0577: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0578: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_stack_frame_1011)
+    L0579: >>> defined at m68kcpu.h:1735 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1735)
+    L0580: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_stack_frame_1011+0x0)
+    L0581: 
+>>> [ERROR] L0582: ld.lld: error: duplicate symbol: m68ki_exception_interrupt
+    L0583: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0584: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kcpu.c.o:(m68ki_exception_interrupt)
+    L0585: >>> defined at m68kcpu.h:1979 (/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k/m68kcpu.h:1979)
+    L0586: >>>            CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o:(.text.m68ki_exception_interrupt+0x0)
+>>> [ERROR] L0587: clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+>>> [ERROR] L0588: ninja: build stopped: subcommand failed.
+    L0589: 
+    [... trace capped at 150 lines; check raw log for full output ...]
+
