@@ -131,4 +131,6 @@ target_link_libraries(retropack-runtime-fbneo PRIVATE
 target_link_options(retropack-runtime-fbneo PRIVATE
     "-Wl,-z,max-page-size=16384"
     "-Wl,-z,common-page-size=16384"
+    "-Wl,--allow-multiple-definition"
+    "-Wl,-z,muldefs"
 )

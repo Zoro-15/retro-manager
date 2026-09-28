@@ -116,6 +116,7 @@ target_include_directories(retropack-runtime-melonds PRIVATE
     "${MELONDS_SOURCE_DIR}/src/tiny-AES-c"
     "${MELONDS_SOURCE_DIR}/src/xxhash"
     "${MELONDS_SOURCE_DIR}/src/blip-buf"
+    "${MELONDS_SOURCE_DIR}/src/teakra/include"
 )
 
 target_link_libraries(retropack-runtime-melonds PRIVATE

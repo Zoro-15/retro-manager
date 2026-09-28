@@ -4,6 +4,8 @@ project(retropack-runtime-ppsspp C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-w)
+
 # Enforce 16 KB Page Alignment (Mandatory for Android 15 / API 35+, NDK r28b+)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
 
@@ -95,7 +97,6 @@ if(EXISTS "${PPSSPP_SOURCE_DIR}/Core/System.h" OR EXISTS "${PPSSPP_SOURCE_DIR}/C
         "${PPSSPP_SOURCE_DIR}/Core/WaveFile.cpp"
         "${PPSSPP_SOURCE_DIR}/Core/KeyMap.cpp"
         "${PPSSPP_SOURCE_DIR}/Core/KeyMapDefaults.cpp"
-        "${PPSSPP_SOURCE_DIR}/Core/LuaContext.cpp"
         "${PPSSPP_SOURCE_DIR}/Core/FileLoaders/HTTPFileLoader.cpp"
         "${PPSSPP_SOURCE_DIR}/Core/FileLoaders/CachingFileLoader.cpp"
         "${PPSSPP_SOURCE_DIR}/Core/FileLoaders/DiskCachingFileLoader.cpp"

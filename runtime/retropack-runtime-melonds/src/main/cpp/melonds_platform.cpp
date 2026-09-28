@@ -315,3 +315,46 @@ void* DynamicLibrary_LoadFunction(DynamicLibrary* lib, const char* name) {
 
 } // namespace Platform
 } // namespace melonDS
+
+#include "teakra/include/teakra/teakra.h"
+
+namespace Teakra {
+Teakra::Teakra() {}
+Teakra::~Teakra() {}
+void Teakra::Reset() {}
+void Teakra::DoSavestate(melonDS::Savestate* file) {}
+bool Teakra::SendDataIsEmpty(std::uint8_t index) const { return true; }
+void Teakra::SendData(std::uint8_t index, std::uint16_t value) {}
+bool Teakra::RecvDataIsReady(std::uint8_t index) const { return false; }
+std::uint16_t Teakra::RecvData(std::uint8_t index) { return 0; }
+std::uint16_t Teakra::PeekRecvData(std::uint8_t index) { return 0; }
+void Teakra::SetRecvDataHandler(std::uint8_t index, std::function<void()> handler) {}
+void Teakra::SetSemaphore(std::uint16_t value) {}
+void Teakra::ClearSemaphore(std::uint16_t value) {}
+void Teakra::MaskSemaphore(std::uint16_t value) {}
+void Teakra::SetSemaphoreHandler(std::function<void()> handler) {}
+std::uint16_t Teakra::GetSemaphore() const { return 0; }
+std::uint16_t Teakra::ProgramRead(std::uint32_t address) const { return 0; }
+void Teakra::ProgramWrite(std::uint32_t address, std::uint16_t value) {}
+std::uint16_t Teakra::DataRead(std::uint16_t address, bool bypass_mmio) { return 0; }
+void Teakra::DataWrite(std::uint16_t address, std::uint16_t value, bool bypass_mmio) {}
+std::uint16_t Teakra::DataReadA32(std::uint32_t address) const { return 0; }
+void Teakra::DataWriteA32(std::uint32_t address, std::uint16_t value) {}
+std::uint16_t Teakra::MMIORead(std::uint16_t address) { return 0; }
+void Teakra::MMIOWrite(std::uint16_t address, std::uint16_t value) {}
+std::uint16_t Teakra::DMAChan0GetSrcHigh() { return 0; }
+std::uint16_t Teakra::DMAChan0GetDstHigh() { return 0; }
+std::uint16_t Teakra::AHBMGetUnitSize(std::uint16_t i) const { return 0; }
+std::uint16_t Teakra::AHBMGetDirection(std::uint16_t i) const { return 0; }
+std::uint16_t Teakra::AHBMGetDmaChannel(std::uint16_t i) const { return 0; }
+std::uint16_t Teakra::AHBMRead16(std::uint32_t addr) { return 0; }
+void Teakra::AHBMWrite16(std::uint32_t addr, std::uint16_t value) {}
+std::uint16_t Teakra::AHBMRead32(std::uint32_t addr) { return 0; }
+void Teakra::AHBMWrite32(std::uint32_t addr, std::uint16_t value) {}
+void Teakra::Run(unsigned cycle) {}
+void Teakra::SetSharedMemoryCallback(const SharedMemoryCallback& callback) {}
+void Teakra::SetAHBMCallback(const AHBMCallback& callback) {}
+void Teakra::SetAudioCallback(std::function<void(std::array<std::int16_t, 2>)> callback) {}
+void Teakra::SetMicEnableCallback(std::function<void(bool)> cb) {}
+void Teakra::SampleClock(std::int16_t output[2], std::int16_t input) {}
+} // namespace Teakra
