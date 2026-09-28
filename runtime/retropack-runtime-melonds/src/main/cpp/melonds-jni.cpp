@@ -35,7 +35,7 @@
 #include <GPU.h>
 #include <SPU.h>
 #include <SPI.h>
-#include <SaveMemory.h>
+#include <NDSCart.h>
 #endif
 
 static struct {

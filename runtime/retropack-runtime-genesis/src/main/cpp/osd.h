@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 #define MAX_INPUTS 8
 #define MAX_KEYS 8

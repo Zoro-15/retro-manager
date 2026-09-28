@@ -137,21 +137,6 @@ void S9xCloseSnapshotFile(STREAM file) {
     CLOSE_STREAM(file);
 }
 
-const char* S9xBasename(const char* in) {
-    const char* slash = strrchr(in, '/');
-    if (!slash) slash = strrchr(in, '\\');
-    return slash ? slash + 1 : in;
-}
-
-std::string S9xGetFilename(std::string in, s9x_getdirtype type) {
-    (void)type;
-    return in;
-}
-
-std::string S9xGetFilenameInc(std::string in, s9x_getdirtype type) {
-    (void)type;
-    return in;
-}
 
 void S9xInitInputDevices(void) {}
 void S9xHandlePortCommand(s9xcommand_t cmd, short val1, short val2) {

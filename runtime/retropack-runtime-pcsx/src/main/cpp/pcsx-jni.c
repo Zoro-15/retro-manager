@@ -34,7 +34,7 @@
 // Real upstream PCSX ReARMed C headers
 #include <psxcommon.h>
 #include <r3000a.h>
-#include <gpureg.h>
+#include <gpu.h>
 #include <spu.h>
 #include <sio.h>
 #include <cdrom.h>

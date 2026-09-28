@@ -94,6 +94,7 @@ add_library(retropack-runtime-fbneo SHARED
 
 target_include_directories(retropack-runtime-fbneo PRIVATE
     src/main/cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/../retropack-runtime-common/src/main/cpp"
     "${FBNEO_SOURCE_DIR}"
     "${FBNEO_SOURCE_DIR}/src"
     "${FBNEO_SOURCE_DIR}/src/burn"

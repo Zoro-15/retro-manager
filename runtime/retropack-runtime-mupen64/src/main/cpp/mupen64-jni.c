@@ -32,8 +32,9 @@
 
 #ifdef HAVE_MUPEN64_CORE
 #include <m64p_types.h>
+#include <m64p_common.h>
 #include <m64p_frontend.h>
-#include <m64p_core.h>
+#include <m64p_config.h>
 #endif
 
 static struct {

@@ -309,9 +309,9 @@ static void draw_line(int x0, int y0, int x1, int y1, uint32_t color) {
 }
 
 typedef struct { float x, y, z; } Vec3;
-typedef struct { int x, y; } Point2D;
+typedef struct { int x, y; } PspPoint2D;
 
-static Point2D project_3d_point(Vec3 v, float rotX, float rotY, int cx, int cy, float fov) {
+static PspPoint2D project_3d_point(Vec3 v, float rotX, float rotY, int cx, int cy, float fov) {
     float cosY = cosf(rotY);
     float sinY = sinf(rotY);
     float x1 = v.x * cosY + v.z * sinY;
@@ -322,7 +322,7 @@ static Point2D project_3d_point(Vec3 v, float rotX, float rotY, int cx, int cy, 
     float y2 = v.y * cosX - z1 * sinX;
     float z2 = v.y * sinX + z1 * cosX + 260.0f;
 
-    Point2D p;
+    PspPoint2D p;
     if (z2 <= 1.0f) z2 = 1.0f;
     p.x = cx + (int)((x1 * fov) / z2);
     p.y = cy + (int)((y2 * fov) / z2);

@@ -24,6 +24,7 @@ if(EXISTS "${PCE_SOURCE_DIR}/libretro.c")
         -DNEED_TREMOR=1
         -DFRONTEND_SUPPORTS_RGB565=1
         -DSTATIC_LINKING=1
+        -DINLINE=inline
     )
 
     set(PCE_CORE_SRCS

@@ -34,6 +34,10 @@
 #include <ines.h>
 #include <unif.h>
 
+extern CartInfo iNESCart;
+extern CartInfo UNIFCart;
+void FCEU_UpdateInput(void);
+
 // Driver callbacks required by FCEUmm core
 void FCEUD_Message(const char *s) {
     LOGI("[FCEUmm] %s", s ? s : "");

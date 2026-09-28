@@ -611,7 +611,7 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisUnloadRom(JNIEnv* en
     pthread_mutex_lock(&g_genesis.lock);
 #ifdef HAVE_GENESIS_CORE
     if (g_genesis.rom_loaded) {
-        system_shutdown();
+        audio_shutdown();
     }
 #endif
     g_genesis.rom_loaded = false;
@@ -624,7 +624,6 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisDestroy(JNIEnv* env,
     (void) env; (void) thiz;
     pthread_mutex_lock(&g_genesis.lock);
 #ifdef HAVE_GENESIS_CORE
-    system_shutdown();
     audio_shutdown();
 #endif
     if (g_genesis.audio_rb) {
@@ -653,7 +652,13 @@ Java_com_retropack_runtime_genesis_GenesisNativeCore_genesisRunFrame(JNIEnv* env
     input.pad[0] = pad;
 
     // 2. Emulate single system frame
-    system_frame(0);
+    if (system_hw == SYSTEM_MCD) {
+        system_frame_scd(0);
+    } else if (system_hw & SYSTEM_MD) {
+        system_frame_gen(0);
+    } else {
+        system_frame_sms(0);
+    }
 
     // Blit active viewport from bitmap.data (RGB565) to g_genesis.video_buffer (0xFFRRGGBB)
     int vx = bitmap.viewport.x;
