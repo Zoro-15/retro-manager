@@ -350,4 +350,60 @@ class BuildEngineTest {
         assertNull(result.artifactFile)
         assertTrue(result.errorMessage?.contains("non_existent_template") == true)
     }
+
+    @Test
+    fun `test build packages game with single-core native library injection`() {
+        val templateFile = createMockTemplateApk(File(tempDir, "template_core.apk"))
+        val outputDir = File(tempDir, "output_core")
+        val signingIdentity = HybridKeystore.generateIdentity("game_signer_core", KeyType.EC_P256)
+        val romBytes = GbaTestRomFactory.create()
+
+        val mockElf = byteArrayOf(
+            0x7F.toByte(), 0x45.toByte(), 0x4C.toByte(), 0x46.toByte(),
+            0x02, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        )
+
+        val request = BuildRequest(
+            identity = GameIdentity(
+                gameId = "emerald-core-test",
+                gameTitle = "Pokemon Emerald Core Test",
+                packageName = "com.retropack.game.emerald_core"
+            ),
+            content = ContentPayload(
+                sourceRom = "emerald.gba",
+                platform = "gba"
+            ),
+            runtime = RuntimeConfigPayload(
+                templateId = "mgba-unified",
+                core = "mgba"
+            )
+        )
+
+        val coreLibs = mapOf("lib/arm64-v8a/libretro_mgba.so" to mockElf)
+
+        val result = BuildEngine.build(
+            request = request,
+            romBytes = romBytes,
+            signingIdentity = signingIdentity,
+            outputDir = outputDir,
+            templateOverride = templateFile,
+            coreLibraries = coreLibs
+        )
+
+        assertTrue(result.success, "Build should succeed with injected core: ${result.errorMessage}")
+        assertNotNull(result.artifactFile)
+        assertTrue(result.artifactFile!!.exists())
+
+        // Verify that the injected core exists in the output APK
+        ZipFile(result.artifactFile!!).use { zip ->
+            val coreEntry = zip.getEntry("lib/arm64-v8a/libretro_mgba.so")
+            assertNotNull(coreEntry, "Injected core library must exist in final APK")
+            val romEntry = zip.getEntry("assets/game.rom")
+            assertNotNull(romEntry, "game.rom asset must exist in final APK")
+        }
+
+        // Verify alignment compliance
+        AlignmentVerifier.assertCompliant(result.artifactFile!!)
+    }
 }
+

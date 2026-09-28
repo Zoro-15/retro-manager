@@ -3,6 +3,46 @@
 > **Document Status**: Active Strategic Blueprint & Single Source of Truth for Modernization  
 > **Target Audience**: Core Developers and Successive AI Agents
 
+--- user inserted - we dont have luxury to write code from scratch so we will depend on already working projects oftenly - we will try to finish a phase in a session in 2-3 parts 
+
+🔹 Phase 1: Universal Libretro Host (libretro_host.c + Kotlin Bridge)
+Effort: ~1 focused session (Moderate difficulty, highest value).
+Lines of Code:
+Native C Host (libretro_host.c): ~400 lines.
+Kotlin Bridge (UniversalLibretroCore.kt): ~80 lines.
+Can We Copy / Adapt?:
+YES (~75% adaptable): The standard Libretro callbacks (video pixel conversion, audio ringbuffer push, input bitmask polling, retro_init/retro_run loops) can be copied and adapted directly from Lemuroid's libretro_core.cpp and libretro-samples.
+Custom Code Needed: Only ~100 lines of glue connecting it to RetroPack's 
+
+NativeCoreBridge.kt
+ and existing RingBuffer.
+🔹 Phase 2: Core Staging & 16 KB Alignment
+Effort: ~1 session (Mostly script / CI setup).
+Lines of Code:
+A lightweight fetch script (scripts/fetch_libretro_cores.py): ~60 lines.
+Isolated GitHub Actions build matrix: ~50 lines of YAML.
+Can We Copy / Adapt?:
+YES (~90% prebuilt binaries): We do not need to manually compile all 10 cores from scratch in Gradle. We can fetch official pre-built, tested, 16 KB-aligned Libretro Android .so releases or build them using standard upstream Makefile.libretro in an isolated GitHub Actions workflow.
+🔹 Phase 3: Template-APK & Build Engine Refactor
+Effort: ~1 session (Light refactoring).
+Lines of Code:
+
+
+template-apk/build.gradle.kts
+: Delete 10 dependencies, keep only :retropack-runtime-common (net deletion).
+
+
+GameActivity.kt
+ & NativeCoreFactory.kt: ~40 lines modified to load the dynamically injected libretro_<core>.so.
+Packaging Engine (core/): ~30 lines to copy the target core .so into lib/arm64-v8a/ during game APK packaging.
+Can We Copy / Adapt?:
+Mostly refactoring existing Kotlin code already in the repository.
+🔹 Phase 4: Purge Stale Bespoke Subprojects
+Effort: ~15 minutes (Clean deletion).
+Lines of Code:
+Net Deletion of 50,000+ lines: Delete retropack-runtime-fbneo, retropack-runtime-mupen64, retropack-runtime-ppsspp, etc.
+Delete submodules from .gitmodules and settings.gradle.kts.
+
 ---
 
 ## 0. Operational Context & Agent Rules (CRITICAL)
@@ -136,25 +176,37 @@ struct LibretroCore {
 
 ## 5. Migration Roadmap (4-Phase Execution)
 
-### Phase 1: Universal Libretro Host Implementation
-* Create `retropack-runtime-common/src/main/cpp/libretro_host.c`.
-* Implement Libretro frontend callbacks (environment, video, audio, input, memory).
-* Wire JNI exports to `com.retropack.runtime.core.UniversalLibretroCore` implementing `NativeCoreBridge`.
+### Phase 1: Universal Libretro Host Implementation ✅ (Completed)
+* Created `retropack-runtime-common/src/main/cpp/libretro_host.c` and `libretro_host.h`.
+* Implemented Libretro frontend callbacks (environment, video, audio, input, memory).
+* Wired JNI exports to `com.retropack.runtime.core.UniversalLibretroCore` implementing `NativeCoreBridge`.
+* Added unit test suite `UniversalLibretroCoreTest.kt`.
 
-### Phase 2: Decoupled Core Artifact Staging
-* Stage verified, 16 KB page-aligned Libretro `.so` files into `runtimes/<core-id>/lib/<abi>/libretro_<core-id>.so`.
-* Ensure every `.so` passes the 16 KB ELF alignment verification:
-  `-Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384`.
+### Phase 2: Decoupled Core Artifact Staging & 16 KB Alignment ✅ (Completed)
+* **Part 1**: Defined `runtimes/cores.json` catalog manifest for all 10 cores across `arm64-v8a` and `x86_64`.
+* **Part 2**: Implemented `scripts/fetch_libretro_cores.py` with multi-threading, retries, and ELF header validation.
+* **Part 3**: Implemented `scripts/verify_core_alignment.py` to assert Android 15 (16 KB) PT_LOAD `0x4000` page alignment and modulo congruence.
+* **Part 4**: Created `.github/workflows/stage-cores.yml` for isolated, sub-minute CI core staging and certification.
 
-### Phase 3: Template APK & Packaging Refactoring
-* Update `template-apk/build.gradle.kts` to depend **only** on `retropack-runtime-common`.
-* Update the Build Engine (`core/`) to inject only the required single `.so` into `lib/<abi>/` of the generated game APK.
-* `GameActivity` dynamically loads the injected core via `UniversalLibretroCore.loadCore("libretro_<core>.so")`.
+### Phase 3: Template APK & Packaging Refactoring (4-Part Execution)
+* **Part 1: Template-APK Gradle Refactoring & Dependency Decoupling** ✅ *(Completed)*
+  - Decoupled `template-apk/build.gradle.kts`: removed all 10 legacy bespoke runtime project dependencies, depending exclusively on `:runtime:retropack-runtime-common`.
+* **Part 2: Dynamic Universal Core Dispatcher & Factory Refactoring** ✅ *(Completed)*
+  - Refactored `NativeCoreFactory.kt` and `NativeCoreFactoryTest.kt` to dynamically resolve canonical core IDs and `libretro_<core>.so` libraries, dispatching to `UniversalLibretroCore`.
+* **Part 3: Build & Packaging Engine Single-Core Injection** ✅ *(Completed)*
+  - Created `CoreLibraryInjector.kt` and updated `BuildEngine.kt` to inject only the single target `libretro_<core>.so` into `lib/<abi>/` with 16 KB uncompressed page alignment.
+* **Part 4: Runtime Descriptor Convergence & Verification** ✅ *(Completed)*
+  - Created `CoreCatalog.kt` and `CoreCatalogTest.kt` to model and parse `runtimes/cores.json`.
+  - Converged `RuntimeDescriptor.kt` and `RuntimeRegistry.kt` with canonical core IDs (`mgba`, `snes9x`, `genesis_plus_gx`, etc.) and `loadCatalog` dynamic registration.
+  - Aligned all `runtimes/*/runtime.json` descriptors and verified single-core packaging workflows.
 
-### Phase 4: Purge Stale Bespoke Subprojects
-* Delete the 10 legacy subprojects (`retropack-runtime-fbneo`, `retropack-runtime-mupen64`, `retropack-runtime-ppsspp`, etc.).
-* Remove submodule entries from `.gitmodules`.
-* Simplify `settings.gradle.kts` to `:app`, `:core`, `:template-apk`, and `:runtime:retropack-runtime-common`.
+### Phase 4: Purge Stale Bespoke Subprojects (2-Part Execution) ✅ *(Completed)*
+* **Part 1: Gradle Root & Submodule Decoupling** ✅ *(Completed)*
+  - Simplified `settings.gradle.kts` to strictly include `:app`, `:core`, `:template-apk`, and `:runtime:retropack-runtime-common`.
+  - Removed all legacy submodule entries and deleted `.gitmodules`.
+* **Part 2: Deletion of Bespoke Subdirectories & Workspace Tree Cleanup** ✅ *(Completed)*
+  - Purged and deleted all 10 legacy bespoke runtime subdirectories from `runtime/` (`retropack-runtime-fbneo`, `retropack-runtime-fceumm`, `retropack-runtime-genesis`, `retropack-runtime-melonds`, `retropack-runtime-mgba`, `retropack-runtime-mupen64`, `retropack-runtime-pce`, `retropack-runtime-pcsx`, `retropack-runtime-ppsspp`, `retropack-runtime-snes9x`).
+  - Verified workspace tree cleanliness, preserving only `:runtime:retropack-runtime-common` under `runtime/`.
 
 ---
 

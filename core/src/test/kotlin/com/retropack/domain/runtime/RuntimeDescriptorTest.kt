@@ -116,6 +116,54 @@ class RuntimeDescriptorTest {
             val reparsed = RuntimeDescriptor.fromJson(json)
             assertEquals(desc.id, reparsed.id)
             assertEquals(desc.supportedPlatforms, reparsed.supportedPlatforms)
+
+            // Test canonical coreId and coreLibName resolution
+            assertTrue(desc.coreId.isNotBlank())
+            assertTrue(desc.coreLibName.startsWith("libretro_") && desc.coreLibName.endsWith(".so"))
         }
+    }
+
+    @Test
+    fun `canonical core IDs and library names map correctly for all descriptors`() {
+        assertEquals("mgba", RuntimeDescriptor.MGBA_UNIFIED.coreId)
+        assertEquals("libretro_mgba.so", RuntimeDescriptor.MGBA_UNIFIED.coreLibName)
+
+        assertEquals("snes9x", RuntimeDescriptor.SNES9X_UNIFIED.coreId)
+        assertEquals("libretro_snes9x.so", RuntimeDescriptor.SNES9X_UNIFIED.coreLibName)
+
+        assertEquals("genesis_plus_gx", RuntimeDescriptor.GENESIS_UNIFIED.coreId)
+        assertEquals("libretro_genesis_plus_gx.so", RuntimeDescriptor.GENESIS_UNIFIED.coreLibName)
+
+        assertEquals("fceumm", RuntimeDescriptor.FCEUMM_UNIFIED.coreId)
+        assertEquals("libretro_fceumm.so", RuntimeDescriptor.FCEUMM_UNIFIED.coreLibName)
+
+        assertEquals("mednafen_pce_fast", RuntimeDescriptor.PCE_UNIFIED.coreId)
+        assertEquals("libretro_mednafen_pce_fast.so", RuntimeDescriptor.PCE_UNIFIED.coreLibName)
+
+        assertEquals("fbneo", RuntimeDescriptor.FBNEO_UNIFIED.coreId)
+        assertEquals("libretro_fbneo.so", RuntimeDescriptor.FBNEO_UNIFIED.coreLibName)
+
+        assertEquals("pcsx_rearmed", RuntimeDescriptor.PCSX_UNIFIED.coreId)
+        assertEquals("libretro_pcsx_rearmed.so", RuntimeDescriptor.PCSX_UNIFIED.coreLibName)
+
+        assertEquals("mupen64plus_next", RuntimeDescriptor.MUPEN64_UNIFIED.coreId)
+        assertEquals("libretro_mupen64plus_next.so", RuntimeDescriptor.MUPEN64_UNIFIED.coreLibName)
+
+        assertEquals("ppsspp", RuntimeDescriptor.PPSSPP_UNIFIED.coreId)
+        assertEquals("libretro_ppsspp.so", RuntimeDescriptor.PPSSPP_UNIFIED.coreLibName)
+
+        assertEquals("melonds", RuntimeDescriptor.MELONDS_UNIFIED.coreId)
+        assertEquals("libretro_melonds.so", RuntimeDescriptor.MELONDS_UNIFIED.coreLibName)
+    }
+
+    @Test
+    fun `fromCatalog creates valid descriptors from CoreCatalog`() {
+        val descriptors = RuntimeDescriptor.fromCatalog(CoreCatalog.DEFAULT)
+        assertEquals(10, descriptors.size)
+
+        val mgba = descriptors.find { it.id == "mgba-unified" }
+        assertEquals(listOf("gb", "gbc", "gba"), mgba?.supportedPlatforms)
+        assertEquals("mgba", mgba?.coreId)
+        assertEquals("libretro_mgba.so", mgba?.coreLibName)
     }
 }

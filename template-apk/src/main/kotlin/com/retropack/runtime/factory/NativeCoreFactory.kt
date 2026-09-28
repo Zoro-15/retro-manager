@@ -2,38 +2,31 @@ package com.retropack.runtime.factory
 
 import com.retropack.runtime.core.NativeCore
 import com.retropack.runtime.core.NativeCoreBridge
-import com.retropack.runtime.fceumm.FceummNativeCore
-import com.retropack.runtime.fbneo.FbNeoNativeCore
-import com.retropack.runtime.genesis.GenesisNativeCore
+import com.retropack.runtime.core.UniversalLibretroCore
 import com.retropack.runtime.host.RuntimeConfig
-import com.retropack.runtime.melonds.MelondsNativeCore
-import com.retropack.runtime.mgba.MgbaNativeCore
-import com.retropack.runtime.mupen64.Mupen64NativeCore
-import com.retropack.runtime.pce.PceNativeCore
-import com.retropack.runtime.pcsx.PcsxNativeCore
-import com.retropack.runtime.ppsspp.PpssppNativeCore
-import com.retropack.runtime.snes.Snes9xNativeCore
 
 /**
  * Universal dynamic core factory for RetroPack standalone runtime applications.
  *
- * Resolves and instantiates the appropriate [NativeCoreBridge] implementation
- * across all 10 supported retro emulation engines:
- * - mGBA (GB / GBC / GBA)
- * - Snes9x (SNES / Super Famicom)
- * - Genesis Plus GX (Genesis / Mega Drive / Master System / Game Gear)
- * - FCEUmm (NES / Famicom)
- * - Beetle PCE Fast (PC Engine / TurboGrafx-16)
- * - FinalBurn Neo (Arcade / Neo Geo / CPS 1-3)
- * - PCSX ReARMed (PlayStation 1)
- * - Mupen64Plus-Next (Nintendo 64)
- * - PPSSPP (PlayStation Portable)
- * - melonDS (Nintendo DS)
+ * Resolves platform identifiers and runtime configurations to canonical Libretro core
+ * shared libraries and dispatches execution dynamically to [UniversalLibretroCore].
+ *
+ * Supported Cores & Consoles:
+ * - mGBA (`libretro_mgba.so`): GB / GBC / GBA
+ * - Snes9x (`libretro_snes9x.so`): SNES / Super Famicom
+ * - Genesis Plus GX (`libretro_genesis_plus_gx.so`): Genesis / Mega Drive / Master System / Game Gear
+ * - FCEUmm (`libretro_fceumm.so`): NES / Famicom
+ * - Beetle PCE Fast (`libretro_mednafen_pce_fast.so`): PC Engine / TurboGrafx-16
+ * - FinalBurn Neo (`libretro_fbneo.so`): Arcade / Neo Geo / CPS 1-3
+ * - PCSX ReARMed (`libretro_pcsx_rearmed.so`): PlayStation 1
+ * - Mupen64Plus-Next (`libretro_mupen64plus_next.so`): Nintendo 64
+ * - PPSSPP (`libretro_ppsspp.so`): PlayStation Portable
+ * - melonDS (`libretro_melonds.so`): Nintendo DS
  */
 object NativeCoreFactory {
 
     /**
-     * Resolves the appropriate [NativeCoreBridge] from injected [RuntimeConfig].
+     * Resolves and prepares the appropriate [NativeCoreBridge] from injected [RuntimeConfig].
      */
     fun createCore(config: RuntimeConfig): NativeCoreBridge {
         val platform = config.game.platform
@@ -42,39 +35,63 @@ object NativeCoreFactory {
     }
 
     /**
-     * Resolves the appropriate [NativeCoreBridge] by platform identifier and/or core hint.
+     * Resolves the canonical core ID from platform identifier and/or core hint.
      */
-    fun resolveCore(platform: String?, coreHint: String? = null): NativeCoreBridge {
+    fun resolveCoreId(platform: String?, coreHint: String? = null): String {
         val normalizedPlatform = platform?.lowercase()?.trim()?.removePrefix(".") ?: ""
         val normalizedCore = coreHint?.lowercase()?.trim() ?: ""
 
-        // 1. Check explicit core hint if specified
+        // 1. Check explicit core hint first
         when (normalizedCore) {
-            "snes9x", "snes9x-unified" -> return Snes9xNativeCore
-            "genesis", "genesis-plus-gx", "genesis-unified" -> return GenesisNativeCore
-            "fceumm", "fceumm-unified" -> return FceummNativeCore
-            "pce", "beetle-pce-fast", "pce-unified" -> return PceNativeCore
-            "fbneo", "finalburn-neo", "fbneo-unified" -> return FbNeoNativeCore
-            "pcsx", "pcsx-rearmed", "pcsx-unified" -> return PcsxNativeCore
-            "mupen64", "mupen64plus-next", "mupen64-unified" -> return Mupen64NativeCore
-            "ppsspp", "ppsspp-unified" -> return PpssppNativeCore
-            "melonds", "melonds-unified" -> return MelondsNativeCore
-            "mgba", "mgba-unified" -> return MgbaNativeCore
+            "snes9x", "snes9x-unified", "libretro_snes9x.so" -> return "snes9x"
+            "genesis", "genesis-plus-gx", "genesis_plus_gx", "genesis-unified", "libretro_genesis_plus_gx.so" -> return "genesis_plus_gx"
+            "fceumm", "fceumm-unified", "libretro_fceumm.so" -> return "fceumm"
+            "pce", "beetle-pce-fast", "mednafen_pce_fast", "pce-unified", "libretro_mednafen_pce_fast.so" -> return "mednafen_pce_fast"
+            "fbneo", "finalburn-neo", "fbneo-unified", "libretro_fbneo.so" -> return "fbneo"
+            "pcsx", "pcsx-rearmed", "pcsx_rearmed", "pcsx-unified", "libretro_pcsx_rearmed.so" -> return "pcsx_rearmed"
+            "mupen64", "mupen64plus-next", "mupen64plus_next", "mupen64-unified", "libretro_mupen64plus_next.so" -> return "mupen64plus_next"
+            "ppsspp", "ppsspp-unified", "libretro_ppsspp.so" -> return "ppsspp"
+            "melonds", "melonds-unified", "libretro_melonds.so" -> return "melonds"
+            "mgba", "mgba-unified", "libretro_mgba.so" -> return "mgba"
         }
 
         // 2. Resolve by platform ID
         return when (normalizedPlatform) {
-            "snes", "sfc", "smc" -> Snes9xNativeCore
-            "genesis", "md", "smd", "gen", "sms", "gg" -> GenesisNativeCore
-            "nes", "fds", "unf" -> FceummNativeCore
-            "pce", "tg16", "sgx" -> PceNativeCore
-            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> FbNeoNativeCore
-            "psx", "ps1", "ps" -> PcsxNativeCore
-            "n64", "z64", "v64" -> Mupen64NativeCore
-            "psp" -> PpssppNativeCore
-            "nds", "dsi" -> MelondsNativeCore
-            "gba", "gbc", "gb" -> MgbaNativeCore
-            else -> NativeCore
+            "snes", "sfc", "smc" -> "snes9x"
+            "genesis", "md", "smd", "gen", "sms", "gg" -> "genesis_plus_gx"
+            "nes", "fds", "unf" -> "fceumm"
+            "pce", "tg16", "sgx" -> "mednafen_pce_fast"
+            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "fbneo"
+            "psx", "ps1", "ps" -> "pcsx_rearmed"
+            "n64", "z64", "v64" -> "mupen64plus_next"
+            "psp" -> "ppsspp"
+            "nds", "dsi" -> "melonds"
+            "gba", "gbc", "gb" -> "mgba"
+            else -> if (normalizedCore.isNotBlank()) normalizedCore else "mgba"
         }
+    }
+
+    /**
+     * Resolves the canonical shared library filename (.so) from platform identifier and/or core hint.
+     */
+    fun resolveCoreLibName(platform: String?, coreHint: String? = null): String {
+        val coreId = resolveCoreId(platform, coreHint)
+        return "libretro_$coreId.so"
+    }
+
+    /**
+     * Resolves and binds the target [NativeCoreBridge] for execution.
+     * Loads the target core dynamically into [UniversalLibretroCore] if available.
+     */
+    fun resolveCore(platform: String?, coreHint: String? = null): NativeCoreBridge {
+        val libName = resolveCoreLibName(platform, coreHint)
+
+        if (UniversalLibretroCore.isLoaded()) {
+            UniversalLibretroCore.loadCore(libName)
+            return UniversalLibretroCore
+        }
+
+        // Fallback to NativeCore bridge if running in legacy host mode or testing
+        return if (UniversalLibretroCore.isLoaded()) UniversalLibretroCore else NativeCore
     }
 }

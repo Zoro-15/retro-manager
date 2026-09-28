@@ -24,74 +24,20 @@ DIAGNOSTICS_FILE = ROOT_DIR / "build-diagnostics.txt"
 TARGETS = [
     {
         "id": "runtime-common",
-        "name": "Common Native Runtime",
+        "name": "Universal Libretro Host Native Runtime",
         "command": "./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace",
         "required": True,
     },
     {
-        "id": "runtime-mgba",
-        "name": "mGBA (GBA)",
-        "command": "./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-snes9x",
-        "name": "Snes9x (SNES)",
-        "command": "./gradlew :runtime:retropack-runtime-snes9x:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-genesis",
-        "name": "Genesis Plus GX (MD/GEN)",
-        "command": "./gradlew :runtime:retropack-runtime-genesis:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-fceumm",
-        "name": "FCEUmm (NES)",
-        "command": "./gradlew :runtime:retropack-runtime-fceumm:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-pce",
-        "name": "Beetle PCE Fast (PC Engine)",
-        "command": "./gradlew :runtime:retropack-runtime-pce:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-fbneo",
-        "name": "FBNeo (Arcade / NeoGeo)",
-        "command": "./gradlew :runtime:retropack-runtime-fbneo:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-pcsx",
-        "name": "PCSX ReARMed (PS1)",
-        "command": "./gradlew :runtime:retropack-runtime-pcsx:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-mupen64",
-        "name": "Mupen64Plus-Next (N64)",
-        "command": "./gradlew :runtime:retropack-runtime-mupen64:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-ppsspp",
-        "name": "PPSSPP (PSP)",
-        "command": "./gradlew :runtime:retropack-runtime-ppsspp:assembleDebug --stacktrace",
-        "required": True,
-    },
-    {
-        "id": "runtime-melonds",
-        "name": "melonDS (NDS)",
-        "command": "./gradlew :runtime:retropack-runtime-melonds:assembleDebug --stacktrace",
+        "id": "core-module",
+        "name": "Packaging Engine & Domain Core",
+        "command": "./gradlew :core:test --stacktrace",
         "required": True,
     },
     {
         "id": "template-apk",
-        "name": "Template APK (Standalone Game Runner)",
-        "command": "./gradlew :template-apk:assembleDebug --stacktrace",
+        "name": "Template APK (Standalone Universal Game Runner)",
+        "command": "./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace",
         "required": True,
     },
     {
@@ -99,6 +45,12 @@ TARGETS = [
         "name": "16 KB ELF Page-Size Alignment Gate",
         "command": "bash scripts/verify-16kb-alignment.sh",
         "required": True,
+    },
+    {
+        "id": "verify-cores-catalog",
+        "name": "Core Catalog & Staged Binaries Verification",
+        "command": "python3 scripts/verify_core_alignment.py",
+        "required": False,
     },
     {
         "id": "rotate-anchors",
@@ -114,8 +66,8 @@ TARGETS = [
     },
     {
         "id": "unit-tests",
-        "name": "Unit Tests (App & Template)",
-        "command": "./gradlew :app:testDebugUnitTest :template-apk:testDebugUnitTest --stacktrace",
+        "name": "Unit Tests (App & Runtime Host)",
+        "command": "./gradlew :app:testDebugUnitTest :runtime:retropack-runtime-common:test --stacktrace",
         "required": False,
     },
 ]

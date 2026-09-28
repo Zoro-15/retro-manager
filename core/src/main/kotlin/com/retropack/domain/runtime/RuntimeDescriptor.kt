@@ -22,8 +22,37 @@ data class RuntimeDescriptor(
     val capabilities: RuntimeCapabilities = RuntimeCapabilities(),
     val protectedEntries: Map<String, String> = emptyMap()
 ) {
+    /**
+     * Resolves the canonical core ID for this descriptor (e.g. "mgba", "snes9x", "genesis_plus_gx").
+     */
+    val coreId: String
+        get() = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(
+            supportedPlatforms.firstOrNull() ?: "",
+            id
+        )
+
+    /**
+     * Resolves the canonical native shared library name for this descriptor (e.g. "libretro_mgba.so").
+     */
+    val coreLibName: String
+        get() = com.retropack.packaging.CoreLibraryInjector.resolveCoreLibName(
+            supportedPlatforms.firstOrNull() ?: "",
+            id
+        )
+
     companion object {
         const val DESCRIPTOR_FILENAME = "runtime.json"
+
+        /**
+         * Converts a [CoreCatalogEntry] into a [RuntimeDescriptor].
+         */
+        fun fromCoreCatalogEntry(entry: CoreCatalogEntry): RuntimeDescriptor = entry.toRuntimeDescriptor()
+
+        /**
+         * Converts an entire [CoreCatalog] into a list of [RuntimeDescriptor] instances.
+         */
+        fun fromCatalog(catalog: CoreCatalog = CoreCatalog.DEFAULT): List<RuntimeDescriptor> = catalog.toRuntimeDescriptors()
+
 
         val MGBA_UNIFIED = RuntimeDescriptor(
             id = "mgba-unified",
@@ -125,7 +154,7 @@ data class RuntimeDescriptor(
             supportedAbis = listOf("arm64-v8a", "x86_64"),
             minSdk = 26,
             targetSdk = 35,
-            romExtensions = listOf(".pce", ".sgx", ".cue", ".iso"),
+            romExtensions = listOf(".pce", ".sgx", ".cue", ".ccd", ".chd", ".iso"),
             romAssetPath = "assets/game.rom",
             configAssetPath = "assets/retropack.json",
             configSchemaVersion = 1,
@@ -147,7 +176,7 @@ data class RuntimeDescriptor(
             supportedAbis = listOf("arm64-v8a", "x86_64"),
             minSdk = 26,
             targetSdk = 35,
-            romExtensions = listOf(".zip", ".7z"),
+            romExtensions = listOf(".zip", ".7z", ".neo"),
             romAssetPath = "assets/game.rom",
             configAssetPath = "assets/retropack.json",
             configSchemaVersion = 1,
@@ -235,7 +264,7 @@ data class RuntimeDescriptor(
             supportedAbis = listOf("arm64-v8a", "x86_64"),
             minSdk = 26,
             targetSdk = 35,
-            romExtensions = listOf(".nds", ".srl", ".dsi"),
+            romExtensions = listOf(".nds", ".srl", ".dsi", ".bin"),
             romAssetPath = "assets/game.rom",
             configAssetPath = "assets/retropack.json",
             configSchemaVersion = 1,

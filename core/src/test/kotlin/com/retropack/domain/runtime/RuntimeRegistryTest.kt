@@ -126,4 +126,33 @@ class RuntimeRegistryTest {
         assertTrue(template.templateApk.exists())
         assertEquals(template, RuntimeRegistry.getTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED))
     }
+
+    @Test
+    fun `getDescriptor resolves by catalog core ID and alias`() {
+        assertEquals("mgba-unified", RuntimeRegistry.getDescriptor("mgba")?.id)
+        assertEquals("snes9x-unified", RuntimeRegistry.getDescriptor("snes9x")?.id)
+        assertEquals("genesis-unified", RuntimeRegistry.getDescriptor("genesis_plus_gx")?.id)
+        assertEquals("genesis-unified", RuntimeRegistry.getDescriptor("genesis")?.id)
+        assertEquals("fceumm-unified", RuntimeRegistry.getDescriptor("fceumm")?.id)
+        assertEquals("pce-unified", RuntimeRegistry.getDescriptor("mednafen_pce_fast")?.id)
+        assertEquals("pce-unified", RuntimeRegistry.getDescriptor("pce")?.id)
+        assertEquals("fbneo-unified", RuntimeRegistry.getDescriptor("fbneo")?.id)
+        assertEquals("pcsx-unified", RuntimeRegistry.getDescriptor("pcsx_rearmed")?.id)
+        assertEquals("pcsx-unified", RuntimeRegistry.getDescriptor("pcsx")?.id)
+        assertEquals("mupen64-unified", RuntimeRegistry.getDescriptor("mupen64plus_next")?.id)
+        assertEquals("mupen64-unified", RuntimeRegistry.getDescriptor("mupen64")?.id)
+        assertEquals("ppsspp-unified", RuntimeRegistry.getDescriptor("ppsspp")?.id)
+        assertEquals("melonds-unified", RuntimeRegistry.getDescriptor("melonds")?.id)
+    }
+
+    @Test
+    fun `loadCatalog registers all descriptors from CoreCatalog`() {
+        RuntimeRegistry.resetToDefaults()
+        RuntimeRegistry.loadCatalog(CoreCatalog.DEFAULT)
+
+        assertNotNull(RuntimeRegistry.getDescriptor("mgba"))
+        assertNotNull(RuntimeRegistry.getDescriptor("snes9x"))
+        assertNotNull(RuntimeRegistry.getDescriptor("genesis_plus_gx"))
+        assertNotNull(RuntimeRegistry.getDescriptor("mednafen_pce_fast"))
+    }
 }

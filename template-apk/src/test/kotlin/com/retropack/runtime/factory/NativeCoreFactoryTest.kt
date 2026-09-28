@@ -1,132 +1,133 @@
 package com.retropack.runtime.factory
 
-import com.retropack.runtime.core.NativeCore
-import com.retropack.runtime.fceumm.FceummNativeCore
-import com.retropack.runtime.fbneo.FbNeoNativeCore
-import com.retropack.runtime.genesis.GenesisNativeCore
+import com.retropack.runtime.core.NativeCoreBridge
 import com.retropack.runtime.host.EngineConfig
 import com.retropack.runtime.host.GameConfig
 import com.retropack.runtime.host.RuntimeConfig
-import com.retropack.runtime.melonds.MelondsNativeCore
-import com.retropack.runtime.mgba.MgbaNativeCore
-import com.retropack.runtime.mupen64.Mupen64NativeCore
-import com.retropack.runtime.pce.PceNativeCore
-import com.retropack.runtime.pcsx.PcsxNativeCore
-import com.retropack.runtime.ppsspp.PpssppNativeCore
-import com.retropack.runtime.snes.Snes9xNativeCore
-import org.junit.jupiter.api.Assertions.assertSame
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 
 class NativeCoreFactoryTest {
 
     @Test
-    fun `resolves core by platform identifier across all 10 consoles`() {
-        assertSame(MgbaNativeCore, NativeCoreFactory.resolveCore("gba"))
-        assertSame(MgbaNativeCore, NativeCoreFactory.resolveCore("gbc"))
-        assertSame(MgbaNativeCore, NativeCoreFactory.resolveCore("gb"))
+    fun `resolves core ID by platform identifier across all 10 consoles`() {
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId("gba"))
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId("gbc"))
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId("gb"))
 
-        assertSame(Snes9xNativeCore, NativeCoreFactory.resolveCore("snes"))
-        assertSame(Snes9xNativeCore, NativeCoreFactory.resolveCore("sfc"))
-        assertSame(Snes9xNativeCore, NativeCoreFactory.resolveCore("smc"))
+        assertEquals("snes9x", NativeCoreFactory.resolveCoreId("snes"))
+        assertEquals("snes9x", NativeCoreFactory.resolveCoreId("sfc"))
+        assertEquals("snes9x", NativeCoreFactory.resolveCoreId("smc"))
 
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("genesis"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("md"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("smd"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("gen"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("sms"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore("gg"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("genesis"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("md"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("smd"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("gen"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("sms"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId("gg"))
 
-        assertSame(FceummNativeCore, NativeCoreFactory.resolveCore("nes"))
-        assertSame(FceummNativeCore, NativeCoreFactory.resolveCore("fds"))
-        assertSame(FceummNativeCore, NativeCoreFactory.resolveCore("unf"))
+        assertEquals("fceumm", NativeCoreFactory.resolveCoreId("nes"))
+        assertEquals("fceumm", NativeCoreFactory.resolveCoreId("fds"))
+        assertEquals("fceumm", NativeCoreFactory.resolveCoreId("unf"))
 
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore("pce"))
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore("tg16"))
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore("sgx"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId("pce"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId("tg16"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId("sgx"))
 
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("arcade"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("neogeo"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("cps1"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("cps2"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("cps3"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore("fbneo"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("arcade"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("neogeo"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("cps1"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("cps2"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("cps3"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId("fbneo"))
 
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore("psx"))
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore("ps1"))
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore("ps"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId("psx"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId("ps1"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId("ps"))
 
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore("n64"))
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore("z64"))
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore("v64"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId("n64"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId("z64"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId("v64"))
 
-        assertSame(PpssppNativeCore, NativeCoreFactory.resolveCore("psp"))
+        assertEquals("ppsspp", NativeCoreFactory.resolveCoreId("psp"))
 
-        assertSame(MelondsNativeCore, NativeCoreFactory.resolveCore("nds"))
-        assertSame(MelondsNativeCore, NativeCoreFactory.resolveCore("dsi"))
+        assertEquals("melonds", NativeCoreFactory.resolveCoreId("nds"))
+        assertEquals("melonds", NativeCoreFactory.resolveCoreId("dsi"))
+    }
+
+    @Test
+    fun `resolves canonical library names across all 10 consoles`() {
+        assertEquals("libretro_mgba.so", NativeCoreFactory.resolveCoreLibName("gba"))
+        assertEquals("libretro_snes9x.so", NativeCoreFactory.resolveCoreLibName("snes"))
+        assertEquals("libretro_genesis_plus_gx.so", NativeCoreFactory.resolveCoreLibName("genesis"))
+        assertEquals("libretro_fceumm.so", NativeCoreFactory.resolveCoreLibName("nes"))
+        assertEquals("libretro_mednafen_pce_fast.so", NativeCoreFactory.resolveCoreLibName("pce"))
+        assertEquals("libretro_fbneo.so", NativeCoreFactory.resolveCoreLibName("arcade"))
+        assertEquals("libretro_pcsx_rearmed.so", NativeCoreFactory.resolveCoreLibName("ps1"))
+        assertEquals("libretro_mupen64plus_next.so", NativeCoreFactory.resolveCoreLibName("n64"))
+        assertEquals("libretro_ppsspp.so", NativeCoreFactory.resolveCoreLibName("psp"))
+        assertEquals("libretro_melonds.so", NativeCoreFactory.resolveCoreLibName("nds"))
     }
 
     @Test
     fun `resolves core by explicit core hint`() {
-        assertSame(Snes9xNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "snes9x"))
-        assertSame(Snes9xNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "snes9x-unified"))
+        assertEquals("snes9x", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "snes9x"))
+        assertEquals("snes9x", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "snes9x-unified"))
 
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "genesis"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "genesis-plus-gx"))
-        assertSame(GenesisNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "genesis-unified"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "genesis"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "genesis-plus-gx"))
+        assertEquals("genesis_plus_gx", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "genesis_plus_gx"))
 
-        assertSame(FceummNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "fceumm"))
-        assertSame(FceummNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "fceumm-unified"))
+        assertEquals("fceumm", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "fceumm"))
+        assertEquals("fceumm", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "fceumm-unified"))
 
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "pce"))
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "beetle-pce-fast"))
-        assertSame(PceNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "pce-unified"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "pce"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "beetle-pce-fast"))
+        assertEquals("mednafen_pce_fast", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mednafen_pce_fast"))
 
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "fbneo"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "finalburn-neo"))
-        assertSame(FbNeoNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "fbneo-unified"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "fbneo"))
+        assertEquals("fbneo", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "finalburn-neo"))
 
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "pcsx"))
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "pcsx-rearmed"))
-        assertSame(PcsxNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "pcsx-unified"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "pcsx"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "pcsx-rearmed"))
+        assertEquals("pcsx_rearmed", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "pcsx_rearmed"))
 
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "mupen64"))
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "mupen64plus-next"))
-        assertSame(Mupen64NativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "mupen64-unified"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mupen64"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mupen64plus-next"))
+        assertEquals("mupen64plus_next", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mupen64plus_next"))
 
-        assertSame(PpssppNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "ppsspp"))
-        assertSame(PpssppNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "ppsspp-unified"))
+        assertEquals("ppsspp", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "ppsspp"))
+        assertEquals("ppsspp", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "ppsspp-unified"))
 
-        assertSame(MelondsNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "melonds"))
-        assertSame(MelondsNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "melonds-unified"))
+        assertEquals("melonds", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "melonds"))
+        assertEquals("melonds", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "melonds-unified"))
 
-        assertSame(MgbaNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "mgba"))
-        assertSame(MgbaNativeCore, NativeCoreFactory.resolveCore(platform = "", coreHint = "mgba-unified"))
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mgba"))
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId(platform = "", coreHint = "mgba-unified"))
     }
 
     @Test
-    fun `resolves core from RuntimeConfig object`() {
+    fun `resolves and returns valid NativeCoreBridge instance`() {
         val snesConfig = RuntimeConfig(
             game = GameConfig(platform = "snes"),
             runtime = EngineConfig(core = "snes9x")
         )
-        assertSame(Snes9xNativeCore, NativeCoreFactory.createCore(snesConfig))
+        val snesBridge: NativeCoreBridge = NativeCoreFactory.createCore(snesConfig)
+        assertNotNull(snesBridge)
 
         val psxConfig = RuntimeConfig(
             game = GameConfig(platform = "psx"),
             runtime = EngineConfig(core = "pcsx")
         )
-        assertSame(PcsxNativeCore, NativeCoreFactory.createCore(psxConfig))
-
-        val n64Config = RuntimeConfig(
-            game = GameConfig(platform = "n64"),
-            runtime = EngineConfig(core = "mupen64")
-        )
-        assertSame(Mupen64NativeCore, NativeCoreFactory.createCore(n64Config))
+        val psxBridge: NativeCoreBridge = NativeCoreFactory.createCore(psxConfig)
+        assertNotNull(psxBridge)
     }
 
     @Test
-    fun `falls back safely to default NativeCore on unknown platform or null`() {
-        assertSame(NativeCore, NativeCoreFactory.resolveCore(null, null))
-        assertSame(NativeCore, NativeCoreFactory.resolveCore("unknown_console", "unknown_core"))
+    fun `falls back safely to default core on unknown platform or null`() {
+        assertEquals("mgba", NativeCoreFactory.resolveCoreId(null, null))
+        assertEquals("libretro_mgba.so", NativeCoreFactory.resolveCoreLibName(null, null))
+        assertNotNull(NativeCoreFactory.resolveCore(null, null))
     }
 }

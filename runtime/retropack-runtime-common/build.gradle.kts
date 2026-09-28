@@ -16,6 +16,23 @@ if (hasAndroidSdk) {
             minSdk = 26
             testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
             consumerProguardFiles("consumer-rules.pro")
+
+            ndk {
+                abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+            }
+
+            externalNativeBuild {
+                cmake {
+                    arguments("-DANDROID_STL=c++_static")
+                }
+            }
+        }
+
+        externalNativeBuild {
+            cmake {
+                path = file("CMakeLists.txt")
+                version = "3.22.1"
+            }
         }
 
         compileOptions {

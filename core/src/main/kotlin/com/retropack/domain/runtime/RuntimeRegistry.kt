@@ -27,6 +27,33 @@ object RuntimeRegistry {
     const val RUNTIME_MELONDS_UNIFIED = "melonds-unified"
 
     /**
+     * Canonical Libretro Core Identifiers (matching runtimes/cores.json)
+     */
+    const val CORE_MGBA = "mgba"
+    const val CORE_SNES9X = "snes9x"
+    const val CORE_GENESIS_PLUS_GX = "genesis_plus_gx"
+    const val CORE_FCEUMM = "fceumm"
+    const val CORE_MEDNAFEN_PCE_FAST = "mednafen_pce_fast"
+    const val CORE_FBNEO = "fbneo"
+    const val CORE_PCSX_REARMED = "pcsx_rearmed"
+    const val CORE_MUPEN64PLUS_NEXT = "mupen64plus_next"
+    const val CORE_PPSSPP = "ppsspp"
+    const val CORE_MELONDS = "melonds"
+
+    val CANONICAL_CORE_IDS: Set<String> = setOf(
+        CORE_MGBA,
+        CORE_SNES9X,
+        CORE_GENESIS_PLUS_GX,
+        CORE_FCEUMM,
+        CORE_MEDNAFEN_PCE_FAST,
+        CORE_FBNEO,
+        CORE_PCSX_REARMED,
+        CORE_MUPEN64PLUS_NEXT,
+        CORE_PPSSPP,
+        CORE_MELONDS
+    )
+
+    /**
      * TRUST ANCHORS: Hardcoded SHA-256 fingerprints compiled directly into Kotlin bytecode.
      * Invariant: Never loaded from mutable disk or `.sha256` text files.
      *
@@ -93,10 +120,12 @@ object RuntimeRegistry {
             registerPlatformMapping("gb", RUNTIME_MGBA_UNIFIED)
             registerPlatformMapping("gbc", RUNTIME_MGBA_UNIFIED)
             registerPlatformMapping("gba", RUNTIME_MGBA_UNIFIED)
+            registerPlatformMapping("mgba", RUNTIME_MGBA_UNIFIED)
 
             registerPlatformMapping("snes", RUNTIME_SNES9X_UNIFIED)
             registerPlatformMapping("sfc", RUNTIME_SNES9X_UNIFIED)
             registerPlatformMapping("smc", RUNTIME_SNES9X_UNIFIED)
+            registerPlatformMapping("snes9x", RUNTIME_SNES9X_UNIFIED)
 
             registerPlatformMapping("genesis", RUNTIME_GENESIS_UNIFIED)
             registerPlatformMapping("md", RUNTIME_GENESIS_UNIFIED)
@@ -104,14 +133,19 @@ object RuntimeRegistry {
             registerPlatformMapping("gen", RUNTIME_GENESIS_UNIFIED)
             registerPlatformMapping("sms", RUNTIME_GENESIS_UNIFIED)
             registerPlatformMapping("gg", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("genesis_plus_gx", RUNTIME_GENESIS_UNIFIED)
+            registerPlatformMapping("genesis-plus-gx", RUNTIME_GENESIS_UNIFIED)
 
             registerPlatformMapping("nes", RUNTIME_FCEUMM_UNIFIED)
             registerPlatformMapping("fds", RUNTIME_FCEUMM_UNIFIED)
             registerPlatformMapping("unf", RUNTIME_FCEUMM_UNIFIED)
+            registerPlatformMapping("fceumm", RUNTIME_FCEUMM_UNIFIED)
 
             registerPlatformMapping("pce", RUNTIME_PCE_UNIFIED)
             registerPlatformMapping("tg16", RUNTIME_PCE_UNIFIED)
             registerPlatformMapping("sgx", RUNTIME_PCE_UNIFIED)
+            registerPlatformMapping("mednafen_pce_fast", RUNTIME_PCE_UNIFIED)
+            registerPlatformMapping("beetle-pce-fast", RUNTIME_PCE_UNIFIED)
 
             registerPlatformMapping("arcade", RUNTIME_FBNEO_UNIFIED)
             registerPlatformMapping("neogeo", RUNTIME_FBNEO_UNIFIED)
@@ -123,15 +157,23 @@ object RuntimeRegistry {
             registerPlatformMapping("psx", RUNTIME_PCSX_UNIFIED)
             registerPlatformMapping("ps1", RUNTIME_PCSX_UNIFIED)
             registerPlatformMapping("ps", RUNTIME_PCSX_UNIFIED)
+            registerPlatformMapping("pcsx", RUNTIME_PCSX_UNIFIED)
+            registerPlatformMapping("pcsx_rearmed", RUNTIME_PCSX_UNIFIED)
+            registerPlatformMapping("pcsx-rearmed", RUNTIME_PCSX_UNIFIED)
 
             registerPlatformMapping("n64", RUNTIME_MUPEN64_UNIFIED)
             registerPlatformMapping("z64", RUNTIME_MUPEN64_UNIFIED)
             registerPlatformMapping("v64", RUNTIME_MUPEN64_UNIFIED)
+            registerPlatformMapping("mupen64", RUNTIME_MUPEN64_UNIFIED)
+            registerPlatformMapping("mupen64plus_next", RUNTIME_MUPEN64_UNIFIED)
+            registerPlatformMapping("mupen64plus-next", RUNTIME_MUPEN64_UNIFIED)
 
             registerPlatformMapping("psp", RUNTIME_PPSSPP_UNIFIED)
+            registerPlatformMapping("ppsspp", RUNTIME_PPSSPP_UNIFIED)
 
             registerPlatformMapping("nds", RUNTIME_MELONDS_UNIFIED)
             registerPlatformMapping("dsi", RUNTIME_MELONDS_UNIFIED)
+            registerPlatformMapping("melonds", RUNTIME_MELONDS_UNIFIED)
         }
     }
 
@@ -166,6 +208,25 @@ object RuntimeRegistry {
     }
 
     /**
+     * Loads and registers all runtime descriptors defined in a [CoreCatalog].
+     */
+    fun loadCatalog(catalog: CoreCatalog) {
+        synchronized(registryLock) {
+            for (descriptor in catalog.toRuntimeDescriptors()) {
+                registerDescriptor(descriptor)
+            }
+        }
+    }
+
+    /**
+     * Loads and registers all runtime descriptors from `cores.json` at [coresJsonFile].
+     */
+    fun loadCatalog(coresJsonFile: File) {
+        val catalog = CoreCatalog.loadFromDirectory(coresJsonFile)
+        loadCatalog(catalog)
+    }
+
+    /**
      * Maps a console platform identifier (e.g. "gba") to a compatible runtime ID.
      */
     fun registerPlatformMapping(platform: String, runtimeId: String) {
@@ -186,7 +247,7 @@ object RuntimeRegistry {
     fun findRuntimeForPlatform(platform: String): RuntimeDescriptor? {
         val normalized = platform.lowercase().trim().removePrefix(".")
         val runtimeId = platformMappings[normalized]?.firstOrNull() ?: return null
-        return registeredDescriptors[runtimeId]
+        return getDescriptor(runtimeId)
     }
 
     /**
@@ -195,7 +256,7 @@ object RuntimeRegistry {
     fun findRuntimesForPlatform(platform: String): List<RuntimeDescriptor> {
         val normalized = platform.lowercase().trim().removePrefix(".")
         val runtimeIds = platformMappings[normalized] ?: return emptyList()
-        return runtimeIds.mapNotNull { registeredDescriptors[it] }
+        return runtimeIds.mapNotNull { getDescriptor(it) }
     }
 
     val CANONICAL_RUNTIME_IDS: Set<String> = setOf(
@@ -208,28 +269,52 @@ object RuntimeRegistry {
         RUNTIME_PCSX_UNIFIED,
         RUNTIME_MUPEN64_UNIFIED,
         RUNTIME_PPSSPP_UNIFIED,
-        RUNTIME_MELONDS_UNIFIED
+        RUNTIME_MELONDS_UNIFIED,
+        CORE_MGBA,
+        CORE_SNES9X,
+        CORE_GENESIS_PLUS_GX,
+        CORE_FCEUMM,
+        CORE_MEDNAFEN_PCE_FAST,
+        CORE_FBNEO,
+        CORE_PCSX_REARMED,
+        CORE_MUPEN64PLUS_NEXT,
+        CORE_PPSSPP,
+        CORE_MELONDS
     )
 
     /**
-     * Retrieves a registered descriptor by [runtimeId].
+     * Retrieves a registered descriptor by [runtimeId] or canonical core ID.
      */
     fun getDescriptor(runtimeId: String): RuntimeDescriptor? {
-        val direct = registeredDescriptors[runtimeId]
+        val normalized = runtimeId.lowercase().trim()
+        val direct = registeredDescriptors[normalized]
         if (direct != null) return direct
-        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val unifiedId = "$coreId-unified"
+        val mapped = registeredDescriptors[unifiedId] ?: registeredDescriptors[coreId]
+        if (mapped != null) return mapped
+
+        if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return registeredDescriptors[RUNTIME_MGBA_UNIFIED]
         }
         return null
     }
 
     /**
-     * Retrieves a registered template by [runtimeId].
+     * Retrieves a registered template by [runtimeId] or canonical core ID.
      */
     fun getTemplate(runtimeId: String): RuntimeTemplate? {
-        val direct = registeredTemplates[runtimeId]
+        val normalized = runtimeId.lowercase().trim()
+        val direct = registeredTemplates[normalized]
         if (direct != null) return direct
-        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val unifiedId = "$coreId-unified"
+        val mapped = registeredTemplates[unifiedId] ?: registeredTemplates[coreId]
+        if (mapped != null) return mapped
+
+        if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return registeredTemplates[RUNTIME_MGBA_UNIFIED]
         }
         return null
@@ -239,9 +324,16 @@ object RuntimeRegistry {
      * Retrieves the compiled bytecode trust anchor for [runtimeId].
      */
     fun getTrustedFingerprint(runtimeId: String): String? {
-        val direct = TRUSTED_TEMPLATES[runtimeId]
+        val normalized = runtimeId.lowercase().trim()
+        val direct = TRUSTED_TEMPLATES[normalized]
         if (direct != null) return direct
-        if (runtimeId in CANONICAL_RUNTIME_IDS) {
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val unifiedId = "$coreId-unified"
+        val mapped = TRUSTED_TEMPLATES[unifiedId] ?: TRUSTED_TEMPLATES[coreId]
+        if (mapped != null) return mapped
+
+        if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED]
         }
         return null
@@ -251,9 +343,7 @@ object RuntimeRegistry {
      * Validates whether [actualSha256] matches the bytecode-anchored trusted fingerprint for [runtimeId].
      */
     fun isTrustedTemplate(runtimeId: String, actualSha256: String): Boolean {
-        val trusted = TRUSTED_TEMPLATES[runtimeId]
-            ?: (if (runtimeId in CANONICAL_RUNTIME_IDS) TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED] else null)
-            ?: return false
+        val trusted = getTrustedFingerprint(runtimeId) ?: return false
         val normalizedActual = actualSha256.removePrefix("sha256:").trim()
         val normalizedTrusted = trusted.removePrefix("sha256:").trim()
         return normalizedActual.equals(normalizedTrusted, ignoreCase = true)
@@ -264,9 +354,16 @@ object RuntimeRegistry {
      * Enforces BuildEngine Step 9 (Allowlist Policy).
      */
     fun verifyProtectedEntries(runtimeId: String, actualEntries: Map<String, String>): Boolean {
-        val trustedMap = TRUSTED_PROTECTED_ENTRIES[runtimeId]
-            ?: (if (runtimeId in CANONICAL_RUNTIME_IDS) TRUSTED_PROTECTED_ENTRIES[RUNTIME_MGBA_UNIFIED] else null)
+        val normalized = runtimeId.lowercase().trim()
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val unifiedId = "$coreId-unified"
+
+        val trustedMap = TRUSTED_PROTECTED_ENTRIES[normalized]
+            ?: TRUSTED_PROTECTED_ENTRIES[unifiedId]
+            ?: TRUSTED_PROTECTED_ENTRIES[coreId]
+            ?: (if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) TRUSTED_PROTECTED_ENTRIES[RUNTIME_MGBA_UNIFIED] else null)
             ?: return false
+
         for ((entryName, trustedHash) in trustedMap) {
             val actualHash = actualEntries[entryName] ?: return false
             val normalizedActual = actualHash.removePrefix("sha256:").trim()

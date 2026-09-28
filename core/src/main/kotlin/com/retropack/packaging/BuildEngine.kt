@@ -64,7 +64,9 @@ object BuildEngine {
         stageListener: ((BuildStageRecord) -> Unit)? = null,
         precomputedChecksums: ChecksumRecords? = null,
         verifiedTemplate: VerifiedTemplate? = null,
-        additionalDiscBytes: List<Pair<String, ByteArray>> = emptyList()
+        additionalDiscBytes: List<Pair<String, ByteArray>> = emptyList(),
+        coreLibraries: Map<String, ByteArray> = emptyMap(),
+        coreStagingDir: File? = null
     ): BuildResult {
         val totalStartTime = System.currentTimeMillis()
         val stageRecords = mutableListOf<BuildStageRecord>()
@@ -264,6 +266,16 @@ object BuildEngine {
                 allInjected.putAll(assetEntries)
                 if (iconEntries != null) {
                     allInjected.putAll(iconEntries!!)
+                }
+
+                // Resolve and inject standalone target Libretro core (.so) binaries
+                if (coreLibraries.isNotEmpty()) {
+                    val sanitizedCoreLibs = CoreLibraryInjector.sanitizeCoreEntries(coreLibraries)
+                    allInjected.putAll(sanitizedCoreLibs)
+                } else if (coreStagingDir != null && coreStagingDir.exists()) {
+                    val coreId = CoreLibraryInjector.resolveCoreId(request.content.platform, request.runtime.core)
+                    val stagedEntries = CoreLibraryInjector.prepareCoreEntriesFromDirectory(coreId, coreStagingDir)
+                    allInjected.putAll(stagedEntries)
                 }
 
                 ZipArchiveTransformer.transform(

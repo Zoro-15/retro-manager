@@ -53,6 +53,7 @@ data class RomHeaderData(
 
 data class RuntimeConfigPayload(
     val templateId: String = "mgba-unified",
+    val core: String? = null,
     val audio: AudioSettings = AudioSettings(),
     val video: VideoSettings = VideoSettings()
 )

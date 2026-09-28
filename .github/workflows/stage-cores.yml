@@ -1,0 +1,148 @@
+name: Stage Libretro Cores
+
+# Isolated staging and 16 KB ELF page-alignment certification workflow for
+# pre-built Libretro emulator core binaries across supported Android ABIs.
+# Decoupled from app/manager builds to guarantee sub-minute CI turnaround.
+
+on:
+  push:
+    branches: [main, master, v2]
+    paths:
+      - "runtimes/cores.json"
+      - "scripts/fetch_libretro_cores.py"
+      - "scripts/verify_core_alignment.py"
+      - ".github/workflows/stage-cores.yml"
+  pull_request:
+    branches: [main, master, v2]
+    paths:
+      - "runtimes/cores.json"
+      - "scripts/fetch_libretro_cores.py"
+      - "scripts/verify_core_alignment.py"
+      - ".github/workflows/stage-cores.yml"
+  workflow_dispatch:
+    inputs:
+      cores:
+        description: "Specific core IDs to stage (space-separated, or 'all')"
+        required: false
+        default: "all"
+      abis:
+        description: "Target ABIs (space-separated, e.g. 'arm64-v8a x86_64')"
+        required: false
+        default: "arm64-v8a x86_64"
+      force:
+        description: "Force re-download even if binaries are already present"
+        required: false
+        type: boolean
+        default: false
+      clean:
+        description: "Clean target directories before staging"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  stage-and-verify-cores:
+    name: Stage & Verify Libretro Cores (16 KB Alignment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Make scripts executable
+        run: chmod +x scripts/*.py
+
+      - name: Fetch and Stage Libretro Cores
+        run: |
+          set -euo pipefail
+          
+          CMD="python3 scripts/fetch_libretro_cores.py --save-summary runtimes/staged-summary.json"
+          
+          # Handle manual dispatch inputs
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.cores }}" != "all" ] && [ -n "${{ inputs.cores }}" ]; then
+              CMD="$CMD --cores ${{ inputs.cores }}"
+            fi
+            if [ -n "${{ inputs.abis }}" ]; then
+              CMD="$CMD --abis ${{ inputs.abis }}"
+            fi
+            if [ "${{ inputs.force }}" = "true" ]; then
+              CMD="$CMD --force"
+            fi
+            if [ "${{ inputs.clean }}" = "true" ]; then
+              CMD="$CMD --clean"
+            fi
+          fi
+          
+          echo "Executing: $CMD"
+          eval "$CMD"
+
+      - name: Verify 16 KB ELF Page-Alignment & Congruence
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_core_alignment.py runtimes \
+            --manifest runtimes/cores.json \
+            --strict \
+            --verbose \
+            --json-report runtimes/alignment-report.json
+
+      - name: Publish Staging & Alignment Summary to GitHub Actions
+        if: always()
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, os
+          
+          summary_md = []
+          summary_md.append("## 🎮 Libretro Core Staging & 16 KB Alignment Summary\n")
+          
+          # Staging Summary
+          staged_file = "runtimes/staged-summary.json"
+          if os.path.exists(staged_file):
+              with open(staged_file, "r") as f:
+                  staged = json.load(f)
+              summary_md.append(f"**Total Tasks:** {staged.get('total_tasks', 0)} | **Success:** {staged.get('successful', 0)} | **Failed:** {staged.get('failed', 0)}\n")
+          
+          # Alignment Summary
+          align_file = "runtimes/alignment-report.json"
+          if os.path.exists(align_file):
+              with open(align_file, "r") as f:
+                  align = json.load(f)
+              summary_md.append(f"**Binaries Scanned:** {align.get('total_scanned', 0)} | **Certified 16 KB Compliant:** {align.get('total_passed', 0)} | **Failed:** {align.get('total_failed', 0)}\n")
+              summary_md.append("| Target Binary | Architecture | Min Alignment | Status |")
+              summary_md.append("| :--- | :--- | :--- | :--- |")
+              for b in align.get("binaries", []):
+                  st = "✅ PASS" if b["passed"] else ("⚠️ EXEMPT" if b.get("exempt") else "❌ FAIL")
+                  align_hex = hex(b["min_align"]) if b["min_align"] > 0 else "-"
+                  summary_md.append(f"| `{b['path']}` | 64-bit ELF | `{align_hex}` | {st} |")
+              summary_md.append("")
+          
+          step_summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
+          if step_summary_file:
+              with open(step_summary_file, "a", encoding="utf-8") as f:
+                  f.write("\n".join(summary_md) + "\n")
+          EOF
+
+      - name: Upload Staged Libretro Core Artifacts (.so)
+        uses: actions/upload-artifact@v4
+        with:
+          name: staged-libretro-cores
+          path: |
+            runtimes/**/lib/**/*.so
+            runtimes/staged-summary.json
+            runtimes/alignment-report.json
+          if-no-files-found: error
+          retention-days: 30
