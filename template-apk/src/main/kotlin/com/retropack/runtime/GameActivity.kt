@@ -273,7 +273,7 @@ open class GameActivity : Activity() {
             }
             to.onStylusTouch = { x, y, isTouching ->
                 if (config.game.platform.lowercase() == "nds" || config.runtime.core.contains("melon")) {
-                    com.retropack.runtime.melonds.MelondsNativeCore.nativeSetTouch(x, y, isTouching)
+                    com.retropack.runtime.core.UniversalLibretroCore.nativeSetTouch(x, y, isTouching)
                 }
             }
 

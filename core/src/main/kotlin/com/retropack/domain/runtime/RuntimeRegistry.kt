@@ -283,6 +283,29 @@ object RuntimeRegistry {
     )
 
     /**
+     * Maps a core ID, platform slug, or alias to its canonical unified runtime descriptor ID.
+     */
+    fun toUnifiedRuntimeId(identifier: String): String {
+        val normalized = identifier.lowercase().trim().replace("-", "_")
+        return when (normalized) {
+            "mgba", "gba", "gbc", "gb" -> RUNTIME_MGBA_UNIFIED
+            "snes9x", "snes", "sfc", "smc" -> RUNTIME_SNES9X_UNIFIED
+            "genesis_plus_gx", "genesis", "md", "smd", "gen", "sms", "gg" -> RUNTIME_GENESIS_UNIFIED
+            "fceumm", "nes", "fds", "unf" -> RUNTIME_FCEUMM_UNIFIED
+            "mednafen_pce_fast", "pce", "tg16", "sgx", "beetle_pce_fast" -> RUNTIME_PCE_UNIFIED
+            "fbneo", "arcade", "neogeo", "cps1", "cps2", "cps3" -> RUNTIME_FBNEO_UNIFIED
+            "pcsx_rearmed", "pcsx", "psx", "ps1", "ps" -> RUNTIME_PCSX_UNIFIED
+            "mupen64plus_next", "mupen64", "n64", "z64", "v64" -> RUNTIME_MUPEN64_UNIFIED
+            "ppsspp", "psp" -> RUNTIME_PPSSPP_UNIFIED
+            "melonds", "nds", "dsi" -> RUNTIME_MELONDS_UNIFIED
+            else -> {
+                if (normalized.endsWith("_unified")) normalized.replace("_", "-")
+                else "$normalized-unified"
+            }
+        }
+    }
+
+    /**
      * Retrieves a registered descriptor by [runtimeId] or canonical core ID.
      */
     fun getDescriptor(runtimeId: String): RuntimeDescriptor? {
@@ -290,10 +313,19 @@ object RuntimeRegistry {
         val direct = registeredDescriptors[normalized]
         if (direct != null) return direct
 
-        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
-        val unifiedId = "$coreId-unified"
-        val mapped = registeredDescriptors[unifiedId] ?: registeredDescriptors[coreId]
+        val mappedId = platformMappings[normalized]?.firstOrNull()
+        if (mappedId != null) {
+            registeredDescriptors[mappedId]?.let { return it }
+        }
+
+        val unifiedId = toUnifiedRuntimeId(normalized)
+        val mapped = registeredDescriptors[unifiedId] ?: registeredDescriptors[unifiedId.replace("-", "_")]
         if (mapped != null) return mapped
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val coreUnifiedId = toUnifiedRuntimeId(coreId)
+        val coreMapped = registeredDescriptors[coreUnifiedId] ?: registeredDescriptors[coreId]
+        if (coreMapped != null) return coreMapped
 
         if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return registeredDescriptors[RUNTIME_MGBA_UNIFIED]
@@ -309,10 +341,19 @@ object RuntimeRegistry {
         val direct = registeredTemplates[normalized]
         if (direct != null) return direct
 
-        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
-        val unifiedId = "$coreId-unified"
-        val mapped = registeredTemplates[unifiedId] ?: registeredTemplates[coreId]
+        val mappedId = platformMappings[normalized]?.firstOrNull()
+        if (mappedId != null) {
+            registeredTemplates[mappedId]?.let { return it }
+        }
+
+        val unifiedId = toUnifiedRuntimeId(normalized)
+        val mapped = registeredTemplates[unifiedId] ?: registeredTemplates[unifiedId.replace("-", "_")]
         if (mapped != null) return mapped
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val coreUnifiedId = toUnifiedRuntimeId(coreId)
+        val coreMapped = registeredTemplates[coreUnifiedId] ?: registeredTemplates[coreId]
+        if (coreMapped != null) return coreMapped
 
         if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return registeredTemplates[RUNTIME_MGBA_UNIFIED]
@@ -328,10 +369,19 @@ object RuntimeRegistry {
         val direct = TRUSTED_TEMPLATES[normalized]
         if (direct != null) return direct
 
-        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
-        val unifiedId = "$coreId-unified"
-        val mapped = TRUSTED_TEMPLATES[unifiedId] ?: TRUSTED_TEMPLATES[coreId]
+        val mappedId = platformMappings[normalized]?.firstOrNull()
+        if (mappedId != null) {
+            TRUSTED_TEMPLATES[mappedId]?.let { return it }
+        }
+
+        val unifiedId = toUnifiedRuntimeId(normalized)
+        val mapped = TRUSTED_TEMPLATES[unifiedId] ?: TRUSTED_TEMPLATES[unifiedId.replace("-", "_")]
         if (mapped != null) return mapped
+
+        val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
+        val coreUnifiedId = toUnifiedRuntimeId(coreId)
+        val coreMapped = TRUSTED_TEMPLATES[coreUnifiedId] ?: TRUSTED_TEMPLATES[coreId]
+        if (coreMapped != null) return coreMapped
 
         if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) {
             return TRUSTED_TEMPLATES[RUNTIME_MGBA_UNIFIED]
@@ -355,11 +405,15 @@ object RuntimeRegistry {
      */
     fun verifyProtectedEntries(runtimeId: String, actualEntries: Map<String, String>): Boolean {
         val normalized = runtimeId.lowercase().trim()
+        val mappedId = platformMappings[normalized]?.firstOrNull()
+        val unifiedId = toUnifiedRuntimeId(normalized)
         val coreId = com.retropack.packaging.CoreLibraryInjector.resolveCoreId(normalized, normalized)
-        val unifiedId = "$coreId-unified"
+        val coreUnifiedId = toUnifiedRuntimeId(coreId)
 
         val trustedMap = TRUSTED_PROTECTED_ENTRIES[normalized]
+            ?: (if (mappedId != null) TRUSTED_PROTECTED_ENTRIES[mappedId] else null)
             ?: TRUSTED_PROTECTED_ENTRIES[unifiedId]
+            ?: TRUSTED_PROTECTED_ENTRIES[coreUnifiedId]
             ?: TRUSTED_PROTECTED_ENTRIES[coreId]
             ?: (if (normalized in CANONICAL_RUNTIME_IDS || coreId in CANONICAL_CORE_IDS) TRUSTED_PROTECTED_ENTRIES[RUNTIME_MGBA_UNIFIED] else null)
             ?: return false

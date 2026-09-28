@@ -117,6 +117,8 @@ object UniversalLibretroCore : NativeCoreBridge {
 
     override external fun nativeSetAnalogAxis(axisX: Float, axisY: Float)
 
+    external fun nativeSetTouch(x: Int, y: Int, isTouching: Boolean)
+
     override external fun nativeGetVideoBuffer(): IntBuffer?
 
     override external fun nativeGetAudioSamples(outSamples: ShortArray, maxSamples: Int): Int

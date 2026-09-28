@@ -80,6 +80,9 @@ typedef struct LibretroHostState {
     int16_t analog_left_y;
     int16_t analog_right_x;
     int16_t analog_right_y;
+    int16_t pointer_x;
+    int16_t pointer_y;
+    bool pointer_pressed;
 
     // Concurrency control
     pthread_mutex_t lock;
@@ -114,6 +117,7 @@ bool host_run_frame(void);
  */
 void host_set_keys(uint32_t key_mask);
 void host_set_analog(float left_x, float left_y, float right_x, float right_y);
+void host_set_pointer(int16_t x, int16_t y, bool pressed);
 
 /**
  * Video & Audio pipeline API.

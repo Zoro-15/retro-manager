@@ -71,6 +71,9 @@ static LibretroHostState g_host = {
     .analog_left_y = 0,
     .analog_right_x = 0,
     .analog_right_y = 0,
+    .pointer_x = 0,
+    .pointer_y = 0,
+    .pointer_pressed = false,
     .lock = PTHREAD_MUTEX_INITIALIZER,
     .rom_data = NULL,
     .rom_size = 0,
@@ -520,6 +523,14 @@ void host_set_analog(float left_x, float left_y, float right_x, float right_y) {
     pthread_mutex_unlock(&g_host.lock);
 }
 
+void host_set_pointer(int16_t x, int16_t y, bool pressed) {
+    pthread_mutex_lock(&g_host.lock);
+    g_host.pointer_x = x;
+    g_host.pointer_y = y;
+    g_host.pointer_pressed = pressed;
+    pthread_mutex_unlock(&g_host.lock);
+}
+
 uint32_t* host_get_video_buffer(unsigned* out_width, unsigned* out_height) {
     pthread_mutex_lock(&g_host.lock);
     if (!g_host.core_loaded || !g_host.game_loaded || g_host.video_width == 0 || g_host.video_height == 0) {
@@ -946,6 +957,10 @@ static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned ind
             if (id == RETRO_DEVICE_ID_ANALOG_X) return g_host.analog_right_x;
             if (id == RETRO_DEVICE_ID_ANALOG_Y) return g_host.analog_right_y;
         }
+    } else if (device_type == RETRO_DEVICE_POINTER) {
+        if (id == RETRO_DEVICE_ID_POINTER_X) return g_host.pointer_x;
+        if (id == RETRO_DEVICE_ID_POINTER_Y) return g_host.pointer_y;
+        if (id == RETRO_DEVICE_ID_POINTER_PRESSED) return g_host.pointer_pressed ? 1 : 0;
     }
 
     return 0;
@@ -1058,6 +1073,14 @@ Java_com_retropack_runtime_core_UniversalLibretroCore_nativeSetAnalogAxis(
     (void) env;
     (void) thiz;
     host_set_analog(axisX, axisY, 0.0f, 0.0f);
+}
+
+JNIEXPORT void JNICALL
+Java_com_retropack_runtime_core_UniversalLibretroCore_nativeSetTouch(
+        JNIEnv* env, jobject thiz, jint x, jint y, jboolean isTouching) {
+    (void) env;
+    (void) thiz;
+    host_set_pointer((int16_t) x, (int16_t) y, (bool) isTouching);
 }
 
 JNIEXPORT jobject JNICALL

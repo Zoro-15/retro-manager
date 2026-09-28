@@ -67,7 +67,7 @@ TARGETS = [
     {
         "id": "unit-tests",
         "name": "Unit Tests (App & Runtime Host)",
-        "command": "./gradlew :app:testDebugUnitTest :runtime:retropack-runtime-common:test --stacktrace",
+        "command": "./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace",
         "required": False,
     },
 ]
