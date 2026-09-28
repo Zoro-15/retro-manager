@@ -27,7 +27,7 @@ if(EXISTS "${PCSX_SOURCE_DIR}/libpcsxcore/psxcommon.h" OR EXISTS "${PCSX_SOURCE_
         -DP_HAVE_POSIX_MEMALIGN=0
         -DDISABLE_MEM_LUTS=0
         -DGPU_PEOPS=1
-        -DUSE_LIBRETRO_VFS=1
+        -DUSE_LIBRETRO_VFS=0
         -DNO_DYLIB=1
     )
 

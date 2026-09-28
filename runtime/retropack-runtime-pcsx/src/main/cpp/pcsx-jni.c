@@ -40,6 +40,82 @@
 #include <cdrom.h>
 #include <cdriso.h>
 #include <misc.h>
+#include <plugins.h>
+
+void SysPrintf(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, fmt, ap);
+    va_end(ap);
+}
+
+void SysMessage(const char *fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    __android_log_vprint(ANDROID_LOG_WARN, LOG_TAG, fmt, ap);
+    va_end(ap);
+}
+
+void *SysLoadLibrary(const char *lib) { (void)lib; return NULL; }
+void *SysLoadSym(void *lib, const char *sym) { (void)lib; (void)sym; return NULL; }
+const char *SysLibError(void) { return NULL; }
+void SysCloseLibrary(void *lib) { (void)lib; }
+void SysReset(void) {}
+void SysRunGui(void) {}
+
+int in_type[8] = {0};
+int in_keystate[8] = {0};
+short in_analog_left[8][2] = {{0}};
+short in_analog_right[8][2] = {{0}};
+short in_mouse[8][2] = {{0}};
+int multitap1 = 0;
+int multitap2 = 0;
+uint8_t pl_gun_byte2 = 0;
+int pl_frame_limit = 0;
+
+void PAD1_readPort(struct PadDataS *pad, int *is_multitap) {
+    if (!pad) return;
+    int pad_index = pad->requestPadIndex;
+    if (pad_index < 0 || pad_index >= 8) pad_index = 0;
+    pad->controllerType = in_type[pad_index];
+    pad->buttonStatus = ~in_keystate[pad_index];
+    pad->leftJoyX = in_analog_left[pad_index][0];
+    pad->leftJoyY = in_analog_left[pad_index][1];
+    pad->rightJoyX = in_analog_right[pad_index][0];
+    pad->rightJoyY = in_analog_right[pad_index][1];
+    pad->moveX = in_mouse[pad_index][0];
+    pad->moveY = in_mouse[pad_index][1];
+    if (is_multitap) *is_multitap = multitap1;
+}
+
+void PAD2_readPort(struct PadDataS *pad, int *is_multitap) {
+    if (!pad) return;
+    int pad_index = pad->requestPadIndex;
+    if (pad_index < 0 || pad_index >= 8) pad_index = 1;
+    pad->controllerType = in_type[pad_index];
+    pad->buttonStatus = ~in_keystate[pad_index];
+    pad->leftJoyX = in_analog_left[pad_index][0];
+    pad->leftJoyY = in_analog_left[pad_index][1];
+    pad->rightJoyX = in_analog_right[pad_index][0];
+    pad->rightJoyY = in_analog_right[pad_index][1];
+    pad->moveX = in_mouse[pad_index][0];
+    pad->moveY = in_mouse[pad_index][1];
+    if (is_multitap) *is_multitap = multitap2;
+}
+
+void plat_trigger_vibrate(int pad, int low, int high) {
+    (void)pad; (void)low; (void)high;
+}
+
+long path_get_size(const char *path) {
+    if (!path) return -1;
+    FILE *f = fopen(path, "rb");
+    if (!f) return -1;
+    fseek(f, 0, SEEK_END);
+    long sz = ftell(f);
+    fclose(f);
+    return sz;
+}
 #endif
 
 static struct {

@@ -41,6 +41,55 @@ typedef enum {
 #ifdef HAVE_FBNEO_CORE
 // Real upstream FBNeo C++ headers
 #include <burner.h>
+
+// Required external symbols for FBNeo core
+extern "C" int nInputIntfMouseDivider = 1;
+extern "C" int kNetGame = 0;
+
+extern "C" INT32 bprintf(INT32 nStatus, TCHAR* szFormat, ...) {
+    va_list va;
+    va_start(va, szFormat);
+    __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, (const char*)szFormat, va);
+    va_end(va);
+    return 0;
+}
+
+static FILE* s_fbneoStateFp = NULL;
+static INT32 __cdecl FbneoFileWriteAcb(struct BurnArea* pba) {
+    if (s_fbneoStateFp && pba && pba->Data && pba->nLen > 0) {
+        fwrite(pba->Data, 1, pba->nLen, s_fbneoStateFp);
+    }
+    return 0;
+}
+
+static INT32 __cdecl FbneoFileReadAcb(struct BurnArea* pba) {
+    if (s_fbneoStateFp && pba && pba->Data && pba->nLen > 0) {
+        fread(pba->Data, 1, pba->nLen, s_fbneoStateFp);
+    }
+    return 0;
+}
+
+extern "C" INT32 BurnStateSave(char* szName, INT32 bAll) {
+    (void)bAll;
+    s_fbneoStateFp = fopen(szName, "wb");
+    if (!s_fbneoStateFp) return 1;
+    BurnAcb = FbneoFileWriteAcb;
+    BurnAreaScan(ACB_FULLSCAN | ACB_READ, NULL);
+    fclose(s_fbneoStateFp);
+    s_fbneoStateFp = NULL;
+    return 0;
+}
+
+extern "C" INT32 BurnStateLoad(char* szName, INT32 bAll, INT32 (*pfnAcb)()) {
+    (void)bAll; (void)pfnAcb;
+    s_fbneoStateFp = fopen(szName, "rb");
+    if (!s_fbneoStateFp) return 1;
+    BurnAcb = FbneoFileReadAcb;
+    BurnAreaScan(ACB_FULLSCAN | ACB_WRITE, NULL);
+    fclose(s_fbneoStateFp);
+    s_fbneoStateFp = NULL;
+    return 0;
+}
 #endif
 
 static struct {

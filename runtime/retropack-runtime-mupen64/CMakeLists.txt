@@ -140,6 +140,8 @@ target_include_directories(retropack-runtime-mupen64 PRIVATE
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/api"
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/osal"
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/md5"
+    "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/xxhash"
+    "${MUPEN_SOURCE_DIR}/xxHash"
     "${MUPEN_SOURCE_DIR}/mupen64plus-rsp-hle/src"
     "${MUPEN_SOURCE_DIR}/mupen64plus-video-angrylion"
     "${MUPEN_SOURCE_DIR}/mupen64plus-video-angrylion/n64video"

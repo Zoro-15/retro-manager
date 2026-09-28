@@ -319,8 +319,10 @@ void* DynamicLibrary_LoadFunction(DynamicLibrary* lib, const char* name) {
 #include "teakra/include/teakra/teakra.h"
 
 namespace Teakra {
-Teakra::Teakra() {}
-Teakra::~Teakra() {}
+struct Teakra::Impl {};
+
+Teakra::Teakra() : impl(nullptr) {}
+Teakra::~Teakra() = default;
 void Teakra::Reset() {}
 void Teakra::DoSavestate(melonDS::Savestate* file) {}
 bool Teakra::SendDataIsEmpty(std::uint8_t index) const { return true; }
@@ -350,7 +352,7 @@ std::uint16_t Teakra::AHBMGetDmaChannel(std::uint16_t i) const { return 0; }
 std::uint16_t Teakra::AHBMRead16(std::uint32_t addr) { return 0; }
 void Teakra::AHBMWrite16(std::uint32_t addr, std::uint16_t value) {}
 std::uint16_t Teakra::AHBMRead32(std::uint32_t addr) { return 0; }
-void Teakra::AHBMWrite32(std::uint32_t addr, std::uint16_t value) {}
+void Teakra::AHBMWrite32(std::uint32_t addr, std::uint32_t value) {}
 void Teakra::Run(unsigned cycle) {}
 void Teakra::SetSharedMemoryCallback(const SharedMemoryCallback& callback) {}
 void Teakra::SetAHBMCallback(const AHBMCallback& callback) {}
