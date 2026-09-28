@@ -26,6 +26,54 @@
 #define AUDIO_BUFFER_CAPACITY (16 * 1024)
 #define AUDIO_SAMPLES_PER_FRAME 735 // 44100 / 60
 
+static struct {
+    bool initialized;
+    bool rom_loaded;
+    char storage_path[1024];
+    char rom_path[1024];
+    char game_title[32];
+    char rom_layout[16];
+    uint32_t video_buffer[SNES_MAX_WIDTH * SNES_MAX_HEIGHT];
+    int video_width;
+    int video_height;
+    uint8_t sram[0x20000]; // 128 KB standard SNES SRAM
+    RingBuffer* audio_rb;
+    pthread_mutex_t lock;
+    size_t sram_size;
+    uint32_t key_mask;
+    uint64_t frame_count;
+    float m7_angle;
+    float m7_cam_x;
+    float m7_cam_y;
+    jclass byte_buffer_class;
+    jmethodID byte_buffer_order;
+    jmethodID byte_buffer_as_int_buffer;
+    jobject byte_order_native;
+} g_snes9x = {
+    .initialized = false,
+    .rom_loaded = false,
+    .storage_path = {0},
+    .rom_path = {0},
+    .game_title = "SUPER NINTENDO",
+    .rom_layout = "LoROM",
+    .video_buffer = {0},
+    .video_width = SNES_DEFAULT_WIDTH,
+    .video_height = SNES_DEFAULT_HEIGHT,
+    .sram = {0},
+    .audio_rb = NULL,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+    .sram_size = 0x20000,
+    .key_mask = 0,
+    .frame_count = 0,
+    .m7_angle = 0.0f,
+    .m7_cam_x = 0.0f,
+    .m7_cam_y = 0.0f,
+    .byte_buffer_class = NULL,
+    .byte_buffer_order = NULL,
+    .byte_buffer_as_int_buffer = NULL,
+    .byte_order_native = NULL,
+};
+
 #ifdef HAVE_SNES9X_CORE
 // Real upstream Snes9x C++ headers
 #include <snes9x.h>
@@ -129,54 +177,6 @@ void S9xParseArg(char **argv, int &index, int argc) {
     (void)argv; (void)index; (void)argc;
 }
 #endif
-
-static struct {
-    bool initialized;
-    bool rom_loaded;
-    char storage_path[1024];
-    char rom_path[1024];
-    char game_title[32];
-    char rom_layout[16];
-    uint32_t video_buffer[SNES_MAX_WIDTH * SNES_MAX_HEIGHT];
-    int video_width;
-    int video_height;
-    uint8_t sram[0x20000]; // 128 KB standard SNES SRAM
-    RingBuffer* audio_rb;
-    pthread_mutex_t lock;
-    size_t sram_size;
-    uint32_t key_mask;
-    uint64_t frame_count;
-    float m7_angle;
-    float m7_cam_x;
-    float m7_cam_y;
-    jclass byte_buffer_class;
-    jmethodID byte_buffer_order;
-    jmethodID byte_buffer_as_int_buffer;
-    jobject byte_order_native;
-} g_snes9x = {
-    .initialized = false,
-    .rom_loaded = false,
-    .storage_path = {0},
-    .rom_path = {0},
-    .game_title = "SUPER NINTENDO",
-    .rom_layout = "LoROM",
-    .video_buffer = {0},
-    .video_width = SNES_DEFAULT_WIDTH,
-    .video_height = SNES_DEFAULT_HEIGHT,
-    .sram = {0},
-    .audio_rb = NULL,
-    .lock = PTHREAD_MUTEX_INITIALIZER,
-    .sram_size = 0x20000,
-    .key_mask = 0,
-    .frame_count = 0,
-    .m7_angle = 0.0f,
-    .m7_cam_x = 0.0f,
-    .m7_cam_y = 0.0f,
-    .byte_buffer_class = NULL,
-    .byte_buffer_order = NULL,
-    .byte_buffer_as_int_buffer = NULL,
-    .byte_order_native = NULL,
-};
 
 static inline uint32_t map_retro_keys_to_snes(uint32_t mask) {
     uint32_t snes_pad = 0;
@@ -592,14 +592,11 @@ Java_com_retropack_runtime_snes_Snes9xNativeCore_snesInit(
 
 #ifdef HAVE_SNES9X_CORE
     memset(&Settings, 0, sizeof(Settings));
-    Settings.CyclesPercentage = 100;
-    Settings.DisableSound = false;
     Settings.SoundPlaybackRate = 44100;
     Settings.SoundInputRate = 32000;
     Settings.SixteenBitSound = true;
     Settings.Stereo = true;
     Settings.Transparency = true;
-    Settings.SupportHiRes = true;
     Memory.Init();
     S9xInitAPU();
     S9xInitSound(0);
