@@ -317,7 +317,7 @@ Java_com_retropack_runtime_audio_OboeNativeBridge_nativeOboeFlush(JNIEnv* env, j
     AAudioStream* stream = atomic_load_explicit(&slot->stream, memory_order_acquire);
     if (!stream) return;
     slot->fractional_carry = 0.0;
-    AAudioStream_flush(stream);
+    AAudioStream_requestFlush(stream);
 }
 
 JNIEXPORT void JNICALL
