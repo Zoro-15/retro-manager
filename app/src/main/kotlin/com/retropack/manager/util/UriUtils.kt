@@ -51,6 +51,24 @@ object UriUtils {
         }
     }
 
+    fun copyUriToTempFile(context: Context, uri: Uri, targetFile: File): File? {
+        return try {
+            targetFile.parentFile?.mkdirs()
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                targetFile.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 64 * 1024)
+                }
+            }
+            if (targetFile.exists() && targetFile.length() > 0) targetFile else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun getStagingDirectory(context: Context): File {
+        return File(context.cacheDir, "rom_staging").also { it.mkdirs() }
+    }
+
     fun formatFileSize(bytes: Long): String {
         return when {
             bytes >= 1024 * 1024 -> String.format(java.util.Locale.US, "%.2f MB", bytes.toDouble() / (1024 * 1024))

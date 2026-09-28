@@ -27,6 +27,7 @@ data class DiscUiItem(
     val label: String,
     val fileName: String,
     val uri: Uri? = null,
+    val file: File? = null,
     val bytes: ByteArray? = null,
     val fileSize: Long = 0L,
     val sha256: String = ""
@@ -36,12 +37,14 @@ data class RomUiState(
     val selectedUri: Uri? = null,
     val fileName: String? = null,
     val fileSize: Long = 0,
+    val romFile: File? = null,
     val romBytes: ByteArray? = null,
     val romIdentity: RomIdentity? = null,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val patchUri: Uri? = null,
     val patchFileName: String? = null,
+    val patchFile: File? = null,
     val patchBytes: ByteArray? = null,
     val discItems: List<DiscUiItem> = emptyList()
 )
@@ -106,7 +109,7 @@ data class MainUiState(
 ) {
     val canStartPackaging: Boolean
         get() = romState.romIdentity != null &&
-                romState.romBytes != null &&
+                (romState.romFile != null || romState.romBytes != null) &&
                 identityState.gameTitle.isNotBlank() &&
                 !buildState.isBuilding
 }

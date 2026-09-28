@@ -43,10 +43,19 @@ object RomParser {
      * header prefix up to 64 KB. Transparently extracts ZIP and RAR archives.
      */
     fun parse(file: File): RomIdentity {
-        if (ArchiveExtractor.isArchive(file.readBytes().take(16).toByteArray(), file.name)) {
-            val extracted = ArchiveExtractor.extractCandidateRom(file)
-            if (extracted.isExtractedFromArchive) {
-                return parse(extracted.bytes, extracted.candidateFileName)
+        val prefixHeader = ByteArray(16)
+        val readCount = runCatching { file.inputStream().use { it.read(prefixHeader) } }.getOrDefault(0)
+        val sampleBytes = if (readCount > 0) prefixHeader.copyOf(readCount) else ByteArray(0)
+
+        if (ArchiveExtractor.isArchive(sampleBytes, file.name)) {
+            val stagingDir = File(file.parentFile ?: File("."), "extract_${System.currentTimeMillis()}").also { it.mkdirs() }
+            try {
+                val extracted = ArchiveExtractor.extractCandidateRomToDisk(file, stagingDir)
+                if (extracted.isExtractedFromArchive && extracted.file.exists()) {
+                    return parse(extracted.file)
+                }
+            } finally {
+                stagingDir.deleteRecursively()
             }
         }
         val (checksumResult, prefix) =

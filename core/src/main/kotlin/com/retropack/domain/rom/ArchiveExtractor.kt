@@ -97,6 +97,17 @@ object ArchiveExtractor {
     }
 
     /**
+     * File-based result of streaming archive extraction to disk.
+     */
+    data class ExtractedRomFileResult(
+        val file: File,
+        val candidateFileName: String,
+        val originalFileName: String,
+        val isExtractedFromArchive: Boolean,
+        val archiveType: String? = null
+    )
+
+    /**
      * Determines whether the given byte prefix or file name indicates an archive format.
      */
     fun isArchive(bytes: ByteArray, fileName: String? = null): Boolean {
@@ -127,15 +138,267 @@ object ArchiveExtractor {
     }
 
     /**
+     * Determines whether the header indicates a modern RAR 5.0 archive.
+     */
+    fun isRar5(bytes: ByteArray): Boolean {
+        return bytes.size >= 8 &&
+            bytes[0] == 0x52.toByte() && bytes[1] == 0x61.toByte() &&
+            bytes[2] == 0x72.toByte() && bytes[3] == 0x21.toByte() &&
+            bytes[4] == 0x1A.toByte() && bytes[5] == 0x07.toByte() &&
+            bytes[6] == 0x01.toByte() && bytes[7] == 0x00.toByte()
+    }
+
+    /**
+     * Inspects an incoming file on disk. If it is an archive, extracts the primary ROM file directly
+     * to [destinationDir] using constant 64 KB memory streaming. Recursively unpacks nested archives.
+     */
+    fun extractCandidateRomToDisk(
+        sourceFile: File,
+        destinationDir: File,
+        currentDepth: Int = 0
+    ): ExtractedRomFileResult {
+        destinationDir.mkdirs()
+
+        val prefix = ByteArray(16)
+        val readLen = runCatching {
+            sourceFile.inputStream().use { it.read(prefix) }
+        }.getOrDefault(0)
+        val headerBytes = if (readLen > 0) prefix.copyOf(readLen) else ByteArray(0)
+
+        if (currentDepth >= MAX_RECURSION_DEPTH || !isArchive(headerBytes, sourceFile.name)) {
+            return ExtractedRomFileResult(
+                file = sourceFile,
+                candidateFileName = sourceFile.name,
+                originalFileName = sourceFile.name,
+                isExtractedFromArchive = currentDepth > 0
+            )
+        }
+
+        val lowerName = sourceFile.name.lowercase(Locale.US)
+
+        // 1. Try ZIP extraction directly to disk file
+        if (isZip(headerBytes, lowerName)) {
+            val zipResult = runCatching { extractFromZipFileToDisk(sourceFile, destinationDir) }.getOrNull()
+            if (zipResult != null) {
+                val nextHeader = ByteArray(16)
+                val nextLen = runCatching { zipResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                if (isArchive(nextHeader.copyOf(nextLen), zipResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                    return extractCandidateRomToDisk(zipResult.file, destinationDir, currentDepth + 1)
+                }
+                return zipResult
+            }
+        }
+
+        // 2. Try RAR extraction
+        if (isRar(headerBytes, lowerName)) {
+            if (isRar5(headerBytes)) {
+                throw InvalidRomException(
+                    "RAR 5.0 archive format detected for '${sourceFile.name}'. " +
+                    "Embedded RAR5 decompression is not supported. Please unpack this game to a standard .zip, .7z, or uncompressed ROM format first."
+                )
+            }
+            val rarResult = runCatching { extractFromRarFileToDisk(sourceFile, destinationDir) }.getOrNull()
+            if (rarResult != null) {
+                val nextHeader = ByteArray(16)
+                val nextLen = runCatching { rarResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                if (isArchive(nextHeader.copyOf(nextLen), rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                    return extractCandidateRomToDisk(rarResult.file, destinationDir, currentDepth + 1)
+                }
+                return rarResult
+            }
+        }
+
+        // 3. Try 7Z extraction directly to disk file
+        if (is7z(headerBytes, lowerName)) {
+            val sevenZResult = runCatching { extractFrom7zFileToDisk(sourceFile, destinationDir) }.getOrNull()
+            if (sevenZResult != null) {
+                val nextHeader = ByteArray(16)
+                val nextLen = runCatching { sevenZResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                if (isArchive(nextHeader.copyOf(nextLen), sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                    return extractCandidateRomToDisk(sevenZResult.file, destinationDir, currentDepth + 1)
+                }
+                return sevenZResult
+            }
+        }
+
+        // 4. Try GZIP decompression to disk file
+        if (isGzip(headerBytes, lowerName)) {
+            val gzResult = runCatching { extractFromGzipFileToDisk(sourceFile, destinationDir) }.getOrNull()
+            if (gzResult != null) {
+                val nextHeader = ByteArray(16)
+                val nextLen = runCatching { gzResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                if (isArchive(nextHeader.copyOf(nextLen), gzResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                    return extractCandidateRomToDisk(gzResult.file, destinationDir, currentDepth + 1)
+                }
+                return gzResult
+            }
+        }
+
+        return ExtractedRomFileResult(
+            file = sourceFile,
+            candidateFileName = sourceFile.name,
+            originalFileName = sourceFile.name,
+            isExtractedFromArchive = currentDepth > 0
+        )
+    }
+
+    private fun extractFromZipFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
+        java.util.zip.ZipFile(sourceFile).use { zip ->
+            val entries = zip.entries().asSequence().filter { !it.isDirectory }.toList()
+            val validNames = entries.map { entry ->
+                entry.name.substringAfterLast('/').substringAfterLast('\\')
+            }.filter { !isIgnoredFile(it) }
+
+            if (validNames.isEmpty()) return null
+            val bestName = selectBestEntry(validNames) ?: validNames.first()
+            val bestEntry = entries.firstOrNull {
+                it.name.substringAfterLast('/').substringAfterLast('\\') == bestName
+            } ?: entries.first()
+
+            val outputFile = File(outputDir, bestName)
+            zip.getInputStream(bestEntry).use { input ->
+                outputFile.outputStream().use { output ->
+                    input.copyTo(output, bufferSize = 64 * 1024)
+                }
+            }
+
+            return ExtractedRomFileResult(
+                file = outputFile,
+                candidateFileName = bestName,
+                originalFileName = sourceFile.name,
+                isExtractedFromArchive = true,
+                archiveType = "ZIP"
+            )
+        }
+    }
+
+    private fun extractFrom7zFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
+        SevenZFile(sourceFile).use { sevenZFile ->
+            val entryList = mutableListOf<String>()
+            var e = sevenZFile.nextEntry
+            while (e != null) {
+                if (!e.isDirectory) {
+                    val clean = e.name.substringAfterLast('/').substringAfterLast('\\')
+                    if (!isIgnoredFile(clean)) {
+                        entryList.add(clean)
+                    }
+                }
+                e = sevenZFile.nextEntry
+            }
+
+            if (entryList.isEmpty()) return null
+            val bestName = selectBestEntry(entryList) ?: entryList.first()
+
+            // Re-open to extract chosen entry
+            SevenZFile(sourceFile).use { reader ->
+                var targetEntry = reader.nextEntry
+                while (targetEntry != null) {
+                    val clean = targetEntry.name.substringAfterLast('/').substringAfterLast('\\')
+                    if (clean == bestName) {
+                        val outputFile = File(outputDir, bestName)
+                        outputFile.outputStream().use { fos ->
+                            val buffer = ByteArray(64 * 1024)
+                            var readCount: Int
+                            while (reader.read(buffer, 0, buffer.size).also { readCount = it } > 0) {
+                                fos.write(buffer, 0, readCount)
+                            }
+                        }
+                        return ExtractedRomFileResult(
+                            file = outputFile,
+                            candidateFileName = bestName,
+                            originalFileName = sourceFile.name,
+                            isExtractedFromArchive = true,
+                            archiveType = "7Z"
+                        )
+                    }
+                    targetEntry = reader.nextEntry
+                }
+            }
+        }
+        return null
+    }
+
+    private fun extractFromRarFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
+        Archive(sourceFile).use { archive ->
+            val headers = mutableListOf<FileHeader>()
+            var h: FileHeader? = archive.nextFileHeader()
+            while (h != null) {
+                if (!h.isDirectory) {
+                    val fullPath = h.fileName ?: h.fileNameW ?: ""
+                    val clean = fullPath.substringAfterLast('/').substringAfterLast('\\')
+                    if (!isIgnoredFile(clean)) {
+                        headers.add(h)
+                    }
+                }
+                h = archive.nextFileHeader()
+            }
+
+            if (headers.isEmpty()) return null
+            val names = headers.map { (it.fileName ?: it.fileNameW ?: "").substringAfterLast('/').substringAfterLast('\\') }
+            val bestName = selectBestEntry(names) ?: names.first()
+            val bestHeader = headers.firstOrNull {
+                (it.fileName ?: it.fileNameW ?: "").substringAfterLast('/').substringAfterLast('\\') == bestName
+            } ?: headers.first()
+
+            val outputFile = File(outputDir, bestName)
+            outputFile.outputStream().use { fos ->
+                archive.extractFile(bestHeader, fos)
+            }
+
+            return ExtractedRomFileResult(
+                file = outputFile,
+                candidateFileName = bestName,
+                originalFileName = sourceFile.name,
+                isExtractedFromArchive = true,
+                archiveType = "RAR"
+            )
+        }
+    }
+
+    private fun extractFromGzipFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
+        val candidateName = if (sourceFile.name.endsWith(".gz", ignoreCase = true)) {
+            sourceFile.name.substringBeforeLast(".gz", sourceFile.name.substringBeforeLast('.'))
+        } else {
+            sourceFile.name
+        }
+        val outputFile = File(outputDir, candidateName)
+        GZIPInputStream(FileInputStream(sourceFile)).use { input ->
+            outputFile.outputStream().use { output ->
+                input.copyTo(output, bufferSize = 64 * 1024)
+            }
+        }
+        return ExtractedRomFileResult(
+            file = outputFile,
+            candidateFileName = candidateName,
+            originalFileName = sourceFile.name,
+            isExtractedFromArchive = true,
+            archiveType = "GZIP"
+        )
+    }
+
+    /**
      * Inspects incoming file from disk. If it is a ZIP or RAR archive, extracts the primary ROM file.
      */
     fun extractCandidateRom(file: File): ExtractedRomResult {
-        if (file.name.endsWith(".7z", ignoreCase = true)) {
-            val sevenZResult = runCatching { extractFrom7zFile(file) }.getOrNull()
-            if (sevenZResult != null) return sevenZResult
+        val tempDir = File(file.parentFile ?: File("."), "rom_extract_${System.currentTimeMillis()}").also { it.mkdirs() }
+        return try {
+            val fileRes = extractCandidateRomToDisk(file, tempDir)
+            if (fileRes.isExtractedFromArchive && fileRes.file.exists()) {
+                val bytes = fileRes.file.readBytes()
+                ExtractedRomResult(
+                    bytes = bytes,
+                    candidateFileName = fileRes.candidateFileName,
+                    originalFileName = fileRes.originalFileName,
+                    isExtractedFromArchive = true,
+                    archiveType = fileRes.archiveType
+                )
+            } else {
+                val rawBytes = file.readBytes()
+                extractCandidateRom(rawBytes, file.name)
+            }
+        } finally {
+            tempDir.deleteRecursively()
         }
-        val rawBytes = file.readBytes()
-        return extractCandidateRom(rawBytes, file.name)
     }
 
     /**
@@ -171,6 +434,12 @@ object ArchiveExtractor {
 
         // 2. Try RAR extraction
         if (isRar(rawBytes, lowerName)) {
+            if (isRar5(rawBytes)) {
+                throw InvalidRomException(
+                    "RAR 5.0 archive format detected for '$rawFileName'. " +
+                    "Embedded RAR5 decompression is not supported. Please unpack this game to a standard .zip, .7z, or uncompressed ROM format first."
+                )
+            }
             val rarResult = runCatching { extractFromRar(rawBytes, rawFileName) }.getOrNull()
             if (rarResult != null) {
                 if (isArchive(rarResult.bytes, rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
@@ -361,45 +630,6 @@ object ArchiveExtractor {
             bytes = matched.second,
             candidateFileName = matched.first,
             originalFileName = rawFileName,
-            isExtractedFromArchive = true,
-            archiveType = "7Z"
-        )
-    }
-
-    private fun extractFrom7zFile(file: File): ExtractedRomResult? {
-        val entries = mutableListOf<Pair<String, ByteArray>>()
-        SevenZFile(file).use { sevenZFile ->
-            var entry = sevenZFile.nextEntry
-            while (entry != null) {
-                if (!entry.isDirectory) {
-                    val cleanName = entry.name.substringAfterLast('/').substringAfterLast('\\')
-                    if (!isIgnoredFile(cleanName)) {
-                        val size = entry.size
-                        if (size in 1..0x40000000L) {
-                            val content = ByteArray(size.toInt())
-                            var offset = 0
-                            while (offset < content.size) {
-                                val read = sevenZFile.read(content, offset, content.size - offset)
-                                if (read < 0) break
-                                offset += read
-                            }
-                            entries.add(Pair(cleanName, content))
-                        }
-                    }
-                }
-                entry = sevenZFile.nextEntry
-            }
-        }
-
-        if (entries.isEmpty()) return null
-
-        val best = selectBestEntry(entries.map { it.first }) ?: entries.first().first
-        val matched = entries.firstOrNull { it.first == best } ?: entries.first()
-
-        return ExtractedRomResult(
-            bytes = matched.second,
-            candidateFileName = matched.first,
-            originalFileName = file.name,
             isExtractedFromArchive = true,
             archiveType = "7Z"
         )

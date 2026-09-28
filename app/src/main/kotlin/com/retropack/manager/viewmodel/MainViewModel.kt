@@ -83,30 +83,58 @@ class MainViewModel : ViewModel() {
             val (rawFileName, rawFileSize) = UriUtils.getFileNameAndSize(context, uri)
             com.retropack.manager.util.AppLogger.i("ROM_SELECTION", "User selected ROM URI: $uri (Name: $rawFileName, Size: $rawFileSize bytes)")
 
-            val rawBytes = withContext(Dispatchers.IO) {
-                UriUtils.readBytesFromUri(context, uri)
+            val stagingDir = UriUtils.getStagingDirectory(context)
+            val stagedSourceFile = File(stagingDir, "raw_${System.currentTimeMillis()}_$rawFileName")
+
+            val copyResult = withContext(Dispatchers.IO) {
+                UriUtils.copyUriToTempFile(context, uri, stagedSourceFile)
             }
 
-            if (rawBytes == null || rawBytes.isEmpty()) {
-                com.retropack.manager.util.AppLogger.e("ROM_SELECTION", "Failed to read ROM content bytes from selected URI: $uri")
+            if (copyResult == null || !stagedSourceFile.exists() || stagedSourceFile.length() == 0L) {
+                com.retropack.manager.util.AppLogger.e("ROM_SELECTION", "Failed to stream ROM content from selected URI: $uri")
                 _uiState.update {
                     it.copy(
                         romState = it.romState.copy(
                             isLoading = false,
-                            errorMessage = "Failed to read ROM content from selected file."
+                            errorMessage = "Failed to stream ROM content from selected file."
                         )
                     )
                 }
                 return@launch
             }
 
-            val (romBytes, fileName, fileSize) = UriUtils.extractRomIfArchive(rawBytes, rawFileName)
-            if (fileName != rawFileName) {
-                com.retropack.manager.util.AppLogger.i("ROM_SELECTION", "Archive unpacked: '$rawFileName' -> '$fileName' (${romBytes.size} bytes)")
+            val extractResult = withContext(Dispatchers.IO) {
+                runCatching {
+                    com.retropack.domain.rom.ArchiveExtractor.extractCandidateRomToDisk(
+                        sourceFile = stagedSourceFile,
+                        destinationDir = File(stagingDir, "extracted_${System.currentTimeMillis()}")
+                    )
+                }
+            }
+
+            val extractedFileResult = extractResult.getOrElse { err ->
+                com.retropack.manager.util.AppLogger.e("ROM_SELECTION", "Archive unpacking failed: ${err.message}", err)
+                _uiState.update {
+                    it.copy(
+                        romState = it.romState.copy(
+                            isLoading = false,
+                            errorMessage = err.message ?: "Archive decompression failed."
+                        )
+                    )
+                }
+                return@launch
+            }
+
+            val finalRomFile = extractedFileResult.file
+            val finalFileName = extractedFileResult.candidateFileName
+            val finalFileSize = finalRomFile.length()
+
+            if (finalFileName != rawFileName) {
+                com.retropack.manager.util.AppLogger.i("ROM_SELECTION", "Archive unpacked: '$rawFileName' -> '$finalFileName' ($finalFileSize bytes)")
             }
 
             val parseResult = withContext(Dispatchers.Default) {
-                runCatching { RomParser.parse(romBytes, fileName) }
+                runCatching { RomParser.parse(finalRomFile) }
             }
 
             parseResult.onSuccess { identity ->
@@ -121,10 +149,10 @@ class MainViewModel : ViewModel() {
                         DiscUiItem(
                             discIndex = 0,
                             label = "Disc 1",
-                            fileName = fileName,
+                            fileName = finalFileName,
                             uri = uri,
-                            bytes = romBytes,
-                            fileSize = fileSize.takeIf { it > 0 } ?: romBytes.size.toLong(),
+                            file = finalRomFile,
+                            fileSize = finalFileSize,
                             sha256 = identity.checksums.sha256
                         )
                     )
@@ -134,9 +162,10 @@ class MainViewModel : ViewModel() {
                     current.copy(
                         romState = current.romState.copy(
                             selectedUri = uri,
-                            fileName = fileName,
-                            fileSize = fileSize.takeIf { it > 0 } ?: romBytes.size.toLong(),
-                            romBytes = romBytes,
+                            fileName = finalFileName,
+                            fileSize = finalFileSize,
+                            romFile = finalRomFile,
+                            romBytes = null,
                             romIdentity = identity,
                             discItems = initialDiscs,
                             isLoading = false,
@@ -157,16 +186,16 @@ class MainViewModel : ViewModel() {
                     context = context.applicationContext,
                     platform = identity.platform,
                     gameTitle = identity.gameTitle,
-                    rawFileName = fileName,
+                    rawFileName = finalFileName,
                     gameCode = identity.gameCode
                 )
             }.onFailure { err ->
-                com.retropack.manager.util.AppLogger.e("ROM_PARSER", "ROM inspection failed for '$fileName': ${err.message}", err)
+                com.retropack.manager.util.AppLogger.e("ROM_PARSER", "ROM inspection failed for '$finalFileName': ${err.message}", err)
                 _uiState.update {
                     it.copy(
                         romState = it.romState.copy(
                             isLoading = false,
-                            errorMessage = "ROM Header Analysis Failed: ${err.message}"
+                            errorMessage = "ROM Inspection Failed: ${err.message}"
                         )
                     )
                 }
@@ -283,14 +312,31 @@ class MainViewModel : ViewModel() {
     fun onAddDisc(context: Context, uri: Uri) {
         viewModelScope.launch {
             val (rawFileName, rawFileSize) = UriUtils.getFileNameAndSize(context, uri)
-            val rawBytes = withContext(Dispatchers.IO) {
-                UriUtils.readBytesFromUri(context, uri)
+            val stagingDir = UriUtils.getStagingDirectory(context)
+            val stagedSourceFile = File(stagingDir, "raw_${System.currentTimeMillis()}_$rawFileName")
+
+            val copyResult = withContext(Dispatchers.IO) {
+                UriUtils.copyUriToTempFile(context, uri, stagedSourceFile)
             } ?: return@launch
-            val (discBytes, fileName, fileSize) = UriUtils.extractRomIfArchive(rawBytes, rawFileName)
-            val sha256 = withContext(Dispatchers.Default) {
-                val md = MessageDigest.getInstance("SHA-256")
-                md.digest(discBytes).joinToString("") { "%02x".format(it) }
+
+            val extractResult = withContext(Dispatchers.IO) {
+                runCatching {
+                    com.retropack.domain.rom.ArchiveExtractor.extractCandidateRomToDisk(
+                        sourceFile = stagedSourceFile,
+                        destinationDir = File(stagingDir, "disc_extracted_${System.currentTimeMillis()}")
+                    )
+                }
+            }.getOrNull() ?: return@launch
+
+            val discFile = extractResult.file
+            val fileName = extractResult.candidateFileName
+            val fileSize = discFile.length()
+
+            val checksumResult = withContext(Dispatchers.Default) {
+                com.retropack.domain.rom.StreamChecksum.calculate(discFile)
             }
+            val sha256 = checksumResult.checksums.sha256
+
             _uiState.update { current ->
                 val currentDiscs = current.romState.discItems
                 val nextIndex = currentDiscs.size
@@ -299,8 +345,9 @@ class MainViewModel : ViewModel() {
                     label = "Disc ${nextIndex + 1}",
                     fileName = fileName,
                     uri = uri,
-                    bytes = discBytes,
-                    fileSize = fileSize.takeIf { it > 0 } ?: discBytes.size.toLong(),
+                    file = discFile,
+                    bytes = null,
+                    fileSize = fileSize,
                     sha256 = sha256
                 )
                 val updatedList = currentDiscs + newDisc
@@ -599,7 +646,9 @@ class MainViewModel : ViewModel() {
     fun startPackaging(context: Context) {
         val state = _uiState.value
         val romIdentity = state.romState.romIdentity ?: return
-        val romBytes = state.romState.romBytes ?: return
+        val romFile = state.romState.romFile
+        val romBytes = state.romState.romBytes
+        if (romFile == null && romBytes == null) return
         val signingIdentity = activeSigningIdentity ?: return
 
         viewModelScope.launch {
@@ -702,6 +751,12 @@ class MainViewModel : ViewModel() {
             val outputDir = state.signingState.outputDir
                 ?: File(context.getExternalFilesDir(null) ?: context.filesDir, "RetroPack").also { it.mkdirs() }
 
+            val additionalDiscFiles = if (multiDiscItems.size > 1) {
+                multiDiscItems.mapNotNull { disc ->
+                    disc.file?.let { disc.fileName to it }
+                }
+            } else emptyList()
+
             val additionalDiscs = if (multiDiscItems.size > 1) {
                 multiDiscItems.mapNotNull { disc ->
                     disc.bytes?.let { disc.fileName to it }
@@ -714,6 +769,7 @@ class MainViewModel : ViewModel() {
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
+                        romFile = romFile,
                         signingIdentity = signingIdentity,
                         outputDir = outputDir,
                         iconForegroundBytes = state.identityState.iconForegroundBytes,
@@ -728,6 +784,7 @@ class MainViewModel : ViewModel() {
                             )
                         },
                         additionalDiscBytes = additionalDiscs,
+                        additionalDiscFiles = additionalDiscFiles,
                         stageListener = { stageRecord ->
                             _uiState.update { current ->
                                 current.copy(
