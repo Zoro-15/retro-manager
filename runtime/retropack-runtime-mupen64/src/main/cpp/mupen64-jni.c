@@ -40,6 +40,11 @@
 #endif
 #endif
 
+#include "libretro_private.h"
+
+retro_environment_t environ_cb = NULL;
+unsigned int FAKE_SDL_TICKS = 0;
+
 static struct {
     bool initialized;
     bool rom_loaded;

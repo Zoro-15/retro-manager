@@ -75,7 +75,7 @@ unsigned normal_scanlines = 240;
 unsigned extrascanlines = 0;
 unsigned vblankscanlines = 0;
 unsigned dendy = 0;
-int swapDuty = 0;
+unsigned swapDuty = 0;
 
 static uint32_t s_nes_joypad = 0;
 #endif

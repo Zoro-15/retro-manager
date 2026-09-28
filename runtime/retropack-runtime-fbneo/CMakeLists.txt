@@ -108,6 +108,7 @@ target_include_directories(retropack-runtime-fbneo PRIVATE
     "${FBNEO_SOURCE_DIR}/src/cpu/m68k"
     "${FBNEO_SOURCE_DIR}/src/cpu/z80"
     "${FBNEO_SOURCE_DIR}/src/dep/libs/zlib"
+    "${FBNEO_SOURCE_DIR}/src/dep/generated"
 )
 
 target_link_libraries(retropack-runtime-fbneo PRIVATE
