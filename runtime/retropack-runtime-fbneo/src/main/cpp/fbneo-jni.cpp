@@ -492,30 +492,32 @@ static void render_fbneo_audio(uint64_t frame) {
 
 static void init_jni_cache(JNIEnv* env) {
     if (g_fbneo.byte_buffer_class) return;
-    jclass bb_local = (*env)->FindClass(env, "java/nio/ByteBuffer");
+    jclass bb_local = env->FindClass("java/nio/ByteBuffer");
     if (!bb_local) return;
-    g_fbneo.byte_buffer_class = (jclass)(*env)->NewGlobalRef(env, bb_local);
-    (*env)->DeleteLocalRef(env, bb_local);
+    g_fbneo.byte_buffer_class = (jclass)env->NewGlobalRef(bb_local);
+    env->DeleteLocalRef(bb_local);
 
-    g_fbneo.byte_buffer_order = (*env)->GetMethodID(env, g_fbneo.byte_buffer_class,
+    g_fbneo.byte_buffer_order = env->GetMethodID(g_fbneo.byte_buffer_class,
         "order", "(Ljava/nio/ByteOrder;)Ljava/nio/ByteBuffer;");
-    g_fbneo.byte_buffer_as_int_buffer = (*env)->GetMethodID(env, g_fbneo.byte_buffer_class,
+    g_fbneo.byte_buffer_as_int_buffer = env->GetMethodID(g_fbneo.byte_buffer_class,
         "asIntBuffer", "()Ljava/nio/IntBuffer;");
 
-    jclass bo_class = (*env)->FindClass(env, "java/nio/ByteOrder");
+    jclass bo_class = env->FindClass("java/nio/ByteOrder");
     if (bo_class) {
-        jmethodID bo_native = (*env)->GetStaticMethodID(env, bo_class,
+        jmethodID bo_native = env->GetStaticMethodID(bo_class,
             "nativeOrder", "()Ljava/nio/ByteOrder;");
         if (bo_native) {
-            jobject order_local = (*env)->CallStaticObjectMethod(env, bo_class, bo_native);
+            jobject order_local = env->CallStaticObjectMethod(bo_class, bo_native);
             if (order_local) {
-                g_fbneo.byte_order_native = (*env)->NewGlobalRef(env, order_local);
-                (*env)->DeleteLocalRef(env, order_local);
+                g_fbneo.byte_order_native = env->NewGlobalRef(order_local);
+                env->DeleteLocalRef(order_local);
             }
         }
-        (*env)->DeleteLocalRef(env, bo_class);
+        env->DeleteLocalRef(bo_class);
     }
 }
+
+extern "C" {
 
 JNIEXPORT jboolean JNICALL
 Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoInit(
@@ -529,11 +531,11 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoInit(
     }
 
     if (internalStoragePath) {
-        const char* path = (*env)->GetStringUTFChars(env, internalStoragePath, NULL);
+        const char* path = env->GetStringUTFChars(internalStoragePath, NULL);
         if (path) {
             strncpy(g_fbneo.storage_path, path, sizeof(g_fbneo.storage_path) - 1);
             g_fbneo.storage_path[sizeof(g_fbneo.storage_path) - 1] = '\0';
-            (*env)->ReleaseStringUTFChars(env, internalStoragePath, path);
+            env->ReleaseStringUTFChars(internalStoragePath, path);
         }
     }
 
@@ -560,7 +562,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoLoadRom(
         JNIEnv* env, jobject thiz, jstring romPath) {
     (void) thiz;
     if (!romPath) return JNI_FALSE;
-    const char* native_path = (*env)->GetStringUTFChars(env, romPath, NULL);
+    const char* native_path = env->GetStringUTFChars(romPath, NULL);
     if (!native_path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_fbneo.lock);
@@ -582,7 +584,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoLoadRom(
 
     LOGI("FinalBurn Neo loaded Arcade ROM: %s (%dx%d)", native_path, g_fbneo.video_width, g_fbneo.video_height);
     pthread_mutex_unlock(&g_fbneo.lock);
-    (*env)->ReleaseStringUTFChars(env, romPath, native_path);
+    env->ReleaseStringUTFChars(romPath, native_path);
     return JNI_TRUE;
 }
 
@@ -667,17 +669,17 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoGetVideoBuffer(JNIEnv* env
     }
 
     jlong byte_capacity = (jlong)(g_fbneo.video_width * g_fbneo.video_height * sizeof(uint32_t));
-    jobject direct_bb = (*env)->NewDirectByteBuffer(env, g_fbneo.video_buffer, byte_capacity);
+    jobject direct_bb = env->NewDirectByteBuffer(g_fbneo.video_buffer, byte_capacity);
     if (!direct_bb || !g_fbneo.byte_buffer_class || !g_fbneo.byte_buffer_as_int_buffer) {
         pthread_mutex_unlock(&g_fbneo.lock);
         return NULL;
     }
 
     if (g_fbneo.byte_order_native && g_fbneo.byte_buffer_order) {
-        (*env)->CallObjectMethod(env, direct_bb, g_fbneo.byte_buffer_order, g_fbneo.byte_order_native);
+        env->CallObjectMethod(direct_bb, g_fbneo.byte_buffer_order, g_fbneo.byte_order_native);
     }
-    jobject int_buffer = (*env)->CallObjectMethod(env, direct_bb, g_fbneo.byte_buffer_as_int_buffer);
-    (*env)->DeleteLocalRef(env, direct_bb);
+    jobject int_buffer = env->CallObjectMethod(direct_bb, g_fbneo.byte_buffer_as_int_buffer);
+    env->DeleteLocalRef(direct_bb);
 
     pthread_mutex_unlock(&g_fbneo.lock);
     return int_buffer;
@@ -688,10 +690,10 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoGetAudioSamples(
         JNIEnv* env, jobject thiz, jshortArray outSamples, jint maxSamples) {
     (void) thiz;
     if (!outSamples || maxSamples <= 0 || !g_fbneo.audio_rb) return 0;
-    jshort* dst = (*env)->GetPrimitiveArrayCritical(env, outSamples, NULL);
+    jshort* dst = (jshort*)env->GetPrimitiveArrayCritical(outSamples, NULL);
     if (!dst) return 0;
     size_t read = ringbuffer_read(g_fbneo.audio_rb, (int16_t*) dst, (size_t) maxSamples);
-    (*env)->ReleasePrimitiveArrayCritical(env, outSamples, dst, 0);
+    env->ReleasePrimitiveArrayCritical(outSamples, dst, 0);
     return (jint) read;
 }
 
@@ -710,10 +712,10 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoGetVideoSize(JNIEnv* env, 
         pthread_mutex_unlock(&g_fbneo.lock);
         return NULL;
     }
-    jintArray result = (*env)->NewIntArray(env, 2);
+    jintArray result = env->NewIntArray(2);
     if (result) {
         jint dims[2] = { g_fbneo.video_width, g_fbneo.video_height };
-        (*env)->SetIntArrayRegion(env, result, 0, 2, dims);
+        env->SetIntArrayRegion(result, 0, 2, dims);
     }
     pthread_mutex_unlock(&g_fbneo.lock);
     return result;
@@ -736,12 +738,12 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoReadSram(
         return JNI_FALSE;
     }
 
-    jbyte* dst = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, outBuffer, NULL);
+    jbyte* dst = (jbyte*)env->GetPrimitiveArrayCritical(outBuffer, NULL);
     if (dst) {
-        size_t len = (size_t)(*env)->GetArrayLength(env, outBuffer);
+        size_t len = (size_t)env->GetArrayLength(outBuffer);
         size_t copy_len = len < FBNEO_NVRAM_SIZE ? len : FBNEO_NVRAM_SIZE;
         memcpy(dst, g_fbneo.nvram, copy_len);
-        (*env)->ReleasePrimitiveArrayCritical(env, outBuffer, dst, 0);
+        env->ReleasePrimitiveArrayCritical(outBuffer, dst, 0);
     }
 
     pthread_mutex_unlock(&g_fbneo.lock);
@@ -759,12 +761,12 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoWriteSram(
         return JNI_FALSE;
     }
 
-    jbyte* src = (jbyte*)(*env)->GetPrimitiveArrayCritical(env, inBuffer, NULL);
+    jbyte* src = (jbyte*)env->GetPrimitiveArrayCritical(inBuffer, NULL);
     if (src) {
-        size_t len = (size_t)(*env)->GetArrayLength(env, inBuffer);
+        size_t len = (size_t)env->GetArrayLength(inBuffer);
         size_t copy_len = len < FBNEO_NVRAM_SIZE ? len : FBNEO_NVRAM_SIZE;
         memcpy(g_fbneo.nvram, src, copy_len);
-        (*env)->ReleasePrimitiveArrayCritical(env, inBuffer, src, 0);
+        env->ReleasePrimitiveArrayCritical(inBuffer, src, 0);
     }
 
     pthread_mutex_unlock(&g_fbneo.lock);
@@ -776,7 +778,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoSaveState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
     (void) thiz; (void) slot;
     if (!filePath) return JNI_FALSE;
-    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    const char* path = env->GetStringUTFChars(filePath, NULL);
     if (!path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_fbneo.lock);
@@ -784,7 +786,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoSaveState(
     BurnStateSave((char*)path, 0);
 #endif
     pthread_mutex_unlock(&g_fbneo.lock);
-    (*env)->ReleaseStringUTFChars(env, filePath, path);
+    env->ReleaseStringUTFChars(filePath, path);
     return JNI_TRUE;
 }
 
@@ -793,7 +795,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoLoadState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
     (void) thiz; (void) slot;
     if (!filePath) return JNI_FALSE;
-    const char* path = (*env)->GetStringUTFChars(env, filePath, NULL);
+    const char* path = env->GetStringUTFChars(filePath, NULL);
     if (!path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_fbneo.lock);
@@ -801,6 +803,8 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoLoadState(
     BurnStateLoad((char*)path, 0, NULL);
 #endif
     pthread_mutex_unlock(&g_fbneo.lock);
-    (*env)->ReleaseStringUTFChars(env, filePath, path);
+    env->ReleaseStringUTFChars(filePath, path);
     return JNI_TRUE;
 }
+
+} // extern "C"

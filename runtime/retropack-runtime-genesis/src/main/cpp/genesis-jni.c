@@ -36,6 +36,9 @@
 #include <state.h>
 #include <loadrom.h>
 #include <zlib.h>
+
+md_ntsc_t *md_ntsc = NULL;
+sms_ntsc_t *sms_ntsc = NULL;
 #endif
 
 static struct {

@@ -10,7 +10,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size
 set(FBNEO_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules/fbneo")
 
 set(FBNEO_SRCS
-    src/main/cpp/fbneo-jni.c
+    src/main/cpp/fbneo-jni.cpp
     src/main/cpp/ringbuffer.c
 )
 

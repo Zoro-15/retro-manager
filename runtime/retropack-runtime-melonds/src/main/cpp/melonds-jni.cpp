@@ -806,13 +806,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonReadSram(
         return JNI_FALSE;
     }
 
-#ifdef HAVE_MELONDS_CORE
-    jbyte* dst = (jbyte*)env->GetPrimitiveArrayCritical(outBuffer, NULL);
-    if (dst) {
-        NDS::GetSaveData((uint8_t*)dst, (size_t)env->GetArrayLength(outBuffer));
-        env->ReleasePrimitiveArrayCritical(outBuffer, dst, 0);
-    }
-#else
     jbyte* dst = (jbyte*)env->GetPrimitiveArrayCritical(outBuffer, NULL);
     if (dst) {
         size_t len = (size_t)env->GetArrayLength(outBuffer);
@@ -820,7 +813,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonReadSram(
         memcpy(dst, g_melonds.sram, copy_len);
         env->ReleasePrimitiveArrayCritical(outBuffer, dst, 0);
     }
-#endif
 
     pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
@@ -837,13 +829,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonWriteSram(
         return JNI_FALSE;
     }
 
-#ifdef HAVE_MELONDS_CORE
-    jbyte* src = (jbyte*)env->GetPrimitiveArrayCritical(inBuffer, NULL);
-    if (src) {
-        NDS::SetSaveData((const uint8_t*)src, (size_t)env->GetArrayLength(inBuffer));
-        env->ReleasePrimitiveArrayCritical(inBuffer, src, 0);
-    }
-#else
     jbyte* src = (jbyte*)env->GetPrimitiveArrayCritical(inBuffer, NULL);
     if (src) {
         size_t len = (size_t)env->GetArrayLength(inBuffer);
@@ -851,7 +836,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonWriteSram(
         memcpy(g_melonds.sram, src, copy_len);
         env->ReleasePrimitiveArrayCritical(inBuffer, src, 0);
     }
-#endif
 
     pthread_mutex_unlock(&g_melonds.lock);
     return JNI_TRUE;
@@ -866,9 +850,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonSaveState(
     if (!path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_melonds.lock);
-#ifdef HAVE_MELONDS_CORE
-    bool ok = NDS::SaveState(path);
-#else
     FILE* fp = fopen(path, "wb");
     bool ok = false;
     if (fp) {
@@ -879,7 +860,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonSaveState(
         fclose(fp);
         ok = true;
     }
-#endif
     pthread_mutex_unlock(&g_melonds.lock);
     env->ReleaseStringUTFChars(filePath, path);
     return ok ? JNI_TRUE : JNI_FALSE;
@@ -894,9 +874,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadState(
     if (!path) return JNI_FALSE;
 
     pthread_mutex_lock(&g_melonds.lock);
-#ifdef HAVE_MELONDS_CORE
-    bool ok = NDS::LoadState(path);
-#else
     FILE* fp = fopen(path, "rb");
     bool ok = false;
     if (fp) {
@@ -909,7 +886,6 @@ Java_com_retropack_runtime_melonds_MelondsNativeCore_melonLoadState(
         }
         fclose(fp);
     }
-#endif
     pthread_mutex_unlock(&g_melonds.lock);
     env->ReleaseStringUTFChars(filePath, path);
     return ok ? JNI_TRUE : JNI_FALSE;

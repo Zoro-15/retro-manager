@@ -12,6 +12,7 @@ set(PPSSPP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/submodules/ppsspp")
 set(PPSSPP_SRCS
     src/main/cpp/ppsspp-jni.cpp
     src/main/cpp/ringbuffer.c
+    src/main/cpp/zstd.c
 )
 
 if(EXISTS "${PPSSPP_SOURCE_DIR}/Core/System.h" OR EXISTS "${PPSSPP_SOURCE_DIR}/CMakeLists.txt")

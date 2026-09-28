@@ -67,6 +67,16 @@ const char *GetKeyboard(void) {
     return "";
 }
 
+unsigned overclock_enabled = 0;
+unsigned overclocked = 0;
+unsigned skip_7bit_overclocking = 1;
+unsigned totalscanlines = 240;
+unsigned normal_scanlines = 240;
+unsigned extrascanlines = 0;
+unsigned vblankscanlines = 0;
+unsigned dendy = 0;
+int swapDuty = 0;
+
 static uint32_t s_nes_joypad = 0;
 #endif
 

@@ -82,6 +82,7 @@ static struct {
 #include <controls.h>
 #include <gfx.h>
 #include <snapshot.h>
+#include <conffile.h>
 
 bool8 S9xInitUpdate(void) {
     return TRUE;
@@ -161,9 +162,9 @@ void S9xExtraUsage(void) {}
 void S9xParseArg(char **argv, int &index, int argc) {
     (void)argv; (void)index; (void)argc;
 }
-const char* S9xGetDirectory(s9x_getdirtype type) {
+std::string S9xGetDirectory(s9x_getdirtype type) {
     (void)type;
-    return g_snes9x.storage_path;
+    return std::string(g_snes9x.storage_path);
 }
 void S9xParsePortConfig(ConfigFile& conf, int pass) {
     (void)conf;

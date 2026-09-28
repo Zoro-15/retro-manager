@@ -142,6 +142,8 @@ target_include_directories(retropack-runtime-mupen64 PRIVATE
     "${MUPEN_SOURCE_DIR}/mupen64plus-video-angrylion"
     "${MUPEN_SOURCE_DIR}/mupen64plus-video-angrylion/n64video"
     "${MUPEN_SOURCE_DIR}/libretro-common/include"
+    "${MUPEN_SOURCE_DIR}/libretro"
+    "${MUPEN_SOURCE_DIR}/libretro/include"
 )
 
 target_link_libraries(retropack-runtime-mupen64 PRIVATE
