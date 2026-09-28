@@ -15,8 +15,16 @@ import java.util.zip.Deflater
  * (mutated AXML, injected ROM/configs, icons) are sized and sequenced.
  * All uncompressed native libraries (`.so`) are written with `alignment = 16384` (16 KB page-size).
  *
- * Employs zero-copy streaming via [ZipSource] to transfer unmodified template entries
- * directly without heap allocation spikes, preventing OOM crashes on large multi-system bundles.
+ * Issue #45 streaming contract:
+ * Raw compressed entry payloads are piped directly from the template APK to the
+ * destination APK via zero-copy [ZipSource] selection — entries that require no
+ * modification (classes.dex, resources.arsc, .so libraries, media assets) never
+ * pass through the JVM heap, and only the mutated entries
+ * (AndroidManifest.xml, assets/retropack.json, injected ROM/discs) are
+ * decompressed/recompressed. Large disc images flow through
+ * [Sources.from] file-backed sources, so packaging a 500 MB - 1.5 GB
+ * PS1/PSP ISO allocates no heap proportional to its size and cannot
+ * OOM on ≤ 6 GB RAM devices.
  */
 object ZipArchiveTransformer {
 
