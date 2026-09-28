@@ -121,47 +121,49 @@ TARGETS = [
 ]
 
 ERROR_PATTERNS = [
-    re.compile(r'\berror\b', re.IGNORECASE),
-    re.compile(r'\bfatal error\b', re.IGNORECASE),
-    re.compile(r'\bFAILED\b'),
-    re.compile(r'\bexception\b', re.IGNORECASE),
-    re.compile(r'\bundefined reference\b', re.IGNORECASE),
-    re.compile(r'\bundeclared identifier\b', re.IGNORECASE),
-    re.compile(r'cmake error', re.IGNORECASE),
-    re.compile(r'ninja: build stopped', re.IGNORECASE),
-    re.compile(r'clang\+\+: error:', re.IGNORECASE),
-    re.compile(r'clang: error:', re.IGNORECASE),
-    re.compile(r': error:', re.IGNORECASE),
+    re.compile(r':\s*fatal error:', re.IGNORECASE),
+    re.compile(r':\s*error:', re.IGNORECASE),
+    re.compile(r'clang(\+\+)?: error:', re.IGNORECASE),
+    re.compile(r'ld\.lld:\s*error:', re.IGNORECASE),
+    re.compile(r'undefined symbol:', re.IGNORECASE),
+    re.compile(r'undefined reference to', re.IGNORECASE),
+    re.compile(r'use of undeclared identifier', re.IGNORECASE),
+    re.compile(r'call to undeclared function', re.IGNORECASE),
+    re.compile(r'FAILED:', re.IGNORECASE),
+    re.compile(r'CMake Error at', re.IGNORECASE),
+    re.compile(r'ninja: build stopped: subcommand failed', re.IGNORECASE),
+    re.compile(r'FAILURE: Build failed with an exception', re.IGNORECASE),
+    re.compile(r'Execution failed for task', re.IGNORECASE),
+    re.compile(r'Exception in thread', re.IGNORECASE),
 ]
 
-WARNING_PATTERNS = [
-    re.compile(r': warning:', re.IGNORECASE),
-    re.compile(r'\bwarning:\b', re.IGNORECASE),
-]
+def is_compiler_invocation(line):
+    """Detect raw compiler invocation command lines to avoid false error matches on flags like -Werror=..."""
+    l = line.strip()
+    return (l.startswith(('clang ', 'clang++ ', '/usr/', 'C/C++: /usr/', 'C/C++: /home/', '/home/')) and (' -o ' in l or ' -c ' in l))
 
-def extract_merged_snippets(log_lines, context=5):
+def extract_merged_snippets(log_lines, context=4, max_total_lines=150):
     """
-    Finds all error/warning lines and extracts +/- context lines.
-    Merges overlapping/adjacent intervals to prevent duplicated repetitive log lines.
+    Finds genuine error lines and extracts +/- context lines.
+    Prioritizes actual errors and caps output to keep diagnostic logs clean, compact, and fast.
     """
     if not log_lines:
         return []
 
-    match_info = [] # list of (line_idx, is_error)
+    error_indices = []
     for i, line in enumerate(log_lines):
-        is_err = any(pat.search(line) for pat in ERROR_PATTERNS)
-        if is_err:
-            match_info.append((i, True))
-        elif any(pat.search(line) for pat in WARNING_PATTERNS):
-            match_info.append((i, False))
+        if is_compiler_invocation(line):
+            continue
+        if any(pat.search(line) for pat in ERROR_PATTERNS):
+            error_indices.append(i)
 
-    if not match_info:
+    if not error_indices:
         # Fallback: extract last 35 lines
         start = max(0, len(log_lines) - 35)
-        return [{"range": (start, len(log_lines)), "error_indices": set(), "lines": log_lines[start:]}]
+        return [{"range": (start + 1, len(log_lines)), "lines": [f"    L{ln+1:04d}: {log_lines[ln].rstrip()}" for ln in range(start, len(log_lines))]}]
 
     raw_ranges = []
-    for idx, _ in match_info:
+    for idx in error_indices:
         r_start = max(0, idx - context)
         r_end = min(len(log_lines), idx + context + 1)
         raw_ranges.append((r_start, r_end))
@@ -178,19 +180,30 @@ def extract_merged_snippets(log_lines, context=5):
             else:
                 merged.append([start, end])
 
-    error_indices_set = {idx for idx, is_err in match_info if is_err}
-    warning_indices_set = {idx for idx, is_err in match_info if not is_err}
-
+    error_set = set(error_indices)
     snippets = []
+    lines_emitted = 0
+
     for start, end in merged:
+        if lines_emitted >= max_total_lines:
+            snippets.append({
+                "range": (start + 1, end),
+                "lines": [f"    [... remaining failure trace truncated; total snippets capped at {max_total_lines} lines ...]"]
+            })
+            break
+
         snippet_lines = []
         for line_num in range(start, end):
-            prefix = "    "
-            if line_num in error_indices_set:
-                prefix = ">>> [ERROR] "
-            elif line_num in warning_indices_set:
-                prefix = "  ! [WARN ] "
-            snippet_lines.append(f"{prefix}L{line_num + 1:04d}: {log_lines[line_num].rstrip()}")
+            prefix = ">>> [ERROR] " if line_num in error_set else "    "
+            line_content = log_lines[line_num].rstrip()
+            if is_compiler_invocation(line_content):
+                line_content = line_content[:140] + " ... [command-line flags truncated]"
+            snippet_lines.append(f"{prefix}L{line_num + 1:04d}: {line_content}")
+            lines_emitted += 1
+            if lines_emitted >= max_total_lines:
+                snippet_lines.append(f"    [... trace capped at {max_total_lines} lines; check raw log for full output ...]")
+                break
+
         snippets.append({
             "range": (start + 1, end),
             "lines": snippet_lines

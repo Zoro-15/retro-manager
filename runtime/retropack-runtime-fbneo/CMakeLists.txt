@@ -4,6 +4,8 @@ project(retropack-runtime-fbneo C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+add_compile_options(-w)
+
 # Enforce 16 KB Page Alignment (Mandatory for Android 15 / API 35+, NDK r28b+)
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
 
@@ -109,6 +111,11 @@ target_include_directories(retropack-runtime-fbneo PRIVATE
     "${FBNEO_SOURCE_DIR}/src/cpu/z80"
     "${FBNEO_SOURCE_DIR}/src/dep/libs/zlib"
     "${FBNEO_SOURCE_DIR}/src/dep/generated"
+    "${FBNEO_SOURCE_DIR}/src/intf"
+    "${FBNEO_SOURCE_DIR}/src/intf/cd"
+    "${FBNEO_SOURCE_DIR}/src/intf/audio"
+    "${FBNEO_SOURCE_DIR}/src/intf/input"
+    "${FBNEO_SOURCE_DIR}/src/intf/video"
 )
 
 target_link_libraries(retropack-runtime-fbneo PRIVATE
