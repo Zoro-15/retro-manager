@@ -188,8 +188,8 @@ object RomParser {
         }
 
         // 7. Attempt Nintendo DS (NDS) detection
-        if (NdsRomParser.isNdsRom(headerBytes)) {
-            val ndsHeader = runCatching { NdsRomParser.parse(headerBytes) }.getOrNull()
+        if (NdsRomParser.isNdsRom(headerBytes, fileName)) {
+            val ndsHeader = runCatching { NdsRomParser.parse(headerBytes, fileName) }.getOrNull()
             if (ndsHeader != null) {
                 return RomIdentity(
                     platform = "nds",
@@ -226,8 +226,8 @@ object RomParser {
         }
 
         // 9. Attempt PC Engine (PCE) detection
-        if (PceRomParser.isPceRom(headerBytes)) {
-            val pceHeader = runCatching { PceRomParser.parse(headerBytes) }.getOrNull()
+        if (PceRomParser.isPceRom(headerBytes, fileName)) {
+            val pceHeader = runCatching { PceRomParser.parse(headerBytes, fileName) }.getOrNull()
             if (pceHeader != null) {
                 return RomIdentity(
                     platform = "pce",

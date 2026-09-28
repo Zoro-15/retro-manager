@@ -23,7 +23,7 @@ class RetroGlRenderer(
     initialScaleMode: ScaleMode = ScaleMode.INTEGER_FIT,
     initialShaderMode: ShaderMode = ShaderMode.NONE,
     initialBezelMode: BezelMode = BezelMode.AUTO,
-    private val frameBufferSupplier: () -> IntBuffer? = { NativeCore.nativeGetVideoBuffer() }
+    private val frameBufferSupplier: () -> IntBuffer? = { null }
 ) : GLSurfaceView.Renderer {
 
     @Volatile

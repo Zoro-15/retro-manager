@@ -24,14 +24,15 @@ data class NdsRomHeader(
 object NdsRomParser {
 
     const val MIN_HEADER_SIZE = 0x200 // 512 bytes
+    private val NDS_EXTENSIONS = setOf("nds", "srl", "dsi", "ids")
 
-    fun parse(bytes: ByteArray): NdsRomHeader {
+    fun parse(bytes: ByteArray, fileName: String? = null): NdsRomHeader {
         if (bytes.size < MIN_HEADER_SIZE) {
-            throw InvalidRomException("NDS ROM too small to contain valid header ($bytes.size bytes).")
+            throw InvalidRomException("NDS ROM too small to contain valid header (${bytes.size} bytes).")
         }
 
         val titleRaw = String(bytes, 0x00, 12, StandardCharsets.US_ASCII)
-        val title = titleRaw.map { if (it in ' '..'~') it else ' ' }.joinToString("").trim()
+        val cleanedTitle = titleRaw.map { if (it in ' '..'~') it else ' ' }.joinToString("").trim()
 
         val gameCode = String(bytes, 0x0C, 4, StandardCharsets.US_ASCII).trim()
         val makerCode = String(bytes, 0x10, 2, StandardCharsets.US_ASCII).trim()
@@ -42,21 +43,23 @@ object NdsRomParser {
         val arm7Offset = readUint32LE(bytes, 0x28)
         val headerCrc = (bytes[0x15C].toInt() and 0xFF) or ((bytes[0x15D].toInt() and 0xFF) shl 8)
 
-        // Valid NDS header heuristics:
-        // 1. gameCode is 4 ASCII alphanumeric chars (e.g. A-Z, 0-9)
-        // 2. arm9Offset is non-zero and aligned (typically 0x4000 or 0x8000)
-        // 3. arm7Offset is non-zero
-        val isValidGameCode = gameCode.length == 4 && gameCode.all { it in 'A'..'Z' || it in '0'..'9' }
-        val isValidOffsets = arm9Offset in 0x200..0x100000 && arm7Offset in 0x200..0x200000
+        val ext = fileName?.substringAfterLast('.', "")?.lowercase() ?: ""
+        val isNdsExtension = NDS_EXTENSIONS.contains(ext)
 
-        if (!isValidGameCode && !isValidOffsets) {
+        val isValidGameCode = gameCode.length in 3..4 && gameCode.all { it.isLetterOrDigit() }
+        val isValidOffsets = arm9Offset in 0x200..0x2000000 && arm7Offset in 0x200..0x2000000
+
+        if (!isValidGameCode && !isValidOffsets && !isNdsExtension) {
             throw InvalidRomException("Not a valid Nintendo DS ROM header.")
         }
 
+        val fallbackName = fileName?.substringBeforeLast('.')?.trim()?.ifEmpty { "NDS Game" } ?: "NDS Game"
+        val resolvedTitle = if (cleanedTitle.isBlank()) fallbackName else cleanedTitle
+
         return NdsRomHeader(
-            title = if (title.isBlank()) "NDS Game" else title,
-            gameCode = gameCode,
-            makerCode = makerCode,
+            title = resolvedTitle,
+            gameCode = gameCode.ifEmpty { "NDS" },
+            makerCode = makerCode.ifEmpty { "01" },
             unitCode = unitCode,
             isDsiEnhanced = (unitCode and 0x02) != 0,
             version = version,
@@ -67,13 +70,19 @@ object NdsRomParser {
         )
     }
 
-    fun isNdsRom(bytes: ByteArray): Boolean {
+    fun isNdsRom(bytes: ByteArray, fileName: String? = null): Boolean {
         if (bytes.size < MIN_HEADER_SIZE) return false
+        if (!fileName.isNullOrBlank()) {
+            val ext = fileName.substringAfterLast('.', "").lowercase()
+            if (NDS_EXTENSIONS.contains(ext)) {
+                return true
+            }
+        }
         val gameCode = String(bytes, 0x0C, 4, StandardCharsets.US_ASCII).trim()
         val arm9Offset = readUint32LE(bytes, 0x20)
         val arm7Offset = readUint32LE(bytes, 0x28)
-        return gameCode.length == 4 && gameCode.all { it in 'A'..'Z' || it in '0'..'9' } &&
-            arm9Offset in 0x200..0x100000 && arm7Offset in 0x200..0x200000
+        return (gameCode.length in 3..4 && gameCode.all { it.isLetterOrDigit() }) &&
+            arm9Offset in 0x200..0x2000000 && arm7Offset in 0x200..0x2000000
     }
 
     private fun readUint32LE(bytes: ByteArray, offset: Int): Long {

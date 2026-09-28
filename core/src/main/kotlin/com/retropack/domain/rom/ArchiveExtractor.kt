@@ -234,6 +234,13 @@ object ArchiveExtractor {
             }
         }
 
+        if (isArchive(headerBytes, sourceFile.name)) {
+            throw InvalidRomException(
+                "Failed to extract candidate ROM from archive '${sourceFile.name}'. " +
+                "The archive may be corrupt, password-protected, or in an unsupported format."
+            )
+        }
+
         return ExtractedRomFileResult(
             file = sourceFile,
             candidateFileName = sourceFile.name,

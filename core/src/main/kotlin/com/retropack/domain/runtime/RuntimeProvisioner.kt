@@ -117,6 +117,8 @@ object RuntimeProvisioner {
         val before = countFiles(bundleRoot)
         try {
             extractRecursively(source, runtimeId, bundleRoot, log)
+            // Transparently provision all embedded Libretro core binaries into targetRoot
+            extractRecursively(source, "", targetRoot, log)
         } catch (t: Throwable) {
             val cause = t.message ?: t.javaClass.simpleName
             log("[!] Runtime bundle extraction failed: $cause")

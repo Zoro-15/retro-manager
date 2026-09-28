@@ -892,6 +892,7 @@ open class GameActivity : Activity() {
     private fun showDiagnosticAlert(root: FrameLayout, details: String) {
         runOnUiThread {
             try {
+                surfaceView?.pause()
                 val container = LinearLayout(this).apply {
                     setOrientation(LinearLayout.VERTICAL)
                     setBackgroundColor(0xF00A0C10.toInt())
@@ -920,8 +921,12 @@ open class GameActivity : Activity() {
                 }
                 container.addView(logPathInfo)
 
+                val btnRow = LinearLayout(this).apply {
+                    setOrientation(LinearLayout.HORIZONTAL)
+                }
+
                 val shareBtn = Button(this).apply {
-                    text = "Share Diagnostic Log"
+                    text = "Share Log"
                     setOnClickListener {
                         try {
                             val file = RuntimeLogger.logFile
@@ -935,7 +940,17 @@ open class GameActivity : Activity() {
                         } catch (_: Throwable) {}
                     }
                 }
-                container.addView(shareBtn)
+                btnRow.addView(shareBtn)
+
+                val closeBtn = Button(this).apply {
+                    text = "Close Game"
+                    setOnClickListener {
+                        finish()
+                    }
+                }
+                btnRow.addView(closeBtn)
+
+                container.addView(btnRow)
 
                 root.addView(container, FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
@@ -999,7 +1014,7 @@ open class GameActivity : Activity() {
             context = this,
             renderer = RetroGlRenderer(
                 initialScaleMode = config.runtime.videoScaleMode,
-                frameBufferSupplier = { host?.engine?.getVideoBuffer() ?: NativeCore.nativeGetVideoBuffer() }
+                frameBufferSupplier = { host?.engine?.getVideoBuffer() }
             )
         )
     protected open fun createBezelOverlay(): BezelOverlayView = BezelOverlayView(this)

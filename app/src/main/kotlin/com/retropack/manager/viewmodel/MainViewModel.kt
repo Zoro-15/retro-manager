@@ -766,6 +766,7 @@ class MainViewModel : ViewModel() {
             val result: Result<BuildResult> = withContext(Dispatchers.IO) {
                 runCatching {
                     val provisioned = ensureRuntimesLoaded(context, buildRequest.runtime.templateId) { line -> appendLog(line) }
+                    val runtimesBaseDir = File(context.filesDir, RuntimeProvisioner.BUNDLE_ROOT_DIRNAME)
                     BuildEngine.build(
                         request = buildRequest,
                         romBytes = romBytes,
@@ -775,6 +776,7 @@ class MainViewModel : ViewModel() {
                         iconForegroundBytes = state.identityState.iconForegroundBytes,
                         iconBackgroundBytes = state.identityState.iconBackgroundBytes,
                         precomputedChecksums = romIdentity.checksums,
+                        coreStagingDir = runtimesBaseDir,
                         verifiedTemplate = provisioned?.let {
                             BuildEngine.VerifiedTemplate(
                                 file = it.template.templateApk,

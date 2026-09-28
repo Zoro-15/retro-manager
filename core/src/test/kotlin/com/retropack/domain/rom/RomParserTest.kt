@@ -103,4 +103,62 @@ class RomParserTest {
         val lastSegment = pkgName.substringAfterLast('.')
         assertTrue(lastSegment.first().isLetter())
     }
+
+    @Test
+    fun `test NDS ROM detection and title parsing`() {
+        val ndsBytes = ByteArray(0x1000)
+        // Title at 0x00: "POKEMON D"
+        "POKEMON D".toByteArray(Charsets.US_ASCII).copyInto(ndsBytes, 0x00)
+        // Game code at 0x0C: "ADAE"
+        "ADAE".toByteArray(Charsets.US_ASCII).copyInto(ndsBytes, 0x0C)
+        // Maker code at 0x10: "01"
+        "01".toByteArray(Charsets.US_ASCII).copyInto(ndsBytes, 0x10)
+        // arm9Offset at 0x20: 0x4000
+        ndsBytes[0x20] = 0x00
+        ndsBytes[0x21] = 0x40
+        ndsBytes[0x22] = 0x00
+        ndsBytes[0x23] = 0x00
+        // arm7Offset at 0x28: 0x8000
+        ndsBytes[0x28] = 0x00
+        ndsBytes[0x29] = 0x80.toByte()
+        ndsBytes[0x2A] = 0x00
+        ndsBytes[0x2B] = 0x00
+
+        val identity = RomParser.parse(ndsBytes, "Pokemon - Diamond Version (USA).nds")
+        assertEquals("nds", identity.platform)
+        assertEquals("POKEMON D", identity.gameTitle)
+        assertEquals("ADAE", identity.gameCode)
+    }
+
+    @Test
+    fun `test PCE ROM detection requires extension or copier header and rejects arbitrary 64KB buffer`() {
+        // Arbitrary 64 KB buffer without PCE extension or copier header must fail instead of being identified as PCE
+        val random64Kb = ByteArray(65536) { 0x42 }
+        assertThrows<InvalidRomException> {
+            RomParser.parse(random64Kb)
+        }
+
+        // With .pce extension, it is recognized as PCE
+        val pceIdentity = RomParser.parse(random64Kb, "Castlevania - Rondo of Blood.pce")
+        assertEquals("pce", pceIdentity.platform)
+        assertEquals("Castlevania - Rondo of Blood", pceIdentity.gameTitle)
+    }
+
+    @Test
+    fun `test N64 ROM detection`() {
+        val n64Bytes = ByteArray(0x1000)
+        // N64 Big Endian Magic: 0x80 0x37 0x12 0x40
+        n64Bytes[0] = 0x80.toByte()
+        n64Bytes[1] = 0x37.toByte()
+        n64Bytes[2] = 0x12.toByte()
+        n64Bytes[3] = 0x40.toByte()
+        // Game title at 0x20: "MARIOKART64"
+        "MARIOKART64".toByteArray(Charsets.US_ASCII).copyInto(n64Bytes, 0x20)
+        // Game code at 0x3B: "NKT"
+        "NKT".toByteArray(Charsets.US_ASCII).copyInto(n64Bytes, 0x3B)
+
+        val identity = RomParser.parse(n64Bytes, "Mario Kart 64 (USA).z64")
+        assertEquals("n64", identity.platform)
+        assertEquals("MARIOKART64", identity.gameTitle)
+    }
 }
