@@ -1,3 +1,8 @@
+/* Expose POSIX declarations (fileno, O_DIRECTORY) across glibc/bionic. */
+#ifndef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
+#endif
+
 #include "libretro_host.h"
 
 #include <stdio.h>
@@ -5,6 +10,8 @@
 #include <stdarg.h>
 #include <stdatomic.h>
 #include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <dlfcn.h>
 #include <sys/stat.h>
 #include <jni.h>
@@ -151,6 +158,31 @@ bool host_init(const char* system_dir, const char* save_dir) {
     return true;
 }
 
+/* Issue #47: single teardown primitive shared by host_unload_core() and
+ * host_destroy(). Zeroes every piece of per-session transient state so a
+ * subsequent dlopen of another core starts from pristine defaults — no stale
+ * input masks, analog positions, pointer state, video dimensions, or AV info
+ * can leak between ROM sessions. Caller must hold g_host.lock. */
+static void host_reset_transient_state_locked(void) {
+    memset(&g_host.av_info, 0, sizeof(g_host.av_info));
+    g_host.video_width = 0;
+    g_host.video_height = 0;
+    g_host.base_width = 0;
+    g_host.base_height = 0;
+    g_host.max_width = 0;
+    g_host.max_height = 0;
+    g_host.aspect_ratio = 4.0f / 3.0f;
+    g_host.pixel_format = RETRO_PIXEL_FORMAT_0RGB1555;
+    g_host.input_mask = 0;
+    g_host.analog_left_x = 0;
+    g_host.analog_left_y = 0;
+    g_host.analog_right_x = 0;
+    g_host.analog_right_y = 0;
+    g_host.pointer_x = 0;
+    g_host.pointer_y = 0;
+    g_host.pointer_pressed = false;
+}
+
 void host_destroy(void) {
     pthread_mutex_lock(&g_host.lock);
 
@@ -168,6 +200,8 @@ void host_destroy(void) {
         if (g_host.core.handle) {
             dlclose(g_host.core.handle);
         }
+        /* Issue #47: full pointer nullification so no stale core function
+         * can ever be invoked after dlclose (use-after-free guard). */
         memset(&g_host.core, 0, sizeof(g_host.core));
         g_host.core_loaded = false;
         g_host.loaded_core_path[0] = '\0';
@@ -194,8 +228,8 @@ void host_destroy(void) {
         ringbuffer_reset(g_host.audio_rb);
     }
 
-    g_host.video_width = 0;
-    g_host.video_height = 0;
+    host_reset_transient_state_locked();
+
     g_host.initialized = false;
 
     pthread_mutex_unlock(&g_host.lock);
@@ -312,6 +346,7 @@ void host_unload_core(void) {
         if (g_host.core.handle) {
             dlclose(g_host.core.handle);
         }
+        /* Issue #47: full pointer nullification after dlclose. */
         memset(&g_host.core, 0, sizeof(g_host.core));
         g_host.core_loaded = false;
         g_host.loaded_core_path[0] = '\0';
@@ -323,12 +358,7 @@ void host_unload_core(void) {
         g_host.rom_size = 0;
     }
 
-    g_host.video_width = 0;
-    g_host.video_height = 0;
-    g_host.base_width = 0;
-    g_host.base_height = 0;
-    g_host.max_width = 0;
-    g_host.max_height = 0;
+    host_reset_transient_state_locked();
 
     if (g_host.audio_rb) {
         ringbuffer_reset(g_host.audio_rb);
@@ -695,20 +725,76 @@ bool host_save_state(const char* file_path) {
         return false;
     }
 
-    FILE* fp = fopen(file_path, "wb");
+    /* Issue #47: durability sequence — write to a staging '<path>.tmp' file,
+     * flush userland buffers, fsync the file to flash, close, then commit
+     * with an atomic rename(2). Any process kill or power loss between these
+     * steps leaves the previous valid state file intact; a torn write can
+     * only ever land in the discarded .tmp. */
+    size_t path_len = strlen(file_path);
+    char* tmp_path = (char*) malloc(path_len + 5);
+    if (!tmp_path) {
+        free(state_buffer);
+        return false;
+    }
+    snprintf(tmp_path, path_len + 5, "%s.tmp", file_path);
+
+    FILE* fp = fopen(tmp_path, "wb");
     if (!fp) {
-        LOGE("host_save_state: failed to open file for writing: %s", file_path);
+        LOGE("host_save_state: failed to open staging file for writing: %s", tmp_path);
+        free(tmp_path);
         free(state_buffer);
         return false;
     }
 
     size_t written = fwrite(state_buffer, 1, state_size, fp);
+    bool durable = false;
+    if (written == state_size) {
+        if (fflush(fp) == 0) {
+            int fd = fileno(fp);
+            if (fd < 0 || fsync(fd) == 0) {
+                durable = true;
+            }
+        }
+    }
     fclose(fp);
     free(state_buffer);
 
-    if (written != state_size) {
-        LOGE("host_save_state: incomplete write (%zu of %zu bytes)", written, state_size);
+    if (!durable) {
+        LOGE("host_save_state: incomplete write or fsync failure (%zu of %zu bytes)", written, state_size);
+        remove(tmp_path);
+        free(tmp_path);
         return false;
+    }
+
+    /* Atomic commit: rename(2) replaces the target atomically on POSIX. */
+    if (rename(tmp_path, file_path) != 0) {
+        LOGE("host_save_state: atomic rename failed for %s", file_path);
+        remove(tmp_path);
+        free(tmp_path);
+        return false;
+    }
+
+    /* Persist the directory entry so the rename itself survives power loss. */
+    char* dir_copy = (char*) malloc(path_len + 1);
+    if (dir_copy) {
+        snprintf(dir_copy, path_len + 1, "%s", file_path);
+        char* slash = strrchr(dir_copy, '/');
+        const char* dir_path;
+        if (!slash) {
+            dir_path = ".";
+        } else if (slash == dir_copy) {
+            dir_copy[1] = '\0';
+            dir_path = dir_copy; /* "/" */
+        } else {
+            *slash = '\0';
+            dir_path = dir_copy;
+        }
+        int dfd = open(dir_path, O_RDONLY | O_DIRECTORY);
+        if (dfd >= 0) {
+            fsync(dfd);
+            close(dfd);
+        }
+        free(dir_copy);
     }
 
     LOGI("host_save_state: state saved successfully to %s (%zu bytes)", file_path, state_size);
