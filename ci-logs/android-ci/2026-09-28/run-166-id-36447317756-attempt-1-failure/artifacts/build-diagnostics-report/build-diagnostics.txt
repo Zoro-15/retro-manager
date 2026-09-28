@@ -1,0 +1,324 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 15:58:39 UTC
+Total Execution : 116.78s (1m 56s)
+Overall Result  : 4/8 Targets Passed (4 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime FAIL [!]    60.21s     runtime-common.log
+[02] Packaging Engine & Domain Core         PASS        24.52s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) FAIL [!]    18.28s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.04s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.05s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.09s     rotate-anchors.log
+[07] Manager APK (Main App)                 FAIL [!]     9.84s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        FAIL [!]     3.73s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [01]: Universal Libretro Host Native Runtime (ID: runtime-common)
+### Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-common.log
+################################################################################
+
+--- [Snippet #1 | Lines 28 to 38] ---
+    L0028: > Task :runtime:retropack-runtime-common:configureCMakeDebug[arm64-v8a]
+    L0029: 
+    L0030: > Task :runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a] FAILED
+    L0031: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0032: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0033: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0034: C/C++:   320 |     AAudioStream_flush(stream);
+    L0035: C/C++:       |     ^
+    L0036: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0037: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0038: C/C++:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+
+--- [Snippet #2 | Lines 40 to 68] ---
+    L0040: C/C++: 1 error generated.
+    L0041: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611009338.json
+    L0042: 
+    L0043: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0044: 
+>>> [ERROR] L0045: FAILURE: Build failed with an exception.
+    L0046: 
+    L0047: * What went wrong:
+>>> [ERROR] L0048: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0049: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0050:   [1/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0051:   [2/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0052:   FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0053:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0054:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0055:     320 |     AAudioStream_flush(stream);
+    L0056:         |     ^
+    L0057:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0058:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0059:    1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0060:         |                             ^
+    L0061:   1 error generated.
+    L0062:   [3/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0063:   ninja: build stopped: subcommand failed.
+    L0064: 
+    L0065:   C++ build system [build] failed while executing:
+    L0066:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0067:         -C \
+    L0068:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #3 | Lines 73 to 83] ---
+    L0073: > Run with --info or --debug option to get more log output.
+    L0074: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0075: > Get more help at https://help.gradle.org.
+    L0076: 
+    L0077: * Exception is:
+>>> [ERROR] L0078: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0079: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0080: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0081: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0082: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0083: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 110 to 131] ---
+    L0110: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0111: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0112: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0113: [1/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0114: [2/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0115: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0116: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0117: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0118:   320 |     AAudioStream_flush(stream);
+    L0119:       |     ^
+    L0120: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0121: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0122:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0123:       |                             ^
+    L0124: 1 error generated.
+    L0125: [3/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0126: ninja: build stopped: subcommand failed.
+    L0127: 
+    L0128: C++ build system [build] failed while executing:
+    L0129:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0130:       -C \
+    L0131:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #5 | Lines 235 to 256] ---
+    L0235: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0236: 	... 30 more
+    L0237: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0238: [1/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0239: [2/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0240: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0241: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0242: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0243:   320 |     AAudioStream_flush(stream);
+    L0244:       |     ^
+    L0245: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0246: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0247:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0248:       |                             ^
+    L0249: 1 error generated.
+    L0250: [3/4] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0251: ninja: build stopped: subcommand failed.
+    L0252: 
+    L0253: C++ build system [build] failed while executing:
+    L0254:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0255:       -C \
+    L0256:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+
+################################################################################
+### Target [03]: Template APK (Standalone Universal Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 59 to 82] ---
+    L0059: > Task :template-apk:mergeExtDexDebug
+    L0060: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611087677.json
+    L0061: 
+    L0062: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0063: 
+>>> [ERROR] L0064: FAILURE: Build failed with an exception.
+    L0065: 
+    L0066: * What went wrong:
+>>> [ERROR] L0067: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0068: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0069:    > Compilation error. See log for more details
+    L0070: 
+    L0071: * Try:
+    L0072: > Run with --info or --debug option to get more log output.
+    L0073: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0074: > Get more help at https://help.gradle.org.
+    L0075: 
+    L0076: * Exception is:
+>>> [ERROR] L0077: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0078: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0079: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0080: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0081: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0082: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [07]: Manager APK (Main App) (ID: app-manager)
+### Command : ./gradlew :app:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/app-manager.log
+################################################################################
+
+--- [Snippet #1 | Lines 50 to 60] ---
+    L0050: > Task :app:checkDebugDuplicateClasses
+    L0051: 
+    L0052: > Task :runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a] FAILED
+    L0053: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0054: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0055: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0056: C/C++:   320 |     AAudioStream_flush(stream);
+    L0057: C/C++:       |     ^
+    L0058: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0059: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0060: C/C++:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+
+--- [Snippet #2 | Lines 71 to 94] ---
+    L0071: FAILURE: Build completed with 2 failures.
+    L0072: 
+    L0073: 1: Task failed with an exception.
+    L0074: -----------
+    L0075: * What went wrong:
+>>> [ERROR] L0076: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0077: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0078:   [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0079:   FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0080:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0081:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0082:     320 |     AAudioStream_flush(stream);
+    L0083:         |     ^
+    L0084:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0085:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0086:    1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0087:         |                             ^
+    L0088:   1 error generated.
+>>> [ERROR] L0089:   ninja: build stopped: subcommand failed.
+    L0090: 
+    L0091:   C++ build system [build] failed while executing:
+    L0092:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0093:         -C \
+    L0094:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #3 | Lines 99 to 109] ---
+    L0099: > Run with --info or --debug option to get more log output.
+    L0100: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0101: > Get more help at https://help.gradle.org.
+    L0102: 
+    L0103: * Exception is:
+>>> [ERROR] L0104: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0105: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0106: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0107: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0108: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0109: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 135 to 155] ---
+    L0135: 	at org.gradle.execution.plan.DefaultPlanExecutor$ExecutorWorker.run(DefaultPlanExecutor.java:376)
+    L0136: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0137: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0138: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0139: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0140: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0141: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0142: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0143:   320 |     AAudioStream_flush(stream);
+    L0144:       |     ^
+    L0145: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0146: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0147:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0148:       |                             ^
+    L0149: 1 error generated.
+>>> [ERROR] L0150: ninja: build stopped: subcommand failed.
+    L0151: 
+    L0152: C++ build system [build] failed while executing:
+    L0153:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0154:       -C \
+    L0155:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #5 | Lines 258 to 278] ---
+    L0258: 	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+    L0259: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0260: 	... 30 more
+    L0261: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0262: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+>>> [ERROR] L0263: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/aaudio_bridge.c.o
+    L0264: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0265: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: error: call to undeclared function 'AAudioStream_flush'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+    L0266:   320 |     AAudioStream_flush(stream);
+    L0267:       |     ^
+    L0268: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/aaudio_bridge.c:320:5: note: did you mean 'AAudioStream_close'?
+    L0269: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aaudio/AAudio.h:1547:29: note: 'AAudioStream_close' declared here
+    L0270:  1547 | AAUDIO_API aaudio_result_t  AAudioStream_close(AAudioStream* _Nonnull stream) __INTRODUCED_IN(26);
+    L0271:       |                             ^
+    L0272: 1 error generated.
+>>> [ERROR] L0273: ninja: build stopped: subcommand failed.
+    L0274: 
+    L0275: C++ build system [build] failed while executing:
+    L0276:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0277:       -C \
+    L0278:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #6 | Lines 305 to 325] ---
+    L0305: ==============================================================================
+    L0306: 
+    L0307: 2: Task failed with an exception.
+    L0308: -----------
+    L0309: * What went wrong:
+>>> [ERROR] L0310: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0311: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0312:    > Compilation error. See log for more details
+    L0313: 
+    L0314: * Try:
+    L0315: > Run with --info or --debug option to get more log output.
+    L0316: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0317: > Get more help at https://help.gradle.org.
+    L0318: 
+    L0319: * Exception is:
+>>> [ERROR] L0320: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0321: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0322: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0323: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0324: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0325: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [08]: Unit Tests (App & Runtime Host) (ID: unit-tests)
+### Command : ./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/unit-tests.log
+################################################################################
+
+--- [Snippet #1 | Lines 42 to 55] ---
+    L0042: e: file:///home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt:343:34 Unresolved reference 'asIntBuffer'.
+    L0043: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611116026.json
+    L0044: 
+    L0045: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0046: 
+>>> [ERROR] L0047: FAILURE: Build failed with an exception.
+    L0048: 
+    L0049: * What went wrong:
+>>> [ERROR] L0050: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0051: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0052:    > Compilation error. See log for more details
+    L0053: 
+    L0054: * Try:
+    L0055: > Run with --stacktrace option to get the stack trace.
+
