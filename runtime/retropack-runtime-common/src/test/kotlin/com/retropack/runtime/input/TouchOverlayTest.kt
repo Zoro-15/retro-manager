@@ -307,5 +307,36 @@ class TouchOverlayTest {
         assertFalse(overlay.joystick.isActive)
         assertEquals(RetroKey.NO_KEYS_MASK, reportedMask)
     }
-}
 
+    @Test
+    fun `historical move samples feed the joystick and final position decides the mask`() {
+        val overlay = TouchOverlayView(Context())
+        overlay.dpadType = DpadType.FIXED_JOYSTICK
+        overlay.updateLayout(1080f, 1920f)
+
+        var reportedMask = -1
+        var analogX = 0f
+        overlay.onKeyMaskChanged = { mask -> reportedMask = mask }
+        overlay.onAnalogAxisChanged = { ax, _ -> analogX = ax }
+
+        val dpadCluster = overlay.layout.getCluster(TouchLayout.CLUSTER_DPAD)!!
+        val cx = dpadCluster.anchorX
+        val cy = dpadCluster.anchorY
+
+        // Touch down at center (deadzone)
+        overlay.onTouchEvent(MotionEvent.createTouch(MotionEvent.ACTION_DOWN, cx, cy))
+        assertTrue(overlay.joystick.isActive)
+
+        // MOVE batch carrying one historical sample (simulating a 120 Hz digitizer):
+        // historical sample is far left, final position is right of the deadzone.
+        val move = MotionEvent.createTouch(MotionEvent.ACTION_MOVE, cx + 60f, cy)
+        move.addHistoricalSample(listOf(MotionEvent.PointerCoords(0, cx - 60f, cy)))
+        overlay.onTouchEvent(move)
+
+        // The latest sample decides the composite mask (right press, not left),
+        // and the historical sample already advanced the analog axis toward it.
+        assertEquals(RetroKey.KEY_RIGHT, reportedMask)
+        assertEquals(RetroKey.KEY_RIGHT, overlay.activeKeyMask)
+        assertTrue(analogX > 0f)
+    }
+}
