@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdatomic.h>
 #include <string.h>
 #include <dlfcn.h>
 #include <sys/stat.h>
@@ -66,6 +67,7 @@ static LibretroHostState g_host = {
     .target_fps = 60.0,
     .sample_rate = 44100.0,
     .audio_rb = NULL,
+    .audio_rb_atomic = NULL,
     .input_mask = 0,
     .analog_left_x = 0,
     .analog_left_y = 0,
@@ -129,6 +131,11 @@ bool host_init(const char* system_dir, const char* save_dir) {
 
     if (!g_host.audio_rb) {
         g_host.audio_rb = ringbuffer_create(AUDIO_DEFAULT_CAPACITY);
+        /* Publish to the lock-free audio consumer (AAudio callback) with
+         * release ordering so it can never observe a half-built buffer. */
+        atomic_store_explicit(&g_host.audio_rb_atomic, g_host.audio_rb, memory_order_release);
+    } else if (g_host.audio_rb != atomic_load_explicit(&g_host.audio_rb_atomic, memory_order_relaxed)) {
+        atomic_store_explicit(&g_host.audio_rb_atomic, g_host.audio_rb, memory_order_release);
     }
 
     if (!g_host.video_buffer) {
@@ -179,8 +186,12 @@ void host_destroy(void) {
     }
 
     if (g_host.audio_rb) {
-        ringbuffer_destroy(g_host.audio_rb);
-        g_host.audio_rb = NULL;
+        /* The audio ring buffer is immortal (issue #43): the AAudio realtime
+         * callback may hold a lock-free reference to it at any moment, so it
+         * is never freed until process teardown. Resetting it requires both
+         * sides quiescent, which the EmulationHost lifecycle guarantees
+         * (audioPlayer.stop() precedes host teardown). */
+        ringbuffer_reset(g_host.audio_rb);
     }
 
     g_host.video_width = 0;
@@ -566,6 +577,43 @@ size_t host_get_audio_available(void) {
     size_t avail = ringbuffer_available(g_host.audio_rb);
     pthread_mutex_unlock(&g_host.lock);
     return avail;
+}
+
+/* -----------------------------------------------------------------------
+ * Lock-free audio pull path (issue #43)
+ *
+ * The AAudio onAudioReady callback runs on a high-priority realtime thread;
+ * it must never contend on g_host.lock (held by the emulation thread for the
+ * whole duration of retro_run). The audio ring buffer is SPSC lock-free:
+ * the emulation thread produces via the libretro audio callbacks, the AAudio
+ * callback consumes through host_pull_audio_samples() below.
+ *
+ * To make lock-free pointer access safe the ring buffer is effectively
+ * immortal: it is created once at first host_init and never freed until
+ * process teardown; host_destroy()/host_unload_core() only reset it while
+ * the consumer stream is quiescent (RetroAudioPlayer.stop() precedes any
+ * host unload in the EmulationHost lifecycle).
+ * ----------------------------------------------------------------------- */
+
+size_t host_pull_audio_samples(int16_t* out_samples, size_t max_samples, size_t backlog_limit) {
+    if (!out_samples || max_samples == 0) {
+        return 0;
+    }
+    /* Acquire load pairs with the release store in host_init, guaranteeing
+     * the callback thread observes a fully constructed ring buffer. */
+    RingBuffer* rb = atomic_load_explicit(&g_host.audio_rb_atomic, memory_order_acquire);
+    if (!rb) {
+        return 0;
+    }
+    return ringbuffer_read_with_limit(rb, out_samples, max_samples, backlog_limit);
+}
+
+size_t host_pull_audio_available(void) {
+    RingBuffer* rb = atomic_load_explicit(&g_host.audio_rb_atomic, memory_order_acquire);
+    if (!rb) {
+        return 0;
+    }
+    return ringbuffer_available(rb);
 }
 
 size_t host_get_sram_size(void) {
