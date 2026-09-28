@@ -285,19 +285,22 @@ class RetroGlRenderer(
     /**
      * Issue #46: asynchronous PBO ping-pong upload.
      *
-     * 1. Stage the current frame into PBO[write] via glMapBufferRange: the CPU
-     *    copy overlaps the GPU's DMA of the previous upload.
+     * 1. Stage the current frame into PBO[write]: the PBO storage is first
+     *    orphaned via glBufferData(NULL) (so the driver hands back fresh
+     *    memory and any in-flight DMA on the old storage keeps running),
+     *    then the frame is transferred with glBufferSubData — a direct DMA
+     *    into the pixel buffer object with no JVM heap involvement.
      * 2. Feed glTexSubImage2D from PBO[read] at offset 0 (zero-copy: the
      *    pixels pointer is interpreted as an offset into the bound
      *    GL_PIXEL_UNPACK_BUFFER and the DMA proceeds asynchronously).
      * 3. Swap the slots.
      *
-     * The staged frame is consumed by the NEXT draw, adding exactly one
-     * display frame of pipeline latency in exchange for removing the
-     * CPU-GPU synchronization bubble that synchronous TexSubImage2D caused
-     * during high-resolution texture uploads. Returns false (and disables
-     * itself) when GLES3/PBO support is unavailable, in which case the
-     * caller falls back to the synchronous path.
+     * The CPU never waits on the GPU here: the staging write of frame N
+     * overlaps the texture DMA of frame N-1, removing the pipeline bubble
+     * that synchronous TexSubImage2D caused during high-resolution texture
+     * uploads. Returns false (and disables itself) when GLES3/PBO support
+     * is unavailable, in which case the caller falls back to the
+     * synchronous direct-upload path.
      */
     private fun uploadViaPbo(buffer: IntBuffer): Boolean {
         if (!pboEnabled) return false
@@ -326,24 +329,10 @@ class RetroGlRenderer(
             val writeIdx = pboWriteIndex
             val readIdx = 1 - writeIdx
 
-            // 1. CPU stages the current frame into PBO[write].
+            // 1. CPU stages the current frame into PBO[write] (orphan + DMA).
             GLES30.glBindBuffer(GLES30.GL_PIXEL_UNPACK_BUFFER, pboIds[writeIdx])
-            val mapped = GLES30.glMapBufferRange(
-                GLES30.GL_PIXEL_UNPACK_BUFFER,
-                0,
-                byteCount,
-                GLES30.GL_MAP_WRITE_BIT or GLES30.GL_MAP_INVALIDATE_BUFFER_BIT
-            )
-            if (mapped == null) {
-                GLES30.glBindBuffer(GLES30.GL_PIXEL_UNPACK_BUFFER, 0)
-                pboEnabled = false
-                return false
-            }
-            mapped.order(ByteOrder.nativeOrder())
-            val intView = mapped.asIntBuffer()
-            intView.position(0)
-            intView.put(buffer)
-            GLES30.glUnmapBuffer(GLES30.GL_PIXEL_UNPACK_BUFFER)
+            GLES30.glBufferData(GLES30.GL_PIXEL_UNPACK_BUFFER, byteCount, null, GLES30.GL_STREAM_DRAW)
+            GLES30.glBufferSubData(GLES30.GL_PIXEL_UNPACK_BUFFER, 0, byteCount, buffer)
 
             // 2. GPU consumes the previously staged frame (offset 0, zero-copy).
             if (pboHasFrame[readIdx]) {
