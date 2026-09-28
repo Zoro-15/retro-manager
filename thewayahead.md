@@ -5,6 +5,19 @@
 
 ---
 
+## 0. Operational Context & Agent Rules (CRITICAL)
+
+> [!IMPORTANT]
+> **Active Branch**: All work, refactoring, and commits must take place exclusively on branch **`v2`**. Never push breaking experimental changes to `main`.
+
+> [!CAUTION]
+> **No Heavy Local Builds / Verification**: The user's local machine is resource-constrained.
+> - **DO NOT** run heavy local Gradle commands (`./gradlew assembleDebug`, NDK multi-core compilation, emulator runs, or complete test suites) on the local device. Doing so causes system freezes and wastes tokens/time.
+> - **Exemptions**: Small, lightweight tool calls (e.g. `git status`, `git diff`, file inspections, quick one-file syntax checks) are permitted.
+> - **CI-Driven Verification**: Delegate all heavy compilation, building, and page-alignment verification to GitHub Actions CI by pushing to `origin/v2`. Inspect results via CI workflow outputs and diagnostic reports.
+
+---
+
 ## 1. Executive Summary & Root Cause Analysis
 
 ### The Problem with the Legacy Stale Architecture
