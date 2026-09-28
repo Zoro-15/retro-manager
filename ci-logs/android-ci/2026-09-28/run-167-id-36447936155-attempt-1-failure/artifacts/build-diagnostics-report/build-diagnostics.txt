@@ -1,0 +1,150 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 16:05:23 UTC
+Total Execution : 226.47s (3m 46s)
+Overall Result  : 4/8 Targets Passed (4 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime FAIL [!]    83.72s     runtime-common.log
+[02] Packaging Engine & Domain Core         PASS        23.91s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) FAIL [!]    16.88s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.06s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.07s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.12s     rotate-anchors.log
+[07] Manager APK (Main App)                 FAIL [!]    96.20s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        FAIL [!]     5.49s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [01]: Universal Libretro Host Native Runtime (ID: runtime-common)
+### Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-common.log
+################################################################################
+
+--- [Snippet #1 | Lines 55 to 78] ---
+    L0055: e: file:///home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt:343:34 Unresolved reference 'asIntBuffer'.
+    L0056: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611304356.json
+    L0057: 
+    L0058: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0059: 
+>>> [ERROR] L0060: FAILURE: Build failed with an exception.
+    L0061: 
+    L0062: * What went wrong:
+>>> [ERROR] L0063: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0064: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0065:    > Compilation error. See log for more details
+    L0066: 
+    L0067: * Try:
+    L0068: > Run with --info or --debug option to get more log output.
+    L0069: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0070: > Get more help at https://help.gradle.org.
+    L0071: 
+    L0072: * Exception is:
+>>> [ERROR] L0073: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0074: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0075: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0076: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0077: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0078: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [03]: Template APK (Standalone Universal Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 57 to 80] ---
+    L0057: > Task :template-apk:mergeExtDexDebug
+    L0058: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611404879.json
+    L0059: 
+    L0060: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0061: 
+>>> [ERROR] L0062: FAILURE: Build failed with an exception.
+    L0063: 
+    L0064: * What went wrong:
+>>> [ERROR] L0065: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0066: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0067:    > Compilation error. See log for more details
+    L0068: 
+    L0069: * Try:
+    L0070: > Run with --info or --debug option to get more log output.
+    L0071: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0072: > Get more help at https://help.gradle.org.
+    L0073: 
+    L0074: * Exception is:
+>>> [ERROR] L0075: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0076: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0077: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0078: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0079: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0080: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [07]: Manager APK (Main App) (ID: app-manager)
+### Command : ./gradlew :app:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/app-manager.log
+################################################################################
+
+--- [Snippet #1 | Lines 57 to 80] ---
+    L0057: > Task :app:mergeExtDexDebug
+    L0058: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611421996.json
+    L0059: 
+    L0060: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0061: 
+>>> [ERROR] L0062: FAILURE: Build failed with an exception.
+    L0063: 
+    L0064: * What went wrong:
+>>> [ERROR] L0065: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0066: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0067:    > Compilation error. See log for more details
+    L0068: 
+    L0069: * Try:
+    L0070: > Run with --info or --debug option to get more log output.
+    L0071: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0072: > Get more help at https://help.gradle.org.
+    L0073: 
+    L0074: * Exception is:
+>>> [ERROR] L0075: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0076: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0077: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0078: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0079: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0080: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [08]: Unit Tests (App & Runtime Host) (ID: unit-tests)
+### Command : ./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/unit-tests.log
+################################################################################
+
+--- [Snippet #1 | Lines 42 to 55] ---
+    L0042: e: file:///home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/video/RetroGlRenderer.kt:343:34 Unresolved reference 'asIntBuffer'.
+    L0043: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790611518455.json
+    L0044: 
+    L0045: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0046: 
+>>> [ERROR] L0047: FAILURE: Build failed with an exception.
+    L0048: 
+    L0049: * What went wrong:
+>>> [ERROR] L0050: Execution failed for task ':runtime:retropack-runtime-common:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0051: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0052:    > Compilation error. See log for more details
+    L0053: 
+    L0054: * Try:
+    L0055: > Run with --stacktrace option to get the stack trace.
+
