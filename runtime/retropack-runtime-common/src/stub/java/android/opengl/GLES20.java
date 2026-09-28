@@ -55,6 +55,8 @@ public class GLES20 {
     public static void glUniform1i(int location, int x) {}
     public static void glUniform1f(int location, float x) {}
     public static void glUniform2f(int location, float x, float y) {}
+    public static void glUniformMatrix4fv(int location, int count, boolean transpose, float[] value, int offset) {}
+    public static void glUniformMatrix4fv(int location, int count, boolean transpose, java.nio.FloatBuffer value) {}
     public static void glDrawArrays(int mode, int first, int count) {}
     public static int glGetError() { return GL_NO_ERROR; }
 }
