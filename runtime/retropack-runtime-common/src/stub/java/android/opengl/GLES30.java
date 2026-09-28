@@ -23,7 +23,7 @@ public class GLES30 {
     public static void glBindBuffer(int target, int buffer) {}
     public static void glBufferData(int target, int size, Buffer data, int usage) {}
     public static void glBufferSubData(int target, int offset, int size, Buffer data) {}
-    public static Buffer glMapBufferRange(int target, int offset, int length, int access) {
+    public static java.nio.ByteBuffer glMapBufferRange(int target, int offset, int length, int access) {
         return null;
     }
     public static boolean glUnmapBuffer(int target) {

@@ -983,7 +983,7 @@ class TouchOverlayView @JvmOverloads constructor(
             }
             mask
         } else {
-            val joystickSlot = if (joystick.isActive) slotForPointer(joystick.pointerId) else -1
+            val joystickSlot = if (joystick.isActive) slotForPointer(joystick.pointerId ?: -1) else -1
             var mask = RetroKey.NO_KEYS_MASK
             for (i in 0 until MAX_TRACKED_POINTERS) {
                 if (!pointerActive[i] || i == joystickSlot) continue

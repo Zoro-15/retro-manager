@@ -113,7 +113,7 @@ object StreamChecksum {
             return FileInputStream(file).use { calculate(it) }
         }
         FileInputStream(file).channel.use { channel ->
-            return calculateParallel(channel) { records, total -> StreamChecksumResult(records, total) }
+            return calculateParallel(channel) { records, total, _ -> StreamChecksumResult(records, total) }
         }
     }
 
