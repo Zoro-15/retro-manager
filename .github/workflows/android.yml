@@ -30,11 +30,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout with submodules (canonical mGBA, MPL-2.0, untouched)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 0
+
+      - name: Checkout top-level submodules
+        run: git submodule update --init
 
       - name: Set up JDK 17 (Temurin)
         uses: actions/setup-java@v4
