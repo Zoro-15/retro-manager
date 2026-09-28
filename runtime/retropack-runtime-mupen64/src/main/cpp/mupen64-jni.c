@@ -57,6 +57,14 @@ retro_perf_register_t perf_register_cb = NULL;
 retro_perf_start_t perf_start_cb = NULL;
 retro_perf_stop_t perf_stop_cb = NULL;
 
+void retro_return(void) {
+    // Return point for emulator loop
+}
+
+uint32_t get_retro_screen_width(void) {
+    return (uint32_t)g_mupen.video_width;
+}
+
 static struct {
     bool initialized;
     bool rom_loaded;

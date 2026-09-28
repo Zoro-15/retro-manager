@@ -25,6 +25,9 @@ extern retro_perf_register_t perf_register_cb;
 extern retro_perf_start_t perf_start_cb;
 extern retro_perf_stop_t perf_stop_cb;
 
+void retro_return(void);
+uint32_t get_retro_screen_width(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -63,6 +63,76 @@ void SysCloseLibrary(void *lib) { (void)lib; }
 void SysReset(void) {}
 void SysRunGui(void) {}
 
+// Libretro RFILE standard I/O implementations
+struct RFILE;
+typedef struct RFILE RFILE;
+
+RFILE* rfopen(const char *path, const char *mode) {
+    return (RFILE*)fopen(path, mode);
+}
+
+int rfclose(RFILE* stream) {
+    return stream ? fclose((FILE*)stream) : 0;
+}
+
+int64_t rftell(RFILE* stream) {
+    return stream ? (int64_t)ftell((FILE*)stream) : -1;
+}
+
+int64_t rfseek(RFILE* stream, int64_t offset, int origin) {
+    return stream ? (int64_t)fseek((FILE*)stream, (long)offset, origin) : -1;
+}
+
+int64_t rfread(void* buffer, size_t elem_size, size_t elem_count, RFILE* stream) {
+    return stream ? (int64_t)fread(buffer, elem_size, elem_count, (FILE*)stream) : 0;
+}
+
+char *rfgets(char *s, int maxCount, RFILE* stream) {
+    return stream ? fgets(s, maxCount, (FILE*)stream) : NULL;
+}
+
+int rfgetc(RFILE* stream) {
+    return stream ? fgetc((FILE*)stream) : EOF;
+}
+
+int64_t rfwrite(void const* buffer, size_t elem_size, size_t elem_count, RFILE* stream) {
+    return stream ? (int64_t)fwrite(buffer, elem_size, elem_count, (FILE*)stream) : 0;
+}
+
+int rfputc(int character, RFILE * stream) {
+    return stream ? fputc(character, (FILE*)stream) : EOF;
+}
+
+int64_t rfflush(RFILE * stream) {
+    return stream ? (int64_t)fflush((FILE*)stream) : 0;
+}
+
+int rferror(RFILE* stream) {
+    return stream ? ferror((FILE*)stream) : 0;
+}
+
+int rfeof(RFILE* stream) {
+    return stream ? feof((FILE*)stream) : 1;
+}
+
+int rfprintf(RFILE * stream, const char * format, ...) {
+    if (!stream) return -1;
+    va_list args;
+    va_start(args, format);
+    int ret = vfprintf((FILE*)stream, format, args);
+    va_end(args);
+    return ret;
+}
+
+int rfscanf(RFILE * stream, const char * format, ...) {
+    if (!stream) return -1;
+    va_list args;
+    va_start(args, format);
+    int ret = vfscanf((FILE*)stream, format, args);
+    va_end(args);
+    return ret;
+}
+
 int in_type[8] = {0};
 int in_keystate[8] = {0};
 short in_analog_left[8][2] = {{0}};

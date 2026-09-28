@@ -425,6 +425,7 @@ target_include_directories(retropack-runtime-ppsspp PRIVATE
     "${PPSSPP_SOURCE_DIR}/ext/libpng17"
     "${PPSSPP_SOURCE_DIR}/ext/libzip"
     "${PPSSPP_SOURCE_DIR}/ext/minimp3"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../retropack-runtime-pcsx/submodules/pcsx_rearmed/deps/libchdr/include"
 )
 
 target_link_libraries(retropack-runtime-ppsspp PRIVATE
