@@ -43,16 +43,18 @@ typedef enum {
 #include <burner.h>
 
 // Required external symbols for FBNeo core
-extern "C" int nInputIntfMouseDivider = 1;
-extern "C" int kNetGame = 0;
+int nInputIntfMouseDivider = 1;
+int kNetGame = 0;
 
-extern "C" INT32 bprintf(INT32 nStatus, TCHAR* szFormat, ...) {
+static INT32 __cdecl RetroPackFbneoPrintf(INT32 nStatus, TCHAR* szFormat, ...) {
+    (void)nStatus;
     va_list va;
     va_start(va, szFormat);
     __android_log_vprint(ANDROID_LOG_INFO, LOG_TAG, (const char*)szFormat, va);
     va_end(va);
     return 0;
 }
+INT32 (__cdecl *bprintf)(INT32 nStatus, TCHAR* szFormat, ...) = RetroPackFbneoPrintf;
 
 static FILE* s_fbneoStateFp = NULL;
 static INT32 __cdecl FbneoFileWriteAcb(struct BurnArea* pba) {
@@ -69,9 +71,9 @@ static INT32 __cdecl FbneoFileReadAcb(struct BurnArea* pba) {
     return 0;
 }
 
-extern "C" INT32 BurnStateSave(char* szName, INT32 bAll) {
+INT32 BurnStateSave(TCHAR* szName, INT32 bAll) {
     (void)bAll;
-    s_fbneoStateFp = fopen(szName, "wb");
+    s_fbneoStateFp = fopen((const char*)szName, "wb");
     if (!s_fbneoStateFp) return 1;
     BurnAcb = FbneoFileWriteAcb;
     BurnAreaScan(ACB_FULLSCAN | ACB_READ, NULL);
@@ -80,9 +82,9 @@ extern "C" INT32 BurnStateSave(char* szName, INT32 bAll) {
     return 0;
 }
 
-extern "C" INT32 BurnStateLoad(char* szName, INT32 bAll, INT32 (*pfnAcb)()) {
+INT32 BurnStateLoad(TCHAR* szName, INT32 bAll, INT32 (*pfnAcb)()) {
     (void)bAll; (void)pfnAcb;
-    s_fbneoStateFp = fopen(szName, "rb");
+    s_fbneoStateFp = fopen((const char*)szName, "rb");
     if (!s_fbneoStateFp) return 1;
     BurnAcb = FbneoFileReadAcb;
     BurnAreaScan(ACB_FULLSCAN | ACB_WRITE, NULL);
@@ -832,7 +834,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoSaveState(
 
     pthread_mutex_lock(&g_fbneo.lock);
 #ifdef HAVE_FBNEO_CORE
-    BurnStateSave((char*)path, 0);
+    BurnStateSave((TCHAR*)path, 0);
 #endif
     pthread_mutex_unlock(&g_fbneo.lock);
     env->ReleaseStringUTFChars(filePath, path);
@@ -849,7 +851,7 @@ Java_com_retropack_runtime_fbneo_FbneoNativeCore_fbneoLoadState(
 
     pthread_mutex_lock(&g_fbneo.lock);
 #ifdef HAVE_FBNEO_CORE
-    BurnStateLoad((char*)path, 0, NULL);
+    BurnStateLoad((TCHAR*)path, 0, NULL);
 #endif
     pthread_mutex_unlock(&g_fbneo.lock);
     env->ReleaseStringUTFChars(filePath, path);

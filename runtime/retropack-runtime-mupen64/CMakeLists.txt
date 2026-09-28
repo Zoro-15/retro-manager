@@ -20,6 +20,7 @@ if(EXISTS "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/api/m64p_types.h" OR EXISTS 
     message(STATUS "Found upstream Mupen64Plus submodule at ${MUPEN_SOURCE_DIR}")
     add_definitions(
         -DHAVE_MUPEN64_CORE=1
+        -D__LIBRETRO__=1
         -DM64P_CORE_PROTOTYPES=1
         -DCORE_NAME=\"mupen64plus\"
         -DINLINE=inline
@@ -93,6 +94,9 @@ if(EXISTS "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/api/m64p_types.h" OR EXISTS 
         "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/osal/files_unix.c"
         "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/osal/dynamiclib_unix.c"
         "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/md5/md5.c"
+        "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/minizip/ioapi.c"
+        "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/minizip/unzip.c"
+        "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/minizip/zip.c"
     )
 
     set(MUPEN_RSP_SRCS
@@ -141,6 +145,7 @@ target_include_directories(retropack-runtime-mupen64 PRIVATE
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/src/osal"
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/md5"
     "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/xxhash"
+    "${MUPEN_SOURCE_DIR}/mupen64plus-core/subprojects/minizip"
     "${MUPEN_SOURCE_DIR}/xxHash"
     "${MUPEN_SOURCE_DIR}/mupen64plus-rsp-hle/src"
     "${MUPEN_SOURCE_DIR}/mupen64plus-video-angrylion"

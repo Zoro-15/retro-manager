@@ -70,7 +70,9 @@ short in_analog_right[8][2] = {{0}};
 short in_mouse[8][2] = {{0}};
 int multitap1 = 0;
 int multitap2 = 0;
-uint8_t pl_gun_byte2 = 0;
+void pl_gun_byte2(int port, unsigned char byte) {
+    (void)port; (void)byte;
+}
 int pl_frame_limit = 0;
 
 void PAD1_readPort(struct PadDataS *pad, int *is_multitap) {
