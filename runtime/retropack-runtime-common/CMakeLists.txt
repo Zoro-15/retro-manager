@@ -10,6 +10,7 @@ set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size
 add_library(retropack-host SHARED
     src/main/cpp/libretro_host.c
     src/main/cpp/ringbuffer.c
+    src/main/cpp/aaudio_bridge.c
 )
 
 target_include_directories(retropack-host PRIVATE
@@ -21,6 +22,7 @@ target_link_libraries(retropack-host PRIVATE
     log
     m
     dl
+    aaudio
 )
 
 target_link_options(retropack-host PRIVATE

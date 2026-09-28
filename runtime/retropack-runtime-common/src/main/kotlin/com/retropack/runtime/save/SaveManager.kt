@@ -4,6 +4,10 @@ import com.retropack.runtime.core.NativeCore
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.channels.FileChannel
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.Arrays
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -49,12 +53,16 @@ object DefaultNativeSramSource : SramStorageSource {
  * Invariants Enforced:
  * 1. Dirty-Gated Periodic Flush: Flushes only when SRAM content is modified.
  * 2. Synchronous Lifecycle Flush: Guarantees flush on Activity onPause/onStop.
- * 3. Atomic POSIX fsync Sequence:
+ * 3. Atomic POSIX fsync Sequence (issue #47 durability hardening):
  *    a. Write to `filesDir/game.sav.tmp`
  *    b. `stream.flush()`
  *    c. `stream.fd.sync()` (POSIX fsync flushes OS page cache to NAND flash)
  *    d. `stream.close()`
- *    e. `tmp.renameTo(targetSave)` (Atomic filesystem directory swap)
+ *    e. `Files.move(tmp, target, ATOMIC_MOVE)` (atomic directory entry swap:
+ *       any observer sees either the old file or the new file, never a torn one)
+ *    f. fsync the parent directory (persists the rename itself, closing the
+ *       power-loss window where the file data is on flash but the directory
+ *       entry still points at the old inode)
  */
 class SaveManager(
     val saveFile: File,
@@ -196,17 +204,40 @@ class SaveManager(
                 }
             }
 
-            // Step 6: Atomic directory swap
-            val renamed = tmpSaveFile.renameTo(saveFile)
-            if (!renamed) {
-                // Fallback copy if filesystem doesn't support atomic rename across mounts
+            // Step 6: Atomic directory swap via ATOMIC_MOVE (issue #47):
+            // Files.move with ATOMIC_MOVE resolves to rename(2), which on
+            // POSIX atomically replaces an existing target — observers never
+            // see a partially written file. Falls back to copy+delete only on
+            // filesystems without atomic rename support.
+            val renamed = try {
+                Files.move(tmpSaveFile.toPath(), saveFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
+                true
+            } catch (_: AtomicMoveNotSupportedException) {
                 try {
                     tmpSaveFile.copyTo(saveFile, overwrite = true)
                     tmpSaveFile.delete()
+                    true
                 } catch (_: IOException) {
-                    if (tmpSaveFile.exists()) tmpSaveFile.delete()
-                    return false
+                    false
                 }
+            } catch (_: IOException) {
+                false
+            }
+            if (!renamed) {
+                if (tmpSaveFile.exists()) tmpSaveFile.delete()
+                return false
+            }
+
+            // Step 7: fsync the parent directory so the rename survives power
+            // loss (best-effort: some filesystems do not open directories).
+            try {
+                (saveFile.parentFile ?: saveFile.absoluteFile.parentFile)?.let { dir ->
+                    FileChannel.open(dir.toPath(), java.nio.file.StandardOpenOption.READ).use { ch ->
+                        ch.force(true)
+                    }
+                }
+            } catch (_: Exception) {
+                // Directory fsync unsupported: data fsync already committed.
             }
 
             dirty.set(false)

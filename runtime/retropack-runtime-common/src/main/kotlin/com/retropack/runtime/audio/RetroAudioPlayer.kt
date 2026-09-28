@@ -105,12 +105,35 @@ class RetroAudioPlayer(
      * Pulls pending audio samples from the native ring buffer, evaluates drift compensation,
      * and streams them into the audio sink.
      *
+     * Issue #43: when the sink runs in direct-pull mode (native AAudio realtime callback
+     * draining the SPSC ring buffer itself), this method performs NO sample pumping — the
+     * JVM must not touch the samples. Instead it runs the PI occupancy regulator once per
+     * emulation frame and publishes the micro rate adjustment (±3%) to the native callback.
+     *
      * Should be called periodically (e.g. after each native frame or on an audio pump thread).
      *
      * @return Number of samples successfully dispatched to [AudioSink].
      */
     fun pumpAudio(): Int {
         if (!isPlaying) return 0
+
+        val oboeSink = sink as? OboeAudioSink
+        if (oboeSink != null && oboeSink.isDirectPullMode) {
+            if (isMuted) {
+                oboeSink.setDriftRate(1.0f) // rate irrelevant: volume 0 silences the callback
+                return 0
+            }
+            val occupancy = try {
+                NativeCore.nativeGetAudioAvailable()
+            } catch (_: UnsatisfiedLinkError) {
+                -1
+            }
+            if (occupancy >= 0) {
+                driftController.evaluate(occupancy)
+                oboeSink.setDriftRate(driftController.computeRateAdjustment(occupancy))
+            }
+            return 0
+        }
 
         val pulled = sampleProvider(scratchBuffer, scratchBuffer.size)
         if (pulled <= 0) {

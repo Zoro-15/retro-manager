@@ -3,9 +3,13 @@ package com.retropack.runtime.save
 import com.retropack.runtime.core.EmulationEngine
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.nio.IntBuffer
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.CRC32
 import java.util.zip.Deflater
 import java.util.zip.DeflaterOutputStream
@@ -226,6 +230,13 @@ class SaveStateManager(
 
     /**
      * Saves complete state binary, live thumbnail, and metadata for [slot].
+     *
+     * Issue #47 durability contract: the state snapshot is written to a
+     * staging `.tmp` path by the engine, fsynced to flash
+     * ([FileInputStream.channel.force]), and only then atomically committed
+     * via [Files.move] with [StandardCopyOption.ATOMIC_MOVE]. A sudden app
+     * kill or power loss at ANY point leaves either the previous valid state
+     * or the new valid state — never a zero-byte or torn file.
      */
     fun saveState(
         slot: Int,
@@ -240,23 +251,44 @@ class SaveStateManager(
         val stateFile = getStateFile(slot)
         val tempStateFile = File(storageDir, "slot_$slot.state.tmp")
 
-        // Step 1: Save state snapshot via engine
+        // Step 1: Save state snapshot via engine to the staging path
         val stateSaved = engine.saveState(slot, tempStateFile.absolutePath)
         if (!stateSaved || !tempStateFile.exists() || tempStateFile.length() == 0L) {
             tempStateFile.delete()
             return false
         }
 
-        // Atomic swap state file
-        if (stateFile.exists()) {
-            stateFile.delete()
-        }
-        if (!tempStateFile.renameTo(stateFile)) {
-            tempStateFile.copyTo(stateFile, overwrite = true)
+        // Step 2: fsync staging file to flash before the atomic swap
+        try {
+            FileInputStream(tempStateFile).use { fis ->
+                fis.channel.force(true)
+            }
+        } catch (_: IOException) {
             tempStateFile.delete()
+            return false
         }
 
-        // Step 2: Save Screenshot Thumbnail
+        // Step 3: atomic replacement (ATOMIC_MOVE; copy fallback for exotic mounts)
+        val moved = try {
+            Files.move(tempStateFile.toPath(), stateFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
+            true
+        } catch (_: AtomicMoveNotSupportedException) {
+            try {
+                tempStateFile.copyTo(stateFile, overwrite = true)
+                tempStateFile.delete()
+                true
+            } catch (_: IOException) {
+                false
+            }
+        } catch (_: IOException) {
+            false
+        }
+        if (!moved) {
+            tempStateFile.delete()
+            return false
+        }
+
+        // Step 4: Save Screenshot Thumbnail
         if (videoBuffer != null && nativeWidth > 0 && nativeHeight > 0) {
             try {
                 val thumbPixels = downsampleFrame(videoBuffer, nativeWidth, nativeHeight, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT)
@@ -265,18 +297,33 @@ class SaveStateManager(
                 FileOutputStream(thumbFile).use { fos ->
                     fos.write(pngBytes)
                     fos.flush()
+                    fos.fd.sync()
                 }
             } catch (_: Exception) {}
         }
 
-        // Step 3: Write metadata JSON
+        // Step 5: Write metadata JSON (atomic tmp + fsync + move, best-effort)
         val meta = SaveSlotMetadata(
             slot = slot,
             timestamp = System.currentTimeMillis(),
             gameTitle = gameTitle
         )
         try {
-            getMetaFile(slot).writeText(meta.toJson(), Charsets.UTF_8)
+            val metaFile = getMetaFile(slot)
+            val metaTmp = File(storageDir, "slot_$slot.meta.tmp")
+            FileOutputStream(metaTmp).use { fos ->
+                fos.write(meta.toJson().toByteArray(Charsets.UTF_8))
+                fos.flush()
+                fos.fd.sync()
+            }
+            try {
+                Files.move(metaTmp.toPath(), metaFile.toPath(), StandardCopyOption.ATOMIC_MOVE)
+            } catch (_: AtomicMoveNotSupportedException) {
+                metaTmp.copyTo(metaFile, overwrite = true)
+                metaTmp.delete()
+            } catch (_: IOException) {
+                metaTmp.delete()
+            }
         } catch (_: IOException) {}
 
         return true

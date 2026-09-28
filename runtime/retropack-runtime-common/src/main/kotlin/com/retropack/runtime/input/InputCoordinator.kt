@@ -1,6 +1,7 @@
 package com.retropack.runtime.input
 
 import com.retropack.runtime.core.RetroKey
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Coordinates and unifies virtual touch overlay, physical gamepad, and motion sensor inputs
@@ -10,6 +11,15 @@ import com.retropack.runtime.core.RetroKey
  * - masterplan.md Section 5.4: "Auto-hides virtual controls when physical gamepad buttons are pressed."
  * - Motion sensor tilt steering integration.
  * - roadmap.md Part 2.5 & Part 3.
+ *
+ * Issue #44: the three source masks are stored in plain [AtomicInteger] cells
+ * instead of guarded by a shared monitor lock, so the hot input path performs
+ * lock-free volatile writes and dispatches the composite bitmask to the native
+ * layer as a raw primitive `Int` — no synchronized blocks, no boxing, and no
+ * intermediate wrapper objects on the 60+ Hz input dispatch path. A transient
+ * dispatch may observe a mask updated a few cycles earlier; the concurrent
+ * updater's own dispatch always follows and carries the final composite, so
+ * the emulator-side state converges within one frame.
  */
 class InputCoordinator(
     val touchOverlay: TouchOverlayView? = null,
@@ -20,29 +30,17 @@ class InputCoordinator(
 ) {
     var autoHideTouchOnGamepad: Boolean = true
 
-    private val maskLock = Any()
-
-    @Volatile
-    private var touchMask: Int = RetroKey.NO_KEYS_MASK
-
-    @Volatile
-    private var gamepadMask: Int = RetroKey.NO_KEYS_MASK
-
-    @Volatile
-    private var sensorMask: Int = RetroKey.NO_KEYS_MASK
+    private val touchMaskAtomic = AtomicInteger(RetroKey.NO_KEYS_MASK)
+    private val gamepadMaskAtomic = AtomicInteger(RetroKey.NO_KEYS_MASK)
+    private val sensorMaskAtomic = AtomicInteger(RetroKey.NO_KEYS_MASK)
 
     val compositeKeyMask: Int
-        get() = synchronized(maskLock) {
-            (touchMask or gamepadMask or sensorMask) and RetroKey.ALL_KEYS_MASK
-        }
+        get() = (touchMaskAtomic.get() or gamepadMaskAtomic.get() or sensorMaskAtomic.get()) and RetroKey.ALL_KEYS_MASK
 
     init {
         // Wire touch overlay callbacks
         touchOverlay?.onKeyMaskChanged = { mask ->
-            synchronized(maskLock) {
-                touchMask = mask
-                dispatchCompositeMask()
-            }
+            updateTouchMask(mask)
         }
 
         touchOverlay?.onAnalogAxisChanged = { ax, ay ->
@@ -51,10 +49,7 @@ class InputCoordinator(
 
         // Wire gamepad mapper callbacks
         gamepadMapper.onKeyMaskChanged = { mask ->
-            synchronized(maskLock) {
-                gamepadMask = mask
-                dispatchCompositeMask()
-            }
+            updateGamepadMask(mask)
         }
 
         gamepadMapper.onAnalogAxisChanged = { ax, ay ->
@@ -69,31 +64,32 @@ class InputCoordinator(
 
         // Wire motion sensor callbacks
         sensorController?.onKeyMaskChanged = { mask ->
-            synchronized(maskLock) {
-                sensorMask = mask
-                dispatchCompositeMask()
-            }
+            updateSensorMask(mask)
         }
     }
 
     /**
-     * Updates the touch key mask directly.
+     * Updates the touch key mask (lock-free) and dispatches the composite bitmask.
      */
     fun updateTouchMask(mask: Int) {
-        synchronized(maskLock) {
-            touchMask = mask
-            dispatchCompositeMask()
-        }
+        touchMaskAtomic.set(mask and RetroKey.ALL_KEYS_MASK)
+        dispatchCompositeMask()
     }
 
     /**
-     * Updates the gamepad key mask directly.
+     * Updates the gamepad key mask (lock-free) and dispatches the composite bitmask.
      */
     fun updateGamepadMask(mask: Int) {
-        synchronized(maskLock) {
-            gamepadMask = mask
-            dispatchCompositeMask()
-        }
+        gamepadMaskAtomic.set(mask and RetroKey.ALL_KEYS_MASK)
+        dispatchCompositeMask()
+    }
+
+    /**
+     * Updates the motion sensor key mask (lock-free) and dispatches the composite bitmask.
+     */
+    fun updateSensorMask(mask: Int) {
+        sensorMaskAtomic.set(mask and RetroKey.ALL_KEYS_MASK)
+        dispatchCompositeMask()
     }
 
     /**
@@ -114,12 +110,10 @@ class InputCoordinator(
         } finally {
             gamepadMapper.onKeyMaskChanged = mapperCallback
         }
-        synchronized(maskLock) {
-            touchMask = RetroKey.NO_KEYS_MASK
-            gamepadMask = RetroKey.NO_KEYS_MASK
-            sensorMask = RetroKey.NO_KEYS_MASK
-            dispatchCompositeMask()
-        }
+        touchMaskAtomic.set(RetroKey.NO_KEYS_MASK)
+        gamepadMaskAtomic.set(RetroKey.NO_KEYS_MASK)
+        sensorMaskAtomic.set(RetroKey.NO_KEYS_MASK)
+        dispatchCompositeMask()
         onAnalogAxisDispatched(0f, 0f)
     }
 

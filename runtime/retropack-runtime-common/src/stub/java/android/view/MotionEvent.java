@@ -60,6 +60,10 @@ public class MotionEvent {
     private int action;
     private int source;
     private List<PointerCoords> pointers = new ArrayList<>();
+    // Issue #44: historical sample support so tests can exercise
+    // historical-motion coalescing. Live Android events carry historical
+    // batches on ACTION_MOVE; the JVM stub defaults to an empty batch.
+    private List<PointerCoords> historical = new ArrayList<>();
 
     public MotionEvent(int action, float x, float y) {
         this.action = action;
@@ -142,6 +146,36 @@ public class MotionEvent {
 
     public int getSource() {
         return source;
+    }
+
+    /**
+     * Number of historical samples batched into this event (0 on the stub
+     * unless populated via {@link #addHistoricalSample}).
+     */
+    public int getHistorySize() {
+        return historical.isEmpty() ? 0 : 1;
+    }
+
+    public float getHistoricalX(int pointerIndex, int pos) {
+        if (pointerIndex >= 0 && pointerIndex < pointers.size() && !historical.isEmpty()) {
+            return historical.get(pointerIndex).x;
+        }
+        return 0f;
+    }
+
+    public float getHistoricalY(int pointerIndex, int pos) {
+        if (pointerIndex >= 0 && pointerIndex < pointers.size() && !historical.isEmpty()) {
+            return historical.get(pointerIndex).y;
+        }
+        return 0f;
+    }
+
+    /**
+     * Test helper: attaches one historical coordinate per pointer (indexed
+     * like {@code pointers}). Calling it twice overwrites the batch.
+     */
+    public void addHistoricalSample(List<PointerCoords> coords) {
+        this.historical = new ArrayList<>(coords);
     }
 
     public boolean isFromSource(int source) {

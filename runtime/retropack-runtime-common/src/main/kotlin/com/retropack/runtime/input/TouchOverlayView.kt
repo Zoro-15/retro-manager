@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import com.retropack.runtime.core.RetroKey
+import java.util.Arrays
 
 /**
  * Virtual multi-touch controller overlay view and PPSSPP/Lemuroid-inspired
@@ -194,7 +195,10 @@ class TouchOverlayView @JvmOverloads constructor(
         }
 
     var layout: TouchLayout = TouchLayout.createForPlatform(platform, 1080f, 1920f, opacity, turboEnabled, comboMacroEnabled)
-        private set
+        private set(value) {
+            field = value
+            rebuildHitboxCache()
+        }
 
     val clusterScales = mutableMapOf<String, Float>()
 
@@ -235,7 +239,6 @@ class TouchOverlayView @JvmOverloads constructor(
     val scaleDownBtnRect = RectF()
     val scaleUpBtnRect = RectF()
 
-    private val activePointers = mutableMapOf<Int, Pair<Float, Float>>()
     private var currentKeyMask: Int = RetroKey.NO_KEYS_MASK
 
     private val basePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -257,6 +260,207 @@ class TouchOverlayView @JvmOverloads constructor(
         style = Paint.Style.FILL
     }
     private val tempRect = RectF()
+
+    /* ─────────────────────────────────────────────────────────────────────
+     * Zero-allocation touch tracking (issue #44)
+     *
+     * Pointer state lives in parallel primitive arrays instead of a
+     * MutableMap<Int, Pair<Float, Float>>, eliminating the map entry and
+     * Pair allocations that previously fired on every pointer update of
+     * every MotionEvent (up to 120 Hz on modern digitizers).
+     *
+     * Pre-computed hitbox regions: layout.controls are flattened into
+     * contiguous primitive float/boolean/int arrays whenever the layout
+     * changes, so the per-frame hit test never allocates a RectF, never
+     * boxes, and never iterates a LinkedList of data classes.
+     * ───────────────────────────────────────────────────────────────────── */
+
+    private companion object {
+        const val MAX_TRACKED_POINTERS = 16
+    }
+
+    private val pointerIds = IntArray(MAX_TRACKED_POINTERS) { -1 }
+    private val pointerX = FloatArray(MAX_TRACKED_POINTERS)
+    private val pointerY = FloatArray(MAX_TRACKED_POINTERS)
+    private val pointerActive = BooleanArray(MAX_TRACKED_POINTERS)
+
+    // Flattened hitbox cache (columns indexed by control index).
+    private var hitCount: Int = 0
+    private var hitCx = FloatArray(0)
+    private var hitCy = FloatArray(0)
+    private var hitHalfW = FloatArray(0)      // slop-expanded
+    private var hitHalfH = FloatArray(0)      // slop-expanded
+    private var hitShapeRect = BooleanArray(0) // true: PILL/DPAD rect test, false: CIRCLE
+    private var hitIsDpad = BooleanArray(0)
+    private var hitDpadDeadzone = FloatArray(0) // raw (non-sloped) halfWidth * 0.20
+    private var hitCustomMask = IntArray(0)     // customKeyMask (0 when unset)
+    private var hitKeyMaskBase = IntArray(0)    // key?.mask (0 when unset)
+    private var hitIsTurbo = BooleanArray(0)
+
+    // Thumb Roll Assist anchors (B → A transition zone), cached from layout.
+    private var rollEnabled: Boolean = false
+    private var rollACx: Float = 0f
+    private var rollACy: Float = 0f
+    private var rollAHalfW: Float = 0f
+    private var rollBCx: Float = 0f
+    private var rollBCy: Float = 0f
+    private var rollBHalfW: Float = 0f
+
+    init {
+        rebuildHitboxCache()
+    }
+
+    private fun rebuildHitboxCache() {
+        val controls = layout.controls
+        hitCount = controls.size
+        if (hitCx.size < hitCount) {
+            hitCx = FloatArray(hitCount)
+            hitCy = FloatArray(hitCount)
+            hitHalfW = FloatArray(hitCount)
+            hitHalfH = FloatArray(hitCount)
+            hitShapeRect = BooleanArray(hitCount)
+            hitIsDpad = BooleanArray(hitCount)
+            hitDpadDeadzone = FloatArray(hitCount)
+            hitCustomMask = IntArray(hitCount)
+            hitKeyMaskBase = IntArray(hitCount)
+            hitIsTurbo = BooleanArray(hitCount)
+        }
+        var aIdx = -1
+        var bIdx = -1
+        for (i in 0 until hitCount) {
+            val c = controls[i]
+            hitCx[i] = c.cx
+            hitCy[i] = c.cy
+            hitHalfW[i] = c.halfWidth * TouchLayout.DEFAULT_HIT_SLOP
+            hitHalfH[i] = c.halfHeight * TouchLayout.DEFAULT_HIT_SLOP
+            hitShapeRect[i] = c.shape != ControlShape.CIRCLE
+            hitIsDpad[i] = c.shape == ControlShape.DPAD
+            hitDpadDeadzone[i] = c.halfWidth * 0.20f
+            hitCustomMask[i] = c.customKeyMask
+            hitKeyMaskBase[i] = c.key?.mask ?: RetroKey.NO_KEYS_MASK
+            hitIsTurbo[i] = c.isTurbo
+            when (c.id) {
+                TouchLayout.ID_A -> aIdx = i
+                TouchLayout.ID_B -> bIdx = i
+            }
+        }
+        rollEnabled = aIdx >= 0 && bIdx >= 0
+        if (rollEnabled) {
+            rollACx = controls[aIdx].cx
+            rollACy = controls[aIdx].cy
+            rollAHalfW = controls[aIdx].halfWidth
+            rollBCx = controls[bIdx].cx
+            rollBCy = controls[bIdx].cy
+            rollBHalfW = controls[bIdx].halfWidth
+        }
+    }
+
+    private fun slotForPointer(id: Int): Int {
+        for (i in 0 until MAX_TRACKED_POINTERS) {
+            if (pointerActive[i] && pointerIds[i] == id) return i
+        }
+        return -1
+    }
+
+    private fun assignPointerSlot(id: Int): Int {
+        var freeSlot = -1
+        for (i in 0 until MAX_TRACKED_POINTERS) {
+            if (pointerActive[i]) {
+                if (pointerIds[i] == id) return i
+            } else if (freeSlot < 0) {
+                freeSlot = i
+            }
+        }
+        if (freeSlot >= 0) {
+            pointerIds[freeSlot] = id
+            pointerActive[freeSlot] = true
+            pointerX[freeSlot] = 0f
+            pointerY[freeSlot] = 0f
+        }
+        return freeSlot
+    }
+
+    private fun releasePointerSlot(id: Int) {
+        for (i in 0 until MAX_TRACKED_POINTERS) {
+            if (pointerActive[i] && pointerIds[i] == id) {
+                pointerActive[i] = false
+                pointerIds[i] = -1
+                return
+            }
+        }
+    }
+
+    private fun clearPointerSlots() {
+        Arrays.fill(pointerIds, -1)
+        Arrays.fill(pointerActive, false)
+    }
+
+    private fun anyPointerActive(): Boolean {
+        for (i in 0 until MAX_TRACKED_POINTERS) {
+            if (pointerActive[i]) return true
+        }
+        return false
+    }
+
+    /**
+     * Cache-based, allocation-free equivalent of TouchLayout.inputAt():
+     * OR-composes the key masks of every control whose slop-expanded hitbox
+     * contains (x, y), including the D-pad 8-way resolution and the
+     * Thumb Roll Assist transition zone. When [skipDpad] is set (joystick
+     * dpad modes), D-pad shaped controls contribute no mask.
+     */
+    private fun hitTestMaskAt(x: Float, y: Float, isTurboPhase: Boolean, skipDpad: Boolean = false): Int {
+        var mask = RetroKey.NO_KEYS_MASK
+        for (i in 0 until hitCount) {
+            if (skipDpad && hitIsDpad[i]) continue
+
+            val dx = x - hitCx[i]
+            val dy = y - hitCy[i]
+            val sw = hitHalfW[i]
+            val sh = hitHalfH[i]
+            if (sw <= 0f || sh <= 0f) continue
+            val inside = if (hitShapeRect[i]) {
+                dx >= -sw && dx <= sw && dy >= -sh && dy <= sh
+            } else {
+                val nx = dx / sw
+                val ny = dy / sh
+                nx * nx + ny * ny <= 1.0f
+            }
+            if (!inside) continue
+
+            mask = mask or when {
+                hitIsDpad[i] -> {
+                    var d = RetroKey.NO_KEYS_MASK
+                    val dead = hitDpadDeadzone[i]
+                    if (dx < -dead) d = d or RetroKey.KEY_LEFT
+                    if (dx > dead) d = d or RetroKey.KEY_RIGHT
+                    if (dy < -dead) d = d or RetroKey.KEY_UP
+                    if (dy > dead) d = d or RetroKey.KEY_DOWN
+                    d
+                }
+                hitCustomMask[i] != RetroKey.NO_KEYS_MASK -> hitCustomMask[i]
+                hitIsTurbo[i] && !isTurboPhase -> RetroKey.NO_KEYS_MASK
+                else -> hitKeyMaskBase[i]
+            }
+        }
+
+        if (!skipDpad && rollEnabled) {
+            // Thumb Roll Assist: touch falling into the transition zone between B and A.
+            val distA = dist(x, y, rollACx, rollACy)
+            val distB = dist(x, y, rollBCx, rollBCy)
+            val btnDistance = dist(rollACx, rollACy, rollBCx, rollBCy)
+            if (distA + distB <= btnDistance * 1.25f && distA <= rollAHalfW * 1.5f && distB <= rollBHalfW * 1.5f) {
+                mask = mask or RetroKey.KEY_A or RetroKey.KEY_B
+            }
+        }
+        return mask
+    }
+
+    private fun dist(ax: Float, ay: Float, bx: Float, by: Float): Float {
+        val dx = ax - bx
+        val dy = ay - by
+        return Math.sqrt((dx * dx + dy * dy).toDouble()).toFloat()
+    }
 
     /**
      * Resets inactivity timer on any touch interaction.
@@ -453,11 +657,15 @@ class TouchOverlayView @JvmOverloads constructor(
 
         when (action) {
             MotionEvent.ACTION_DOWN -> {
-                activePointers.clear()
+                clearPointerSlots()
                 val id0 = event.getPointerId(0)
                 val x0 = event.getX(0)
                 val y0 = event.getY(0)
-                activePointers[id0] = Pair(x0, y0)
+                val slot0 = assignPointerSlot(id0)
+                if (slot0 >= 0) {
+                    pointerX[slot0] = x0
+                    pointerY[slot0] = y0
+                }
 
                 syncJoystickGeometry()
 
@@ -490,7 +698,11 @@ class TouchOverlayView @JvmOverloads constructor(
                     val id = event.getPointerId(actionIndex)
                     val px = event.getX(actionIndex)
                     val py = event.getY(actionIndex)
-                    activePointers[id] = Pair(px, py)
+                    val slot = assignPointerSlot(id)
+                    if (slot >= 0) {
+                        pointerX[slot] = px
+                        pointerY[slot] = py
+                    }
 
                     syncJoystickGeometry()
 
@@ -520,12 +732,36 @@ class TouchOverlayView @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_MOVE -> {
+                // Issue #44: historical motion event coalescing. On 90/120 Hz
+                // digitizers Android batches several samples into one
+                // MotionEvent; only reading getX/getY drops the intermediate
+                // touch points. Every historical sample feeds the joystick
+                // (keeping fast flicks continuous); the newest sample of the
+                // batch additionally refreshes the stored hit-test position.
+                val historySize = event.historySize
+                for (h in 0 until historySize) {
+                    for (i in 0 until event.pointerCount) {
+                        val id = event.getPointerId(i)
+                        val px = event.getHistoricalX(i, h)
+                        val py = event.getHistoricalY(i, h)
+                        val slot = assignPointerSlot(id)
+                        if (slot < 0) continue
+                        pointerX[slot] = px
+                        pointerY[slot] = py
+                        if (joystick.isActive && joystick.pointerId == id) {
+                            joystick.update(px, py)
+                            onAnalogAxisChanged?.invoke(joystick.normX, joystick.normY)
+                        }
+                    }
+                }
                 for (i in 0 until event.pointerCount) {
                     val id = event.getPointerId(i)
                     val px = event.getX(i)
                     val py = event.getY(i)
-                    activePointers[id] = Pair(px, py)
-
+                    val slot = assignPointerSlot(id)
+                    if (slot < 0) continue
+                    pointerX[slot] = px
+                    pointerY[slot] = py
                     if (joystick.isActive && joystick.pointerId == id) {
                         val res = joystick.update(px, py)
                         onAnalogAxisChanged?.invoke(res.normX, res.normY)
@@ -538,7 +774,7 @@ class TouchOverlayView @JvmOverloads constructor(
             MotionEvent.ACTION_POINTER_UP -> {
                 if (actionIndex in 0 until event.pointerCount) {
                     val id = event.getPointerId(actionIndex)
-                    activePointers.remove(id)
+                    releasePointerSlot(id)
                     if (joystick.isActive && joystick.pointerId == id) {
                         joystick.onUp()
                         onAnalogAxisChanged?.invoke(0f, 0f)
@@ -548,7 +784,7 @@ class TouchOverlayView @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                activePointers.clear()
+                clearPointerSlots()
                 joystick.onUp()
                 onAnalogAxisChanged?.invoke(0f, 0f)
                 dynamicDpadActive = false
@@ -569,10 +805,13 @@ class TouchOverlayView @JvmOverloads constructor(
         if (viewW <= 0f || viewH <= 0f) return
 
         // Check active pointers that are not hitting physical buttons or joystick
-        for ((_, pt) in activePointers) {
-            val (px, py) = pt
+        // (issue #44: primitive array iteration, no Map/Pair allocation).
+        for (slot in 0 until MAX_TRACKED_POINTERS) {
+            if (!pointerActive[slot]) continue
+            val px = pointerX[slot]
+            val py = pointerY[slot]
             // If pointer is inside a button or active joystick, skip it
-            if (layout.inputAt(px, py) != RetroKey.NO_KEYS_MASK) continue
+            if (hitTestMaskAt(px, py, isTurboPhase()) != RetroKey.NO_KEYS_MASK) continue
             if (joystick.isActive && Math.hypot((px - joystick.baseCenterX).toDouble(), (py - joystick.baseCenterY).toDouble()) <= joystick.baseRadius * 1.5) continue
 
             // Bottom screen region for NDS (256x384 stacked display)
@@ -706,8 +945,8 @@ class TouchOverlayView @JvmOverloads constructor(
     }
 
     private fun clearPointers() {
-        if (activePointers.isNotEmpty() || currentKeyMask != RetroKey.NO_KEYS_MASK) {
-            activePointers.clear()
+        if (anyPointerActive() || currentKeyMask != RetroKey.NO_KEYS_MASK) {
+            clearPointerSlots()
             joystick.onUp()
             onAnalogAxisChanged?.invoke(0f, 0f)
             dynamicDpadActive = false
@@ -732,17 +971,25 @@ class TouchOverlayView @JvmOverloads constructor(
     private fun updateKeyMask() {
         if (isEditMode) return // Suppress game input while editing layout
 
-        val newMask = if (dpadType == DpadType.CLASSIC_CROSS) {
-            layout.resolvePointers(activePointers.values, isTurboPhase = isTurboPhase())
-        } else {
-            val nonJoystickPointers = activePointers.filter { (id, _) -> id != joystick.pointerId }.values
+        // Issue #44: hit-testing runs against the flattened primitive hitbox
+        // cache with zero per-event allocation (no Map.filter, no Pair, no
+        // RectF). Touch pointer state lives in parallel primitive arrays.
+        val turboPhase = isTurboPhase()
+        val newMask: Int = if (dpadType == DpadType.CLASSIC_CROSS) {
             var mask = RetroKey.NO_KEYS_MASK
-            for (p in nonJoystickPointers) {
-                for (c in layout.controls) {
-                    if (c.id != TouchLayout.ID_DPAD) {
-                        mask = mask or c.hitKeyMask(p.first, p.second, TouchLayout.DEFAULT_HIT_SLOP, isTurboPhase())
-                    }
-                }
+            for (i in 0 until MAX_TRACKED_POINTERS) {
+                if (!pointerActive[i]) continue
+                mask = mask or hitTestMaskAt(pointerX[i], pointerY[i], turboPhase)
+            }
+            mask
+        } else {
+            val joystickSlot = if (joystick.isActive) slotForPointer(joystick.pointerId ?: -1) else -1
+            var mask = RetroKey.NO_KEYS_MASK
+            for (i in 0 until MAX_TRACKED_POINTERS) {
+                if (!pointerActive[i] || i == joystickSlot) continue
+                // Joystick dpad modes resolve the D-pad from the analog
+                // engine; pointer hit-testing contributes buttons only.
+                mask = mask or hitTestMaskAt(pointerX[i], pointerY[i], turboPhase, skipDpad = true)
             }
             mask or joystick.currentKeyMask
         }
@@ -1257,8 +1504,13 @@ class TouchOverlayView @JvmOverloads constructor(
     }
 
     private fun isControlPressed(control: VirtualControl): Boolean {
-        for (point in activePointers.values) {
-            if (control.contains(point.first, point.second)) {
+        // Issue #44: primitive pointer-slot scan; hit-test via the flattened
+        // cache keeps rendering-time press lookups allocation-free.
+        for (slot in 0 until MAX_TRACKED_POINTERS) {
+            if (!pointerActive[slot]) continue
+            val px = pointerX[slot]
+            val py = pointerY[slot]
+            if (control.contains(px, py)) {
                 return true
             }
         }

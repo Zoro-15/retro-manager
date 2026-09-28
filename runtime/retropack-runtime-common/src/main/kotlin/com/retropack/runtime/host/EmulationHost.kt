@@ -125,11 +125,16 @@ class EmulationHost(
 
     /**
      * Halts emulation loop, flushes battery SRAM, and stops audio.
+     *
+     * Issue #47 teardown order: quiesce the emulation producer (loop stop),
+     * quiesce the audio consumer (AAudio pause — required before any native
+     * ring buffer reset), flush SRAM while the core is still loaded, and only
+     * then unload the ROM/core (retro_unload_game → retro_deinit → dlclose).
      */
     fun stop() {
         emulationLoop.stop()
-        saveManager?.flushNow()
         audioPlayer?.stop()
+        saveManager?.flushNow()
         engine.unloadRom()
     }
 

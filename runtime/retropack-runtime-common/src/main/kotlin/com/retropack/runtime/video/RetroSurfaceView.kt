@@ -15,7 +15,10 @@ class RetroSurfaceView @JvmOverloads constructor(
 ) : GLSurfaceView(context, attrs) {
 
     init {
-        setEGLContextClientVersion(2)
+        // ES 3.0 context (issue #46): required for glMapBufferRange /
+        // GL_PIXEL_UNPACK_BUFFER PBO streaming. ES 3.0 is API-level backward
+        // compatible, so all GLES20 draw calls and shaders keep working.
+        setEGLContextClientVersion(3)
         setRenderer(renderer)
         renderMode = RENDERMODE_WHEN_DIRTY
     }

@@ -20,11 +20,12 @@ import java.nio.FloatBuffer
 object RetroGlShader {
 
     const val VERTEX_SHADER_SRC = """
+        uniform mat4 u_MVP;
         attribute vec4 a_Position;
         attribute vec2 a_TexCoord;
         varying vec2 v_TexCoord;
         void main() {
-            gl_Position = a_Position;
+            gl_Position = u_MVP * a_Position;
             v_TexCoord = a_TexCoord;
         }
     """
@@ -143,16 +144,25 @@ object RetroGlShader {
     """
 
     // 5. Sharp Bilinear Filtering (Zero Shimmering Pixel-Art Scaling)
+    //    Issue #46: scale-ratio aware sampling for non-integer device aspect
+    //    ratios. When the output viewport MINIFIES the frame (scale < 1,
+    //    e.g. PS1 640x480 rendered into a small cutout, or portrait letterboxing)
+    //    the snap window relaxes to pure bilinear so scanlines are not dropped;
+    //    when magnifying, the snap window stays sharp with even pixel widths.
     const val FRAGMENT_SHARP_BILINEAR_SRC = """
         precision mediump float;
         varying vec2 v_TexCoord;
         uniform sampler2D u_Texture;
         uniform vec2 u_TextureSize;
+        uniform vec2 u_OutputSize;
 
         void main() {
+            vec2 scale = u_OutputSize / max(u_TextureSize, vec2(1.0));
             vec2 texCoord = v_TexCoord * u_TextureSize - 0.5;
             vec2 f = fract(texCoord);
             vec2 snap = clamp(f * 2.0 - 0.5, 0.0, 1.0);
+            // Minification or 1:1 output: relax to plain bilinear per axis.
+            snap = mix(vec2(1.0), snap, step(vec2(1.0), scale));
             vec2 uv = (floor(texCoord) + 0.5 + snap) / u_TextureSize;
 
             gl_FragColor = vec4(texture2D(u_Texture, uv).rgb, 1.0);
@@ -222,6 +232,55 @@ object RetroGlShader {
                 put(QUAD_TEX_COORDS)
                 position(0)
             }
+
+    /**
+     * Allocates a direct, reusable 4x4 matrix buffer (column-major, GL
+     * convention). Callers keep ONE instance for the renderer lifetime and
+     * rewrite its contents in place — no per-frame allocation (issue #46).
+     */
+    fun createMatrixBuffer(): FloatBuffer {
+        val buffer = ByteBuffer.allocateDirect(16 * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+        setIdentityMatrix(buffer)
+        return buffer
+    }
+
+    /**
+     * Writes a 4x4 identity matrix into [buffer] (column-major).
+     */
+    fun setIdentityMatrix(buffer: FloatBuffer) {
+        buffer.clear()
+        for (i in 0 until 16) {
+            buffer.put(if (i % 5 == 0) 1.0f else 0.0f)
+        }
+        buffer.position(0)
+    }
+
+    /**
+     * Writes a 2D orthogonal projection matrix into [buffer] (column-major).
+     * Cached at the renderer level and only rewritten when the viewport
+     * geometry actually changes (issue #46).
+     */
+    fun setOrthoMatrix(buffer: FloatBuffer, left: Float, right: Float, bottom: Float, top: Float, near: Float = -1.0f, far: Float = 1.0f) {
+        val invX = 2.0f / (right - left)
+        val invY = 2.0f / (top - bottom)
+        val invZ = 2.0f / (far - near)
+        buffer.clear()
+        // Column-major ortho:
+        // [ 2/(r-l)      0            0        0 ]
+        // [ 0            2/(t-b)      0        0 ]
+        // [ 0            0            -2/(f-n) 0 ]
+        // [ -(r+l)/(r-l) -(t+b)/(t-b) -(f+n)/(f-n) 1 ]
+        buffer.put(invX).put(0.0f).put(0.0f).put(0.0f)
+        buffer.put(0.0f).put(invY).put(0.0f).put(0.0f)
+        buffer.put(0.0f).put(0.0f).put(-2.0f * invZ).put(0.0f)
+        buffer.put(-(right + left) * invX)
+            .put(-(top + bottom) * invY)
+            .put(-(far + near) * invZ)
+            .put(1.0f)
+        buffer.position(0)
+    }
 
     fun getFragmentShaderSourceForMode(mode: ShaderMode): String {
         return when (mode) {

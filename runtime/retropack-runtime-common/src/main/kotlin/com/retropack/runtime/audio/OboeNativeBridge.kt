@@ -10,7 +10,12 @@ package com.retropack.runtime.audio
  */
 object OboeNativeBridge {
 
-    private val CANDIDATE_LIBRARIES = listOf("retropack-runtime", "oboe", "mgba")
+    /**
+     * Candidate libraries probed in order. `retropack-host` is the universal
+     * libretro host .so that now carries the native AAudio pull bridge
+     * (issue #43); the legacy names are kept for older artifact layouts.
+     */
+    private val CANDIDATE_LIBRARIES = listOf("retropack-host", "retropack-runtime", "oboe", "mgba")
 
     @Volatile
     private var isNativeAvailable: Boolean = false
@@ -37,4 +42,17 @@ object OboeNativeBridge {
     external fun nativeOboeSetVolume(handle: Long, volume: Float)
     external fun nativeOboeGetUnderruns(handle: Long): Int
     external fun nativeOboeGetLatencyMs(handle: Long): Double
+
+    /**
+     * True when the native stream runs in direct-pull mode: the realtime
+     * AAudio onAudioReady callback drains the libretro ring buffer itself and
+     * JVM-side pumping is unnecessary (issue #43).
+     */
+    external fun nativeOboeIsDirect(handle: Long): Boolean
+
+    /**
+     * Publishes the AudioDriftController's proportional rate adjustment
+     * (0.94..1.06) into the realtime callback via a lock-free atomic float.
+     */
+    external fun nativeOboeSetDriftRate(handle: Long, rate: Float)
 }

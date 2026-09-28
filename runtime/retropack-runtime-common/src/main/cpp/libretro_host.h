@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include "libretro.h"
 #include "ringbuffer.h"
 
@@ -73,6 +74,11 @@ typedef struct LibretroHostState {
 
     // Audio pipeline
     RingBuffer* audio_rb;
+    /* Lock-free publication of audio_rb to the realtime AAudio consumer
+     * (issue #43). The ring buffer is immortal once created: consumers may
+     * hold this pointer across host teardown and must never dereference a
+     * stale value — the pointer is only ever published once. */
+    _Atomic(RingBuffer *) audio_rb_atomic;
 
     // Input state
     uint32_t input_mask;
@@ -125,6 +131,19 @@ void host_set_pointer(int16_t x, int16_t y, bool pressed);
 uint32_t* host_get_video_buffer(unsigned* out_width, unsigned* out_height);
 size_t host_get_audio_samples(int16_t* out_samples, size_t max_samples);
 size_t host_get_audio_available(void);
+
+/**
+ * Lock-free audio pull API for the realtime AAudio callback (issue #43).
+ *
+ * These accessors deliberately do NOT take g_host.lock: the callback thread
+ * must never contend with the emulation thread holding the lock across
+ * retro_run(). The backing ring buffer is SPSC lock-free (see ringbuffer.h).
+ *
+ * @param backlog_limit Maximum tolerated backlog before the consumer skips
+ *                      the oldest samples to bound latency.
+ */
+size_t host_pull_audio_samples(int16_t* out_samples, size_t max_samples, size_t backlog_limit);
+size_t host_pull_audio_available(void);
 
 /**
  * Durability & Saves API.
