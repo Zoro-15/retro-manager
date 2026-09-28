@@ -74,9 +74,9 @@ object RuntimeLogger {
      * Resolves the public Download logs folder: `/sdcard/Download/logs/<appSlug>`.
      */
     fun resolvePublicDownloadLogsDir(appSlug: String): File {
-        val downloadDir: File = runCatching<File> {
+        val downloadDir: File = runCatching<File?> {
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        }.getOrNull() ?: File(System.getProperty("user.home", "/sdcard"), "Download")
+        }.getOrNull()?.takeIf { !it.path.isNullOrBlank() } ?: File(System.getProperty("user.home", "/sdcard"), "Download")
 
         val target = File(downloadDir, "logs/$appSlug")
         runCatching { target.mkdirs() }

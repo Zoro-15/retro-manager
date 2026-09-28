@@ -1,6 +1,7 @@
 package com.retropack.runtime
 
 import com.retropack.runtime.logging.RuntimeLogger
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -12,6 +13,11 @@ class RuntimeLoggerTest {
 
     @TempDir
     lateinit var tempDir: File
+
+    @AfterEach
+    fun tearDown() {
+        RuntimeLogger.stop()
+    }
 
     @Test
     fun testRuntimeLoggerLifecycleAndFileCreation() {
