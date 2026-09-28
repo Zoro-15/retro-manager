@@ -1,0 +1,124 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 11:24:50 UTC
+Total Execution : 132.33s (2m 12s)
+Overall Result  : 5/8 Targets Passed (3 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime PASS        61.84s     runtime-common.log
+[02] Packaging Engine & Domain Core         FAIL [!]    17.66s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) FAIL [!]     9.99s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.04s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.05s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.11s     rotate-anchors.log
+[07] Manager APK (Main App)                 PASS        30.61s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        FAIL [!]    12.01s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [02]: Packaging Engine & Domain Core (ID: core-module)
+### Command : ./gradlew :core:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/core-module.log
+################################################################################
+
+--- [Snippet #1 | Lines 308 to 328] ---
+    L0308: > Task :core:test FAILED
+    L0309: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790594620838.json
+    L0310: 
+    L0311: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0312: 
+>>> [ERROR] L0313: FAILURE: Build failed with an exception.
+    L0314: 
+    L0315: * What went wrong:
+>>> [ERROR] L0316: Execution failed for task ':core:test'.
+    L0317: > There were failing tests. See the report at: file:///home/runner/work/retro-manager/retro-manager/core/build/reports/tests/test/index.html
+    L0318: 
+    L0319: * Try:
+    L0320: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0321: 
+    L0322: * Exception is:
+>>> [ERROR] L0323: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':core:test'.
+    L0324: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0325: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0326: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0327: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0328: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [03]: Template APK (Standalone Universal Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 62 to 85] ---
+    L0062: > Task :template-apk:mergeExtDexDebug
+    L0063: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790594638537.json
+    L0064: 
+    L0065: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0066: 
+>>> [ERROR] L0067: FAILURE: Build failed with an exception.
+    L0068: 
+    L0069: * What went wrong:
+>>> [ERROR] L0070: Execution failed for task ':template-apk:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0071: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0072:    > Compilation error. See log for more details
+    L0073: 
+    L0074: * Try:
+    L0075: > Run with --info or --debug option to get more log output.
+    L0076: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0077: > Get more help at https://help.gradle.org.
+    L0078: 
+    L0079: * Exception is:
+>>> [ERROR] L0080: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':template-apk:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0081: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0082: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0083: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0084: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0085: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+
+################################################################################
+### Target [08]: Unit Tests (App & Runtime Host) (ID: unit-tests)
+### Command : ./gradlew :app:testDebugUnitTest :runtime:retropack-runtime-common:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/unit-tests.log
+################################################################################
+
+--- [Snippet #1 | Lines 285 to 308] ---
+    L0285: w: file:///home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/video/DisplaySyncManager.kt:44:44 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+    L0286: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790594679278.json
+    L0287: 
+    L0288: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0289: 
+>>> [ERROR] L0290: FAILURE: Build failed with an exception.
+    L0291: 
+    L0292: * What went wrong:
+>>> [ERROR] L0293: Execution failed for task ':runtime:retropack-runtime-common:compileDebugUnitTestKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0294: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0295:    > Compilation error. See log for more details
+    L0296: 
+    L0297: * Try:
+    L0298: > Run with --info or --debug option to get more log output.
+    L0299: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0300: > Get more help at https://help.gradle.org.
+    L0301: 
+    L0302: * Exception is:
+>>> [ERROR] L0303: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:compileDebugUnitTestKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+    L0304: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0305: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0306: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0307: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0308: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
