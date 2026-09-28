@@ -108,11 +108,10 @@ jobs:
             unzip -q -o "$DEST/logs.zip" -d "$DEST/logs" || echo "WARN: logs unzip failed"
           fi
 
-          echo "Downloading run artifacts (tolerates none)..."
+          # Download artifacts excluding large binaries (APKs exceed 100 MB limit)
           gh run download "$RUN_ID" --repo "$REPO" --dir "$DEST/artifacts" || echo "WARN: no artifacts or download failed"
-
-          # Remove large files that exceed GitHub's 100 MB file limit before committing
-          find "$DEST/artifacts" -type f -size +95M -delete 2>/dev/null || true
+          # Remove APK/AAR files and any large binaries to stay under GitHub's 100 MB file limit
+          find "$DEST/artifacts" -type f \( -name "*.apk" -o -name "*.aar" -o -size +95M \) -delete 2>/dev/null || true
 
           # Switch to (or create) the ci-logs branch and commit this run only.
           git config user.name "github-actions[bot]"
