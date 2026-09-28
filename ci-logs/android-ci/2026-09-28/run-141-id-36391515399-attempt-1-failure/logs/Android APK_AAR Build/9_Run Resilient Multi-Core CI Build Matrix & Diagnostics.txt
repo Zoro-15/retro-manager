@@ -1,0 +1,428 @@
+﻿2026-09-28T07:26:59.3860609Z ##[group]Run python3 scripts/ci-build-matrix.py
+2026-09-28T07:26:59.3861070Z [36;1mpython3 scripts/ci-build-matrix.py[0m
+2026-09-28T07:26:59.3922395Z shell: /usr/bin/bash -e {0}
+2026-09-28T07:26:59.3922703Z env:
+2026-09-28T07:26:59.3923072Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-28T07:26:59.3923663Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-28T07:26:59.3924156Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-28T07:26:59.3924517Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-28T07:26:59.3924875Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-28T07:26:59.3925227Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-28T07:26:59.3925725Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-28T07:26:59.3926265Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-28T07:26:59.3926639Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-28T07:26:59.3926973Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-09-28T07:26:59.3927356Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-09-28T07:26:59.3927783Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-09-28T07:26:59.3928170Z ##[endgroup]
+2026-09-28T07:26:59.4287505Z ========================================================================================
+2026-09-28T07:26:59.4288572Z            RETROPACK RESILIENT MULTI-CORE CI BUILD & DIAGNOSTICS MATRIX
+2026-09-28T07:26:59.4289871Z ========================================================================================
+2026-09-28T07:26:59.4291336Z Working Directory: /home/runner/work/retro-manager/retro-manager
+2026-09-28T07:26:59.4292443Z Logs Output Dir  : /home/runner/work/retro-manager/retro-manager/build-logs
+2026-09-28T07:26:59.4293257Z Total Targets    : 16
+2026-09-28T07:26:59.4293968Z ========================================================================================
+2026-09-28T07:26:59.4294446Z 
+2026-09-28T07:26:59.4294780Z [01/16] Building: Common Native Runtime ...
+2026-09-28T07:26:59.4295739Z        Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+2026-09-28T07:27:49.5771676Z        Status  : [ PASS ] in 50.15s (Exit code: 0)
+2026-09-28T07:27:49.5772297Z 
+2026-09-28T07:27:49.5772637Z [02/16] Building: mGBA (GBA) ...
+2026-09-28T07:27:49.5773798Z        Command : ./gradlew :runtime:retropack-runtime-mgba:assembleDebug --stacktrace
+2026-09-28T07:28:03.0980903Z        Status  : [ PASS ] in 13.52s (Exit code: 0)
+2026-09-28T07:28:03.1009853Z 
+2026-09-28T07:28:03.1040872Z [03/16] Building: Snes9x (SNES) ...
+2026-09-28T07:28:03.1060609Z        Command : ./gradlew :runtime:retropack-runtime-snes9x:assembleDebug --stacktrace
+2026-09-28T07:28:35.8531858Z        Status  : [ PASS ] in 32.76s (Exit code: 0)
+2026-09-28T07:28:35.8532842Z 
+2026-09-28T07:28:35.8533422Z [04/16] Building: Genesis Plus GX (MD/GEN) ...
+2026-09-28T07:28:35.8534546Z        Command : ./gradlew :runtime:retropack-runtime-genesis:assembleDebug --stacktrace
+2026-09-28T07:28:38.2638435Z        Status  : [!FAIL!] in 2.41s (Exit code: 1)
+2026-09-28T07:28:38.2725578Z        --- Diagnostic Snippets (6 merged block(s)) ---
+2026-09-28T07:28:38.2726299Z        [Lines 1-74]:
+2026-09-28T07:28:38.2727103Z              L0001: > Task :runtime:retropack-runtime-genesis:preBuild UP-TO-DATE
+2026-09-28T07:28:38.2728241Z              L0002: > Task :runtime:retropack-runtime-genesis:preDebugBuild UP-TO-DATE
+2026-09-28T07:28:38.2729634Z              L0003: > Task :runtime:retropack-runtime-genesis:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:28:38.2730815Z              L0004: 
+2026-09-28T07:28:38.2732131Z          >>> [ERROR] L0005: > Task :runtime:retropack-runtime-genesis:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:28:38.2752321Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-genesis/.cxx/Debug/595bv372/arm64-v8a'
+2026-09-28T07:28:38.2755074Z            ! [WARN ] L0007: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-genesis/submodules/genesis-plus-gx/core/cart_hw/eeprom_spi.c:43:9: warning: 'PAGE_MASK' macro redefined [-Wmacro-redefined]
+2026-09-28T07:28:38.2757222Z              L0008: C/C++:    43 | #define PAGE_MASK 0x7f
+2026-09-28T07:28:38.2757894Z              L0009: C/C++:       |         ^
+2026-09-28T07:28:38.2759764Z              L0010: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/page_size.h:46:9: note: previous definition is here
+2026-09-28T07:28:38.2761337Z              L0011: C/C++:    46 | #define PAGE_MASK (~(PAGE_SIZE - 1))
+2026-09-28T07:28:38.2762069Z              L0012: C/C++:       |         ^
+2026-09-28T07:28:38.2762664Z          ... (62 more lines in full log)
+2026-09-28T07:28:38.2763198Z        [Lines 78-88]:
+2026-09-28T07:28:38.2763666Z              L0078: * Try:
+2026-09-28T07:28:38.2764424Z              L0079: > Run with --info or --debug option to get more log output.
+2026-09-28T07:28:38.2765548Z              L0080: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:28:38.2766548Z              L0081: > Get more help at https://help.gradle.org.
+2026-09-28T07:28:38.2767169Z              L0082: 
+2026-09-28T07:28:38.2767685Z          >>> [ERROR] L0083: * Exception is:
+2026-09-28T07:28:38.2769759Z              L0084: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-genesis:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:28:38.2772515Z              L0085: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:28:38.2774127Z              L0086: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:28:38.2775795Z              L0087: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:28:38.2777797Z              L0088: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:28:38.2778892Z        [Lines 149-187]:
+2026-09-28T07:28:38.2784216Z              L0149: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-genesis/.cxx/Debug/595bv372/arm64-v8a'
+2026-09-28T07:28:38.2786824Z              L0150: [1/57] Building C object CMakeFiles/retropack-runtime-genesis.dir/submodules/genesis-plus-gx/core/cart_hw/areplay.c.o
+2026-09-28T07:28:38.2788519Z              L0151: [2/57] Building C object CMakeFiles/retropack-runtime-genesis.dir/src/main/cpp/ringbuffer.c.o
+2026-09-28T07:28:38.2790565Z              L0152: [3/57] Building C object CMakeFiles/retropack-runtime-genesis.dir/submodules/genesis-plus-gx/core/cart_hw/eeprom_93c.c.o
+2026-09-28T07:28:38.2792603Z              L0153: [4/57] Building C object CMakeFiles/retropack-runtime-genesis.dir/submodules/genesis-plus-gx/core/cart_hw/eeprom_spi.c.o
+2026-09-28T07:28:38.2795306Z            ! [WARN ] L0154: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-genesis/submodules/genesis-plus-gx/core/cart_hw/eeprom_spi.c:43:9: warning: 'PAGE_MASK' macro redefined [-Wmacro-redefined]
+2026-09-28T07:28:38.2797063Z              L0155:    43 | #define PAGE_MASK 0x7f
+2026-09-28T07:28:38.2797715Z              L0156:       |         ^
+2026-09-28T07:28:38.2799575Z              L0157: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/bits/page_size.h:46:9: note: previous definition is here
+2026-09-28T07:28:38.2801167Z              L0158:    46 | #define PAGE_MASK (~(PAGE_SIZE - 1))
+2026-09-28T07:28:38.2801888Z              L0159:       |         ^
+2026-09-28T07:28:38.2802515Z              L0160: 1 warning generated.
+2026-09-28T07:28:38.2803400Z          ... (27 more lines in full log)
+2026-09-28T07:28:38.2803767Z 
+2026-09-28T07:28:38.2804044Z [05/16] Building: FCEUmm (NES) ...
+2026-09-28T07:28:38.2805003Z        Command : ./gradlew :runtime:retropack-runtime-fceumm:assembleDebug --stacktrace
+2026-09-28T07:28:40.6361516Z        Status  : [!FAIL!] in 2.36s (Exit code: 1)
+2026-09-28T07:28:40.6417220Z        --- Diagnostic Snippets (7 merged block(s)) ---
+2026-09-28T07:28:40.6417992Z        [Lines 1-24]:
+2026-09-28T07:28:40.6418830Z              L0001: > Task :runtime:retropack-runtime-fceumm:preBuild UP-TO-DATE
+2026-09-28T07:28:40.6420218Z              L0002: > Task :runtime:retropack-runtime-fceumm:preDebugBuild UP-TO-DATE
+2026-09-28T07:28:40.6421459Z              L0003: > Task :runtime:retropack-runtime-fceumm:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:28:40.6422321Z              L0004: 
+2026-09-28T07:28:40.6423305Z          >>> [ERROR] L0005: > Task :runtime:retropack-runtime-fceumm:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:28:40.6424471Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/.cxx/Debug/x1y693b5/arm64-v8a'
+2026-09-28T07:28:40.6435956Z              L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DFCEU_VERSION_NUMERIC=9900 -DFRONTEND_SUPPORTS_RGB565=1 -DHAVE_FCEUMM_CORE=1 -DPATH_MAX=1024 -DSTATIC_LINKING=1 -D__LIBRETRO__=1 -Dretropack_runtime_fceumm_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/input -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/boards -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/drivers/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/drivers/libretro/libretro-common/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o -MF CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o.d -o CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp/fceumm-jni.c
+2026-09-28T07:28:40.6444057Z          >>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp/fceumm-jni.c:78:5: error: redefinition of 'swapDuty' with a different type: 'int' vs 'unsigned int'
+2026-09-28T07:28:40.6445220Z              L0009: C/C++:    78 | int swapDuty = 0;
+2026-09-28T07:28:40.6445658Z              L0010: C/C++:       |     ^
+2026-09-28T07:28:40.6447198Z              L0011: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/fceu.h:20:17: note: previous declaration is here
+2026-09-28T07:28:40.6448603Z              L0012: C/C++:    20 | extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
+2026-09-28T07:28:40.6449854Z          ... (12 more lines in full log)
+2026-09-28T07:28:40.6450355Z        [Lines 27-51]:
+2026-09-28T07:28:40.6451014Z              L0027:   [4/489] Building C object CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/ringbuffer.c.o
+2026-09-28T07:28:40.6451946Z              L0028:   [5/489] Building C object CMakeFiles/retropack-runtime-fceumm.dir/submodules/fceumm/src/cheat.c.o
+2026-09-28T07:28:40.6452906Z              L0029:   [6/489] Building C object CMakeFiles/retropack-runtime-fceumm.dir/submodules/fceumm/src/fceu-memory.c.o
+2026-09-28T07:28:40.6454060Z              L0030:   [7/489] Building C object CMakeFiles/retropack-runtime-fceumm.dir/submodules/fceumm/src/fceu.c.o
+2026-09-28T07:28:40.6454965Z              L0031:   [8/489] Building C object CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o
+2026-09-28T07:28:40.6455821Z          >>> [ERROR] L0032:   FAILED: CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o
+2026-09-28T07:28:40.6465746Z              L0033:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DFCEU_VERSION_NUMERIC=9900 -DFRONTEND_SUPPORTS_RGB565=1 -DHAVE_FCEUMM_CORE=1 -DPATH_MAX=1024 -DSTATIC_LINKING=1 -D__LIBRETRO__=1 -Dretropack_runtime_fceumm_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/input -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/boards -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/drivers/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/drivers/libretro/libretro-common/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o -MF CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o.d -o CMakeFiles/retropack-runtime-fceumm.dir/src/main/cpp/fceumm-jni.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp/fceumm-jni.c
+2026-09-28T07:28:40.6473467Z          >>> [ERROR] L0034:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/src/main/cpp/fceumm-jni.c:78:5: error: redefinition of 'swapDuty' with a different type: 'int' vs 'unsigned int'
+2026-09-28T07:28:40.6474480Z              L0035:      78 | int swapDuty = 0;
+2026-09-28T07:28:40.6474875Z              L0036:         |     ^
+2026-09-28T07:28:40.6475826Z              L0037:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fceumm/submodules/fceumm/src/fceu.h:20:17: note: previous declaration is here
+2026-09-28T07:28:40.6476876Z              L0038:      20 | extern unsigned swapDuty; /* Swap bits 6 & 7 of $4000/$4004 to mimic bug
+2026-09-28T07:28:40.6477409Z          ... (13 more lines in full log)
+2026-09-28T07:28:40.6477758Z        [Lines 55-65]:
+2026-09-28T07:28:40.6478062Z              L0055: * Try:
+2026-09-28T07:28:40.6478543Z              L0056: > Run with --info or --debug option to get more log output.
+2026-09-28T07:28:40.6479254Z              L0057: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:28:40.6480140Z              L0058: > Get more help at https://help.gradle.org.
+2026-09-28T07:28:40.6480543Z              L0059: 
+2026-09-28T07:28:40.6480867Z          >>> [ERROR] L0060: * Exception is:
+2026-09-28T07:28:40.6482015Z              L0061: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-fceumm:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:28:40.6483517Z              L0062: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:28:40.6484499Z              L0063: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:28:40.6486526Z              L0064: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:28:40.6488647Z              L0065: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:28:40.6489893Z 
+2026-09-28T07:28:40.6490253Z [06/16] Building: Beetle PCE Fast (PC Engine) ...
+2026-09-28T07:28:40.6491361Z        Command : ./gradlew :runtime:retropack-runtime-pce:assembleDebug --stacktrace
+2026-09-28T07:28:45.6673991Z        Status  : [ PASS ] in 5.03s (Exit code: 0)
+2026-09-28T07:28:45.6674480Z 
+2026-09-28T07:28:45.6674714Z [07/16] Building: FBNeo (Arcade / NeoGeo) ...
+2026-09-28T07:28:45.6675379Z        Command : ./gradlew :runtime:retropack-runtime-fbneo:assembleDebug --stacktrace
+2026-09-28T07:28:48.0448008Z        Status  : [!FAIL!] in 2.38s (Exit code: 1)
+2026-09-28T07:28:48.1006353Z        --- Diagnostic Snippets (20 merged block(s)) ---
+2026-09-28T07:28:48.1007391Z        [Lines 1-72]:
+2026-09-28T07:28:48.1008244Z              L0001: > Task :runtime:retropack-runtime-fbneo:preBuild UP-TO-DATE
+2026-09-28T07:28:48.1009561Z              L0002: > Task :runtime:retropack-runtime-fbneo:preDebugBuild UP-TO-DATE
+2026-09-28T07:28:48.1010844Z              L0003: > Task :runtime:retropack-runtime-fbneo:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:28:48.1011561Z              L0004: 
+2026-09-28T07:28:48.1012302Z          >>> [ERROR] L0005: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:28:48.1013801Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+2026-09-28T07:28:48.1015978Z              L0007: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burn_sound.cpp:1:
+2026-09-28T07:28:48.1017830Z              L0008: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burnint.h:17:
+2026-09-28T07:28:48.1020435Z            ! [WARN ] L0009: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:70:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:28:48.1022004Z              L0010: C/C++:    70 |                 SCAN_VAR(state);
+2026-09-28T07:28:48.1022470Z              L0011: C/C++:       |                 ^
+2026-09-28T07:28:48.1023507Z              L0012: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:28:48.1024373Z          ... (60 more lines in full log)
+2026-09-28T07:28:48.1024733Z        [Lines 74-95]:
+2026-09-28T07:28:48.1025563Z              L0074: C/C++:   124 | "/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burn_memory.cpp"
+2026-09-28T07:28:48.1026322Z              L0075: C/C++:       | ^
+2026-09-28T07:28:48.1026723Z              L0076: C/C++: 7 warnings generated.
+2026-09-28T07:28:48.1027674Z              L0077: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burn_sha1.cpp:1:
+2026-09-28T07:28:48.1029013Z              L0078: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burnint.h:17:
+2026-09-28T07:28:48.1030913Z            ! [WARN ] L0079: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:70:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:28:48.1032121Z              L0080: C/C++:    70 |                 SCAN_VAR(state);
+2026-09-28T07:28:48.1032757Z              L0081: C/C++:       |                 ^
+2026-09-28T07:28:48.1033816Z              L0082: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:28:48.1034797Z              L0083: C/C++:    72 | #define SCAN_VAR(x) ScanVar(&x, sizeof(x), #x)
+2026-09-28T07:28:48.1035360Z              L0084: C/C++:       |                                            ^
+2026-09-28T07:28:48.1036411Z              L0085: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a/<scratch space>:117:1: note: expanded from here
+2026-09-28T07:28:48.1037262Z          ... (10 more lines in full log)
+2026-09-28T07:28:48.1037615Z        [Lines 98-563]:
+2026-09-28T07:28:48.1037932Z              L0098: C/C++:       | ^
+2026-09-28T07:28:48.1038320Z              L0099: C/C++: 2 warnings generated.
+2026-09-28T07:28:48.1051111Z              L0100: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DBUILD_NEOGEO=1 -DHAVE_FBNEO_CORE=1 -DINLINE=inline -DSUPPORT_SPLIT_DRIVER=1 -D__LIBRETRO_OPTIMIZATIONS__=1 -D__LIBRETRO__=1 -Dretropack_runtime_fbneo_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/../retropack-runtime-common/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/snd -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/z80 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/dep/libs/zlib -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o -MF CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o.d -o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burn.cpp
+2026-09-28T07:28:48.1062060Z              L0101: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burn.cpp:4:
+2026-09-28T07:28:48.1063398Z              L0102: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burnint.h:17:
+2026-09-28T07:28:48.1065160Z            ! [WARN ] L0103: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:70:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:28:48.1066491Z              L0104: C/C++:    70 |                 SCAN_VAR(state);
+2026-09-28T07:28:48.1066951Z              L0105: C/C++:       |                 ^
+2026-09-28T07:28:48.1067966Z              L0106: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:28:48.1068958Z              L0107: C/C++:    72 | #define SCAN_VAR(x) ScanVar(&x, sizeof(x), #x)
+2026-09-28T07:28:48.1069644Z              L0108: C/C++:       |                                            ^
+2026-09-28T07:28:48.1070703Z              L0109: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a/<scratch space>:117:1: note: expanded from here
+2026-09-28T07:28:48.1071560Z          ... (454 more lines in full log)
+2026-09-28T07:28:48.1071786Z 
+2026-09-28T07:28:48.1071976Z [08/16] Building: PCSX ReARMed (PS1) ...
+2026-09-28T07:28:48.1072559Z        Command : ./gradlew :runtime:retropack-runtime-pcsx:assembleDebug --stacktrace
+2026-09-28T07:28:50.3111951Z        Status  : [!FAIL!] in 2.21s (Exit code: 1)
+2026-09-28T07:28:50.3162184Z        --- Diagnostic Snippets (7 merged block(s)) ---
+2026-09-28T07:28:50.3163027Z        [Lines 1-22]:
+2026-09-28T07:28:50.3163997Z              L0001: > Task :runtime:retropack-runtime-pcsx:preBuild UP-TO-DATE
+2026-09-28T07:28:50.3165440Z              L0002: > Task :runtime:retropack-runtime-pcsx:preDebugBuild UP-TO-DATE
+2026-09-28T07:28:50.3166682Z              L0003: > Task :runtime:retropack-runtime-pcsx:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:28:50.3167541Z              L0004: 
+2026-09-28T07:28:50.3168656Z          >>> [ERROR] L0005: > Task :runtime:retropack-runtime-pcsx:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:28:50.3170759Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/.cxx/Debug/3uf4qy72/arm64-v8a'
+2026-09-28T07:28:50.3185551Z              L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DDISABLE_MEM_LUTS=0 -DDRC_DISABLE=1 -DGPU_PEOPS=1 -DHAVE_PCSX_CORE=1 -DNO_DYLIB=1 -DNO_FRONTEND=1 -DP_HAVE_MMAP=0 -DP_HAVE_POSIX_MEMALIGN=0 -DUSE_LIBRETRO_VFS=1 -D__LIBRETRO__=1 -Dretropack_runtime_pcsx_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/frontend -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/gpulib -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfsound -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/deps/libretro-common/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o -MF CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o.d -o CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore/misc.c
+2026-09-28T07:28:50.3201335Z          >>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore/misc.c:731:50: error: expected ';' after top level declarator
+2026-09-28T07:28:50.3202843Z              L0009: C/C++:   731 | static const char PcsxHeader[32] = "STv4 PCSXra " REV;
+2026-09-28T07:28:50.3203927Z              L0010: C/C++:       |                                                  ^
+2026-09-28T07:28:50.3204892Z              L0011: C/C++:       |                                                  ;
+2026-09-28T07:28:50.3205748Z          >>> [ERROR] L0012: C/C++: 1 error generated.
+2026-09-28T07:28:50.3206571Z          ... (10 more lines in full log)
+2026-09-28T07:28:50.3207201Z        [Lines 28-50]:
+2026-09-28T07:28:50.3208511Z              L0028:   [7/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/decode_xa.c.o
+2026-09-28T07:28:50.3210756Z              L0029:   [8/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/plugins.c.o
+2026-09-28T07:28:50.3212784Z              L0030:   [9/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/psxcommon.c.o
+2026-09-28T07:28:50.3214352Z              L0031:   [10/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/ppf.c.o
+2026-09-28T07:28:50.3215977Z              L0032:   [11/45] Building C object CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o
+2026-09-28T07:28:50.3217337Z          >>> [ERROR] L0033:   FAILED: CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o
+2026-09-28T07:28:50.3228130Z              L0034:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DDISABLE_MEM_LUTS=0 -DDRC_DISABLE=1 -DGPU_PEOPS=1 -DHAVE_PCSX_CORE=1 -DNO_DYLIB=1 -DNO_FRONTEND=1 -DP_HAVE_MMAP=0 -DP_HAVE_POSIX_MEMALIGN=0 -DUSE_LIBRETRO_VFS=1 -D__LIBRETRO__=1 -Dretropack_runtime_pcsx_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/frontend -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/gpulib -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfxvideo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/plugins/dfsound -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/deps/libretro-common/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o -MF CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o.d -o CMakeFiles/retropack-runtime-pcsx.dir/submodules/pcsx_rearmed/libpcsxcore/misc.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore/misc.c
+2026-09-28T07:28:50.3237625Z          >>> [ERROR] L0035:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-pcsx/submodules/pcsx_rearmed/libpcsxcore/misc.c:731:50: error: expected ';' after top level declarator
+2026-09-28T07:28:50.3238715Z              L0036:     731 | static const char PcsxHeader[32] = "STv4 PCSXra " REV;
+2026-09-28T07:28:50.3239477Z              L0037:         |                                                  ^
+2026-09-28T07:28:50.3240022Z              L0038:         |                                                  ;
+2026-09-28T07:28:50.3240480Z          >>> [ERROR] L0039:   1 error generated.
+2026-09-28T07:28:50.3240865Z          ... (11 more lines in full log)
+2026-09-28T07:28:50.3241213Z        [Lines 54-64]:
+2026-09-28T07:28:50.3241526Z              L0054: * Try:
+2026-09-28T07:28:50.3242008Z              L0055: > Run with --info or --debug option to get more log output.
+2026-09-28T07:28:50.3242705Z              L0056: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:28:50.3243615Z              L0057: > Get more help at https://help.gradle.org.
+2026-09-28T07:28:50.3244303Z              L0058: 
+2026-09-28T07:28:50.3244874Z          >>> [ERROR] L0059: * Exception is:
+2026-09-28T07:28:50.3246905Z              L0060: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-pcsx:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:28:50.3250019Z              L0061: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:28:50.3251780Z              L0062: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:28:50.3253621Z              L0063: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:28:50.3255843Z              L0064: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:28:50.3256902Z 
+2026-09-28T07:28:50.3257267Z [09/16] Building: Mupen64Plus-Next (N64) ...
+2026-09-28T07:28:50.3258304Z        Command : ./gradlew :runtime:retropack-runtime-mupen64:assembleDebug --stacktrace
+2026-09-28T07:28:52.4834611Z        Status  : [!FAIL!] in 2.17s (Exit code: 1)
+2026-09-28T07:28:52.4905568Z        --- Diagnostic Snippets (7 merged block(s)) ---
+2026-09-28T07:28:52.4906616Z        [Lines 1-34]:
+2026-09-28T07:28:52.4907862Z              L0001: > Task :runtime:retropack-runtime-mupen64:preBuild UP-TO-DATE
+2026-09-28T07:28:52.4909768Z              L0002: > Task :runtime:retropack-runtime-mupen64:preDebugBuild UP-TO-DATE
+2026-09-28T07:28:52.4911005Z              L0003: > Task :runtime:retropack-runtime-mupen64:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:28:52.4911815Z              L0004: 
+2026-09-28T07:28:52.4912730Z          >>> [ERROR] L0005: > Task :runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:28:52.4914523Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+2026-09-28T07:28:52.4933594Z              L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCORE_NAME=\"mupen64plus\" -DHAVE_MUPEN64_CORE=1 -DINLINE=inline -DM64P_CORE_PROTOTYPES=1 -DM64P_STATIC_CORE=1 -DNO_ASM=1 -DNO_MD5=1 -Dretropack_runtime_mupen64_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom/mupen64plus-core -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom/android/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/api -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/osal -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/subprojects/md5 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-rsp-hle/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro-common/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o -MF CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o.d -o CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c
+2026-09-28T07:28:52.4947123Z          >>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c:190:5: error: call to undeclared function 'environ_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+2026-09-28T07:28:52.4948708Z              L0009: C/C++:   190 |     environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &retromap);
+2026-09-28T07:28:52.4949229Z              L0010: C/C++:       |     ^
+2026-09-28T07:28:52.4949830Z          >>> [ERROR] L0011: C/C++: 1 error generated.
+2026-09-28T07:28:52.4951402Z            ! [WARN ] L0012: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/device/dd/dd_controller.c:512:30: warning: taking the absolute value of unsigned type 'unsigned int' has no effect [-Wabsolute-value]
+2026-09-28T07:28:52.4952652Z          ... (22 more lines in full log)
+2026-09-28T07:28:52.4952992Z        [Lines 53-87]:
+2026-09-28T07:28:52.4953924Z              L0053:   [20/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/controllers/game_controller.c.o
+2026-09-28T07:28:52.4955356Z              L0054:   [21/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/controllers/paks/biopak.c.o
+2026-09-28T07:28:52.4956910Z              L0055:   [22/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/controllers/vru_controller.c.o
+2026-09-28T07:28:52.4958304Z              L0056:   [23/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/controllers/paks/rumblepak.c.o
+2026-09-28T07:28:52.4959883Z              L0057:   [24/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o
+2026-09-28T07:28:52.4961115Z          >>> [ERROR] L0058:   FAILED: CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o
+2026-09-28T07:28:52.4975967Z              L0059:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCORE_NAME=\"mupen64plus\" -DHAVE_MUPEN64_CORE=1 -DINLINE=inline -DM64P_CORE_PROTOTYPES=1 -DM64P_STATIC_CORE=1 -DNO_ASM=1 -DNO_MD5=1 -Dretropack_runtime_mupen64_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom/mupen64plus-core -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/custom/android/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/api -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/osal -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/subprojects/md5 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-rsp-hle/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro-common/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/libretro/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -fno-limit-debug-info  -fPIC -std=gnu11 -MD -MT CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o -MF CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o.d -o CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c
+2026-09-28T07:28:52.4990549Z          >>> [ERROR] L0060:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-core/src/device/device.c:190:5: error: call to undeclared function 'environ_cb'; ISO C99 and later do not support implicit function declarations [-Wimplicit-function-declaration]
+2026-09-28T07:28:52.4993507Z              L0061:     190 |     environ_cb(RETRO_ENVIRONMENT_SET_MEMORY_MAPS, &retromap);
+2026-09-28T07:28:52.4994371Z              L0062:         |     ^
+2026-09-28T07:28:52.4994867Z          >>> [ERROR] L0063:   1 error generated.
+2026-09-28T07:28:52.4996028Z              L0064:   [25/85] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/device/controllers/paks/mempak.c.o
+2026-09-28T07:28:52.4997044Z          ... (23 more lines in full log)
+2026-09-28T07:28:52.4997397Z        [Lines 91-101]:
+2026-09-28T07:28:52.4997850Z              L0091: * Try:
+2026-09-28T07:28:52.4998331Z              L0092: > Run with --info or --debug option to get more log output.
+2026-09-28T07:28:52.4999203Z              L0093: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:28:52.5000233Z              L0094: > Get more help at https://help.gradle.org.
+2026-09-28T07:28:52.5000664Z              L0095: 
+2026-09-28T07:28:52.5001005Z          >>> [ERROR] L0096: * Exception is:
+2026-09-28T07:28:52.5002332Z              L0097: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:28:52.5004159Z              L0098: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:28:52.5005506Z              L0099: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:28:52.5006689Z              L0100: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:28:52.5008077Z              L0101: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:28:52.5008805Z 
+2026-09-28T07:28:52.5008996Z [10/16] Building: PPSSPP (PSP) ...
+2026-09-28T07:28:52.5009767Z        Command : ./gradlew :runtime:retropack-runtime-ppsspp:assembleDebug --stacktrace
+2026-09-28T07:29:05.2461862Z        Status  : [!FAIL!] in 12.76s (Exit code: 1)
+2026-09-28T07:29:05.2531864Z        --- Diagnostic Snippets (7 merged block(s)) ---
+2026-09-28T07:29:05.2532821Z        [Lines 3-23]:
+2026-09-28T07:29:05.2533853Z              L0003: > Task :runtime:retropack-runtime-ppsspp:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:29:05.2534631Z              L0004: 
+2026-09-28T07:29:05.2535360Z              L0005: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]
+2026-09-28T07:29:05.2536945Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+2026-09-28T07:29:05.2553229Z              L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DARMIPS_USE_STD_FILESYSTEM=1 -DHAVE_PPSSPP_CORE=1 -DRC_DISABLE_LUA=1 -DUSING_GLES2=1 -D_GNU_SOURCE=1 -D__STDC_CONSTANT_MACROS=1 -Dretropack_runtime_ppsspp_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/GPU -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/GPU/Common -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/cityhash -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/snappy -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/xbrz -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libkirk -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libpng17 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libzip -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/minimp3 -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o -MF CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o.d -o CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common/ArmCPUDetect.cpp
+2026-09-28T07:29:05.2564364Z          >>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common/ArmCPUDetect.cpp:36:10: fatal error: 'ext/cpu_features/include/cpuinfo_aarch64.h' file not found
+2026-09-28T07:29:05.2565783Z              L0009: C/C++:    36 | #include "ext/cpu_features/include/cpuinfo_aarch64.h"
+2026-09-28T07:29:05.2566389Z              L0010: C/C++:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-09-28T07:29:05.2566875Z          >>> [ERROR] L0011: C/C++: 1 error generated.
+2026-09-28T07:29:05.2567248Z              L0012: 
+2026-09-28T07:29:05.2567832Z          >>> [ERROR] L0013: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:29:05.2568845Z              L0014: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790580533120.json
+2026-09-28T07:29:05.2569686Z          ... (9 more lines in full log)
+2026-09-28T07:29:05.2570047Z        [Lines 65-86]:
+2026-09-28T07:29:05.2570813Z              L0065:   [43/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Thread/ThreadUtil.cpp.o
+2026-09-28T07:29:05.2571957Z              L0066:   [44/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/System/Display.cpp.o
+2026-09-28T07:29:05.2573024Z              L0067:   [45/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/CPUDetect.cpp.o
+2026-09-28T07:29:05.2574119Z              L0068:   [46/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Thread/ParallelLoop.cpp.o
+2026-09-28T07:29:05.2575209Z              L0069:   [47/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o
+2026-09-28T07:29:05.2576226Z          >>> [ERROR] L0070:   FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o
+2026-09-28T07:29:05.2588401Z              L0071:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DARMIPS_USE_STD_FILESYSTEM=1 -DHAVE_PPSSPP_CORE=1 -DRC_DISABLE_LUA=1 -DUSING_GLES2=1 -D_GNU_SOURCE=1 -D__STDC_CONSTANT_MACROS=1 -Dretropack_runtime_ppsspp_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/GPU -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/GPU/Common -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/cityhash -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/snappy -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/xbrz -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libkirk -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libpng17 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/libzip -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/ext/minimp3 -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o -MF CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o.d -o CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/ArmCPUDetect.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common/ArmCPUDetect.cpp
+2026-09-28T07:29:05.2599547Z          >>> [ERROR] L0072:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Common/ArmCPUDetect.cpp:36:10: fatal error: 'ext/cpu_features/include/cpuinfo_aarch64.h' file not found
+2026-09-28T07:29:05.2600747Z              L0073:      36 | #include "ext/cpu_features/include/cpuinfo_aarch64.h"
+2026-09-28T07:29:05.2601319Z              L0074:         |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2026-09-28T07:29:05.2601775Z          >>> [ERROR] L0075:   1 error generated.
+2026-09-28T07:29:05.2602566Z              L0076:   [48/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/System/OSD.cpp.o
+2026-09-28T07:29:05.2603244Z          ... (10 more lines in full log)
+2026-09-28T07:29:05.2603595Z        [Lines 90-100]:
+2026-09-28T07:29:05.2603903Z              L0090: * Try:
+2026-09-28T07:29:05.2604383Z              L0091: > Run with --info or --debug option to get more log output.
+2026-09-28T07:29:05.2605088Z              L0092: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:29:05.2605716Z              L0093: > Get more help at https://help.gradle.org.
+2026-09-28T07:29:05.2606122Z              L0094: 
+2026-09-28T07:29:05.2606454Z          >>> [ERROR] L0095: * Exception is:
+2026-09-28T07:29:05.2607595Z              L0096: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:29:05.2609095Z              L0097: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:29:05.2610234Z              L0098: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:29:05.2611248Z              L0099: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:29:05.2612466Z              L0100: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:29:05.2613220Z 
+2026-09-28T07:29:05.2613395Z [11/16] Building: melonDS (NDS) ...
+2026-09-28T07:29:05.2613970Z        Command : ./gradlew :runtime:retropack-runtime-melonds:assembleDebug --stacktrace
+2026-09-28T07:29:22.2314079Z        Status  : [!FAIL!] in 16.98s (Exit code: 1)
+2026-09-28T07:29:22.2374175Z        --- Diagnostic Snippets (7 merged block(s)) ---
+2026-09-28T07:29:22.2374925Z        [Lines 3-23]:
+2026-09-28T07:29:22.2375868Z              L0003: > Task :runtime:retropack-runtime-melonds:configureCMakeDebug[arm64-v8a]
+2026-09-28T07:29:22.2376799Z              L0004: 
+2026-09-28T07:29:22.2377686Z              L0005: > Task :runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a]
+2026-09-28T07:29:22.2379802Z              L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/.cxx/Debug/4l53r62e/arm64-v8a'
+2026-09-28T07:29:22.2391092Z              L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DHAVE_MELONDS_CORE=1 -D_GNU_SOURCE=1 -Dretropack_runtime_melonds_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSP_HLE -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDSCart -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/fatfs -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/sha1 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/tiny-AES-c -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/xxhash -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/blip-buf -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o -MF CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o.d -o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDS.cpp
+2026-09-28T07:29:22.2399665Z          >>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDS.cpp:38:10: fatal error: 'version.h' file not found
+2026-09-28T07:29:22.2400688Z              L0009: C/C++:    38 | #include "version.h"
+2026-09-28T07:29:22.2401123Z              L0010: C/C++:       |          ^~~~~~~~~~~
+2026-09-28T07:29:22.2401554Z          >>> [ERROR] L0011: C/C++: 1 error generated.
+2026-09-28T07:29:22.2401911Z              L0012: 
+2026-09-28T07:29:22.2402480Z          >>> [ERROR] L0013: > Task :runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a] FAILED
+2026-09-28T07:29:22.2403461Z              L0014: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790580545881.json
+2026-09-28T07:29:22.2404168Z          ... (9 more lines in full log)
+2026-09-28T07:29:22.2404518Z        [Lines 60-81]:
+2026-09-28T07:29:22.2405235Z              L0060:   [38/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/GPU3D_Texcache.cpp.o
+2026-09-28T07:29:22.2406273Z              L0061:   [39/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/ROMList.cpp.o
+2026-09-28T07:29:22.2407477Z              L0062:   [40/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Savestate.cpp.o
+2026-09-28T07:29:22.2408456Z              L0063:   [41/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/Mic.cpp.o
+2026-09-28T07:29:22.2409671Z              L0064:   [42/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o
+2026-09-28T07:29:22.2410618Z          >>> [ERROR] L0065:   FAILED: CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o
+2026-09-28T07:29:22.2419820Z              L0066:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DHAVE_MELONDS_CORE=1 -D_GNU_SOURCE=1 -Dretropack_runtime_melonds_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/DSP_HLE -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDSCart -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/fatfs -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/sha1 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/tiny-AES-c -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/xxhash -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/blip-buf -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o -MF CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o.d -o CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/NDS.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDS.cpp
+2026-09-28T07:29:22.2427888Z          >>> [ERROR] L0067:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-melonds/submodules/melonds/src/NDS.cpp:38:10: fatal error: 'version.h' file not found
+2026-09-28T07:29:22.2428812Z              L0068:      38 | #include "version.h"
+2026-09-28T07:29:22.2429223Z              L0069:         |          ^~~~~~~~~~~
+2026-09-28T07:29:22.2429925Z          >>> [ERROR] L0070:   1 error generated.
+2026-09-28T07:29:22.2430688Z              L0071:   [43/70] Building CXX object CMakeFiles/retropack-runtime-melonds.dir/submodules/melonds/src/RTC.cpp.o
+2026-09-28T07:29:22.2431350Z          ... (10 more lines in full log)
+2026-09-28T07:29:22.2431700Z        [Lines 85-95]:
+2026-09-28T07:29:22.2432002Z              L0085: * Try:
+2026-09-28T07:29:22.2432477Z              L0086: > Run with --info or --debug option to get more log output.
+2026-09-28T07:29:22.2433190Z              L0087: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+2026-09-28T07:29:22.2433825Z              L0088: > Get more help at https://help.gradle.org.
+2026-09-28T07:29:22.2434250Z              L0089: 
+2026-09-28T07:29:22.2434582Z          >>> [ERROR] L0090: * Exception is:
+2026-09-28T07:29:22.2435737Z              L0091: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-melonds:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+2026-09-28T07:29:22.2437245Z              L0092: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+2026-09-28T07:29:22.2438408Z              L0093: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+2026-09-28T07:29:22.2439686Z              L0094: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+2026-09-28T07:29:22.2440941Z              L0095: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+2026-09-28T07:29:22.2441526Z 
+2026-09-28T07:29:22.2441816Z [12/16] Building: Template APK (Standalone Game Runner) ...
+2026-09-28T07:29:22.2442400Z        Command : ./gradlew :template-apk:assembleDebug --stacktrace
+2026-09-28T07:29:41.5963195Z        Status  : [!FAIL!] in 19.35s (Exit code: 1)
+2026-09-28T07:29:45.0890495Z        --- Diagnostic Snippets (11 merged block(s)) ---
+2026-09-28T07:29:45.0891511Z        [Lines 310-343]:
+2026-09-28T07:29:45.0892143Z              L0310: 
+2026-09-28T07:29:45.0892865Z              L0311: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]
+2026-09-28T07:29:45.0894279Z              L0312: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+2026-09-28T07:29:45.0896035Z              L0313: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/load.cpp:2:
+2026-09-28T07:29:45.0897898Z              L0314: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burnint.h:17:
+2026-09-28T07:29:45.0900783Z            ! [WARN ] L0315: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:70:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:29:45.0902425Z              L0316: C/C++:    70 |                 SCAN_VAR(state);
+2026-09-28T07:29:45.0903010Z              L0317: C/C++:       |                 ^
+2026-09-28T07:29:45.0904370Z              L0318: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:29:45.0905673Z              L0319: C/C++:    72 | #define SCAN_VAR(x) ScanVar(&x, sizeof(x), #x)
+2026-09-28T07:29:45.0906407Z              L0320: C/C++:       |                                            ^
+2026-09-28T07:29:45.0907782Z              L0321: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a/<scratch space>:117:1: note: expanded from here
+2026-09-28T07:29:45.0908621Z          ... (22 more lines in full log)
+2026-09-28T07:29:45.0908971Z        [Lines 346-535]:
+2026-09-28T07:29:45.0909398Z              L0346: C/C++:       | ^
+2026-09-28T07:29:45.0909790Z              L0347: C/C++: 4 warnings generated.
+2026-09-28T07:29:45.0922186Z              L0348: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DBUILD_NEOGEO=1 -DHAVE_FBNEO_CORE=1 -DINLINE=inline -DSUPPORT_SPLIT_DRIVER=1 -D__LIBRETRO_OPTIMIZATIONS__=1 -D__LIBRETRO__=1 -Dretropack_runtime_fbneo_EXPORTS -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/../retropack-runtime-common/src/main/cpp -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/snd -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/include -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/m68k -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/cpu/z80 -I/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/dep/libs/zlib -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -fno-limit-debug-info  -fPIC -MD -MT CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o -MF CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o.d -o CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/conc.cpp.o -c /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/conc.cpp
+2026-09-28T07:29:45.0934976Z              L0349: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/conc.cpp:2:
+2026-09-28T07:29:45.0936319Z              L0350: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/burner.h:28:
+2026-09-28T07:29:45.0938093Z            ! [WARN ] L0351: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:70:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:29:45.0939517Z              L0352: C/C++:    70 |                 SCAN_VAR(state);
+2026-09-28T07:29:45.0940007Z              L0353: C/C++:       |                 ^
+2026-09-28T07:29:45.0941021Z              L0354: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:29:45.0942008Z              L0355: C/C++:    72 | #define SCAN_VAR(x) ScanVar(&x, sizeof(x), #x)
+2026-09-28T07:29:45.0942570Z              L0356: C/C++:       |                                            ^
+2026-09-28T07:29:45.0943614Z              L0357: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a/<scratch space>:415:1: note: expanded from here
+2026-09-28T07:29:45.0944473Z          ... (178 more lines in full log)
+2026-09-28T07:29:45.0944829Z        [Lines 537-51797]:
+2026-09-28T07:29:45.0945172Z              L0537: C/C++:   117 | "state"
+2026-09-28T07:29:45.0945540Z              L0538: C/C++:       | ^
+2026-09-28T07:29:45.0946526Z              L0539: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp:3:
+2026-09-28T07:29:45.0947947Z              L0540: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/drv/neogeo/neogeo.h:1:
+2026-09-28T07:29:45.0949512Z              L0541: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/burnint.h:17:
+2026-09-28T07:29:45.0951513Z            ! [WARN ] L0542: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/devices/joyprocess.h:71:3: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+2026-09-28T07:29:45.0952714Z              L0543: C/C++:    71 |                 SCAN_VAR(last_state);
+2026-09-28T07:29:45.0953182Z              L0544: C/C++:       |                 ^
+2026-09-28T07:29:45.0954183Z              L0545: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burn/state.h:72:44: note: expanded from macro 'SCAN_VAR'
+2026-09-28T07:29:45.0955153Z              L0546: C/C++:    72 | #define SCAN_VAR(x) ScanVar(&x, sizeof(x), #x)
+2026-09-28T07:29:45.0955707Z              L0547: C/C++:       |                                            ^
+2026-09-28T07:29:45.0956755Z              L0548: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a/<scratch space>:118:1: note: expanded from here
+2026-09-28T07:29:45.0957603Z          ... (51249 more lines in full log)
+2026-09-28T07:29:45.0957827Z 
+2026-09-28T07:29:45.0958067Z [13/16] Building: 16 KB ELF Page-Size Alignment Gate ...
+2026-09-28T07:29:45.0958550Z        Command : bash scripts/verify-16kb-alignment.sh
+2026-09-28T07:29:45.1723366Z        Status  : [ PASS ] in 0.08s (Exit code: 0)
+2026-09-28T07:29:45.1805493Z 
+2026-09-28T07:29:45.1806187Z [14/16] Building: Trust Anchor Rotation & Staging ...
+2026-09-28T07:29:45.1807968Z        Command : cp -f template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk 2>/dev/null || true; bash scripts/rotate-trust-anchors.sh
+2026-09-28T07:29:45.2695905Z        Status  : [ PASS ] in 0.09s (Exit code: 0)
+2026-09-28T07:29:45.2696432Z 
+2026-09-28T07:29:45.2696792Z [15/16] Building: Manager APK (Main App) ...
+2026-09-28T07:29:45.2697517Z        Command : ./gradlew :app:assembleDebug --stacktrace
+2026-09-28T07:30:21.6267368Z        Status  : [ PASS ] in 36.36s (Exit code: 0)
+2026-09-28T07:30:21.6270867Z 
+2026-09-28T07:30:21.6271721Z [16/16] Building: Unit Tests (App & Template) ...
+2026-09-28T07:30:21.6273207Z        Command : ./gradlew :app:testDebugUnitTest :template-apk:testDebugUnitTest --stacktrace
+2026-09-28T07:30:30.1730892Z        Status  : [ PASS ] in 8.55s (Exit code: 0)
+2026-09-28T07:30:30.2048139Z 
+2026-09-28T07:30:30.2049716Z ========================================================================================
+2026-09-28T07:30:30.2051398Z Summary report written to: /home/runner/work/retro-manager/retro-manager/build-diagnostics.txt
+2026-09-28T07:30:30.2052650Z Total: 8 Passed, 8 Failed.
+2026-09-28T07:30:30.2053742Z ========================================================================================
+2026-09-28T07:30:30.2054274Z 
+2026-09-28T07:30:30.2054775Z [!] Build matrix completed with 8 required component failure(s).
+2026-09-28T07:30:30.2251846Z ##[error]Process completed with exit code 1.
