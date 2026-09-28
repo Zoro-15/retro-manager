@@ -1,0 +1,94 @@
+﻿2026-09-28T13:47:19.1308941Z ##[group]Run python3 scripts/ci-build-matrix.py
+2026-09-28T13:47:19.1309366Z [36;1mpython3 scripts/ci-build-matrix.py[0m
+2026-09-28T13:47:19.1367904Z shell: /usr/bin/bash -e {0}
+2026-09-28T13:47:19.1368175Z env:
+2026-09-28T13:47:19.1368490Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-28T13:47:19.1369026Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-09-28T13:47:19.1369476Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-09-28T13:47:19.1369797Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-09-28T13:47:19.1370095Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-09-28T13:47:19.1370396Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-09-28T13:47:19.1370843Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-09-28T13:47:19.1371332Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-09-28T13:47:19.1371667Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-09-28T13:47:19.1371958Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-09-28T13:47:19.1372287Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-09-28T13:47:19.1372648Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-09-28T13:47:19.1372993Z ##[endgroup]
+2026-09-28T13:47:19.1735048Z ========================================================================================
+2026-09-28T13:47:19.1736296Z            RETROPACK RESILIENT MULTI-CORE CI BUILD & DIAGNOSTICS MATRIX
+2026-09-28T13:47:19.1737430Z ========================================================================================
+2026-09-28T13:47:19.1738544Z Working Directory: /home/runner/work/retro-manager/retro-manager
+2026-09-28T13:47:19.1739596Z Logs Output Dir  : /home/runner/work/retro-manager/retro-manager/build-logs
+2026-09-28T13:47:19.1740193Z Total Targets    : 8
+2026-09-28T13:47:19.1740683Z ========================================================================================
+2026-09-28T13:47:19.1741047Z 
+2026-09-28T13:47:19.1741356Z [01/08] Building: Universal Libretro Host Native Runtime ...
+2026-09-28T13:47:19.1742155Z        Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+2026-09-28T13:48:14.2564975Z        Status  : [ PASS ] in 55.08s (Exit code: 0)
+2026-09-28T13:48:14.2565660Z 
+2026-09-28T13:48:14.2566155Z [02/08] Building: Packaging Engine & Domain Core ...
+2026-09-28T13:48:14.2567229Z        Command : ./gradlew :core:test --stacktrace
+2026-09-28T13:48:32.0904577Z        Status  : [ PASS ] in 17.83s (Exit code: 0)
+2026-09-28T13:48:32.0905523Z 
+2026-09-28T13:48:32.0906523Z [03/08] Building: Template APK (Standalone Universal Game Runner) ...
+2026-09-28T13:48:32.0908018Z        Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+2026-09-28T13:48:56.4392887Z        Status  : [ PASS ] in 24.35s (Exit code: 0)
+2026-09-28T13:48:56.4393969Z 
+2026-09-28T13:48:56.4394662Z [04/08] Building: 16 KB ELF Page-Size Alignment Gate ...
+2026-09-28T13:48:56.4395828Z        Command : bash scripts/verify-16kb-alignment.sh
+2026-09-28T13:48:56.5012932Z        Status  : [ PASS ] in 0.06s (Exit code: 0)
+2026-09-28T13:48:56.5013656Z 
+2026-09-28T13:48:56.5014158Z [05/08] Building: Core Catalog & Staged Binaries Verification ...
+2026-09-28T13:48:56.5015033Z        Command : python3 scripts/verify_core_alignment.py
+2026-09-28T13:48:56.5626058Z        Status  : [ PASS ] in 0.06s (Exit code: 0)
+2026-09-28T13:48:56.5626703Z 
+2026-09-28T13:48:56.5627160Z [06/08] Building: Trust Anchor Rotation & Staging ...
+2026-09-28T13:48:56.6597649Z        Command : cp -f template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk 2>/dev/null || true; bash scripts/rotate-trust-anchors.sh
+2026-09-28T13:48:56.6598770Z        Status  : [ PASS ] in 0.10s (Exit code: 0)
+2026-09-28T13:48:56.6599006Z 
+2026-09-28T13:48:56.6599191Z [07/08] Building: Manager APK (Main App) ...
+2026-09-28T13:48:56.6599915Z        Command : ./gradlew :app:assembleDebug --stacktrace
+2026-09-28T13:49:15.3214682Z        Status  : [!FAIL!] in 18.66s (Exit code: 1)
+2026-09-28T13:49:15.3271876Z        --- Diagnostic Snippets (1 merged block(s)) ---
+2026-09-28T13:49:15.3272814Z        [Lines 85-108]:
+2026-09-28T13:49:15.3273909Z              L0085: > Task :app:mergeExtDexDebug
+2026-09-28T13:49:15.3275598Z              L0086: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790603337313.json
+2026-09-28T13:49:15.3277083Z              L0087: 
+2026-09-28T13:49:15.3278754Z              L0088: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+2026-09-28T13:49:15.3280230Z              L0089: 
+2026-09-28T13:49:15.3281096Z          >>> [ERROR] L0090: FAILURE: Build failed with an exception.
+2026-09-28T13:49:15.3281954Z              L0091: 
+2026-09-28T13:49:15.3282890Z              L0092: * What went wrong:
+2026-09-28T13:49:15.3284620Z          >>> [ERROR] L0093: Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+2026-09-28T13:49:15.3286954Z              L0094: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-09-28T13:49:15.3288648Z              L0095:    > Compilation error. See log for more details
+2026-09-28T13:49:15.3289389Z              L0096: 
+2026-09-28T13:49:15.3289984Z          ... (12 more lines in full log)
+2026-09-28T13:49:15.3290431Z 
+2026-09-28T13:49:15.3290931Z [08/08] Building: Unit Tests (App & Runtime Host) ...
+2026-09-28T13:49:15.3292607Z        Command : ./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace
+2026-09-28T13:49:20.6217337Z        Status  : [!FAIL!] in 5.30s (Exit code: 1)
+2026-09-28T13:49:20.6234775Z        --- Diagnostic Snippets (1 merged block(s)) ---
+2026-09-28T13:49:20.6235486Z        [Lines 58-71]:
+2026-09-28T13:49:20.6237172Z              L0058: e: file:///home/runner/work/retro-manager/retro-manager/app/src/main/kotlin/com/retropack/manager/viewmodel/MainViewModel.kt:93:86 Unresolved reference 'length'.
+2026-09-28T13:49:20.6239430Z              L0059: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790603356362.json
+2026-09-28T13:49:20.6240528Z              L0060: 
+2026-09-28T13:49:20.6241995Z              L0061: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+2026-09-28T13:49:20.6243261Z              L0062: 
+2026-09-28T13:49:20.6244106Z          >>> [ERROR] L0063: FAILURE: Build failed with an exception.
+2026-09-28T13:49:20.6244717Z              L0064: 
+2026-09-28T13:49:20.6245181Z              L0065: * What went wrong:
+2026-09-28T13:49:20.6246404Z          >>> [ERROR] L0066: Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'org.jetbrains.kotlin.android').
+2026-09-28T13:49:20.6248530Z              L0067: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-09-28T13:49:20.6250059Z              L0068:    > Compilation error. See log for more details
+2026-09-28T13:49:20.6250680Z              L0069: 
+2026-09-28T13:49:20.6251155Z          ... (2 more lines in full log)
+2026-09-28T13:49:20.6251483Z 
+2026-09-28T13:49:20.6251886Z ========================================================================================
+2026-09-28T13:49:20.6252930Z Summary report written to: /home/runner/work/retro-manager/retro-manager/build-diagnostics.txt
+2026-09-28T13:49:20.6254080Z Total: 6 Passed, 2 Failed.
+2026-09-28T13:49:20.6254752Z ========================================================================================
+2026-09-28T13:49:20.6255176Z 
+2026-09-28T13:49:20.6255897Z [!] Build matrix completed with 1 required component failure(s).
+2026-09-28T13:49:20.6314095Z ##[error]Process completed with exit code 1.
