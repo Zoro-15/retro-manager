@@ -1,0 +1,575 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-28 10:46:48 UTC
+Total Execution : 175.97s (2m 55s)
+Overall Result  : 12/16 Targets Passed (4 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Common Native Runtime                  PASS        44.74s     runtime-common.log
+[02] mGBA (GBA)                             PASS         7.86s     runtime-mgba.log
+[03] Snes9x (SNES)                          PASS        16.22s     runtime-snes9x.log
+[04] Genesis Plus GX (MD/GEN)               PASS         4.00s     runtime-genesis.log
+[05] FCEUmm (NES)                           PASS         7.31s     runtime-fceumm.log
+[06] Beetle PCE Fast (PC Engine)            PASS         2.83s     runtime-pce.log
+[07] FBNeo (Arcade / NeoGeo)                FAIL [!]     3.59s     runtime-fbneo.log
+[08] PCSX ReARMed (PS1)                     PASS         2.86s     runtime-pcsx.log
+[09] Mupen64Plus-Next (N64)                 FAIL [!]     2.18s     runtime-mupen64.log
+[10] PPSSPP (PSP)                           FAIL [!]    28.27s     runtime-ppsspp.log
+[11] melonDS (NDS)                          PASS        21.78s     runtime-melonds.log
+[12] Template APK (Standalone Game Runner)  FAIL [!]     7.01s     template-apk.log
+[13] 16 KB ELF Page-Size Alignment Gate     PASS         0.08s     verify-16kb.log
+[14] Trust Anchor Rotation & Staging        PASS         0.14s     rotate-anchors.log
+[15] Manager APK (Main App)                 PASS        22.11s     app-manager.log
+[16] Unit Tests (App & Template)            PASS         4.99s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [07]: FBNeo (Arcade / NeoGeo) (ID: runtime-fbneo)
+### Command : ./gradlew :runtime:retropack-runtime-fbneo:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-fbneo.log
+################################################################################
+
+--- [Snippet #1 | Lines 4 to 27] ---
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+    L0008: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0009: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0010: C/C++:     4 | #include <string>
+    L0011: C/C++:       |          ^~~~~~~~
+    L0012: C/C++: 1 error generated.
+    L0013: 
+    L0014: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0015: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790592315855.json
+    L0016: 
+    L0017: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0018: 
+>>> [ERROR] L0019: FAILURE: Build failed with an exception.
+    L0020: 
+    L0021: * What went wrong:
+>>> [ERROR] L0022: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0023: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0024:   [1/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/src/main/cpp/ringbuffer.c.o
+    L0025:   [2/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_sound.cpp.o
+    L0026:   [3/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn_memory.cpp.o
+    L0027:   [4/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/burn.cpp.o
+
+--- [Snippet #2 | Lines 72 to 94] ---
+    L0072:   [49/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/streams/file_stream.c.o
+    L0073:   [50/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/romdata.cpp.o
+    L0074:   [51/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/file_path_io.c.o
+    L0075:   [52/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_posix_string.c.o
+    L0076:   [53/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0077:   FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0078:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+    L0079:   In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0080:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0081:       4 | #include <string>
+    L0082:         |          ^~~~~~~~
+    L0083:   1 error generated.
+    L0084:   [54/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/encodings/encoding_utf.c.o
+    L0085:   [55/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strcasestr.c.o
+    L0086:   [56/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0087:   [57/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0088:   [58/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/retro_cdemu.cpp.o
+>>> [ERROR] L0089:   ninja: build stopped: subcommand failed.
+    L0090: 
+    L0091:   C++ build system [build] failed while executing:
+    L0092:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0093:         -C \
+    L0094:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #3 | Lines 99 to 109] ---
+    L0099: > Run with --info or --debug option to get more log output.
+    L0100: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0101: > Get more help at https://help.gradle.org.
+    L0102: 
+    L0103: * Exception is:
+>>> [ERROR] L0104: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0105: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0106: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0107: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0108: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0109: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 187 to 209] ---
+    L0187: [49/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/streams/file_stream.c.o
+    L0188: [50/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/romdata.cpp.o
+    L0189: [51/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/file_path_io.c.o
+    L0190: [52/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_posix_string.c.o
+    L0191: [53/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0192: FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0193: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+    L0194: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0195: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0196:     4 | #include <string>
+    L0197:       |          ^~~~~~~~
+    L0198: 1 error generated.
+    L0199: [54/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/encodings/encoding_utf.c.o
+    L0200: [55/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strcasestr.c.o
+    L0201: [56/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0202: [57/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0203: [58/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/retro_cdemu.cpp.o
+>>> [ERROR] L0204: ninja: build stopped: subcommand failed.
+    L0205: 
+    L0206: C++ build system [build] failed while executing:
+    L0207:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0208:       -C \
+    L0209:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #5 | Lines 364 to 386] ---
+    L0364: [49/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/streams/file_stream.c.o
+    L0365: [50/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/romdata.cpp.o
+    L0366: [51/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/file_path_io.c.o
+    L0367: [52/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_posix_string.c.o
+    L0368: [53/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0369: FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0370: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+    L0371: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0372: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0373:     4 | #include <string>
+    L0374:       |          ^~~~~~~~
+    L0375: 1 error generated.
+    L0376: [54/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/encodings/encoding_utf.c.o
+    L0377: [55/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strcasestr.c.o
+    L0378: [56/77] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/cpu/m68k/m68kops.c.o
+    L0379: [57/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burn/drv/neogeo/d_neogeo.cpp.o
+    L0380: [58/77] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/retro_cdemu.cpp.o
+>>> [ERROR] L0381: ninja: build stopped: subcommand failed.
+    L0382: 
+    L0383: C++ build system [build] failed while executing:
+    L0384:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0385:       -C \
+    L0386:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+
+################################################################################
+### Target [09]: Mupen64Plus-Next (N64) (ID: runtime-mupen64)
+### Command : ./gradlew :runtime:retropack-runtime-mupen64:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-mupen64.log
+################################################################################
+
+--- [Snippet #1 | Lines 5 to 87] ---
+    L0005: > Task :runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a] FAILED
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+    L0008: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video.c:116:
+    L0009: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp.c:469:
+>>> [ERROR] L0010: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:35:61: error: expected ')'
+    L0011: C/C++:    35 | static STRICTINLINE void tcmask_copy(uint32_t wid, int32_t* S, int32_t* S1, int32_t* S2, int32_t* S3, int32_t* T, int32_t num)
+    L0012: C/C++:       |                                                             ^
+    L0013: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-rsp-hle/src/memory.h:37:11: note: expanded from macro 'S'
+    L0014: C/C++:    37 | #define S 1
+    L0015: C/C++:       |           ^
+    L0016: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:35:37: note: to match this '('
+    L0017: C/C++:    35 | static STRICTINLINE void tcmask_copy(uint32_t wid, int32_t* S, int32_t* S1, int32_t* S2, int32_t* S3, int32_t* T, int32_t num)
+    L0018: C/C++:       |                                     ^
+>>> [ERROR] L0019: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:41:25: error: use of undeclared identifier 'num'
+    L0020: C/C++:    41 |     if (state[wid].tile[num].mask_s)
+    L0021: C/C++:       |                         ^
+>>> [ERROR] L0022: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:43:29: error: use of undeclared identifier 'num'
+    L0023: C/C++:    43 |         if (state[wid].tile[num].ms)
+    L0024: C/C++:       |                             ^
+>>> [ERROR] L0025: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:45:46: error: use of undeclared identifier 'num'
+    L0026: C/C++:    45 |             swrapthreshold = state[wid].tile[num].f.masksclamped;
+    L0027: C/C++:       |                                              ^
+>>> [ERROR] L0028: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:47:21: error: indirection requires pointer operand ('int' invalid)
+    L0029: C/C++:    47 |             wrap = (*S >> swrapthreshold) & 1;
+    L0030: C/C++:       |                     ^~
+>>> [ERROR] L0031: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:48:13: error: indirection requires pointer operand ('int' invalid)
+    L0032: C/C++:    48 |             *S ^= (-wrap);
+    L0033: C/C++:       |             ^~
+>>> [ERROR] L0034: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:50:22: error: use of undeclared identifier 'S1'
+    L0035: C/C++:    50 |             wrap = (*S1 >> swrapthreshold) & 1;
+    L0036: C/C++:       |                      ^
+>>> [ERROR] L0037: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:51:14: error: use of undeclared identifier 'S1'
+    L0038: C/C++:    51 |             *S1 ^= (-wrap);
+    L0039: C/C++:       |              ^
+>>> [ERROR] L0040: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:53:22: error: use of undeclared identifier 'S2'
+    L0041: C/C++:    53 |             wrap = (*S2 >> swrapthreshold) & 1;
+    L0042: C/C++:       |                      ^
+>>> [ERROR] L0043: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:54:14: error: use of undeclared identifier 'S2'
+    L0044: C/C++:    54 |             *S2 ^= (-wrap);
+    L0045: C/C++:       |              ^
+>>> [ERROR] L0046: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:56:22: error: use of undeclared identifier 'S3'
+    L0047: C/C++:    56 |             wrap = (*S3 >> swrapthreshold) & 1;
+    L0048: C/C++:       |                      ^
+>>> [ERROR] L0049: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:57:14: error: use of undeclared identifier 'S3'
+    L0050: C/C++:    57 |             *S3 ^= (-wrap);
+    L0051: C/C++:       |              ^
+>>> [ERROR] L0052: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:60:53: error: use of undeclared identifier 'num'
+    L0053: C/C++:    60 |         maskbits_s = maskbits_table[state[wid].tile[num].mask_s];
+    L0054: C/C++:       |                                                     ^
+>>> [ERROR] L0055: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:61:9: error: indirection requires pointer operand ('int' invalid)
+    L0056: C/C++:    61 |         *S &= maskbits_s;
+    L0057: C/C++:       |         ^~
+>>> [ERROR] L0058: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:62:10: error: use of undeclared identifier 'S1'
+    L0059: C/C++:    62 |         *S1 &= maskbits_s;
+    L0060: C/C++:       |          ^
+>>> [ERROR] L0061: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:63:10: error: use of undeclared identifier 'S2'
+    L0062: C/C++:    63 |         *S2 &= maskbits_s;
+    L0063: C/C++:       |          ^
+>>> [ERROR] L0064: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:64:10: error: use of undeclared identifier 'S3'
+    L0065: C/C++:    64 |         *S3 &= maskbits_s;
+    L0066: C/C++:       |          ^
+>>> [ERROR] L0067: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:67:25: error: use of undeclared identifier 'num'
+    L0068: C/C++:    67 |     if (state[wid].tile[num].mask_t)
+    L0069: C/C++:       |                         ^
+>>> [ERROR] L0070: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:69:29: error: use of undeclared identifier 'num'
+    L0071: C/C++:    69 |         if (state[wid].tile[num].mt)
+    L0072: C/C++:       |                             ^
+>>> [ERROR] L0073: C/C++: fatal error: too many errors emitted, stopping now [-ferror-limit=]
+    L0074: C/C++: 20 errors generated.
+    L0075: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790592322301.json
+    L0076: 
+    L0077: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0078: 
+>>> [ERROR] L0079: FAILURE: Build failed with an exception.
+    L0080: 
+    L0081: * What went wrong:
+>>> [ERROR] L0082: Execution failed for task ':runtime:retropack-runtime-mupen64:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0083: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/.cxx/Debug/1k4d283o/arm64-v8a'
+    L0084:   [1/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/ringbuffer.c.o
+    L0085:   [2/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/callbacks.c.o
+    L0086:   [3/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/src/main/cpp/mupen64-jni.c.o
+    L0087:   [4/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-core/src/api/frontend.c.o
+
+--- [Snippet #2 | Lines 164 to 243] ---
+    L0164:   [81/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-rsp-hle/src/re2.c.o
+    L0165:   [82/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-rsp-hle/src/mp3.c.o
+    L0166:   [83/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-rsp-hle/src/musyx.c.o
+    L0167:   [84/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-video-angrylion/interface.c.o
+    L0168:   [85/86] Building C object CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video.c.o
+>>> [ERROR] L0169:   FAILED: CMakeFiles/retropack-runtime-mupen64.dir/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video.c.o
+    L0170:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+    L0171:   In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video.c:116:
+    L0172:   In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp.c:469:
+>>> [ERROR] L0173:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:35:61: error: expected ')'
+    L0174:      35 | static STRICTINLINE void tcmask_copy(uint32_t wid, int32_t* S, int32_t* S1, int32_t* S2, int32_t* S3, int32_t* T, int32_t num)
+    L0175:         |                                                             ^
+    L0176:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-rsp-hle/src/memory.h:37:11: note: expanded from macro 'S'
+    L0177:      37 | #define S 1
+    L0178:         |           ^
+    L0179:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:35:37: note: to match this '('
+    L0180:      35 | static STRICTINLINE void tcmask_copy(uint32_t wid, int32_t* S, int32_t* S1, int32_t* S2, int32_t* S3, int32_t* T, int32_t num)
+    L0181:         |                                     ^
+>>> [ERROR] L0182:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:41:25: error: use of undeclared identifier 'num'
+    L0183:      41 |     if (state[wid].tile[num].mask_s)
+    L0184:         |                         ^
+>>> [ERROR] L0185:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:43:29: error: use of undeclared identifier 'num'
+    L0186:      43 |         if (state[wid].tile[num].ms)
+    L0187:         |                             ^
+>>> [ERROR] L0188:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:45:46: error: use of undeclared identifier 'num'
+    L0189:      45 |             swrapthreshold = state[wid].tile[num].f.masksclamped;
+    L0190:         |                                              ^
+>>> [ERROR] L0191:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:47:21: error: indirection requires pointer operand ('int' invalid)
+    L0192:      47 |             wrap = (*S >> swrapthreshold) & 1;
+    L0193:         |                     ^~
+>>> [ERROR] L0194:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:48:13: error: indirection requires pointer operand ('int' invalid)
+    L0195:      48 |             *S ^= (-wrap);
+    L0196:         |             ^~
+>>> [ERROR] L0197:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:50:22: error: use of undeclared identifier 'S1'
+    L0198:      50 |             wrap = (*S1 >> swrapthreshold) & 1;
+    L0199:         |                      ^
+>>> [ERROR] L0200:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:51:14: error: use of undeclared identifier 'S1'
+    L0201:      51 |             *S1 ^= (-wrap);
+    L0202:         |              ^
+>>> [ERROR] L0203:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:53:22: error: use of undeclared identifier 'S2'
+    L0204:      53 |             wrap = (*S2 >> swrapthreshold) & 1;
+    L0205:         |                      ^
+>>> [ERROR] L0206:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:54:14: error: use of undeclared identifier 'S2'
+    L0207:      54 |             *S2 ^= (-wrap);
+    L0208:         |              ^
+>>> [ERROR] L0209:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:56:22: error: use of undeclared identifier 'S3'
+    L0210:      56 |             wrap = (*S3 >> swrapthreshold) & 1;
+    L0211:         |                      ^
+>>> [ERROR] L0212:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:57:14: error: use of undeclared identifier 'S3'
+    L0213:      57 |             *S3 ^= (-wrap);
+    L0214:         |              ^
+>>> [ERROR] L0215:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:60:53: error: use of undeclared identifier 'num'
+    L0216:      60 |         maskbits_s = maskbits_table[state[wid].tile[num].mask_s];
+    L0217:         |                                                     ^
+>>> [ERROR] L0218:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:61:9: error: indirection requires pointer operand ('int' invalid)
+    L0219:      61 |         *S &= maskbits_s;
+    L0220:         |         ^~
+>>> [ERROR] L0221:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:62:10: error: use of undeclared identifier 'S1'
+    L0222:      62 |         *S1 &= maskbits_s;
+    L0223:         |          ^
+>>> [ERROR] L0224:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:63:10: error: use of undeclared identifier 'S2'
+    L0225:      63 |         *S2 &= maskbits_s;
+    L0226:         |          ^
+>>> [ERROR] L0227:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:64:10: error: use of undeclared identifier 'S3'
+    L0228:      64 |         *S3 &= maskbits_s;
+    L0229:         |          ^
+>>> [ERROR] L0230:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-mupen64/submodules/mupen64plus-next/mupen64plus-video-angrylion/n64video/rdp/tcoord.c:67:25: error: use of undeclared identifier 'num'
+    [... trace capped at 150 lines; check raw log for full output ...]
+
+--- [Snippet #3 | Lines 248 to 258] ---
+    [... remaining failure trace truncated; total snippets capped at 150 lines ...]
+
+
+################################################################################
+### Target [10]: PPSSPP (PSP) (ID: runtime-ppsspp)
+### Command : ./gradlew :runtime:retropack-runtime-ppsspp:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-ppsspp.log
+################################################################################
+
+--- [Snippet #1 | Lines 3 to 31] ---
+    L0003: > Task :runtime:retropack-runtime-ppsspp:configureCMakeDebug[arm64-v8a]
+    L0004: 
+    L0005: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]
+    L0006: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0007: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26  ... [command-line flags truncated]
+>>> [ERROR] L0008: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp:62:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0009: C/C++:    62 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0010: C/C++:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0011: C/C++: 1 error generated.
+    L0012: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26  ... [command-line flags truncated]
+>>> [ERROR] L0013: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/proAdhoc.cpp:60:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0014: C/C++:    60 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0015: C/C++:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0016: C/C++: 1 error generated.
+    L0017: 
+    L0018: > Task :runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a] FAILED
+    L0019: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790592324472.json
+    L0020: 
+    L0021: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0022: 
+>>> [ERROR] L0023: FAILURE: Build failed with an exception.
+    L0024: 
+    L0025: * What went wrong:
+>>> [ERROR] L0026: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0027: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a'
+    L0028:   [1/370] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/zstd.c.o
+    L0029:   [2/370] Building C object CMakeFiles/retropack-runtime-ppsspp.dir/src/main/cpp/ringbuffer.c.o
+    L0030:   [3/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/sha256.cpp.o
+    L0031:   [4/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Common/Crypto/sha1.cpp.o
+
+--- [Snippet #2 | Lines 191 to 218] ---
+    L0191:   [164/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetApctl.cpp.o
+    L0192:   [165/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpegbase.cpp.o
+    L0193:   [166/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpeg.cpp.o
+    L0194:   [167/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNet.cpp.o
+    L0195:   [168/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+>>> [ERROR] L0196:   FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+    L0197:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sys ... [command-line flags truncated]
+>>> [ERROR] L0198:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp:62:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0199:      62 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0200:         |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0201:   1 error generated.
+    L0202:   [169/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhocMatching.cpp.o
+    L0203:   [170/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+>>> [ERROR] L0204:   FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+    L0205:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sys ... [command-line flags truncated]
+>>> [ERROR] L0206:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/proAdhoc.cpp:60:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0207:      60 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0208:         |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0209:   1 error generated.
+    L0210:   [171/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhocServer.cpp.o
+    L0211:   [172/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetInet.cpp.o
+    L0212:   [173/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetResolver.cpp.o
+>>> [ERROR] L0213:   ninja: build stopped: subcommand failed.
+    L0214: 
+    L0215:   C++ build system [build] failed while executing:
+    L0216:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0217:         -C \
+    L0218:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+--- [Snippet #3 | Lines 223 to 233] ---
+    L0223: > Run with --info or --debug option to get more log output.
+    L0224: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0225: > Get more help at https://help.gradle.org.
+    L0226: 
+    L0227: * Exception is:
+>>> [ERROR] L0228: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-ppsspp:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0229: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0230: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0231: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0232: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0233: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 426 to 453] ---
+    L0426: [164/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetApctl.cpp.o
+    L0427: [165/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpegbase.cpp.o
+    L0428: [166/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpeg.cpp.o
+    L0429: [167/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNet.cpp.o
+    L0430: [168/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+>>> [ERROR] L0431: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+    L0432: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0433: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp:62:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0434:    62 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0435:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0436: 1 error generated.
+    L0437: [169/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhocMatching.cpp.o
+    L0438: [170/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+>>> [ERROR] L0439: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+    L0440: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0441: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/proAdhoc.cpp:60:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0442:    60 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0443:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0444: 1 error generated.
+    L0445: [171/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhocServer.cpp.o
+    L0446: [172/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetInet.cpp.o
+    L0447: [173/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetResolver.cpp.o
+>>> [ERROR] L0448: ninja: build stopped: subcommand failed.
+    L0449: 
+    L0450: C++ build system [build] failed while executing:
+    L0451:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0452:       -C \
+    L0453:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+--- [Snippet #5 | Lines 723 to 750] ---
+    L0723: [164/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetApctl.cpp.o
+    L0724: [165/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpegbase.cpp.o
+    L0725: [166/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceMpeg.cpp.o
+    L0726: [167/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNet.cpp.o
+    L0727: [168/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+>>> [ERROR] L0728: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp.o
+    L0729: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0730: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/sceNetAdhoc.cpp:62:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0731:    62 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0732:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0733: 1 error generated.
+    L0734: [169/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetAdhocMatching.cpp.o
+    L0735: [170/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+>>> [ERROR] L0736: FAILED: CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhoc.cpp.o
+    L0737: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0738: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/submodules/ppsspp/Core/HLE/proAdhoc.cpp:60:10: fatal error: 'ext/aemu_postoffice/client/postoffice_client.h' file not found
+    L0739:    60 | #include "ext/aemu_postoffice/client/postoffice_client.h"
+    L0740:       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    L0741: 1 error generated.
+    L0742: [171/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/proAdhocServer.cpp.o
+    L0743: [172/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetInet.cpp.o
+    L0744: [173/370] Building CXX object CMakeFiles/retropack-runtime-ppsspp.dir/submodules/ppsspp/Core/HLE/sceNetResolver.cpp.o
+>>> [ERROR] L0745: ninja: build stopped: subcommand failed.
+    L0746: 
+    L0747: C++ build system [build] failed while executing:
+    L0748:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0749:       -C \
+    L0750:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-ppsspp/.cxx/Debug/6j612z2i/arm64-v8a \
+
+
+################################################################################
+### Target [12]: Template APK (Standalone Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 310 to 349] ---
+    L0310: 
+    L0311: > Task :runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a] FAILED
+    L0312: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0313: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+    L0314: C/C++: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0315: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0316: C/C++:     4 | #include <string>
+    L0317: C/C++:       |          ^~~~~~~~
+    L0318: C/C++: 1 error generated.
+    L0319: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_4-1790592374567.json
+    L0320: 
+    L0321: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0322: 
+>>> [ERROR] L0323: FAILURE: Build failed with an exception.
+    L0324: 
+    L0325: * What went wrong:
+>>> [ERROR] L0326: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0327: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0328:   [1/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_bitstream.c.o
+    L0329:   [2/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strl.c.o
+    L0330:   [3/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_huffman.c.o
+    L0331:   [4/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0332:   FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0333:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+    L0334:   In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0335:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0336:       4 | #include <string>
+    L0337:         |          ^~~~~~~~
+    L0338:   1 error generated.
+    L0339:   [5/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_cdrom.c.o
+    L0340:   [6/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_codec_zlib.c.o
+    L0341:   [7/20] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/intf/cd/cd_chd.cpp.o
+    L0342:   [8/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_chd.c.o
+    L0343:   [9/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_flac.c.o
+>>> [ERROR] L0344:   ninja: build stopped: subcommand failed.
+    L0345: 
+    L0346:   C++ build system [build] failed while executing:
+    L0347:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0348:         -C \
+    L0349:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #2 | Lines 354 to 364] ---
+    L0354: > Run with --info or --debug option to get more log output.
+    L0355: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0356: > Get more help at https://help.gradle.org.
+    L0357: 
+    L0358: * Exception is:
+>>> [ERROR] L0359: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-fbneo:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0360: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0361: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0362: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0363: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0364: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #3 | Lines 393 to 415] ---
+    L0393: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0394: [1/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_bitstream.c.o
+    L0395: [2/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strl.c.o
+    L0396: [3/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_huffman.c.o
+    L0397: [4/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0398: FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0399: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+    L0400: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0401: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0402:     4 | #include <string>
+    L0403:       |          ^~~~~~~~
+    L0404: 1 error generated.
+    L0405: [5/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_cdrom.c.o
+    L0406: [6/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_codec_zlib.c.o
+    L0407: [7/20] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/intf/cd/cd_chd.cpp.o
+    L0408: [8/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_chd.c.o
+    L0409: [9/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_flac.c.o
+>>> [ERROR] L0410: ninja: build stopped: subcommand failed.
+    L0411: 
+    L0412: C++ build system [build] failed while executing:
+    L0413:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0414:       -C \
+    L0415:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
+--- [Snippet #4 | Lines 521 to 543] ---
+    L0521: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a'
+    L0522: [1/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_bitstream.c.o
+    L0523: [2/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/compat/compat_strl.c.o
+    L0524: [3/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_huffman.c.o
+    L0525: [4/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+>>> [ERROR] L0526: FAILED: CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c.o
+    L0527: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+    L0528: In file included from /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/libretro-common/file/retro_dirent.c:27:
+>>> [ERROR] L0529: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/submodules/fbneo/src/burner/libretro/retro_common.h:4:10: fatal error: 'string' file not found
+    L0530:     4 | #include <string>
+    L0531:       |          ^~~~~~~~
+    L0532: 1 error generated.
+    L0533: [5/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_cdrom.c.o
+    L0534: [6/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_codec_zlib.c.o
+    L0535: [7/20] Building CXX object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/intf/cd/cd_chd.cpp.o
+    L0536: [8/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_chd.c.o
+    L0537: [9/20] Building C object CMakeFiles/retropack-runtime-fbneo.dir/submodules/fbneo/src/dep/libs/libchdr/libchdr_flac.c.o
+>>> [ERROR] L0538: ninja: build stopped: subcommand failed.
+    L0539: 
+    L0540: C++ build system [build] failed while executing:
+    L0541:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0542:       -C \
+    L0543:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-fbneo/.cxx/Debug/1b1s4j3o/arm64-v8a \
+
