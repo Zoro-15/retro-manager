@@ -828,7 +828,16 @@ static retro_proc_address_t retro_hw_get_proc_address(const char *sym) {
     return (retro_proc_address_t) dlsym(RTLD_DEFAULT, sym);
 }
 
+#ifndef RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2 67
+#endif
+
+#ifndef RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL 68
+#endif
+
 static bool retro_environment_cb(unsigned cmd, void *data) {
+
     switch (cmd) {
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT: {
             const enum retro_pixel_format *fmt = (const enum retro_pixel_format *) data;

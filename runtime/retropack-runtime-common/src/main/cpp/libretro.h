@@ -1227,6 +1227,9 @@ enum retro_mod
                                             */
 
 #define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY 55
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2 67
+#define RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL 68
+
                                            /* struct retro_core_option_display * --
                                             *
                                             * Allows an implementation to signal the environment to show
