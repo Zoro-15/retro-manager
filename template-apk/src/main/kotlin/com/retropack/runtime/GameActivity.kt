@@ -1005,7 +1005,7 @@ open class GameActivity : Activity() {
 
     // Factory methods for dependency injection and test isolation
     protected open fun createEngine(): EmulationEngine {
-        val core = NativeCoreFactory.createCore(config)
+        val core = NativeCoreFactory.createCore(config, this)
         return NativeEmulationEngine(core = core)
     }
 

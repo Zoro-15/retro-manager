@@ -10,6 +10,8 @@
 
 #ifdef __ANDROID__
 #include <android/log.h>
+#include <EGL/egl.h>
+#include <GLES2/gl2.h>
 #define LOG_TAG "RetroPack-LibretroHost"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
@@ -210,7 +212,15 @@ bool host_load_core(const char* core_path) {
 
     void* handle = dlopen(core_path, RTLD_LAZY | RTLD_LOCAL);
     if (!handle) {
-        LOGE("host_load_core: dlopen failed for %s: %s", core_path, dlerror());
+        LOGW("host_load_core: dlopen failed for %s (%s), retrying with RTLD_GLOBAL", core_path, dlerror());
+        handle = dlopen(core_path, RTLD_LAZY | RTLD_GLOBAL);
+    }
+    if (!handle) {
+        LOGW("host_load_core: dlopen failed for %s, retrying process lookup with dlopen(NULL)", core_path);
+        handle = dlopen(NULL, RTLD_NOW);
+    }
+    if (!handle) {
+        LOGE("host_load_core: all dlopen attempts failed for %s: %s", core_path, dlerror());
         pthread_mutex_unlock(&g_host.lock);
         return false;
     }
@@ -784,6 +794,19 @@ static void core_log_cb(enum retro_log_level level, const char *fmt, ...) {
     }
 }
 
+static uintptr_t retro_hw_get_current_framebuffer(void) {
+    return 0;
+}
+
+static retro_proc_address_t retro_hw_get_proc_address(const char *sym) {
+    if (!sym) return NULL;
+#if defined(__ANDROID__)
+    void *proc = (void *) eglGetProcAddress(sym);
+    if (proc) return (retro_proc_address_t) proc;
+#endif
+    return (retro_proc_address_t) dlsym(RTLD_DEFAULT, sym);
+}
+
 static bool retro_environment_cb(unsigned cmd, void *data) {
     switch (cmd) {
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT: {
@@ -792,6 +815,20 @@ static bool retro_environment_cb(unsigned cmd, void *data) {
             g_host.pixel_format = *fmt;
             LOGI("retro_environment_cb: Pixel format set to %u (0=0RGB1555, 1=XRGB8888, 2=RGB565)", *fmt);
             return true;
+        }
+
+        case RETRO_ENVIRONMENT_SET_HW_RENDER: {
+            struct retro_hw_render_callback *cb = (struct retro_hw_render_callback *) data;
+            if (cb) {
+                cb->get_current_framebuffer = retro_hw_get_current_framebuffer;
+                cb->get_proc_address = retro_hw_get_proc_address;
+                g_host.hw_render = *cb;
+                g_host.use_hw_render = true;
+                LOGI("retro_environment_cb: HW render context negotiated (type=%d, version=%u.%u)",
+                     cb->context_type, cb->version_major, cb->version_minor);
+                return true;
+            }
+            return false;
         }
 
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: {
@@ -822,10 +859,63 @@ static bool retro_environment_cb(unsigned cmd, void *data) {
         }
 
         case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
+        case RETRO_ENVIRONMENT_SET_VARIABLES:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+        case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
+        case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
+        case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
             return true;
 
-        case RETRO_ENVIRONMENT_GET_VARIABLE:
+        case RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME: {
+            bool *support = (bool *) data;
+            if (support) *support = false;
+            return true;
+        }
+
+        case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION: {
+            unsigned *version = (unsigned *) data;
+            if (version) {
+                *version = 2;
+                return true;
+            }
             return false;
+        }
+
+        case RETRO_ENVIRONMENT_GET_VARIABLE: {
+            struct retro_variable *var = (struct retro_variable *) data;
+            if (var && var->key) {
+                if (strcmp(var->key, "mupen64plus-cpucore") == 0) {
+                    var->value = "dynamic_recompiler";
+                    return true;
+                }
+                if (strcmp(var->key, "mupen64plus-rdp-plugin") == 0) {
+                    var->value = "gliden64";
+                    return true;
+                }
+                if (strcmp(var->key, "mupen64plus-rsp-plugin") == 0) {
+                    var->value = "hle";
+                    return true;
+                }
+                if (strcmp(var->key, "mupen64plus-43screensize") == 0) {
+                    var->value = "320x240";
+                    return true;
+                }
+                if (strcmp(var->key, "mupen64plus-aspect") == 0) {
+                    var->value = "4:3";
+                    return true;
+                }
+                if (strcmp(var->key, "pcsx_rearmed_dithering") == 0) {
+                    var->value = "enabled";
+                    return true;
+                }
+                var->value = NULL;
+                return true;
+            }
+            return false;
+        }
 
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE: {
             bool *updated = (bool *) data;
@@ -877,6 +967,12 @@ static bool retro_environment_cb(unsigned cmd, void *data) {
 }
 
 static void retro_video_refresh_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (data == RETRO_HW_FRAME_BUFFER_VALID || (data == NULL && g_host.use_hw_render)) {
+        if (width > 0) g_host.video_width = width;
+        if (height > 0) g_host.video_height = height;
+        return;
+    }
+
     if (!data || width == 0 || height == 0) {
         return;
     }

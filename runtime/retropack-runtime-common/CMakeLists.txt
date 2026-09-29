@@ -21,6 +21,8 @@ target_link_libraries(retropack-host PRIVATE
     log
     m
     dl
+    EGL
+    GLESv2
 )
 
 target_link_options(retropack-host PRIVATE

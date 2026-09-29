@@ -90,6 +90,10 @@ typedef struct LibretroHostState {
     // Loaded ROM memory buffer (if core does not use fullpath)
     void* rom_data;
     size_t rom_size;
+
+    // Hardware rendering context
+    struct retro_hw_render_callback hw_render;
+    bool use_hw_render;
 } LibretroHostState;
 
 /**

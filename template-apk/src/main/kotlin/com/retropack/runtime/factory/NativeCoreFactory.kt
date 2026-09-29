@@ -28,10 +28,10 @@ object NativeCoreFactory {
     /**
      * Resolves and prepares the appropriate [NativeCoreBridge] from injected [RuntimeConfig].
      */
-    fun createCore(config: RuntimeConfig): NativeCoreBridge {
+    fun createCore(config: RuntimeConfig, context: android.content.Context? = null): NativeCoreBridge {
         val platform = config.game.platform
         val coreHint = config.runtime.core
-        return resolveCore(platform = platform, coreHint = coreHint)
+        return resolveCore(platform = platform, coreHint = coreHint, context = context)
     }
 
     /**
@@ -83,10 +83,27 @@ object NativeCoreFactory {
      * Resolves and binds the target [NativeCoreBridge] for execution.
      * Loads the target core dynamically into [UniversalLibretroCore] if available.
      */
-    fun resolveCore(platform: String?, coreHint: String? = null): NativeCoreBridge {
+    fun resolveCore(platform: String?, coreHint: String? = null, context: android.content.Context? = null): NativeCoreBridge {
+        val coreId = resolveCoreId(platform, coreHint)
         val libName = resolveCoreLibName(platform, coreHint)
 
         if (UniversalLibretroCore.isLoaded()) {
+            // 1. Attempt registering via ClassLoader System.loadLibrary
+            val baseName = libName.removePrefix("lib").removeSuffix(".so")
+            runCatching { System.loadLibrary(baseName) }
+            runCatching { System.loadLibrary(coreId) }
+            runCatching { System.loadLibrary("retro_$coreId") }
+
+            // 2. Attempt loading from absolute nativeLibraryDir if available
+            val nativeDir = context?.applicationInfo?.nativeLibraryDir
+            if (!nativeDir.isNullOrBlank()) {
+                val candidateFile = java.io.File(nativeDir, libName)
+                if (candidateFile.exists()) {
+                    UniversalLibretroCore.loadCore(candidateFile.absolutePath)
+                }
+            }
+
+            // 3. Direct loadCore call
             UniversalLibretroCore.loadCore(libName)
             return UniversalLibretroCore
         }
