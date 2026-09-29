@@ -31,4 +31,5 @@ interface NativeCoreBridge {
     fun nativeGetCurrentDisc(): Int = 0
     fun nativeSetRumbleCallback(callback: ((motorIndex: Int, strengthPercent: Int, durationMs: Int) -> Unit)?) {}
     fun nativeSetAnalogAxis(axisX: Float, axisY: Float) {}
+    fun nativeGetLastError(): String? = null
 }

@@ -81,4 +81,10 @@ public class Context {
     }
 
     public void startActivity(Intent intent) {}
+
+    private android.content.pm.ApplicationInfo applicationInfo = new android.content.pm.ApplicationInfo();
+
+    public android.content.pm.ApplicationInfo getApplicationInfo() {
+        return applicationInfo;
+    }
 }

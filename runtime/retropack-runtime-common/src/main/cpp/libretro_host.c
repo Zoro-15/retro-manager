@@ -100,11 +100,21 @@ static void retro_input_poll_cb(void);
 static int16_t retro_input_state_cb(unsigned port, unsigned device, unsigned index, unsigned id);
 static void core_log_cb(enum retro_log_level level, const char *fmt, ...);
 
+static char g_last_error[1024] = {0};
+
+static void set_last_error(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(g_last_error, sizeof(g_last_error), fmt, args);
+    va_end(args);
+    LOGE("HostError: %s", g_last_error);
+}
+
 #define RESOLVE_REQUIRED_SYM(core_struct, sym_name) \
     do { \
         core_struct.sym_name = (void*) dlsym(core_struct.handle, #sym_name); \
         if (!core_struct.sym_name) { \
-            LOGE("Failed to resolve required Libretro symbol: %s (dlerror: %s)", #sym_name, dlerror()); \
+            set_last_error("Failed to resolve required Libretro symbol '%s': %s", #sym_name, dlerror()); \
             return false; \
         } \
     } while(0)
@@ -195,6 +205,7 @@ void host_destroy(void) {
 
 bool host_load_core(const char* core_path) {
     if (!core_path || strlen(core_path) == 0) {
+        set_last_error("host_load_core: empty or null core_path");
         LOGE("host_load_core: empty or null core_path");
         return false;
     }
@@ -220,6 +231,7 @@ bool host_load_core(const char* core_path) {
         handle = dlopen(NULL, RTLD_NOW);
     }
     if (!handle) {
+        set_last_error("host_load_core: all dlopen attempts failed for %s: %s", core_path, dlerror());
         LOGE("host_load_core: all dlopen attempts failed for %s: %s", core_path, dlerror());
         pthread_mutex_unlock(&g_host.lock);
         return false;
@@ -255,11 +267,14 @@ bool host_load_core(const char* core_path) {
 
     unsigned api_ver = new_core.retro_api_version();
     if (api_ver != RETRO_API_VERSION) {
+        set_last_error("host_load_core: API version mismatch (core=%u, host=%u)", api_ver, RETRO_API_VERSION);
         LOGE("host_load_core: API version mismatch (core=%u, host=%u)", api_ver, RETRO_API_VERSION);
         dlclose(handle);
         pthread_mutex_unlock(&g_host.lock);
         return false;
     }
+
+    g_last_error[0] = '\0';
 
     memset(&g_host.system_info, 0, sizeof(g_host.system_info));
     new_core.retro_get_system_info(&g_host.system_info);
@@ -361,6 +376,7 @@ static bool is_disc_or_streamable_format(const char* path) {
 
 bool host_load_game(const char* rom_path) {
     if (!rom_path || strlen(rom_path) == 0) {
+        set_last_error("host_load_game: invalid or empty rom path");
         LOGE("host_load_game: invalid rom path");
         return false;
     }
@@ -368,6 +384,7 @@ bool host_load_game(const char* rom_path) {
     pthread_mutex_lock(&g_host.lock);
 
     if (!g_host.core_loaded) {
+        set_last_error("host_load_game: no libretro core loaded before loading game");
         LOGE("host_load_game: no core loaded");
         pthread_mutex_unlock(&g_host.lock);
         return false;
@@ -454,6 +471,9 @@ bool host_load_game(const char* rom_path) {
     }
 
     if (!success) {
+        set_last_error("host_load_game: retro_load_game returned false for '%s' (core='%s', size=%ld, need_fullpath=%d)",
+                       rom_path, g_host.system_info.library_name ? g_host.system_info.library_name : "unknown",
+                       file_size, g_host.system_info.need_fullpath);
         LOGE("host_load_game: retro_load_game returned false for %s", rom_path);
         if (g_host.rom_data) {
             free(g_host.rom_data);
@@ -464,6 +484,7 @@ bool host_load_game(const char* rom_path) {
         return false;
     }
 
+    g_last_error[0] = '\0';
     g_host.game_loaded = true;
 
     memset(&g_host.av_info, 0, sizeof(g_host.av_info));
@@ -1526,3 +1547,24 @@ Java_com_retropack_runtime_core_NativeCore_nativeLoadState(
         JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
     return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeLoadState(env, thiz, slot, filePath);
 }
+
+JNIEXPORT jstring JNICALL
+Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetLastError(
+        JNIEnv* env, jobject thiz) {
+    (void) thiz;
+    pthread_mutex_lock(&g_host.lock);
+    if (g_last_error[0] == '\0') {
+        pthread_mutex_unlock(&g_host.lock);
+        return NULL;
+    }
+    jstring result = (*env)->NewStringUTF(env, g_last_error);
+    pthread_mutex_unlock(&g_host.lock);
+    return result;
+}
+
+JNIEXPORT jstring JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetLastError(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetLastError(env, thiz);
+}
+

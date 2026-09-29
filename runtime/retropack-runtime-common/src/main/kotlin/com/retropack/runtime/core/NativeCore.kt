@@ -159,4 +159,6 @@ object NativeCore : NativeCoreBridge {
      * @return true if state was loaded and applied successfully, false otherwise.
      */
     override external fun nativeLoadState(slot: Int, filePath: String): Boolean
+
+    override external fun nativeGetLastError(): String?
 }

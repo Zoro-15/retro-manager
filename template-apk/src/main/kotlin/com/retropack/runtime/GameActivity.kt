@@ -723,11 +723,27 @@ open class GameActivity : Activity() {
                 emulationHost.start()
                 RuntimeLogger.i("Bootstrap", "EmulationHost active loop started successfully")
             } else {
+                val activeCore = (engine as? NativeEmulationEngine)?.core ?: NativeCore
+                val nativeErr = try { activeCore.nativeGetLastError() } catch (_: Throwable) { null }
+                val hostErr = com.retropack.runtime.core.UniversalLibretroCore.hostLoadError
+                val nativeDir = try { applicationInfo?.nativeLibraryDir } catch (_: Throwable) { null }
+                val runtimeMem = Runtime.getRuntime()
+                val freeMemMb = runtimeMem.freeMemory() / (1024 * 1024)
+                val totalMemMb = runtimeMem.totalMemory() / (1024 * 1024)
+
                 val errorDetails = buildString {
-                    val activeCore = (engine as? NativeEmulationEngine)?.core ?: NativeCore
-                    appendLine("Failed to initialize or parse ROM in ${config.runtime.core} (${config.game.platform}) core.")
+                    appendLine("Failed to initialize or execute ROM in ${config.runtime.core} (${config.game.platform}) core.")
                     appendLine("• Engine State: ${engine.state}")
-                    appendLine("• NativeCore loaded: ${activeCore.isLoaded()}")
+                    appendLine("• Core Loaded: ${activeCore.isLoaded()}")
+                    if (!nativeErr.isNullOrBlank()) {
+                        appendLine("• Native Error: $nativeErr")
+                    }
+                    if (!hostErr.isNullOrBlank()) {
+                        appendLine("• Host Library Error: $hostErr")
+                    }
+                    appendLine("• ROM Path: ${romFile.absolutePath} (${romFile.length()} bytes)")
+                    appendLine("• Native Libs Dir: ${nativeDir ?: "unknown"}")
+                    appendLine("• Memory: ${freeMemMb}MB free / ${totalMemMb}MB total")
                 }
                 RuntimeLogger.e("Bootstrap", errorDetails)
                 showDiagnosticAlert(root, errorDetails)

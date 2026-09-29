@@ -49,29 +49,76 @@ class RuntimeLoggingService : Service() {
         return START_NOT_STICKY
     }
 
+    private fun isProcessAlive(p: Process): Boolean {
+        return try {
+            p.exitValue()
+            false
+        } catch (_: IllegalThreadStateException) {
+            true
+        }
+    }
+
     private fun startLogcatStream() {
         workerThread = Thread({
             try {
-                RuntimeLogger.i("LogService", "Logcat background collector stream started")
-                val cmd = arrayOf(
-                    "logcat",
-                    "-v",
-                    "time",
-                    "-s",
-                    "RetroPack:V",
-                    "RetroRuntime:V",
-                    "RetroPack-mGBA:V",
-                    "mGBA:V",
-                    "AndroidRuntime:E"
-                )
-                val process = Runtime.getRuntime().exec(cmd)
+                val myPid = android.os.Process.myPid()
+                RuntimeLogger.i("LogService", "Logcat background collector stream starting for PID $myPid")
+
+                var process: Process? = null
+                try {
+                    val pidCmd = arrayOf(
+                        "logcat",
+                        "--pid=$myPid",
+                        "-v",
+                        "time"
+                    )
+                    process = Runtime.getRuntime().exec(pidCmd)
+                } catch (_: Throwable) {
+                    process = null
+                }
+
+                if (process == null || !isProcessAlive(process)) {
+                    val fallbackCmd = arrayOf(
+                        "logcat",
+                        "-v",
+                        "time",
+                        "-s",
+                        "RetroPack-LibretroHost:V",
+                        "RetroPack:V",
+                        "RetroRuntime:V",
+                        "RetroPack-EmulationHost:V",
+                        "RetroPack-NativeCore:V",
+                        "RetroPack-mGBA:V",
+                        "mGBA:V",
+                        "Mupen64Plus:V",
+                        "Mupen64Plus-Next:V",
+                        "PCSX:V",
+                        "PCSX-ReARMed:V",
+                        "Snes9x:V",
+                        "GenesisPlusGX:V",
+                        "FBNeo:V",
+                        "melonDS:V",
+                        "PPSSPP:V",
+                        "DEBUG:E",
+                        "DEBUG:F",
+                        "linker:E",
+                        "linker:W",
+                        "AndroidRuntime:E",
+                        "Adreno:E",
+                        "Mali:E",
+                        "OpenGLRenderer:E"
+                    )
+                    process = Runtime.getRuntime().exec(fallbackCmd)
+                }
                 logcatProcess = process
 
                 BufferedReader(InputStreamReader(process.inputStream, Charsets.UTF_8)).use { reader ->
                     var line: String? = null
                     while (shouldRun && reader.readLine().also { line = it } != null) {
                         line?.let { l ->
-                            RuntimeLogger.d("Logcat", l)
+                            if (!l.contains("[RetroPack-") && !l.contains("RETROPACK STANDALONE")) {
+                                RuntimeLogger.d("Logcat", l)
+                            }
                         }
                     }
                 }

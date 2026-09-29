@@ -136,4 +136,6 @@ object UniversalLibretroCore : NativeCoreBridge {
     override external fun nativeSaveState(slot: Int, filePath: String): Boolean
 
     override external fun nativeLoadState(slot: Int, filePath: String): Boolean
+
+    override external fun nativeGetLastError(): String?
 }

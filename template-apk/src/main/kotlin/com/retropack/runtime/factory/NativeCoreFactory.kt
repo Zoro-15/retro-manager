@@ -4,6 +4,7 @@ import com.retropack.runtime.core.NativeCore
 import com.retropack.runtime.core.NativeCoreBridge
 import com.retropack.runtime.core.UniversalLibretroCore
 import com.retropack.runtime.host.RuntimeConfig
+import java.io.File
 
 /**
  * Universal dynamic core factory for RetroPack standalone runtime applications.
@@ -94,17 +95,20 @@ object NativeCoreFactory {
             runCatching { System.loadLibrary(coreId) }
             runCatching { System.loadLibrary("retro_$coreId") }
 
+            var loaded = false
             // 2. Attempt loading from absolute nativeLibraryDir if available
             val nativeDir = context?.applicationInfo?.nativeLibraryDir
             if (!nativeDir.isNullOrBlank()) {
                 val candidateFile = java.io.File(nativeDir, libName)
                 if (candidateFile.exists()) {
-                    UniversalLibretroCore.loadCore(candidateFile.absolutePath)
+                    loaded = UniversalLibretroCore.loadCore(candidateFile.absolutePath)
                 }
             }
 
-            // 3. Direct loadCore call
-            UniversalLibretroCore.loadCore(libName)
+            // 3. Direct loadCore call if not already loaded from nativeDir
+            if (!loaded) {
+                UniversalLibretroCore.loadCore(libName)
+            }
             return UniversalLibretroCore
         }
 
