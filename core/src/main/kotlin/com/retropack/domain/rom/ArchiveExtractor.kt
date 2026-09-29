@@ -149,6 +149,17 @@ object ArchiveExtractor {
     }
 
     /**
+     * Checks if the filename indicates a multi-part split archive (e.g. .part1.rar, .r00, .z01).
+     */
+    fun isMultiPartArchive(fileName: String): Boolean {
+        val lower = fileName.lowercase(Locale.US)
+        return lower.matches(Regex(""".*\.part\d+\.rar$""")) ||
+            lower.matches(Regex(""".*\.r\d{2,}$""")) ||
+            lower.matches(Regex(""".*\.z\d{2,}$""")) ||
+            lower.matches(Regex(""".*\.7z\.\d{3,}$"""))
+    }
+
+    /**
      * Inspects an incoming file on disk. If it is an archive, extracts the primary ROM file directly
      * to [destinationDir] using constant 64 KB memory streaming. Recursively unpacks nested archives.
      */
@@ -158,6 +169,13 @@ object ArchiveExtractor {
         currentDepth: Int = 0
     ): ExtractedRomFileResult {
         destinationDir.mkdirs()
+
+        if (isMultiPartArchive(sourceFile.name)) {
+            throw InvalidRomException(
+                "Multi-part split archive detected for '${sourceFile.name}'. " +
+                "Please unpack the full set using 7-Zip, ZArchiver, or WinRAR, then import the uncompressed ROM or disc image."
+            )
+        }
 
         val prefix = ByteArray(16)
         val readLen = runCatching {
@@ -178,14 +196,20 @@ object ArchiveExtractor {
 
         // 1. Try ZIP extraction directly to disk file
         if (isZip(headerBytes, lowerName)) {
-            val zipResult = runCatching { extractFromZipFileToDisk(sourceFile, destinationDir) }.getOrNull()
-            if (zipResult != null) {
-                val nextHeader = ByteArray(16)
-                val nextLen = runCatching { zipResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
-                if (isArchive(nextHeader.copyOf(nextLen), zipResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRomToDisk(zipResult.file, destinationDir, currentDepth + 1)
+            try {
+                val zipResult = extractFromZipFileToDisk(sourceFile, destinationDir)
+                if (zipResult != null) {
+                    val nextHeader = ByteArray(16)
+                    val nextLen = runCatching { zipResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                    if (isArchive(nextHeader.copyOf(nextLen), zipResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRomToDisk(zipResult.file, destinationDir, currentDepth + 1)
+                    }
+                    return zipResult
                 }
-                return zipResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback to raw file if not a valid zip
             }
         }
 
@@ -194,51 +218,67 @@ object ArchiveExtractor {
             if (isRar5(headerBytes)) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '${sourceFile.name}'. " +
-                    "Embedded RAR5 decompression is not supported. Please unpack this game to a standard .zip, .7z, or uncompressed ROM format first."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
                 )
             }
-            val rarResult = runCatching { extractFromRarFileToDisk(sourceFile, destinationDir) }.getOrNull()
-            if (rarResult != null) {
-                val nextHeader = ByteArray(16)
-                val nextLen = runCatching { rarResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
-                if (isArchive(nextHeader.copyOf(nextLen), rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRomToDisk(rarResult.file, destinationDir, currentDepth + 1)
+            try {
+                val rarResult = extractFromRarFileToDisk(sourceFile, destinationDir)
+                if (rarResult != null) {
+                    val nextHeader = ByteArray(16)
+                    val nextLen = runCatching { rarResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                    if (isArchive(nextHeader.copyOf(nextLen), rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRomToDisk(rarResult.file, destinationDir, currentDepth + 1)
+                    }
+                    return rarResult
                 }
-                return rarResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: com.github.junrar.exception.UnsupportedRarV5Exception) {
+                throw InvalidRomException(
+                    "RAR 5.0 archive format detected for '${sourceFile.name}'. " +
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                )
+            } catch (e: Exception) {
+                throw InvalidRomException("Failed to unpack RAR archive '${sourceFile.name}': ${e.message ?: "corrupted or unsupported format"}. Please unpack with 7-Zip/ZArchiver or import raw ROM.")
             }
         }
 
         // 3. Try 7Z extraction directly to disk file
         if (is7z(headerBytes, lowerName)) {
-            val sevenZResult = runCatching { extractFrom7zFileToDisk(sourceFile, destinationDir) }.getOrNull()
-            if (sevenZResult != null) {
-                val nextHeader = ByteArray(16)
-                val nextLen = runCatching { sevenZResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
-                if (isArchive(nextHeader.copyOf(nextLen), sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRomToDisk(sevenZResult.file, destinationDir, currentDepth + 1)
+            try {
+                val sevenZResult = extractFrom7zFileToDisk(sourceFile, destinationDir)
+                if (sevenZResult != null) {
+                    val nextHeader = ByteArray(16)
+                    val nextLen = runCatching { sevenZResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                    if (isArchive(nextHeader.copyOf(nextLen), sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRomToDisk(sevenZResult.file, destinationDir, currentDepth + 1)
+                    }
+                    return sevenZResult
                 }
-                return sevenZResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback
             }
         }
 
         // 4. Try GZIP decompression to disk file
         if (isGzip(headerBytes, lowerName)) {
-            val gzResult = runCatching { extractFromGzipFileToDisk(sourceFile, destinationDir) }.getOrNull()
-            if (gzResult != null) {
-                val nextHeader = ByteArray(16)
-                val nextLen = runCatching { gzResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
-                if (isArchive(nextHeader.copyOf(nextLen), gzResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRomToDisk(gzResult.file, destinationDir, currentDepth + 1)
+            try {
+                val gzResult = extractFromGzipFileToDisk(sourceFile, destinationDir)
+                if (gzResult != null) {
+                    val nextHeader = ByteArray(16)
+                    val nextLen = runCatching { gzResult.file.inputStream().use { it.read(nextHeader) } }.getOrDefault(0)
+                    if (isArchive(nextHeader.copyOf(nextLen), gzResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRomToDisk(gzResult.file, destinationDir, currentDepth + 1)
+                    }
+                    return gzResult
                 }
-                return gzResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback
             }
-        }
-
-        if (isArchive(headerBytes, sourceFile.name)) {
-            throw InvalidRomException(
-                "Failed to extract candidate ROM from archive '${sourceFile.name}'. " +
-                "The archive may be corrupt, password-protected, or in an unsupported format."
-            )
         }
 
         return ExtractedRomFileResult(
@@ -250,7 +290,8 @@ object ArchiveExtractor {
     }
 
     private fun extractFromZipFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
-        java.util.zip.ZipFile(sourceFile).use { zip ->
+        val zip = runCatching { java.util.zip.ZipFile(sourceFile) }.getOrNull() ?: return null
+        zip.use {
             val entries = zip.entries().asSequence().filter { !it.isDirectory }.toList()
             val validNames = entries.map { entry ->
                 entry.name.substringAfterLast('/').substringAfterLast('\\')
@@ -280,9 +321,10 @@ object ArchiveExtractor {
     }
 
     private fun extractFrom7zFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
-        SevenZFile(sourceFile).use { sevenZFile ->
+        val sevenZFile = runCatching { SevenZFile(sourceFile) }.getOrNull() ?: return null
+        sevenZFile.use { szf ->
             val entryList = mutableListOf<String>()
-            var e = sevenZFile.nextEntry
+            var e = szf.nextEntry
             while (e != null) {
                 if (!e.isDirectory) {
                     val clean = e.name.substringAfterLast('/').substringAfterLast('\\')
@@ -290,7 +332,7 @@ object ArchiveExtractor {
                         entryList.add(clean)
                     }
                 }
-                e = sevenZFile.nextEntry
+                e = szf.nextEntry
             }
 
             if (entryList.isEmpty()) return null
@@ -327,9 +369,15 @@ object ArchiveExtractor {
 
     private fun extractFromRarFileToDisk(sourceFile: File, outputDir: File): ExtractedRomFileResult? {
         Archive(sourceFile).use { archive ->
+            if (archive.isEncrypted) {
+                throw InvalidRomException("The RAR archive '${sourceFile.name}' is password-protected or encrypted. Password-protected archives cannot be unpacked automatically.")
+            }
             val headers = mutableListOf<FileHeader>()
             var h: FileHeader? = archive.nextFileHeader()
             while (h != null) {
+                if (h.isEncrypted) {
+                    throw InvalidRomException("The RAR archive entry '${h.fileName}' is password-protected and cannot be extracted.")
+                }
                 if (!h.isDirectory) {
                     val fullPath = h.fileName ?: h.fileNameW ?: ""
                     val clean = fullPath.substringAfterLast('/').substringAfterLast('\\')
@@ -417,6 +465,13 @@ object ArchiveExtractor {
         rawFileName: String,
         currentDepth: Int = 0
     ): ExtractedRomResult {
+        if (isMultiPartArchive(rawFileName)) {
+            throw InvalidRomException(
+                "Multi-part split archive detected for '$rawFileName'. " +
+                "Please unpack the full set using 7-Zip, ZArchiver, or WinRAR, then import the uncompressed ROM or disc image."
+            )
+        }
+
         if (currentDepth >= MAX_RECURSION_DEPTH || !isArchive(rawBytes, rawFileName)) {
             return ExtractedRomResult(
                 bytes = rawBytes,
@@ -430,12 +485,18 @@ object ArchiveExtractor {
 
         // 1. Try ZIP extraction
         if (isZip(rawBytes, lowerName)) {
-            val zipResult = runCatching { extractFromZip(rawBytes, rawFileName) }.getOrNull()
-            if (zipResult != null) {
-                if (isArchive(zipResult.bytes, zipResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRom(zipResult.bytes, zipResult.candidateFileName, currentDepth + 1)
+            try {
+                val zipResult = extractFromZip(rawBytes, rawFileName)
+                if (zipResult != null) {
+                    if (isArchive(zipResult.bytes, zipResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRom(zipResult.bytes, zipResult.candidateFileName, currentDepth + 1)
+                    }
+                    return zipResult
                 }
-                return zipResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback
             }
         }
 
@@ -444,37 +505,60 @@ object ArchiveExtractor {
             if (isRar5(rawBytes)) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '$rawFileName'. " +
-                    "Embedded RAR5 decompression is not supported. Please unpack this game to a standard .zip, .7z, or uncompressed ROM format first."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
                 )
             }
-            val rarResult = runCatching { extractFromRar(rawBytes, rawFileName) }.getOrNull()
-            if (rarResult != null) {
-                if (isArchive(rarResult.bytes, rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRom(rarResult.bytes, rarResult.candidateFileName, currentDepth + 1)
+            try {
+                val rarResult = extractFromRar(rawBytes, rawFileName)
+                if (rarResult != null) {
+                    if (isArchive(rarResult.bytes, rarResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRom(rarResult.bytes, rarResult.candidateFileName, currentDepth + 1)
+                    }
+                    return rarResult
                 }
-                return rarResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: com.github.junrar.exception.UnsupportedRarV5Exception) {
+                throw InvalidRomException(
+                    "RAR 5.0 archive format detected for '$rawFileName'. " +
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                )
+            } catch (e: Exception) {
+                throw InvalidRomException("Failed to unpack RAR archive '$rawFileName': ${e.message ?: "corrupted or unsupported format"}. Please unpack with 7-Zip/ZArchiver or import raw ROM.")
             }
         }
 
         // 3. Try GZIP decompression (e.g. game.nes.gz)
         if (isGzip(rawBytes, lowerName)) {
-            val gzResult = runCatching { extractFromGzip(rawBytes, rawFileName) }.getOrNull()
-            if (gzResult != null) {
-                if (isArchive(gzResult.bytes, gzResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRom(gzResult.bytes, gzResult.candidateFileName, currentDepth + 1)
+            try {
+                val gzResult = extractFromGzip(rawBytes, rawFileName)
+                if (gzResult != null) {
+                    if (isArchive(gzResult.bytes, gzResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRom(gzResult.bytes, gzResult.candidateFileName, currentDepth + 1)
+                    }
+                    return gzResult
                 }
-                return gzResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback
             }
         }
 
         // 4. Try 7Z extraction
         if (is7z(rawBytes, lowerName)) {
-            val sevenZResult = runCatching { extractFrom7z(rawBytes, rawFileName) }.getOrNull()
-            if (sevenZResult != null) {
-                if (isArchive(sevenZResult.bytes, sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
-                    return extractCandidateRom(sevenZResult.bytes, sevenZResult.candidateFileName, currentDepth + 1)
+            try {
+                val sevenZResult = extractFrom7z(rawBytes, rawFileName)
+                if (sevenZResult != null) {
+                    if (isArchive(sevenZResult.bytes, sevenZResult.candidateFileName) && currentDepth < MAX_RECURSION_DEPTH) {
+                        return extractCandidateRom(sevenZResult.bytes, sevenZResult.candidateFileName, currentDepth + 1)
+                    }
+                    return sevenZResult
                 }
-                return sevenZResult
+            } catch (e: InvalidRomException) {
+                throw e
+            } catch (e: Exception) {
+                // Ignore fallback
             }
         }
 
@@ -487,8 +571,8 @@ object ArchiveExtractor {
     }
 
     private fun isZip(bytes: ByteArray, lowerName: String): Boolean {
-        return lowerName.endsWith(".zip") ||
-            (bytes.size >= 4 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4B.toByte())
+        return (bytes.size >= 4 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4B.toByte()) ||
+            (bytes.size < 4 && lowerName.endsWith(".zip"))
     }
 
     private fun isRar(bytes: ByteArray, lowerName: String): Boolean {
@@ -517,7 +601,8 @@ object ArchiveExtractor {
      */
     private fun extractFromZip(rawBytes: ByteArray, rawFileName: String): ExtractedRomResult? {
         val entries = mutableListOf<Pair<String, ByteArray>>()
-        ZipInputStream(ByteArrayInputStream(rawBytes)).use { zis ->
+        val zis = runCatching { ZipInputStream(ByteArrayInputStream(rawBytes)) }.getOrNull() ?: return null
+        zis.use {
             var entry = zis.nextEntry
             while (entry != null) {
                 if (!entry.isDirectory) {
@@ -551,8 +636,14 @@ object ArchiveExtractor {
     private fun extractFromRar(rawBytes: ByteArray, rawFileName: String): ExtractedRomResult? {
         val entries = mutableListOf<Pair<String, ByteArray>>()
         Archive(ByteArrayInputStream(rawBytes)).use { archive ->
+            if (archive.isEncrypted) {
+                throw InvalidRomException("The RAR archive '$rawFileName' is password-protected or encrypted. Password-protected archives cannot be unpacked automatically.")
+            }
             var header: FileHeader? = archive.nextFileHeader()
             while (header != null) {
+                if (header.isEncrypted) {
+                    throw InvalidRomException("The RAR archive entry '${header.fileName}' is password-protected and cannot be extracted.")
+                }
                 if (!header.isDirectory) {
                     val fullPath = header.fileName ?: header.fileNameW ?: ""
                     val cleanName = fullPath.substringAfterLast('/').substringAfterLast('\\')
@@ -605,8 +696,9 @@ object ArchiveExtractor {
     private fun extractFrom7z(rawBytes: ByteArray, rawFileName: String): ExtractedRomResult? {
         val entries = mutableListOf<Pair<String, ByteArray>>()
         val channel = SeekableInMemoryByteChannel(rawBytes)
-        SevenZFile(channel).use { sevenZFile ->
-            var entry = sevenZFile.nextEntry
+        val sevenZFile = runCatching { SevenZFile(channel) }.getOrNull() ?: return null
+        sevenZFile.use { szf ->
+            var entry = szf.nextEntry
             while (entry != null) {
                 if (!entry.isDirectory) {
                     val cleanName = entry.name.substringAfterLast('/').substringAfterLast('\\')
@@ -616,7 +708,7 @@ object ArchiveExtractor {
                             val content = ByteArray(size.toInt())
                             var offset = 0
                             while (offset < content.size) {
-                                val read = sevenZFile.read(content, offset, content.size - offset)
+                                val read = szf.read(content, offset, content.size - offset)
                                 if (read < 0) break
                                 offset += read
                             }
@@ -624,7 +716,7 @@ object ArchiveExtractor {
                         }
                     }
                 }
-                entry = sevenZFile.nextEntry
+                entry = szf.nextEntry
             }
         }
 

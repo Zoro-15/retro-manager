@@ -208,4 +208,27 @@ class ArchiveExtractorTest {
             assertTrue(ArchiveExtractor.SUPPORTED_ROM_EXTENSIONS.contains(ext), "Expected $ext in SUPPORTED_ROM_EXTENSIONS")
         }
     }
+
+    @Test
+    fun `isMultiPartArchive identifies split multi-volume archives`() {
+        assertTrue(ArchiveExtractor.isMultiPartArchive("FinalFantasyVII.part1.rar"))
+        assertTrue(ArchiveExtractor.isMultiPartArchive("FinalFantasyVII.part02.rar"))
+        assertTrue(ArchiveExtractor.isMultiPartArchive("game.r00"))
+        assertTrue(ArchiveExtractor.isMultiPartArchive("game.r01"))
+        assertTrue(ArchiveExtractor.isMultiPartArchive("game.z01"))
+        assertTrue(ArchiveExtractor.isMultiPartArchive("game.7z.001"))
+
+        assertFalse(ArchiveExtractor.isMultiPartArchive("game.rar"))
+        assertFalse(ArchiveExtractor.isMultiPartArchive("game.zip"))
+        assertFalse(ArchiveExtractor.isMultiPartArchive("game.7z"))
+    }
+
+    @Test
+    fun `extractCandidateRom rejects multi-part archives with actionable message`() {
+        val dummyBytes = byteArrayOf(0x50, 0x4B, 0x03, 0x04)
+        val ex = org.junit.jupiter.api.assertThrows<InvalidRomException> {
+            ArchiveExtractor.extractCandidateRom(dummyBytes, "Tekken3.part1.rar")
+        }
+        assertTrue(ex.message!!.contains("Multi-part split archive detected"))
+    }
 }

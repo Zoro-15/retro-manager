@@ -317,7 +317,12 @@ class MainViewModel : ViewModel() {
 
             val copyResult = withContext(Dispatchers.IO) {
                 UriUtils.copyUriToTempFile(context, uri, stagedSourceFile)
-            } ?: return@launch
+            }
+            if (copyResult == null || !stagedSourceFile.exists() || stagedSourceFile.length() == 0L) {
+                com.retropack.manager.util.AppLogger.e("DISC_SELECTION", "Failed to stream disc content from selected URI: $uri")
+                _uiState.update { it.copy(toastMessage = "Failed to read disc file '$rawFileName'") }
+                return@launch
+            }
 
             val extractResult = withContext(Dispatchers.IO) {
                 runCatching {
@@ -326,10 +331,16 @@ class MainViewModel : ViewModel() {
                         destinationDir = File(stagingDir, "disc_extracted_${System.currentTimeMillis()}")
                     )
                 }
-            }.getOrNull() ?: return@launch
+            }
 
-            val discFile = extractResult.file
-            val fileName = extractResult.candidateFileName
+            val extractedFileResult = extractResult.getOrElse { err ->
+                com.retropack.manager.util.AppLogger.e("DISC_SELECTION", "Disc archive extraction failed for '$rawFileName': ${err.message}", err)
+                _uiState.update { it.copy(toastMessage = "Disc Extraction Failed: ${err.message}") }
+                return@launch
+            }
+
+            val discFile = extractedFileResult.file
+            val fileName = extractedFileResult.candidateFileName
             val fileSize = discFile.length()
 
             val checksumResult = withContext(Dispatchers.Default) {
@@ -366,7 +377,8 @@ class MainViewModel : ViewModel() {
                     romState = current.romState.copy(
                         discItems = updatedList,
                         romIdentity = updatedIdentity
-                    )
+                    ),
+                    toastMessage = "Added Disc ${nextIndex + 1}: $fileName"
                 )
             }
         }
