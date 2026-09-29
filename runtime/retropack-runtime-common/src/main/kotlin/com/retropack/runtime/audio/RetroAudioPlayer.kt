@@ -1,6 +1,7 @@
 package com.retropack.runtime.audio
 
 import com.retropack.runtime.core.NativeCore
+import com.retropack.runtime.core.UniversalLibretroCore
 import java.util.Arrays
 
 /**
@@ -13,8 +14,29 @@ import java.util.Arrays
  */
 class RetroAudioPlayer(
     private val sink: AudioSink = OboeAudioSink(SAMPLE_RATE, CHANNEL_COUNT),
-    private val sampleProvider: (ShortArray, Int) -> Int = { buf, max -> NativeCore.nativeGetAudioSamples(buf, max) },
-    val driftController: AudioDriftController = AudioDriftController(SAMPLE_RATE, CHANNEL_COUNT)
+    private val sampleProvider: (ShortArray, Int) -> Int = { buf, max ->
+        if (UniversalLibretroCore.isLoaded()) {
+            try {
+                UniversalLibretroCore.nativeGetAudioSamples(buf, max)
+            } catch (_: UnsatisfiedLinkError) {
+                try { NativeCore.nativeGetAudioSamples(buf, max) } catch (_: UnsatisfiedLinkError) { 0 }
+            }
+        } else {
+            try { NativeCore.nativeGetAudioSamples(buf, max) } catch (_: UnsatisfiedLinkError) { 0 }
+        }
+    },
+    val driftController: AudioDriftController = AudioDriftController(SAMPLE_RATE, CHANNEL_COUNT),
+    private val occupancyProvider: () -> Int = {
+        if (UniversalLibretroCore.isLoaded()) {
+            try {
+                UniversalLibretroCore.nativeGetAudioAvailable()
+            } catch (_: UnsatisfiedLinkError) {
+                try { NativeCore.nativeGetAudioAvailable() } catch (_: UnsatisfiedLinkError) { -1 }
+            }
+        } else {
+            try { NativeCore.nativeGetAudioAvailable() } catch (_: UnsatisfiedLinkError) { -1 }
+        }
+    }
 ) {
     companion object {
         const val SAMPLE_RATE = 44_100
@@ -127,7 +149,7 @@ class RetroAudioPlayer(
         // latency grew unbounded while the controller reported healthy.
         // Falls back to the drained count when native is unavailable (tests).
         val occupancy = try {
-            NativeCore.nativeGetAudioAvailable()
+            occupancyProvider()
         } catch (_: UnsatisfiedLinkError) {
             pulled
         }

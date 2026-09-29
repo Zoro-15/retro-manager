@@ -1,6 +1,8 @@
 package com.retropack.runtime.save
 
 import com.retropack.runtime.core.NativeCore
+import com.retropack.runtime.core.NativeCoreBridge
+import com.retropack.runtime.core.UniversalLibretroCore
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -17,23 +19,26 @@ interface SramStorageSource {
 }
 
 /**
- * Default [SramStorageSource] backed by the JNI [NativeCore].
+ * Default [SramStorageSource] backed by active JNI native bridge ([UniversalLibretroCore] or [NativeCore]).
  */
 object DefaultNativeSramSource : SramStorageSource {
+    private val activeBridge: NativeCoreBridge
+        get() = if (UniversalLibretroCore.isLoaded()) UniversalLibretroCore else NativeCore
+
     override fun getSramSize(): Int = try {
-        NativeCore.nativeGetSramSize()
+        activeBridge.nativeGetSramSize()
     } catch (_: UnsatisfiedLinkError) {
         0
     }
 
     override fun readSram(outBuffer: ByteArray): Boolean = try {
-        NativeCore.nativeReadSram(outBuffer)
+        activeBridge.nativeReadSram(outBuffer)
     } catch (_: UnsatisfiedLinkError) {
         false
     }
 
     override fun writeSram(inBuffer: ByteArray): Boolean = try {
-        NativeCore.nativeWriteSram(inBuffer)
+        activeBridge.nativeWriteSram(inBuffer)
     } catch (_: UnsatisfiedLinkError) {
         false
     }

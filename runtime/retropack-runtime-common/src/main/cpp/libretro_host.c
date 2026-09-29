@@ -327,6 +327,28 @@ void host_unload_core(void) {
     LOGI("host_unload_core: Core unloaded");
 }
 
+static bool is_disc_or_streamable_format(const char* path) {
+    if (!path) return false;
+    const char* dot = strrchr(path, '.');
+    if (!dot) return false;
+    if (strcasecmp(dot, ".iso") == 0 ||
+        strcasecmp(dot, ".cue") == 0 ||
+        strcasecmp(dot, ".bin") == 0 ||
+        strcasecmp(dot, ".chd") == 0 ||
+        strcasecmp(dot, ".pbp") == 0 ||
+        strcasecmp(dot, ".cso") == 0 ||
+        strcasecmp(dot, ".mdf") == 0 ||
+        strcasecmp(dot, ".img") == 0 ||
+        strcasecmp(dot, ".m3u") == 0 ||
+        strcasecmp(dot, ".ccd") == 0 ||
+        strcasecmp(dot, ".toc") == 0 ||
+        strcasecmp(dot, ".prx") == 0 ||
+        strcasecmp(dot, ".elf") == 0) {
+        return true;
+    }
+    return false;
+}
+
 bool host_load_game(const char* rom_path) {
     if (!rom_path || strlen(rom_path) == 0) {
         LOGE("host_load_game: invalid rom path");
@@ -358,55 +380,69 @@ bool host_load_game(const char* rom_path) {
     memset(&game_info, 0, sizeof(game_info));
     game_info.path = rom_path;
 
-    if (!g_host.system_info.need_fullpath) {
-        FILE* fp = fopen(rom_path, "rb");
-        if (!fp) {
-            LOGE("host_load_game: failed to open ROM file: %s", rom_path);
-            pthread_mutex_unlock(&g_host.lock);
-            return false;
-        }
-
+    long file_size = 0;
+    FILE* fp = fopen(rom_path, "rb");
+    if (fp) {
         fseek(fp, 0, SEEK_END);
-        long file_size = ftell(fp);
+        file_size = ftell(fp);
         fseek(fp, 0, SEEK_SET);
+    }
 
-        if (file_size <= 0) {
-            LOGE("host_load_game: invalid ROM size (%ld): %s", file_size, rom_path);
-            fclose(fp);
-            pthread_mutex_unlock(&g_host.lock);
-            return false;
-        }
+    // Disc images (.iso, .bin, .cue, .chd) and files > 32 MB must stream directly from disk
+    bool use_fullpath = g_host.system_info.need_fullpath ||
+                        is_disc_or_streamable_format(rom_path) ||
+                        file_size > (32 * 1024 * 1024) ||
+                        (fp == NULL);
 
+    if (!use_fullpath && fp != NULL && file_size > 0) {
         g_host.rom_data = malloc((size_t) file_size);
-        if (!g_host.rom_data) {
-            LOGE("host_load_game: failed to allocate %ld bytes for ROM", file_size);
-            fclose(fp);
-            pthread_mutex_unlock(&g_host.lock);
-            return false;
+        if (g_host.rom_data) {
+            size_t read_bytes = fread(g_host.rom_data, 1, (size_t) file_size, fp);
+            if (read_bytes == (size_t) file_size) {
+                g_host.rom_size = (size_t) file_size;
+                game_info.data = g_host.rom_data;
+                game_info.size = g_host.rom_size;
+                LOGI("host_load_game: loaded ROM into memory (%zu bytes)", g_host.rom_size);
+            } else {
+                LOGW("host_load_game: read mismatch (%zu of %ld bytes), falling back to full path", read_bytes, file_size);
+                free(g_host.rom_data);
+                g_host.rom_data = NULL;
+                g_host.rom_size = 0;
+                game_info.data = NULL;
+                game_info.size = 0;
+            }
+        } else {
+            LOGW("host_load_game: failed to allocate %ld bytes in RAM, falling back to full path", file_size);
+            game_info.data = NULL;
+            game_info.size = 0;
         }
-
-        size_t read_bytes = fread(g_host.rom_data, 1, (size_t) file_size, fp);
-        fclose(fp);
-
-        if (read_bytes != (size_t) file_size) {
-            LOGE("host_load_game: failed to read complete ROM (%zu of %ld bytes)", read_bytes, file_size);
-            free(g_host.rom_data);
-            g_host.rom_data = NULL;
-            pthread_mutex_unlock(&g_host.lock);
-            return false;
-        }
-
-        g_host.rom_size = (size_t) file_size;
-        game_info.data = g_host.rom_data;
-        game_info.size = g_host.rom_size;
-        LOGI("host_load_game: loaded ROM into memory (%zu bytes)", g_host.rom_size);
     } else {
-        LOGI("host_load_game: core requires full path: %s", rom_path);
+        LOGI("host_load_game: path-based streaming for '%s' (size=%ld, need_fullpath=%d)",
+             rom_path, file_size, g_host.system_info.need_fullpath);
         game_info.data = NULL;
         game_info.size = 0;
     }
 
+    if (fp) {
+        fclose(fp);
+    }
+
     bool success = g_host.core.retro_load_game(&game_info);
+
+    // Fallback: If in-memory loading was rejected by core, retry with path-based streaming
+    if (!success && game_info.data != NULL) {
+        LOGW("host_load_game: in-memory retro_load_game returned false for %s, retrying with path streaming", rom_path);
+        if (g_host.rom_data) {
+            free(g_host.rom_data);
+            g_host.rom_data = NULL;
+            g_host.rom_size = 0;
+        }
+        game_info.data = NULL;
+        game_info.size = 0;
+        game_info.path = rom_path;
+        success = g_host.core.retro_load_game(&game_info);
+    }
+
     if (!success) {
         LOGE("host_load_game: retro_load_game returned false for %s", rom_path);
         if (g_host.rom_data) {
@@ -1293,4 +1329,104 @@ Java_com_retropack_runtime_core_UniversalLibretroCore_nativeLoadState(
     bool result = host_load_state(native_path);
     (*env)->ReleaseStringUTFChars(env, filePath, native_path);
     return result ? JNI_TRUE : JNI_FALSE;
+}
+
+/* ========================================================================= */
+/* Backward Compatibility JNI Aliases (matching NativeCore.kt)              */
+/* ========================================================================= */
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeInit(
+        JNIEnv* env, jobject thiz, jstring internalStoragePath) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeInit(env, thiz, internalStoragePath);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeLoadRom(
+        JNIEnv* env, jobject thiz, jstring romPath) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeLoadRom(env, thiz, romPath);
+}
+
+JNIEXPORT void JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeUnloadRom(
+        JNIEnv* env, jobject thiz) {
+    Java_com_retropack_runtime_core_UniversalLibretroCore_nativeUnloadRom(env, thiz);
+}
+
+JNIEXPORT void JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeDestroy(
+        JNIEnv* env, jobject thiz) {
+    Java_com_retropack_runtime_core_UniversalLibretroCore_nativeDestroy(env, thiz);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeRunFrame(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeRunFrame(env, thiz);
+}
+
+JNIEXPORT void JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeSetKeys(
+        JNIEnv* env, jobject thiz, jint keyMask) {
+    Java_com_retropack_runtime_core_UniversalLibretroCore_nativeSetKeys(env, thiz, keyMask);
+}
+
+JNIEXPORT void JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeSetAnalogAxis(
+        JNIEnv* env, jobject thiz, jfloat axisX, jfloat axisY) {
+    Java_com_retropack_runtime_core_UniversalLibretroCore_nativeSetAnalogAxis(env, thiz, axisX, axisY);
+}
+
+JNIEXPORT jobject JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetVideoBuffer(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetVideoBuffer(env, thiz);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetAudioSamples(
+        JNIEnv* env, jobject thiz, jshortArray outSamples, jint maxSamples) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetAudioSamples(env, thiz, outSamples, maxSamples);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetAudioAvailable(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetAudioAvailable(env, thiz);
+}
+
+JNIEXPORT jintArray JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetVideoSize(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetVideoSize(env, thiz);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeGetSramSize(
+        JNIEnv* env, jobject thiz) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeGetSramSize(env, thiz);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeReadSram(
+        JNIEnv* env, jobject thiz, jbyteArray outBuffer) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeReadSram(env, thiz, outBuffer);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeWriteSram(
+        JNIEnv* env, jobject thiz, jbyteArray inBuffer) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeWriteSram(env, thiz, inBuffer);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeSaveState(
+        JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeSaveState(env, thiz, slot, filePath);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_retropack_runtime_core_NativeCore_nativeLoadState(
+        JNIEnv* env, jobject thiz, jint slot, jstring filePath) {
+    return Java_com_retropack_runtime_core_UniversalLibretroCore_nativeLoadState(env, thiz, slot, filePath);
 }

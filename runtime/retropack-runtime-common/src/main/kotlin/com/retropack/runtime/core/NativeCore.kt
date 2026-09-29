@@ -9,7 +9,7 @@ import java.nio.IntBuffer
  * All native methods execute synchronously on the caller's emulation thread.
  */
 object NativeCore : NativeCoreBridge {
-    private val CANDIDATE_LIBRARIES = listOf("retropack-runtime", "mgba")
+    private val CANDIDATE_LIBRARIES = listOf("retropack-host", "retropack-runtime", "mgba", "libretro_host", "retro_host")
 
     @Volatile
     private var libraryLoaded: Boolean = false

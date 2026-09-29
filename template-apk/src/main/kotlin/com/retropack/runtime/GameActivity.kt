@@ -654,7 +654,7 @@ open class GameActivity : Activity() {
         this.saveManager = sm
 
         val engine = createEngine()
-        val audioPlayer = createAudioPlayer(config)
+        val audioPlayer = createAudioPlayer(config, engine)
 
         // Initialize Modern Haptic & Gamepad Vibration Manager
         val hm = HapticManager(this).apply {
@@ -1019,8 +1019,28 @@ open class GameActivity : Activity() {
         )
     protected open fun createBezelOverlay(): BezelOverlayView = BezelOverlayView(this)
     protected open fun createTouchOverlay(): TouchOverlayView = TouchOverlayView(this)
-    protected open fun createAudioPlayer(cfg: RuntimeConfig): RetroAudioPlayer =
-        RetroAudioPlayer(driftController = com.retropack.runtime.audio.AudioDriftController(cfg.runtime.audioSampleRate, 2))
+    protected open fun createAudioPlayer(cfg: RuntimeConfig, engine: EmulationEngine? = null): RetroAudioPlayer {
+        val activeCore = (engine as? NativeEmulationEngine)?.core
+            ?: (host?.engine as? NativeEmulationEngine)?.core
+            ?: if (com.retropack.runtime.core.UniversalLibretroCore.isLoaded()) com.retropack.runtime.core.UniversalLibretroCore else NativeCore
+        return RetroAudioPlayer(
+            sampleProvider = { buf, max ->
+                try {
+                    activeCore.nativeGetAudioSamples(buf, max)
+                } catch (_: UnsatisfiedLinkError) {
+                    0
+                }
+            },
+            occupancyProvider = {
+                try {
+                    activeCore.nativeGetAudioAvailable()
+                } catch (_: UnsatisfiedLinkError) {
+                    -1
+                }
+            },
+            driftController = com.retropack.runtime.audio.AudioDriftController(cfg.runtime.audioSampleRate, 2)
+        )
+    }
     protected open fun createSaveManager(saveFile: File): SaveManager = SaveManager(saveFile = saveFile)
     protected open fun createSaveStateManager(storageDir: File): SaveStateManager = SaveStateManager(storageDir = storageDir)
     protected open fun createGamepadMapper(): GamepadMapper = GamepadMapper()
