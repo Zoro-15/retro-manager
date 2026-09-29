@@ -1,0 +1,348 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-09-29 05:01:22 UTC
+Total Execution : 86.84s (1m 26s)
+Overall Result  : 5/8 Targets Passed (3 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime FAIL [!]    29.59s     runtime-common.log
+[02] Packaging Engine & Domain Core         PASS        16.69s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) FAIL [!]     9.02s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.03s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.04s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.06s     rotate-anchors.log
+[07] Manager APK (Main App)                 FAIL [!]    19.87s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        PASS        11.54s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [01]: Universal Libretro Host Native Runtime (ID: runtime-common)
+### Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/runtime-common.log
+################################################################################
+
+--- [Snippet #1 | Lines 23 to 60] ---
+    L0023: > Task :runtime:retropack-runtime-common:configureCMakeDebug[arm64-v8a]
+    L0024: 
+    L0025: > Task :runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a] FAILED
+    L0026: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0027: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0028: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0029: C/C++:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0030: C/C++:       |              ^
+>>> [ERROR] L0031: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0032: C/C++:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0033: C/C++:       |              ^
+    L0034: C/C++: 2 errors generated.
+    L0035: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790657998232.json
+    L0036: 
+    L0037: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0038: 
+>>> [ERROR] L0039: FAILURE: Build failed with an exception.
+    L0040: 
+    L0041: * What went wrong:
+>>> [ERROR] L0042: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0043: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0044:   [1/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0045:   [2/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0046:   FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0047:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0048:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0049:     886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0050:         |              ^
+>>> [ERROR] L0051:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0052:     887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0053:         |              ^
+    L0054:   2 errors generated.
+>>> [ERROR] L0055:   ninja: build stopped: subcommand failed.
+    L0056: 
+    L0057:   C++ build system [build] failed while executing:
+    L0058:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0059:         -C \
+    L0060:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #2 | Lines 65 to 75] ---
+    L0065: > Run with --info or --debug option to get more log output.
+    L0066: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0067: > Get more help at https://help.gradle.org.
+    L0068: 
+    L0069: * Exception is:
+>>> [ERROR] L0070: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0071: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0072: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0073: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0074: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0075: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #3 | Lines 133 to 152] ---
+    L0133: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0134: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0135: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0136: [1/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0137: [2/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0138: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0139: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0140: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0141:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0142:       |              ^
+>>> [ERROR] L0143: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0144:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0145:       |              ^
+    L0146: 2 errors generated.
+>>> [ERROR] L0147: ninja: build stopped: subcommand failed.
+    L0148: 
+    L0149: C++ build system [build] failed while executing:
+    L0150:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0151:       -C \
+    L0152:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #4 | Lines 256 to 275] ---
+    L0256: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0257: 	... 61 more
+    L0258: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0259: [1/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/ringbuffer.c.o
+    L0260: [2/3] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0261: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0262: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0263: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0264:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0265:       |              ^
+>>> [ERROR] L0266: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0267:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0268:       |              ^
+    L0269: 2 errors generated.
+>>> [ERROR] L0270: ninja: build stopped: subcommand failed.
+    L0271: 
+    L0272: C++ build system [build] failed while executing:
+    L0273:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0274:       -C \
+    L0275:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+
+################################################################################
+### Target [03]: Template APK (Standalone Universal Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 51 to 64] ---
+    L0051: > Task :template-apk:processDebugManifestForPackage
+    L0052: 
+    L0053: > Task :runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a] FAILED
+    L0054: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0055: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0056: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0057: C/C++:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0058: C/C++:       |              ^
+>>> [ERROR] L0059: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0060: C/C++:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0061: C/C++:       |              ^
+    L0062: C/C++: 2 errors generated.
+    L0063: 
+    L0064: > Task :template-apk:processDebugResources
+
+--- [Snippet #2 | Lines 74 to 99] ---
+    L0074: w: file:///home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/kotlin/com/retropack/runtime/video/DisplaySyncManager.kt:44:44 'val defaultDisplay: Display!' is deprecated. Deprecated in Java.
+    L0075: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790658042482.json
+    L0076: 
+    L0077: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0078: 
+>>> [ERROR] L0079: FAILURE: Build failed with an exception.
+    L0080: 
+    L0081: * What went wrong:
+>>> [ERROR] L0082: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0083: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0084:   [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0085:   FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0086:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0087:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0088:     886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0089:         |              ^
+>>> [ERROR] L0090:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0091:     887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0092:         |              ^
+    L0093:   2 errors generated.
+>>> [ERROR] L0094:   ninja: build stopped: subcommand failed.
+    L0095: 
+    L0096:   C++ build system [build] failed while executing:
+    L0097:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0098:         -C \
+    L0099:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #3 | Lines 104 to 114] ---
+    L0104: > Run with --info or --debug option to get more log output.
+    L0105: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0106: > Get more help at https://help.gradle.org.
+    L0107: 
+    L0108: * Exception is:
+>>> [ERROR] L0109: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0110: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0111: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0112: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0113: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0114: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 171 to 190] ---
+    L0171: 	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:199)
+    L0172: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0173: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0174: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0175: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0176: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0177: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0178: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0179:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0180:       |              ^
+>>> [ERROR] L0181: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0182:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0183:       |              ^
+    L0184: 2 errors generated.
+>>> [ERROR] L0185: ninja: build stopped: subcommand failed.
+    L0186: 
+    L0187: C++ build system [build] failed while executing:
+    L0188:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0189:       -C \
+    L0190:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #5 | Lines 293 to 312] ---
+    L0293: 	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+    L0294: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0295: 	... 61 more
+    L0296: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0297: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0298: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0299: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0300: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0301:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0302:       |              ^
+>>> [ERROR] L0303: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0304:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0305:       |              ^
+    L0306: 2 errors generated.
+>>> [ERROR] L0307: ninja: build stopped: subcommand failed.
+    L0308: 
+    L0309: C++ build system [build] failed while executing:
+    L0310:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0311:       -C \
+    L0312:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+
+################################################################################
+### Target [07]: Manager APK (Main App) (ID: app-manager)
+### Command : ./gradlew :app:assembleDebug --stacktrace
+### ExitCode: 1 | Log File: build-logs/app-manager.log
+################################################################################
+
+--- [Snippet #1 | Lines 56 to 69] ---
+    L0056: > Task :runtime:retropack-runtime-common:configureCMakeDebug[arm64-v8a]
+    L0057: 
+    L0058: > Task :runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a] FAILED
+    L0059: C/C++: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0060: C/C++: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 -- ... [command-line flags truncated]
+>>> [ERROR] L0061: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0062: C/C++:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0063: C/C++:       |              ^
+>>> [ERROR] L0064: C/C++: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0065: C/C++:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0066: C/C++:       |              ^
+    L0067: C/C++: 2 errors generated.
+    L0068: 
+    L0069: > Task :app:compileDebugKotlin
+
+--- [Snippet #2 | Lines 73 to 98] ---
+    L0073: > Task :app:mergeExtDexDebug
+    L0074: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1790658051644.json
+    L0075: 
+    L0076: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0077: 
+>>> [ERROR] L0078: FAILURE: Build failed with an exception.
+    L0079: 
+    L0080: * What went wrong:
+>>> [ERROR] L0081: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0082: > com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0083:   [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0084:   FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0085:   /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysro ... [command-line flags truncated]
+>>> [ERROR] L0086:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0087:     886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0088:         |              ^
+>>> [ERROR] L0089:   /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0090:     887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0091:         |              ^
+    L0092:   2 errors generated.
+>>> [ERROR] L0093:   ninja: build stopped: subcommand failed.
+    L0094: 
+    L0095:   C++ build system [build] failed while executing:
+    L0096:       /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0097:         -C \
+    L0098:         /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #3 | Lines 103 to 113] ---
+    L0103: > Run with --info or --debug option to get more log output.
+    L0104: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0105: > Get more help at https://help.gradle.org.
+    L0106: 
+    L0107: * Exception is:
+>>> [ERROR] L0108: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':runtime:retropack-runtime-common:buildCMakeDebug[arm64-v8a]' (registered by plugin 'com.android.internal.library').
+    L0109: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0110: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0111: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0112: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0113: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
+--- [Snippet #4 | Lines 170 to 189] ---
+    L0170: 	at org.gradle.composite.internal.DefaultBuildController$BuildOpRunnable.run(DefaultBuildController.java:199)
+    L0171: 	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+    L0172: 	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:47)
+    L0173: Caused by: org.gradle.internal.UncheckedException: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0174: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0175: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0176: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0177: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0178:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0179:       |              ^
+>>> [ERROR] L0180: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0181:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0182:       |              ^
+    L0183: 2 errors generated.
+>>> [ERROR] L0184: ninja: build stopped: subcommand failed.
+    L0185: 
+    L0186: C++ build system [build] failed while executing:
+    L0187:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0188:       -C \
+    L0189:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
+--- [Snippet #5 | Lines 292 to 311] ---
+    L0292: 	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:68)
+    L0293: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:132)
+    L0294: 	... 61 more
+    L0295: Caused by: com.android.ide.common.process.ProcessException: ninja: Entering directory `/home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a'
+    L0296: [1/2] Building C object CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+>>> [ERROR] L0297: FAILED: CMakeFiles/retropack-host.dir/src/main/cpp/libretro_host.c.o
+    L0298: /usr/local/lib/android/sdk/ndk/27.0.12077973/toolchains/llvm/prebuilt/linux-x86_64/bin/clang --target=aarch64-none-linux-android26 --sysroot ... [command-line flags truncated]
+>>> [ERROR] L0299: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:886:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2'
+    L0300:   886 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2:
+    L0301:       |              ^
+>>> [ERROR] L0302: /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/src/main/cpp/libretro_host.c:887:14: error: use of undeclared identifier 'RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL'
+    L0303:   887 |         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL:
+    L0304:       |              ^
+    L0305: 2 errors generated.
+>>> [ERROR] L0306: ninja: build stopped: subcommand failed.
+    L0307: 
+    L0308: C++ build system [build] failed while executing:
+    L0309:     /usr/local/lib/android/sdk/cmake/3.22.1/bin/ninja \
+    L0310:       -C \
+    L0311:       /home/runner/work/retro-manager/retro-manager/runtime/retropack-runtime-common/.cxx/Debug/92ie6z37/arm64-v8a \
+
