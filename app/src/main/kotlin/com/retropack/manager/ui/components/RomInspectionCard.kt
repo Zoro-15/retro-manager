@@ -64,11 +64,6 @@ fun RomInspectionCard(
         "gg" -> "GAME GEAR"
         "nes", "fds", "unf" -> "NES / FAMICOM"
         "pce", "tg16", "sgx" -> "PC ENGINE / TG-16"
-        "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "ARCADE / FBNEO"
-        "psx", "ps1", "ps" -> "PLAYSTATION 1"
-        "n64", "z64", "v64" -> "NINTENDO 64"
-        "psp" -> "PLAYSTATION PORTABLE"
-        "nds", "dsi" -> "NINTENDO DS"
         else -> identity.platform.uppercase()
     }
 

@@ -71,7 +71,7 @@ import com.retropack.runtime.input.GamepadMapper
  *
  * Implements Feature 4 specifications:
  * - Visual controller graphic with interactive remappable button slots.
- * - Per-console profiles (GBA, SNES, Genesis, NES, PS1, N64, PCE).
+ * - Per-console profiles (GBA, SNES, Genesis, NES, PCE).
  * - Analog stick deadzone slider (0% to 30%).
  * - Interactive listening state: prompts user "Press button on controller to bind...".
  */
@@ -97,8 +97,6 @@ fun ControllerMappingDialog(
         "snes" to "Super Nintendo",
         "genesis" to "Sega Genesis",
         "nes" to "NES / Famicom",
-        "psx" to "PlayStation 1",
-        "n64" to "Nintendo 64",
         "pce" to "PC Engine"
     )
 

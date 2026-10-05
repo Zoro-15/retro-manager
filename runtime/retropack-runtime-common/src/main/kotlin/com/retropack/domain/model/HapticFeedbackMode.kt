@@ -4,7 +4,7 @@ package com.retropack.domain.model
  * Haptic Feedback and Rumble operational modes for RetroPack.
  *
  * Implements Feature 2 specifications:
- * - [NATIVE_RUMBLE]: Emulates authentic motor vibration for rumble-enabled consoles (PS1 DualShock, N64 Rumble Pak, GBA Drill Dozer).
+ * - [NATIVE_RUMBLE]: Emulates authentic motor vibration for rumble-enabled cartridges (e.g. GBA Drill Dozer).
  * - [AUDIO_REACTIVE]: Real-time sub-bass transient frequency analyzer (< 120Hz) for classic consoles (NES, SNES, Genesis, Game Boy, PC Engine).
  * - [OFF]: Haptic rumble disabled.
  */

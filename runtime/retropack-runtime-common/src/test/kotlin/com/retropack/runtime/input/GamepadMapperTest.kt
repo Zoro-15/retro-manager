@@ -145,15 +145,11 @@ class GamepadMapperTest {
 
         val event = MotionEvent.createJoystick(mapOf(
             MotionEvent.AXIS_X to 0.75f,
-            MotionEvent.AXIS_Y to -0.60f,
-            MotionEvent.AXIS_Z to 0.85f,
-            MotionEvent.AXIS_RZ to -0.85f
+            MotionEvent.AXIS_Y to -0.60f
         ))
         mapper.handleGenericMotionEvent(event)
         assertEquals(0.75f, stickX)
         assertEquals(-0.60f, stickY)
-        assertTrue((reportedMask and RetroKey.KEY_C_RIGHT) != 0)
-        assertTrue((reportedMask and RetroKey.KEY_C_UP) != 0)
 
         mapper.reset()
         assertEquals(0f, stickX)
@@ -200,7 +196,7 @@ class GamepadMapperTest {
     }
 
     @Test
-    fun `maps PS1 DualShock and Arcade controller profiles accurately`() {
+    fun `maps physical controller triggers and thumbstick click buttons accurately`() {
         val mapper = GamepadMapper()
         var reportedMask = 0
         mapper.onKeyMaskChanged = { mask -> reportedMask = mask }

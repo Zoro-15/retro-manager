@@ -46,31 +46,40 @@ class TouchLayoutPlatformTest {
     }
 
     @Test
-    fun `test PS1 touch layout contains Dual Shoulders and 4 Face Buttons`() {
-        val layout = TouchLayout.createForPlatform("psx", 1080f, 2400f)
+    fun `test GBA touch layout contains A, B, L, R shoulders`() {
+        val layout = TouchLayout.createForPlatform("gba", 1080f, 2400f)
         val controlIds = layout.controls.map { it.id }
 
         assertTrue(controlIds.contains(TouchLayout.ID_A))
         assertTrue(controlIds.contains(TouchLayout.ID_B))
-        assertTrue(controlIds.contains(TouchLayout.ID_X))
-        assertTrue(controlIds.contains(TouchLayout.ID_Y))
         assertTrue(controlIds.contains(TouchLayout.ID_L))
-        assertTrue(controlIds.contains(TouchLayout.ID_L2))
         assertTrue(controlIds.contains(TouchLayout.ID_R))
-        assertTrue(controlIds.contains(TouchLayout.ID_R2))
+        assertTrue(controlIds.contains(TouchLayout.ID_START))
+        assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
+        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
     }
 
     @Test
-    fun `test N64 touch layout contains C-Buttons and Z-Trigger`() {
-        val layout = TouchLayout.createForPlatform("n64", 1080f, 2400f)
+    fun `test NES touch layout contains A, B, Turbo, and D-Pad`() {
+        val layout = TouchLayout.createForPlatform("nes", 1080f, 2400f)
         val controlIds = layout.controls.map { it.id }
 
         assertTrue(controlIds.contains(TouchLayout.ID_A))
         assertTrue(controlIds.contains(TouchLayout.ID_B))
-        assertTrue(controlIds.contains(TouchLayout.ID_Z))
-        assertTrue(controlIds.contains(TouchLayout.ID_C_UP))
-        assertTrue(controlIds.contains(TouchLayout.ID_C_DOWN))
-        assertTrue(controlIds.contains(TouchLayout.ID_C_LEFT))
-        assertTrue(controlIds.contains(TouchLayout.ID_C_RIGHT))
+        assertTrue(controlIds.contains(TouchLayout.ID_START))
+        assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
+        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
+    }
+
+    @Test
+    fun `test PC Engine touch layout contains action buttons and Run Select`() {
+        val layout = TouchLayout.createForPlatform("pce", 1080f, 2400f)
+        val controlIds = layout.controls.map { it.id }
+
+        assertTrue(controlIds.contains(TouchLayout.ID_A))
+        assertTrue(controlIds.contains(TouchLayout.ID_B))
+        assertTrue(controlIds.contains(TouchLayout.ID_START))
+        assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
+        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
     }
 }

@@ -8,9 +8,9 @@ import java.io.File
  *
  * Implements Feature 3 specifications:
  * - Application package name and display title.
- * - Platform architecture identifier (GBA, PS1, SNES, Genesis, NES, N64, PCE, NDS, Arcade).
+ * - Platform architecture identifier (GBA, GBC, GB, SNES, Genesis, NES, PCE).
  * - App size, install timestamp, and version metadata.
- * - Accessible save file metadata (.sav, .srm, .mcd, .eep, .nvram).
+ * - Accessible save file metadata (.sav, .srm, .nvram).
  */
 data class InstalledGame(
     val packageName: String,

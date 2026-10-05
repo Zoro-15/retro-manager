@@ -714,16 +714,10 @@ class TouchOverlayView @JvmOverloads constructor(
         val isGenesis = platform in setOf("genesis", "md", "smd", "gen", "sms", "gg", "megadrive")
         val isNes = platform in setOf("nes", "fds", "unf")
         val isPce = platform in setOf("pce", "tg16", "sgx")
-        val isPsx = platform in setOf("psx", "ps1", "ps")
-        val isPsp = platform in setOf("psp", "ppsspp", "ppsspp-unified")
-        val isNds = platform in setOf("nds", "dsi", "melonds", "melonds-unified")
-        val isArcade = platform in setOf("arcade", "fbneo", "neogeo", "cps", "cps1", "cps2", "cps3")
 
         val (fill, stroke, text) = when (control.id) {
             TouchLayout.ID_DPAD -> Triple(theme.dpadFillColor, theme.dpadStrokeColor, theme.dpadTextColor)
             TouchLayout.ID_A -> when {
-                platform in setOf("n64", "z64", "v64") ->
-                    Triple(Color.argb(210, 20, 80, 200), Color.argb(255, 60, 130, 240), Color.WHITE)
                 isSnes ->
                     Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
                 isGenesis ->
@@ -732,18 +726,10 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 220, 30, 30), Color.argb(255, 240, 75, 75), Color.WHITE)
                 isPce ->
                     Triple(Color.argb(230, 235, 100, 20), Color.argb(255, 255, 140, 50), Color.WHITE)
-                isPsx || isPsp ->
-                    Triple(Color.argb(220, 100, 25, 30), Color.argb(255, 255, 60, 70), Color.argb(255, 255, 60, 70))
-                isNds ->
-                    Triple(Color.argb(230, 40, 44, 54), Color.argb(255, 245, 70, 80), Color.WHITE)
-                isArcade ->
-                    Triple(Color.argb(230, 220, 30, 40), Color.argb(255, 255, 70, 80), Color.WHITE)
                 else ->
                     Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
             TouchLayout.ID_B -> when {
-                platform in setOf("n64", "z64", "v64") ->
-                    Triple(Color.argb(210, 20, 150, 60), Color.argb(255, 50, 200, 90), Color.WHITE)
                 isSnes ->
                     Triple(Color.argb(230, 75, 45, 125), Color.argb(255, 105, 75, 160), Color.WHITE)
                 isGenesis ->
@@ -752,20 +738,12 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 220, 30, 30), Color.argb(255, 240, 75, 75), Color.WHITE)
                 isPce ->
                     Triple(Color.argb(230, 235, 100, 20), Color.argb(255, 255, 140, 50), Color.WHITE)
-                isPsx || isPsp ->
-                    Triple(Color.argb(220, 25, 50, 110), Color.argb(255, 68, 136, 255), Color.argb(255, 68, 136, 255))
-                isNds ->
-                    Triple(Color.argb(230, 40, 44, 54), Color.argb(255, 245, 195, 40), Color.WHITE)
-                isArcade ->
-                    Triple(Color.argb(230, 225, 185, 20), Color.argb(255, 255, 220, 50), Color.BLACK)
                 else ->
                     Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
             }
             TouchLayout.ID_C -> when {
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 0, 229, 255), Color.WHITE)
-                isArcade ->
-                    Triple(Color.argb(230, 30, 180, 80), Color.argb(255, 60, 225, 120), Color.WHITE)
                 else ->
                     Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
@@ -774,12 +752,6 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 160, 150, 200), Color.argb(255, 195, 185, 230), Color.argb(255, 45, 25, 75))
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 220, 45, 45), Color.argb(255, 220, 45, 45))
-                isPsx || isPsp ->
-                    Triple(Color.argb(220, 20, 90, 50), Color.argb(255, 0, 230, 118), Color.argb(255, 0, 230, 118))
-                isNds ->
-                    Triple(Color.argb(230, 40, 44, 54), Color.argb(255, 0, 210, 255), Color.WHITE)
-                isArcade ->
-                    Triple(Color.argb(230, 220, 30, 40), Color.argb(255, 255, 70, 80), Color.WHITE)
                 else ->
                     Triple(theme.actionAFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
@@ -788,40 +760,24 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(230, 160, 150, 200), Color.argb(255, 195, 185, 230), Color.argb(255, 45, 25, 75))
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 210, 210, 215), Color.WHITE)
-                isPsx || isPsp ->
-                    Triple(Color.argb(220, 100, 30, 75), Color.argb(255, 255, 85, 187), Color.argb(255, 255, 85, 187))
-                isNds ->
-                    Triple(Color.argb(230, 40, 44, 54), Color.argb(255, 60, 225, 120), Color.WHITE)
-                isArcade ->
-                    Triple(Color.argb(230, 225, 185, 20), Color.argb(255, 255, 220, 50), Color.BLACK)
                 else ->
                     Triple(theme.actionBFillColor, theme.actionBStrokeColor, theme.actionTextColor)
             }
             TouchLayout.ID_Z -> when {
                 isGenesis ->
                     Triple(Color.argb(230, 24, 24, 28), Color.argb(255, 0, 229, 255), Color.argb(255, 0, 229, 255))
-                isArcade ->
-                    Triple(Color.argb(230, 30, 100, 220), Color.argb(255, 70, 150, 255), Color.WHITE)
                 else ->
                     Triple(Color.argb(200, 60, 65, 75), Color.argb(240, 100, 110, 125), Color.WHITE)
             }
-            TouchLayout.ID_C_UP, TouchLayout.ID_C_DOWN, TouchLayout.ID_C_LEFT, TouchLayout.ID_C_RIGHT ->
-                Triple(Color.argb(210, 230, 175, 10), Color.argb(255, 255, 205, 30), Color.argb(255, 40, 30, 10))
             TouchLayout.ID_TURBO_A, TouchLayout.ID_TURBO_B -> when {
                 isNes -> Triple(Color.argb(220, 180, 25, 25), Color.argb(255, 240, 80, 80), Color.WHITE)
                 isPce -> Triple(Color.argb(220, 200, 80, 15), Color.argb(255, 255, 140, 50), Color.WHITE)
-                isPsx || isPsp -> Triple(Color.argb(220, 40, 50, 80), Color.argb(255, 68, 136, 255), Color.WHITE)
-                isNds -> Triple(Color.argb(220, 35, 40, 50), Color.argb(255, 0, 210, 255), Color.WHITE)
                 else -> Triple(theme.turboFillColor, theme.actionAStrokeColor, theme.actionTextColor)
             }
             TouchLayout.ID_COMBO_AB -> Triple(theme.comboFillColor, theme.accentColor, Color.WHITE)
             TouchLayout.ID_L, TouchLayout.ID_R, TouchLayout.ID_L2, TouchLayout.ID_R2 -> when {
                 isSnes ->
                     Triple(Color.argb(210, 85, 90, 105), Color.argb(255, 130, 135, 150), Color.WHITE)
-                isPsx || isPsp ->
-                    Triple(Color.argb(220, 38, 42, 54), Color.argb(255, 80, 90, 115), Color.WHITE)
-                isNds ->
-                    Triple(Color.argb(220, 42, 46, 56), Color.argb(255, 90, 100, 120), Color.WHITE)
                 else ->
                     Triple(theme.shoulderFillColor, theme.shoulderStrokeColor, theme.shoulderTextColor)
             }
@@ -830,8 +786,6 @@ class TouchOverlayView @JvmOverloads constructor(
             TouchLayout.ID_MODE -> when {
                 isGenesis ->
                     Triple(Color.argb(220, 30, 30, 35), Color.argb(255, 100, 100, 110), Color.WHITE)
-                isPsp ->
-                    Triple(Color.argb(220, 28, 32, 42), Color.argb(255, 68, 136, 255), Color.WHITE)
                 else ->
                     Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             }
@@ -842,20 +796,12 @@ class TouchOverlayView @JvmOverloads constructor(
                     Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 235, 100, 20), Color.WHITE)
                 isNes ->
                     Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 90, 90, 100), Color.argb(255, 220, 30, 30))
-                isArcade ->
-                    Triple(Color.argb(220, 20, 45, 30), Color.argb(255, 50, 220, 120), Color.argb(255, 50, 220, 120))
-                isNds || isPsp ->
-                    Triple(Color.argb(220, 35, 40, 50), Color.argb(255, 80, 90, 110), Color.WHITE)
                 else ->
                     Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             }
             TouchLayout.ID_SELECT -> when {
                 isNes ->
                     Triple(Color.argb(220, 35, 35, 40), Color.argb(255, 90, 90, 100), Color.argb(255, 220, 30, 30))
-                isArcade ->
-                    Triple(Color.argb(220, 45, 38, 20), Color.argb(255, 255, 200, 40), Color.argb(255, 255, 200, 40))
-                isNds || isPsp ->
-                    Triple(Color.argb(220, 35, 40, 50), Color.argb(255, 80, 90, 110), Color.WHITE)
                 else ->
                     Triple(theme.systemFillColor, theme.systemStrokeColor, theme.systemTextColor)
             }

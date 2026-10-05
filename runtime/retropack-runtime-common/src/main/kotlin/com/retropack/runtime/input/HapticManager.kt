@@ -14,7 +14,7 @@ import com.retropack.runtime.audio.AudioHapticEngine
  * Modern Android Haptic and Gamepad Rumble Manager for RetroPack.
  *
  * Implements Feature 2 specifications:
- * - Native motor vibration for rumble-enabled consoles (PS1 DualShock, N64 Rumble Pak, GBA Drill Dozer).
+ * - Native motor vibration for rumble-enabled cartridges (e.g. GBA Drill Dozer).
  * - Physical DualSense, Xbox, and Android gamepad motor routing via InputDevice vibrators.
  * - Target Android 12+ (API 31+) VibratorManager & VibrationEffect.Composition primitives
  *   (PRIMITIVE_THUD, PRIMITIVE_CLICK, PRIMITIVE_HEAVY_CLICK, PRIMITIVE_LOW_TICK).
@@ -51,7 +51,7 @@ class HapticManager(
     }
 
     /**
-     * Dispatches native emulator core rumble (e.g. PS1 DualShock motor 0/1 or N64 Rumble Pak).
+     * Dispatches native emulator core rumble (e.g. GBA rumble cartridge motor).
      *
      * @param motorIndex 0 for large low-frequency motor, 1 for small high-frequency motor.
      * @param strengthPercent Vibration intensity (0 to 100).

@@ -31,7 +31,7 @@ data class DiscInfo(
 
 data class ContentPayload(
     val sourceRom: String,
-    val platform: String, // "gb", "gbc", "gba", "psx", "pce", etc.
+    val platform: String, // "gba", "gbc", "gb", "snes", "genesis", "nes", "pce"
     val header: RomHeaderData? = null,
     val discImages: List<DiscInfo> = emptyList(),
     val m3uPlaylist: String? = null

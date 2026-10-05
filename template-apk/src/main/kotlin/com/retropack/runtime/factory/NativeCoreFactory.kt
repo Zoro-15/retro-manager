@@ -12,17 +12,12 @@ import java.io.File
  * Resolves platform identifiers and runtime configurations to canonical Libretro core
  * shared libraries and dispatches execution dynamically to [UniversalLibretroCore].
  *
- * Supported Cores & Consoles:
+ * Supported Cores & Consoles (Golden 5 2D Suite):
  * - mGBA (`libretro_mgba.so`): GB / GBC / GBA
  * - Snes9x (`libretro_snes9x.so`): SNES / Super Famicom
  * - Genesis Plus GX (`libretro_genesis_plus_gx.so`): Genesis / Mega Drive / Master System / Game Gear
  * - FCEUmm (`libretro_fceumm.so`): NES / Famicom
  * - Beetle PCE Fast (`libretro_mednafen_pce_fast.so`): PC Engine / TurboGrafx-16
- * - FinalBurn Neo (`libretro_fbneo.so`): Arcade / Neo Geo / CPS 1-3
- * - PCSX ReARMed (`libretro_pcsx_rearmed.so`): PlayStation 1
- * - Mupen64Plus-Next (`libretro_mupen64plus_next.so`): Nintendo 64
- * - PPSSPP (`libretro_ppsspp.so`): PlayStation Portable
- * - melonDS (`libretro_melonds.so`): Nintendo DS
  */
 object NativeCoreFactory {
 

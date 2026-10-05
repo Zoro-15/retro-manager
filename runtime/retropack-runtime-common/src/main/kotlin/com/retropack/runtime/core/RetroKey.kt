@@ -1,13 +1,12 @@
 package com.retropack.runtime.core
 
 /**
- * Universal hardware controller button definitions supporting multi-platform retro cores:
- * - GBA / GBC / GB (10 keys)
+ * Universal hardware controller button definitions supporting the Golden 5 2D retro cores:
+ * - GBA / GBC / GB (10 keys: A, B, Select, Start, D-Pad, L, R)
  * - SNES (12 keys: A, B, X, Y, L, R, Select, Start, D-Pad)
  * - Sega Genesis (10 keys: A, B, C, X, Y, Z, Start, Mode, D-Pad)
  * - NES (8 keys: A, B, Select, Start, D-Pad)
- * - PS1 (14 keys: Cross, Circle, Square, Triangle, L1, R1, L2, R2, Select, Start, D-Pad)
- * - N64 (14 keys: A, B, Z, Start, L, R, C-Up/Down/Left/Right, D-Pad)
+ * - PC Engine / TurboGrafx-16 (8 keys: I, II, Select, Run, D-Pad)
  */
 enum class RetroKey(val bitIndex: Int) {
     A(0),
@@ -18,21 +17,17 @@ enum class RetroKey(val bitIndex: Int) {
     LEFT(5),
     UP(6),
     DOWN(7),
-    R(8),       // GBA R / SNES R / PS1 R1
-    L(9),       // GBA L / SNES L / PS1 L1
-    X(10),      // SNES X / PS1 Triangle / Genesis X
-    Y(11),      // SNES Y / PS1 Square / Genesis Y
+    R(8),       // GBA R / SNES R
+    L(9),       // GBA L / SNES L
+    X(10),      // SNES X / Genesis X
+    Y(11),      // SNES Y / Genesis Y
     C(12),      // Genesis C
-    Z(13),      // Genesis Z / N64 Z
-    L2(14),     // PS1 L2
-    R2(15),     // PS1 R2
-    L3(16),     // PS1 L3 (Thumbstick click)
-    R3(17),     // PS1 R3 (Thumbstick click)
-    MODE(18),   // Genesis Mode
-    C_UP(19),   // N64 C-Up
-    C_DOWN(20), // N64 C-Down
-    C_LEFT(21), // N64 C-Left
-    C_RIGHT(22);// N64 C-Right
+    Z(13),      // Genesis Z
+    L2(14),     // Secondary Shoulder L2
+    R2(15),     // Secondary Shoulder R2
+    L3(16),     // Thumbstick click L3
+    R3(17),     // Thumbstick click R3
+    MODE(18);   // Genesis Mode
 
     /**
      * Integer bitmask representation of this key.
@@ -59,14 +54,10 @@ enum class RetroKey(val bitIndex: Int) {
         const val KEY_L3: Int = 1 shl 16
         const val KEY_R3: Int = 1 shl 17
         const val KEY_MODE: Int = 1 shl 18
-        const val KEY_C_UP: Int = 1 shl 19
-        const val KEY_C_DOWN: Int = 1 shl 20
-        const val KEY_C_LEFT: Int = 1 shl 21
-        const val KEY_C_RIGHT: Int = 1 shl 22
 
         /** Full 10-bit mask for classic GBA/GB. */
         const val GBA_KEYS_MASK: Int = 0x3FF
-        const val ALL_KEYS_MASK: Int = 0x7FFFFF
+        const val ALL_KEYS_MASK: Int = 0x7FFFF
 
         /** Zero mask with no keys pressed. */
         const val NO_KEYS_MASK: Int = 0

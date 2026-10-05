@@ -98,11 +98,7 @@ class InstalledGamesRepository {
             lower.contains("snes") || lower.contains("sfc") || lower.contains("super") -> "snes"
             lower.contains("genesis") || lower.contains("megadrive") || lower.contains("sega") -> "genesis"
             lower.contains("nes") || lower.contains("famicom") -> "nes"
-            lower.contains("psx") || lower.contains("ps1") || lower.contains("playstation") -> "psx"
-            lower.contains("n64") || lower.contains("nintendo64") -> "n64"
             lower.contains("pce") || lower.contains("turbografx") -> "pce"
-            lower.contains("nds") || lower.contains("ds") -> "nds"
-            lower.contains("psp") -> "psp"
             else -> "gba"
         }
     }
@@ -113,16 +109,14 @@ class InstalledGamesRepository {
         platform: String
     ): Quad<File?, Long, Boolean, String> {
         val format = when (platform.lowercase()) {
-            "psx", "ps1" -> ".mcd"
             "snes" -> ".srm"
-            "n64" -> ".eep"
             "pce" -> ".sav"
             else -> ".sav"
         }
 
         // 1. Check shared external files directory: Android/data/<packageName>/files/game.sav
         val extDataDir = File(context.getExternalFilesDir(null)?.parentFile?.parentFile, "$packageName/files")
-        val candidateNames = listOf("game$format", "game.sav", "game.srm", "game.mcd", "game.nvram")
+        val candidateNames = listOf("game$format", "game.sav", "game.srm", "game.nvram")
 
         for (cand in candidateNames) {
             val f = File(extDataDir, cand)

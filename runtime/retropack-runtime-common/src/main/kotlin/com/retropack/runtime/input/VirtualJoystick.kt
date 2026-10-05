@@ -36,7 +36,7 @@ enum class JoystickSnapMode {
     ACTION_8WAY,
 
     /**
-     * True 360° Analog Mode (Optimized for PS1, N64, PSP 3D camera & movement):
+     * True 360° Analog Mode:
      * Full precision continuous analog deflection.
      */
     ANALOG_FREE;

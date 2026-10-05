@@ -38,8 +38,7 @@ object BezelConfig {
             norm.contains("gbc") || norm.contains("color") -> BezelMode.GBC_ATOMIC_PURPLE
             norm.contains("gb") || norm.contains("gameboy") -> BezelMode.DMG_RETRO_OFFWHITE
             norm.contains("snes") || norm.contains("sfc") || norm.contains("genesis") ||
-            norm.contains("nes") || norm.contains("psx") || norm.contains("ps1") ||
-            norm.contains("n64") || norm.contains("pce") || norm.contains("arcade") -> BezelMode.CRT_TRINITRON_90S
+            norm.contains("nes") || norm.contains("pce") -> BezelMode.CRT_TRINITRON_90S
             else -> BezelMode.GBA_INDIGO
         }
     }

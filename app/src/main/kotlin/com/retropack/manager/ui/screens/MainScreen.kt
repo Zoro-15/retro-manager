@@ -243,7 +243,7 @@ fun MainScreen(
                 label = "ROM Content File",
                 fileName = uiState.romState.fileName,
                 fileSizeFormatted = uiState.romState.romIdentity?.fileSize?.let { com.retropack.manager.util.UriUtils.formatFileSize(it) },
-                placeholder = "Tap to choose ROM (.gba, .sfc, .nes, .md, .n64, .nds, .iso, .zip...)",
+                placeholder = "Tap to choose ROM (.gba, .gbc, .gb, .sfc, .nes, .md, .pce, .zip...)",
                 badge = uiState.romState.romIdentity?.platform?.uppercase(),
                 icon = Icons.Default.Gamepad,
                 onSelect = {

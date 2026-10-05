@@ -111,8 +111,6 @@ fun ControllerMappingScreen(
         "snes" to "SNES",
         "genesis" to "Genesis",
         "nes" to "NES",
-        "psx" to "PlayStation",
-        "n64" to "N64",
         "pce" to "PC Engine"
     )
 

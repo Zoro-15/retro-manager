@@ -27,13 +27,13 @@ enum class ShaderMode(
         id = "crt_scanlines",
         displayName = "90s CRT Scanlines",
         description = "Authentic CRT TV scanlines with phosphor mask, bloom, and subtle curvature",
-        recommendedFor = "NES, SNES, Genesis, PS1, Arcade"
+        recommendedFor = "NES, SNES, Genesis, PC Engine"
     ),
     LCD_DOTMATRIX(
         id = "lcd_dotmatrix",
         displayName = "LCD Dot-Matrix",
         description = "Sub-pixel dot-matrix grid with authentic physical LCD gap borders",
-        recommendedFor = "Game Boy, GBC, GBA, NDS"
+        recommendedFor = "Game Boy, GBC, GBA"
     ),
     COLOR_BOOST(
         id = "color_boost",

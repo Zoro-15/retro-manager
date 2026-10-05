@@ -125,7 +125,7 @@ interface EmulationEngine : AutoCloseable {
     fun reset(): Boolean = false
 
     /**
-     * Optional listener for native core motor rumble events (DualShock, N64 Rumble Pak, GBA Drill Dozer).
+     * Optional listener for native core motor rumble events (e.g. GBA Drill Dozer).
      */
     var onRumbleListener: ((motorIndex: Int, strengthPercent: Int, durationMs: Int) -> Unit)?
         get() = null

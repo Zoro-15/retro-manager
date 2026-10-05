@@ -142,7 +142,7 @@ fun InstalledGamesScreen(
         }
     )
 
-    val platforms = listOf("ALL", "GBA", "PS1", "SNES", "GENESIS", "NES", "N64", "PCE", "NDS")
+    val platforms = listOf("ALL", "GBA", "GBC", "GB", "SNES", "GENESIS", "NES", "PCE")
 
     val filteredGames = games.filter { game ->
         val matchesSearch = game.gameTitle.contains(searchQuery, ignoreCase = true) ||

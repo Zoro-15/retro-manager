@@ -19,9 +19,9 @@ import java.util.Locale
  * Battery Save Backup, Export, and Cross-Platform Import Manager for RetroPack.
  *
  * Implements Feature 3 specifications:
- * - Reads battery saves (.srm, .sav, .mcd, .eep, .nvram).
+ * - Reads battery saves (.srm, .sav, .nvram).
  * - Exports saves to Downloads/RetroPack/Saves/<GameTitle>/ with timestamp.
- * - Imports saves from PC Emulators (mGBA, Snes9x, PCSX, DuckStation, PPSSPP)
+ * - Imports saves from emulators (mGBA, Snes9x, Genesis Plus GX, FCEUmm, Mednafen PCE)
  *   with atomic POSIX fsync verification.
  */
 object SaveSyncManager {
