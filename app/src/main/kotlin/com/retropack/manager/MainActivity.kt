@@ -93,16 +93,11 @@ class MainActivity : ComponentActivity() {
                         ) {
                             ManagerTab.values().forEach { tab ->
                                 val isSelected = currentTab == tab
-                                val bgBrush = if (isSelected) {
-                                    Brush.horizontalGradient(listOf(RetroPrimary, Color(0xFF06B6D4)))
-                                } else {
-                                    Brush.horizontalGradient(listOf(Color.Transparent, Color.Transparent))
-                                }
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(bgBrush)
+                                        .background(if (isSelected) Color.White else Color.Transparent)
                                         .clickable { currentTab = tab }
                                         .padding(vertical = 8.dp),
                                     contentAlignment = Alignment.Center
@@ -114,7 +109,7 @@ class MainActivity : ComponentActivity() {
                                         Icon(
                                             imageVector = tab.icon,
                                             contentDescription = tab.title,
-                                            tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                            tint = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
                                             modifier = Modifier.size(16.dp)
                                         )
                                         Text(
@@ -123,7 +118,7 @@ class MainActivity : ComponentActivity() {
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                                 letterSpacing = 0.3.sp
                                             ),
-                                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }

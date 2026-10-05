@@ -177,7 +177,8 @@ class MainViewModel : ViewModel() {
                         ),
                         runtimeState = current.runtimeState.copy(
                             templateId = templateId
-                        )
+                        ),
+                        buildState = BuildUiState()
                     )
                 }
 
@@ -693,7 +694,7 @@ class MainViewModel : ViewModel() {
                         errorMessage = null,
                         isComplete = false,
                         isSuccess = false,
-                        showTerminalSheet = true
+                        showTerminalSheet = false
                     )
                 )
             }

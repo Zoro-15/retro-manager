@@ -1,5 +1,8 @@
 package com.retropack.manager.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -9,7 +12,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,12 +23,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -31,23 +38,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.VpnKey
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -59,6 +75,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -77,6 +94,7 @@ import com.retropack.manager.ui.components.RetroCard
 import com.retropack.manager.ui.components.RomInspectionCard
 import com.retropack.manager.ui.components.StepConnector
 import com.retropack.manager.ui.components.StepHeader
+import com.retropack.manager.ui.components.TerminalView
 import com.retropack.manager.ui.theme.RetroDarkBackground
 import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
@@ -85,6 +103,9 @@ import com.retropack.manager.ui.theme.RetroError
 import com.retropack.manager.ui.theme.RetroPrimary
 import com.retropack.manager.ui.theme.RetroPrimaryLight
 import com.retropack.manager.ui.theme.RetroSuccess
+import com.retropack.manager.ui.theme.RetroTerminalBg
+import com.retropack.manager.ui.theme.RetroTerminalTextMuted
+import com.retropack.manager.util.ApkInstaller
 import com.retropack.manager.viewmodel.MainViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,6 +151,13 @@ fun MainScreen(
         }
     }
 
+    // Smoothly scroll to Step 04 (Packaging Engine & Logs) when packaging starts
+    LaunchedEffect(uiState.buildState.isBuilding) {
+        if (uiState.buildState.isBuilding) {
+            scrollState.animateScrollTo(scrollState.maxValue)
+        }
+    }
+
     Scaffold(
         containerColor = RetroDarkBackground,
         bottomBar = {
@@ -142,6 +170,17 @@ fun MainScreen(
                 isComplete = uiState.buildState.isComplete,
                 isSuccess = uiState.buildState.isSuccess,
                 onStartBuild = { viewModel.startPackaging(context) },
+                onInstallApk = {
+                    val artifact = uiState.buildState.buildResult?.artifactFile
+                    if (artifact != null && artifact.exists()) {
+                        ApkInstaller.installApk(context, artifact)
+                            .onFailure { err ->
+                                Toast.makeText(context, "Install failed: ${err.message}", Toast.LENGTH_LONG).show()
+                            }
+                    } else {
+                        Toast.makeText(context, "Packaged APK not found to install", Toast.LENGTH_SHORT).show()
+                    }
+                },
                 onOpenLogs = { viewModel.onToggleTerminalSheet(true) },
                 modifier = Modifier.navigationBarsPadding()
             )
@@ -577,6 +616,274 @@ fun MainScreen(
                     viewModel.onViewLatestSessionLog(context)
                 }
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            StepConnector()
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // ==========================================
+            // STEP 04: Packaging Engine & Live Terminal
+            // ==========================================
+            StepHeader(
+                number = "04",
+                title = "Packaging Engine & Logs",
+                subtitle = "Real-time transformation pipeline progress and execution logs",
+                isCompleted = uiState.buildState.isComplete && uiState.buildState.isSuccess
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RetroCard(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    // Header Status Row
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            if (uiState.buildState.isBuilding) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                                Text(
+                                    text = "PIPELINE RUNNING",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = Color.White
+                                )
+                            } else if (uiState.buildState.isComplete && uiState.buildState.isSuccess) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = RetroSuccess,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "TRANSFORMATION COMPLETE",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = RetroSuccess
+                                )
+                            } else if (uiState.buildState.isComplete && !uiState.buildState.isSuccess) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = RetroError,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "BUILD FAILED",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = RetroError
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Terminal,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Text(
+                                    text = "ENGINE STANDBY",
+                                    style = MaterialTheme.typography.labelMedium.copy(
+                                        fontWeight = FontWeight.ExtraBold,
+                                        letterSpacing = 1.sp
+                                    ),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        if (uiState.buildState.rawTerminalLogs.isNotBlank()) {
+                            IconButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                                    clipboard?.setPrimaryClip(ClipData.newPlainText("RetroPack Logs", uiState.buildState.rawTerminalLogs))
+                                    Toast.makeText(context, "Terminal logs copied to clipboard", Toast.LENGTH_SHORT).show()
+                                },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = "Copy Logs",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    // Progress Section (Visible during or after packaging)
+                    if (uiState.buildState.isBuilding || uiState.buildState.isComplete) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = if (uiState.buildState.isBuilding) {
+                                    uiState.buildState.stages.getOrNull(uiState.buildState.currentStageIndex - 1)?.stageName ?: "Packaging..."
+                                } else if (uiState.buildState.isSuccess) {
+                                    "15/15 Stages Completed Successfully (${uiState.buildState.buildResult?.durationMs ?: 0} ms)"
+                                } else {
+                                    uiState.buildState.errorMessage ?: "Pipeline terminated with error"
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (uiState.buildState.isComplete && !uiState.buildState.isSuccess) RetroError else MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1
+                            )
+
+                            Text(
+                                text = "${uiState.buildState.currentStageIndex}/${uiState.buildState.totalStages}",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        LinearProgressIndicator(
+                            progress = {
+                                if (uiState.buildState.totalStages > 0) {
+                                    (uiState.buildState.currentStageIndex.toFloat() / uiState.buildState.totalStages.toFloat()).coerceIn(0f, 1f)
+                                } else 0f
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(CircleShape),
+                            color = if (uiState.buildState.isComplete && !uiState.buildState.isSuccess) RetroError else Color.White,
+                            trackColor = RetroDarkSurfaceVariant
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Live Terminal Window
+                    if (uiState.buildState.rawTerminalLogs.isNotBlank()) {
+                        TerminalView(
+                            logs = uiState.buildState.rawTerminalLogs,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 220.dp, max = 360.dp)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(140.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(RetroTerminalBg)
+                                .border(1.dp, RetroDarkOutline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Terminal,
+                                    contentDescription = null,
+                                    tint = RetroTerminalTextMuted,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                                Text(
+                                    text = "$ retropack engine ready. Tap 'PACKAGE STANDALONE APK' below.",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        fontFamily = FontFamily.Monospace,
+                                        color = RetroTerminalTextMuted
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    // Success Action Row
+                    val artifact = uiState.buildState.buildResult?.artifactFile
+                    if (uiState.buildState.isComplete && uiState.buildState.isSuccess && artifact != null) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Button(
+                                onClick = {
+                                    ApkInstaller.installApk(context, artifact)
+                                        .onFailure { err ->
+                                            Toast.makeText(context, "Install failed: ${err.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.White,
+                                    contentColor = Color.Black
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Download,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "INSTALL APK",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
+                                )
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    ApkInstaller.shareApk(context, artifact)
+                                        .onFailure { err ->
+                                            Toast.makeText(context, "Share failed: ${err.message}", Toast.LENGTH_LONG).show()
+                                        }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(14.dp),
+                                border = BorderStroke(1.dp, RetroDarkOutline)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "SHARE APK",
+                                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(120.dp)) // Clearance for FloatingDock
         }

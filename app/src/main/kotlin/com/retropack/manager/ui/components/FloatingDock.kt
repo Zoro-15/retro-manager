@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material3.Button
@@ -69,6 +70,7 @@ fun FloatingDock(
     isComplete: Boolean,
     isSuccess: Boolean,
     onStartBuild: () -> Unit,
+    onInstallApk: () -> Unit = {},
     onOpenLogs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -184,9 +186,13 @@ fun FloatingDock(
                 Button(
                     onClick = {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onStartBuild()
+                        if (isComplete && isSuccess) {
+                            onInstallApk()
+                        } else {
+                            onStartBuild()
+                        }
                     },
-                    enabled = canBuild && !isBuilding,
+                    enabled = if (isComplete && isSuccess) true else (canBuild && !isBuilding),
                     interactionSource = pressSource,
                     modifier = Modifier
                         .weight(1f)
@@ -194,7 +200,7 @@ fun FloatingDock(
                         .then(pressModifier),
                     shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isComplete && isSuccess) Color.White else Color.White,
+                        containerColor = Color.White,
                         contentColor = Color.Black,
                         disabledContainerColor = RetroDarkSurfaceVariant.copy(alpha = 0.6f),
                         disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
@@ -216,12 +222,12 @@ fun FloatingDock(
                             )
                         } else if (isComplete && isSuccess) {
                             Icon(
-                                imageVector = Icons.Default.CheckCircle,
+                                imageVector = Icons.Default.Download,
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                             Text(
-                                text = "BUILD COMPLETE (REBUILD)",
+                                text = "INSTALL APK",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
                                     letterSpacing = 0.8.sp

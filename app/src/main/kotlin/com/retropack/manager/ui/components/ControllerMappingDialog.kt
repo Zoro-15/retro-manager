@@ -131,7 +131,7 @@ fun ControllerMappingDialog(
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(
-                                    Brush.linearGradient(listOf(RetroPrimary, Color(0xFF06B6D4))),
+                                    Color.White,
                                     RoundedCornerShape(12.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -139,7 +139,7 @@ fun ControllerMappingDialog(
                             Icon(
                                 imageVector = Icons.Default.VideogameAsset,
                                 contentDescription = null,
-                                tint = Color.White,
+                                tint = Color.Black,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -199,7 +199,7 @@ fun ControllerMappingDialog(
                             Text(
                                 text = id.uppercase(),
                                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (isSelected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                             )
                         }
