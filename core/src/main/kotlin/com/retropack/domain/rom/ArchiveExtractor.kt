@@ -28,7 +28,7 @@ object ArchiveExtractor {
     private const val MAX_RECURSION_DEPTH = 3
 
     /**
-     * Comprehensive catalog of all supported retro console ROM file extensions across all 10 architectures.
+     * Comprehensive catalog of all supported retro console ROM file extensions across the Golden 5 2D suite.
      */
     val SUPPORTED_ROM_EXTENSIONS = setOf(
         // Nintendo Game Boy / Color / Advance
@@ -37,20 +37,12 @@ object ArchiveExtractor {
         ".sfc", ".smc", ".snes", ".fig", ".swc", ".bs", ".gd3", ".gd7", ".dx2",
         // Nintendo Entertainment System / Famicom / FDS
         ".nes", ".fds", ".unf", ".unif", ".fam",
-        // Sega Genesis / Mega Drive / Master System / Game Gear / SG-1000 / Sega CD
+        // Sega Genesis / Mega Drive / Master System / Game Gear / SG-1000
         ".md", ".smd", ".gen", ".sms", ".gg", ".sg", ".sc", ".68k", ".sgd",
-        // PC Engine / TurboGrafx-16 / SuperGrafx / PCE-CD
-        ".pce", ".tg16", ".sgx", ".ccd", ".toc",
-        // Sony PlayStation 1 (PSX)
-        ".iso", ".cue", ".chd", ".pbp", ".img", ".mdf", ".ecm",
-        // Nintendo 64
-        ".z64", ".n64", ".v64", ".u64", ".ndd",
-        // Nintendo DS / DSi
-        ".nds", ".srl", ".dsi", ".ids",
-        // Sony PSP
-        ".cso", ".prx", ".elf",
-        // Arcade / Neo Geo / Generic binary
-        ".neo", ".bin"
+        // PC Engine / TurboGrafx-16 / SuperGrafx
+        ".pce", ".tg16", ".sgx",
+        // Generic binary (e.g. Genesis/GBA homebrew .bin)
+        ".bin"
     )
 
     val ARCHIVE_EXTENSIONS = setOf(
@@ -218,7 +210,7 @@ object ArchiveExtractor {
             if (isRar5(headerBytes)) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '${sourceFile.name}'. " +
-                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.gba, .gbc, .gb, .sfc, .nes, .md, .pce)."
                 )
             }
             try {
@@ -236,7 +228,7 @@ object ArchiveExtractor {
             } catch (e: com.github.junrar.exception.UnsupportedRarV5Exception) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '${sourceFile.name}'. " +
-                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.gba, .gbc, .gb, .sfc, .nes, .md, .pce)."
                 )
             } catch (e: Exception) {
                 throw InvalidRomException("Failed to unpack RAR archive '${sourceFile.name}': ${e.message ?: "corrupted or unsupported format"}. Please unpack with 7-Zip/ZArchiver or import raw ROM.")
@@ -505,7 +497,7 @@ object ArchiveExtractor {
             if (isRar5(rawBytes)) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '$rawFileName'. " +
-                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.gba, .gbc, .gb, .sfc, .nes, .md, .pce)."
                 )
             }
             try {
@@ -521,7 +513,7 @@ object ArchiveExtractor {
             } catch (e: com.github.junrar.exception.UnsupportedRarV5Exception) {
                 throw InvalidRomException(
                     "RAR 5.0 archive format detected for '$rawFileName'. " +
-                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.z64, .nds, .gba, .iso, .cue, .chd, .pbp)."
+                    "Pure Java Junrar runtime cannot decompress RAR5 archives. Please unpack this game using 7-Zip, ZArchiver, or WinRAR, or import standard .zip / .7z archives or uncompressed ROM files (.gba, .gbc, .gb, .sfc, .nes, .md, .pce)."
                 )
             } catch (e: Exception) {
                 throw InvalidRomException("Failed to unpack RAR archive '$rawFileName': ${e.message ?: "corrupted or unsupported format"}. Please unpack with 7-Zip/ZArchiver or import raw ROM.")
@@ -736,27 +728,24 @@ object ArchiveExtractor {
 
     /**
      * Evaluates a list of entry filenames and picks the single best ROM candidate.
-     * Prioritizes explicit console extensions (.gba, .sfc, .nes, .pce, .z64, .nds)
-     * over generic binary files (.bin, .iso, .cue).
+     * Prioritizes explicit console extensions (.gba, .sfc, .nes, .md, .pce)
+     * over generic binary files (.bin).
      */
     fun selectBestEntry(entryNames: List<String>): String? {
         if (entryNames.isEmpty()) return null
 
-        // 1. High-priority console-specific extensions
+        // 1. High-priority 2D console-specific extensions
         val highPriority = entryNames.firstOrNull { name ->
             val lower = name.lowercase(Locale.US)
             lower.endsWith(".gba") || lower.endsWith(".gbc") || lower.endsWith(".gb") ||
                 lower.endsWith(".sfc") || lower.endsWith(".smc") || lower.endsWith(".snes") ||
                 lower.endsWith(".nes") || lower.endsWith(".fds") ||
                 lower.endsWith(".md") || lower.endsWith(".gen") || lower.endsWith(".smd") ||
-                lower.endsWith(".pce") || lower.endsWith(".sgx") || lower.endsWith(".tg16") ||
-                lower.endsWith(".z64") || lower.endsWith(".n64") || lower.endsWith(".v64") ||
-                lower.endsWith(".nds") || lower.endsWith(".srl") ||
-                lower.endsWith(".pbp") || lower.endsWith(".chd") || lower.endsWith(".cso")
+                lower.endsWith(".pce") || lower.endsWith(".sgx") || lower.endsWith(".tg16")
         }
         if (highPriority != null) return highPriority
 
-        // 2. Any supported ROM extension (including .bin, .iso, .cue, .img)
+        // 2. Any supported ROM extension (including .bin)
         val anyRom = entryNames.firstOrNull { name ->
             val lower = name.lowercase(Locale.US)
             SUPPORTED_ROM_EXTENSIONS.any { lower.endsWith(it) }

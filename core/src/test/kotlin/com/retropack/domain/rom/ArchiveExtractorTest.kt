@@ -192,17 +192,14 @@ class ArchiveExtractorTest {
     }
 
     @Test
-    fun `SUPPORTED_ROM_EXTENSIONS contains all 10 console architectures`() {
+    fun `SUPPORTED_ROM_EXTENSIONS contains all Golden 5 2D console architectures`() {
         val expected = listOf(
             ".gba", ".gbc", ".gb",
             ".sfc", ".smc", ".snes",
             ".nes", ".fds",
             ".md", ".gen", ".smd", ".sms", ".gg",
             ".pce", ".sgx", ".tg16",
-            ".iso", ".cue", ".chd", ".pbp",
-            ".z64", ".n64", ".v64",
-            ".nds", ".srl", ".dsi",
-            ".cso", ".neo"
+            ".bin"
         )
         for (ext in expected) {
             assertTrue(ArchiveExtractor.SUPPORTED_ROM_EXTENSIONS.contains(ext), "Expected $ext in SUPPORTED_ROM_EXTENSIONS")
