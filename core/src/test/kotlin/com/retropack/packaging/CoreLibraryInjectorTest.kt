@@ -34,16 +34,6 @@ class CoreLibraryInjectorTest {
 
         assertEquals("mednafen_pce_fast", CoreLibraryInjector.resolveCoreId("pce"))
         assertEquals("mednafen_pce_fast", CoreLibraryInjector.resolveCoreId("tg16"))
-
-        assertEquals("fbneo", CoreLibraryInjector.resolveCoreId("arcade"))
-        assertEquals("fbneo", CoreLibraryInjector.resolveCoreId("neogeo"))
-
-        assertEquals("pcsx_rearmed", CoreLibraryInjector.resolveCoreId("psx"))
-        assertEquals("pcsx_rearmed", CoreLibraryInjector.resolveCoreId("ps1"))
-
-        assertEquals("mupen64plus_next", CoreLibraryInjector.resolveCoreId("n64"))
-        assertEquals("ppsspp", CoreLibraryInjector.resolveCoreId("psp"))
-        assertEquals("melonds", CoreLibraryInjector.resolveCoreId("nds"))
     }
 
     @Test
@@ -53,11 +43,6 @@ class CoreLibraryInjectorTest {
         assertEquals("libretro_genesis_plus_gx.so", CoreLibraryInjector.resolveCoreLibName("genesis"))
         assertEquals("libretro_fceumm.so", CoreLibraryInjector.resolveCoreLibName("nes"))
         assertEquals("libretro_mednafen_pce_fast.so", CoreLibraryInjector.resolveCoreLibName("pce"))
-        assertEquals("libretro_fbneo.so", CoreLibraryInjector.resolveCoreLibName("arcade"))
-        assertEquals("libretro_pcsx_rearmed.so", CoreLibraryInjector.resolveCoreLibName("ps1"))
-        assertEquals("libretro_mupen64plus_next.so", CoreLibraryInjector.resolveCoreLibName("n64"))
-        assertEquals("libretro_ppsspp.so", CoreLibraryInjector.resolveCoreLibName("psp"))
-        assertEquals("libretro_melonds.so", CoreLibraryInjector.resolveCoreLibName("nds"))
     }
 
     @Test

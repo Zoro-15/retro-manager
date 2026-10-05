@@ -86,21 +86,16 @@ class RuntimeDescriptorTest {
     }
 
     @Test
-    fun `all 10 canonical runtime descriptors have valid configurations`() {
+    fun `all 5 canonical 2D runtime descriptors have valid configurations`() {
         val descriptors = listOf(
             RuntimeDescriptor.MGBA_UNIFIED,
             RuntimeDescriptor.SNES9X_UNIFIED,
             RuntimeDescriptor.GENESIS_UNIFIED,
             RuntimeDescriptor.FCEUMM_UNIFIED,
-            RuntimeDescriptor.PCE_UNIFIED,
-            RuntimeDescriptor.FBNEO_UNIFIED,
-            RuntimeDescriptor.PCSX_UNIFIED,
-            RuntimeDescriptor.MUPEN64_UNIFIED,
-            RuntimeDescriptor.PPSSPP_UNIFIED,
-            RuntimeDescriptor.MELONDS_UNIFIED
+            RuntimeDescriptor.PCE_UNIFIED
         )
 
-        assertEquals(10, descriptors.size)
+        assertEquals(5, descriptors.size)
         for (desc in descriptors) {
             assertTrue(desc.id.isNotBlank())
             assertTrue(desc.version.isNotBlank())
@@ -139,27 +134,12 @@ class RuntimeDescriptorTest {
 
         assertEquals("mednafen_pce_fast", RuntimeDescriptor.PCE_UNIFIED.coreId)
         assertEquals("libretro_mednafen_pce_fast.so", RuntimeDescriptor.PCE_UNIFIED.coreLibName)
-
-        assertEquals("fbneo", RuntimeDescriptor.FBNEO_UNIFIED.coreId)
-        assertEquals("libretro_fbneo.so", RuntimeDescriptor.FBNEO_UNIFIED.coreLibName)
-
-        assertEquals("pcsx_rearmed", RuntimeDescriptor.PCSX_UNIFIED.coreId)
-        assertEquals("libretro_pcsx_rearmed.so", RuntimeDescriptor.PCSX_UNIFIED.coreLibName)
-
-        assertEquals("mupen64plus_next", RuntimeDescriptor.MUPEN64_UNIFIED.coreId)
-        assertEquals("libretro_mupen64plus_next.so", RuntimeDescriptor.MUPEN64_UNIFIED.coreLibName)
-
-        assertEquals("ppsspp", RuntimeDescriptor.PPSSPP_UNIFIED.coreId)
-        assertEquals("libretro_ppsspp.so", RuntimeDescriptor.PPSSPP_UNIFIED.coreLibName)
-
-        assertEquals("melonds", RuntimeDescriptor.MELONDS_UNIFIED.coreId)
-        assertEquals("libretro_melonds.so", RuntimeDescriptor.MELONDS_UNIFIED.coreLibName)
     }
 
     @Test
     fun `fromCatalog creates valid descriptors from CoreCatalog`() {
         val descriptors = RuntimeDescriptor.fromCatalog(CoreCatalog.DEFAULT)
-        assertEquals(10, descriptors.size)
+        assertEquals(5, descriptors.size)
 
         val mgba = descriptors.find { it.id == "mgba-unified" }
         assertEquals(listOf("gb", "gbc", "gba"), mgba?.supportedPlatforms)

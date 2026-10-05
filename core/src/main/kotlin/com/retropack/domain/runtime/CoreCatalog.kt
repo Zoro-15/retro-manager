@@ -49,7 +49,7 @@ data class CoreCatalog(
          */
         val DEFAULT = CoreCatalog(
             version = 1,
-            description = "Universal Libretro Core Catalog for RetroPack",
+            description = "Universal Libretro Core Catalog for RetroPack (2D Golden Suite)",
             supportedAbis = listOf("arm64-v8a", "x86_64"),
             cores = listOf(
                 CoreCatalogEntry(
@@ -91,46 +91,6 @@ data class CoreCatalog(
                     libName = "libretro_mednafen_pce_fast.so",
                     upstreamSlug = "mednafen_pce_fast_libretro_android.so.zip",
                     extensions = listOf(".pce", ".sgx", ".cue", ".ccd", ".chd")
-                ),
-                CoreCatalogEntry(
-                    id = "pcsx_rearmed",
-                    displayName = "PCSX ReARMed",
-                    system = "Sony PlayStation (PS1)",
-                    libName = "libretro_pcsx_rearmed.so",
-                    upstreamSlug = "pcsx_rearmed_libretro_android.so.zip",
-                    extensions = listOf(".iso", ".bin", ".cue", ".chd", ".pbp")
-                ),
-                CoreCatalogEntry(
-                    id = "melonds",
-                    displayName = "melonDS",
-                    system = "Nintendo DS",
-                    libName = "libretro_melonds.so",
-                    upstreamSlug = "melonds_libretro_android.so.zip",
-                    extensions = listOf(".nds", ".bin")
-                ),
-                CoreCatalogEntry(
-                    id = "mupen64plus_next",
-                    displayName = "Mupen64Plus-Next",
-                    system = "Nintendo 64",
-                    libName = "libretro_mupen64plus_next.so",
-                    upstreamSlug = "mupen64plus_next_libretro_android.so.zip",
-                    extensions = listOf(".z64", ".n64", ".v64")
-                ),
-                CoreCatalogEntry(
-                    id = "fbneo",
-                    displayName = "FinalBurn Neo",
-                    system = "Arcade / Neo-Geo",
-                    libName = "libretro_fbneo.so",
-                    upstreamSlug = "fbneo_libretro_android.so.zip",
-                    extensions = listOf(".zip", ".7z", ".neo")
-                ),
-                CoreCatalogEntry(
-                    id = "ppsspp",
-                    displayName = "PPSSPP",
-                    system = "Sony PlayStation Portable (PSP)",
-                    libName = "libretro_ppsspp.so",
-                    upstreamSlug = "ppsspp_libretro_android.so.zip",
-                    extensions = listOf(".iso", ".cso", ".chd", ".pbp")
                 )
             )
         )
@@ -262,11 +222,6 @@ data class CoreCatalogEntry(
             "genesis_plus_gx" -> listOf("genesis", "md", "smd", "gen", "sms", "gg")
             "fceumm" -> listOf("nes", "fds", "unf")
             "mednafen_pce_fast" -> listOf("pce", "tg16", "sgx")
-            "pcsx_rearmed" -> listOf("psx", "ps1", "ps")
-            "melonds" -> listOf("nds", "dsi")
-            "mupen64plus_next" -> listOf("n64", "z64", "v64")
-            "fbneo" -> listOf("arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo")
-            "ppsspp" -> listOf("psp")
             else -> listOf(id)
         }
 
@@ -276,11 +231,6 @@ data class CoreCatalogEntry(
             "genesis_plus_gx" -> "genesis-unified"
             "fceumm" -> "fceumm-unified"
             "mednafen_pce_fast" -> "pce-unified"
-            "pcsx_rearmed" -> "pcsx-unified"
-            "melonds" -> "melonds-unified"
-            "mupen64plus_next" -> "mupen64-unified"
-            "fbneo" -> "fbneo-unified"
-            "ppsspp" -> "ppsspp-unified"
             else -> "$id-unified"
         }
 

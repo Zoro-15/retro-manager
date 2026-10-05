@@ -9,24 +9,19 @@ import java.io.File
 class CoreCatalogTest {
 
     @Test
-    fun `default catalog contains all 10 canonical Libretro cores`() {
+    fun `default catalog contains all 5 canonical 2D Libretro cores`() {
         val catalog = CoreCatalog.DEFAULT
 
         assertEquals(1, catalog.version)
         assertEquals(listOf("arm64-v8a", "x86_64"), catalog.supportedAbis)
-        assertEquals(10, catalog.cores.size)
+        assertEquals(5, catalog.cores.size)
 
         val expectedIds = listOf(
             "mgba",
             "snes9x",
             "genesis_plus_gx",
             "fceumm",
-            "mednafen_pce_fast",
-            "pcsx_rearmed",
-            "melonds",
-            "mupen64plus_next",
-            "fbneo",
-            "ppsspp"
+            "mednafen_pce_fast"
         )
 
         for (id in expectedIds) {
@@ -49,7 +44,7 @@ class CoreCatalogTest {
 
         if (coresFile != null) {
             val catalog = CoreCatalog.loadFromDirectory(coresFile.parentFile)
-            assertEquals(10, catalog.cores.size)
+            assertEquals(5, catalog.cores.size)
             assertEquals(listOf("arm64-v8a", "x86_64"), catalog.supportedAbis)
 
             val mgba = catalog.getCore("mgba")
@@ -68,6 +63,8 @@ class CoreCatalogTest {
         assertEquals("mgba", catalog.getCore("mgba")?.id)
         assertEquals("snes9x", catalog.getCore("snes9x")?.id)
         assertEquals("genesis_plus_gx", catalog.getCore("genesis_plus_gx")?.id)
+        assertEquals("fceumm", catalog.getCore("fceumm")?.id)
+        assertEquals("mednafen_pce_fast", catalog.getCore("mednafen_pce_fast")?.id)
 
         // By platform identifier
         assertEquals("mgba", catalog.getCore("gba")?.id)
@@ -76,18 +73,12 @@ class CoreCatalogTest {
         assertEquals("fceumm", catalog.getCore("nes")?.id)
         assertEquals("mednafen_pce_fast", catalog.getCore("pce")?.id)
         assertEquals("mednafen_pce_fast", catalog.getCore("tg16")?.id)
-        assertEquals("pcsx_rearmed", catalog.getCore("psx")?.id)
-        assertEquals("pcsx_rearmed", catalog.getCore("ps1")?.id)
-        assertEquals("mupen64plus_next", catalog.getCore("n64")?.id)
-        assertEquals("fbneo", catalog.getCore("arcade")?.id)
-        assertEquals("fbneo", catalog.getCore("neogeo")?.id)
-        assertEquals("ppsspp", catalog.getCore("psp")?.id)
-        assertEquals("melonds", catalog.getCore("nds")?.id)
 
         // By unified ID alias
         assertEquals("mgba", catalog.getCore("mgba-unified")?.id)
         assertEquals("snes9x", catalog.getCore("snes9x-unified")?.id)
         assertEquals("genesis_plus_gx", catalog.getCore("genesis-unified")?.id)
+        assertEquals("fceumm", catalog.getCore("fceumm-unified")?.id)
         assertEquals("mednafen_pce_fast", catalog.getCore("pce-unified")?.id)
     }
 
@@ -95,7 +86,7 @@ class CoreCatalogTest {
     fun `toRuntimeDescriptors converts all catalog entries to valid RuntimeDescriptors`() {
         val descriptors = CoreCatalog.DEFAULT.toRuntimeDescriptors()
 
-        assertEquals(10, descriptors.size)
+        assertEquals(5, descriptors.size)
         for (desc in descriptors) {
             assertTrue(desc.id.endsWith("-unified"))
             assertEquals(1, desc.runtimeApi)

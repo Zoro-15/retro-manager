@@ -461,11 +461,6 @@ $items
             "genesis", "md", "smd", "gen", "sms", "gg" -> "genesis"
             "nes", "fds", "unf" -> "fceumm"
             "pce", "tg16", "sgx" -> "pce"
-            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "fbneo"
-            "psx", "ps1", "ps" -> "pcsx"
-            "n64", "z64", "v64" -> "mupen64"
-            "psp" -> "ppsspp"
-            "nds", "dsi" -> "melonds"
             else -> request.runtime.templateId.removeSuffix("-unified")
         }
     }

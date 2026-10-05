@@ -43,42 +43,13 @@ class RuntimeRegistryTest {
         assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("pce")?.id)
         assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("tg16")?.id)
 
-        // Arcade / Neo Geo / CPS
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("arcade")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("neogeo")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps1")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps2")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("cps3")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("fbneo")?.id)
-
-        // PS1
-        assertEquals(RuntimeRegistry.RUNTIME_PCSX_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("psx")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_PCSX_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("ps1")?.id)
-
-        // N64
-        assertEquals(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("n64")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("z64")?.id)
-
-        // PSP
-        assertEquals(RuntimeRegistry.RUNTIME_PPSSPP_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("psp")?.id)
-
-        // NDS
-        assertEquals(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("nds")?.id)
-        assertEquals(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("dsi")?.id)
-    }
-
     @Test
-    fun `registers and retrieves all 10 canonical descriptors by ID`() {
+    fun `registers and retrieves all 5 canonical 2D descriptors by ID`() {
         assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MGBA_UNIFIED))
         assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_SNES9X_UNIFIED))
         assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_GENESIS_UNIFIED))
         assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_FCEUMM_UNIFIED))
         assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PCE_UNIFIED))
-        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_FBNEO_UNIFIED))
-        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PCSX_UNIFIED))
-        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MUPEN64_UNIFIED))
-        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_PPSSPP_UNIFIED))
-        assertNotNull(RuntimeRegistry.getDescriptor(RuntimeRegistry.RUNTIME_MELONDS_UNIFIED))
     }
 
     @Test
@@ -136,13 +107,8 @@ class RuntimeRegistryTest {
         assertEquals("fceumm-unified", RuntimeRegistry.getDescriptor("fceumm")?.id)
         assertEquals("pce-unified", RuntimeRegistry.getDescriptor("mednafen_pce_fast")?.id)
         assertEquals("pce-unified", RuntimeRegistry.getDescriptor("pce")?.id)
-        assertEquals("fbneo-unified", RuntimeRegistry.getDescriptor("fbneo")?.id)
-        assertEquals("pcsx-unified", RuntimeRegistry.getDescriptor("pcsx_rearmed")?.id)
-        assertEquals("pcsx-unified", RuntimeRegistry.getDescriptor("pcsx")?.id)
-        assertEquals("mupen64-unified", RuntimeRegistry.getDescriptor("mupen64plus_next")?.id)
-        assertEquals("mupen64-unified", RuntimeRegistry.getDescriptor("mupen64")?.id)
-        assertEquals("ppsspp-unified", RuntimeRegistry.getDescriptor("ppsspp")?.id)
-        assertEquals("melonds-unified", RuntimeRegistry.getDescriptor("melonds")?.id)
+        assertEquals("fceumm-unified", RuntimeRegistry.getDescriptor("nes")?.id)
+        assertEquals("pce-unified", RuntimeRegistry.getDescriptor("tg16")?.id)
     }
 
     @Test

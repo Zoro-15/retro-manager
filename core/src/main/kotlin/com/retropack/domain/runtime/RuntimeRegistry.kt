@@ -20,11 +20,6 @@ object RuntimeRegistry {
     const val RUNTIME_GENESIS_UNIFIED = "genesis-unified"
     const val RUNTIME_FCEUMM_UNIFIED = "fceumm-unified"
     const val RUNTIME_PCE_UNIFIED = "pce-unified"
-    const val RUNTIME_FBNEO_UNIFIED = "fbneo-unified"
-    const val RUNTIME_PCSX_UNIFIED = "pcsx-unified"
-    const val RUNTIME_MUPEN64_UNIFIED = "mupen64-unified"
-    const val RUNTIME_PPSSPP_UNIFIED = "ppsspp-unified"
-    const val RUNTIME_MELONDS_UNIFIED = "melonds-unified"
 
     /**
      * Canonical Libretro Core Identifiers (matching runtimes/cores.json)
@@ -34,23 +29,13 @@ object RuntimeRegistry {
     const val CORE_GENESIS_PLUS_GX = "genesis_plus_gx"
     const val CORE_FCEUMM = "fceumm"
     const val CORE_MEDNAFEN_PCE_FAST = "mednafen_pce_fast"
-    const val CORE_FBNEO = "fbneo"
-    const val CORE_PCSX_REARMED = "pcsx_rearmed"
-    const val CORE_MUPEN64PLUS_NEXT = "mupen64plus_next"
-    const val CORE_PPSSPP = "ppsspp"
-    const val CORE_MELONDS = "melonds"
 
     val CANONICAL_CORE_IDS: Set<String> = setOf(
         CORE_MGBA,
         CORE_SNES9X,
         CORE_GENESIS_PLUS_GX,
         CORE_FCEUMM,
-        CORE_MEDNAFEN_PCE_FAST,
-        CORE_FBNEO,
-        CORE_PCSX_REARMED,
-        CORE_MUPEN64PLUS_NEXT,
-        CORE_PPSSPP,
-        CORE_MELONDS
+        CORE_MEDNAFEN_PCE_FAST
     )
 
     /**
@@ -104,17 +89,12 @@ object RuntimeRegistry {
             registeredTemplates.clear()
             platformMappings.clear()
 
-            // Register canonical descriptors for all 10 cores
+            // Register canonical descriptors for the 5 Golden 2D cores
             registerDescriptor(RuntimeDescriptor.MGBA_UNIFIED)
             registerDescriptor(RuntimeDescriptor.SNES9X_UNIFIED)
             registerDescriptor(RuntimeDescriptor.GENESIS_UNIFIED)
             registerDescriptor(RuntimeDescriptor.FCEUMM_UNIFIED)
             registerDescriptor(RuntimeDescriptor.PCE_UNIFIED)
-            registerDescriptor(RuntimeDescriptor.FBNEO_UNIFIED)
-            registerDescriptor(RuntimeDescriptor.PCSX_UNIFIED)
-            registerDescriptor(RuntimeDescriptor.MUPEN64_UNIFIED)
-            registerDescriptor(RuntimeDescriptor.PPSSPP_UNIFIED)
-            registerDescriptor(RuntimeDescriptor.MELONDS_UNIFIED)
 
             // Register canonical platform associations
             registerPlatformMapping("gb", RUNTIME_MGBA_UNIFIED)
@@ -146,34 +126,6 @@ object RuntimeRegistry {
             registerPlatformMapping("sgx", RUNTIME_PCE_UNIFIED)
             registerPlatformMapping("mednafen_pce_fast", RUNTIME_PCE_UNIFIED)
             registerPlatformMapping("beetle-pce-fast", RUNTIME_PCE_UNIFIED)
-
-            registerPlatformMapping("arcade", RUNTIME_FBNEO_UNIFIED)
-            registerPlatformMapping("neogeo", RUNTIME_FBNEO_UNIFIED)
-            registerPlatformMapping("cps1", RUNTIME_FBNEO_UNIFIED)
-            registerPlatformMapping("cps2", RUNTIME_FBNEO_UNIFIED)
-            registerPlatformMapping("cps3", RUNTIME_FBNEO_UNIFIED)
-            registerPlatformMapping("fbneo", RUNTIME_FBNEO_UNIFIED)
-
-            registerPlatformMapping("psx", RUNTIME_PCSX_UNIFIED)
-            registerPlatformMapping("ps1", RUNTIME_PCSX_UNIFIED)
-            registerPlatformMapping("ps", RUNTIME_PCSX_UNIFIED)
-            registerPlatformMapping("pcsx", RUNTIME_PCSX_UNIFIED)
-            registerPlatformMapping("pcsx_rearmed", RUNTIME_PCSX_UNIFIED)
-            registerPlatformMapping("pcsx-rearmed", RUNTIME_PCSX_UNIFIED)
-
-            registerPlatformMapping("n64", RUNTIME_MUPEN64_UNIFIED)
-            registerPlatformMapping("z64", RUNTIME_MUPEN64_UNIFIED)
-            registerPlatformMapping("v64", RUNTIME_MUPEN64_UNIFIED)
-            registerPlatformMapping("mupen64", RUNTIME_MUPEN64_UNIFIED)
-            registerPlatformMapping("mupen64plus_next", RUNTIME_MUPEN64_UNIFIED)
-            registerPlatformMapping("mupen64plus-next", RUNTIME_MUPEN64_UNIFIED)
-
-            registerPlatformMapping("psp", RUNTIME_PPSSPP_UNIFIED)
-            registerPlatformMapping("ppsspp", RUNTIME_PPSSPP_UNIFIED)
-
-            registerPlatformMapping("nds", RUNTIME_MELONDS_UNIFIED)
-            registerPlatformMapping("dsi", RUNTIME_MELONDS_UNIFIED)
-            registerPlatformMapping("melonds", RUNTIME_MELONDS_UNIFIED)
         }
     }
 
@@ -265,21 +217,11 @@ object RuntimeRegistry {
         RUNTIME_GENESIS_UNIFIED,
         RUNTIME_FCEUMM_UNIFIED,
         RUNTIME_PCE_UNIFIED,
-        RUNTIME_FBNEO_UNIFIED,
-        RUNTIME_PCSX_UNIFIED,
-        RUNTIME_MUPEN64_UNIFIED,
-        RUNTIME_PPSSPP_UNIFIED,
-        RUNTIME_MELONDS_UNIFIED,
         CORE_MGBA,
         CORE_SNES9X,
         CORE_GENESIS_PLUS_GX,
         CORE_FCEUMM,
-        CORE_MEDNAFEN_PCE_FAST,
-        CORE_FBNEO,
-        CORE_PCSX_REARMED,
-        CORE_MUPEN64PLUS_NEXT,
-        CORE_PPSSPP,
-        CORE_MELONDS
+        CORE_MEDNAFEN_PCE_FAST
     )
 
     /**
@@ -293,11 +235,6 @@ object RuntimeRegistry {
             "genesis_plus_gx", "genesis", "md", "smd", "gen", "sms", "gg" -> RUNTIME_GENESIS_UNIFIED
             "fceumm", "nes", "fds", "unf" -> RUNTIME_FCEUMM_UNIFIED
             "mednafen_pce_fast", "pce", "tg16", "sgx", "beetle_pce_fast" -> RUNTIME_PCE_UNIFIED
-            "fbneo", "arcade", "neogeo", "cps1", "cps2", "cps3" -> RUNTIME_FBNEO_UNIFIED
-            "pcsx_rearmed", "pcsx", "psx", "ps1", "ps" -> RUNTIME_PCSX_UNIFIED
-            "mupen64plus_next", "mupen64", "n64", "z64", "v64" -> RUNTIME_MUPEN64_UNIFIED
-            "ppsspp", "psp" -> RUNTIME_PPSSPP_UNIFIED
-            "melonds", "nds", "dsi" -> RUNTIME_MELONDS_UNIFIED
             else -> {
                 if (normalized.endsWith("_unified")) normalized.replace("_", "-")
                 else "$normalized-unified"

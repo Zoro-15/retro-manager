@@ -206,12 +206,7 @@ fun MainScreen(
                     "genesis-unified" -> "Genesis Plus GX"
                     "fceumm-unified" -> "FCEUmm 2.6.5"
                     "pce-unified" -> "Beetle PCE 1.31"
-                    "fbneo-unified" -> "FBNeo 1.0.0"
-                    "pcsx-unified" -> "PCSX ReARMed"
-                    "mupen64-unified" -> "Mupen64Plus 2.5"
-                    "ppsspp-unified" -> "PPSSPP 1.17"
-                    "melonds-unified" -> "melonDS 0.9.5"
-                    else -> if (uiState.romState.romIdentity != null) "mGBA 0.10.5" else "10 Cores Ready"
+                    else -> if (uiState.romState.romIdentity != null) "mGBA 0.10.5" else "5 Cores Ready"
                 }
 
                 Box(

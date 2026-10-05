@@ -28,11 +28,6 @@ object CoreLibraryInjector {
             "genesis", "genesis-plus-gx", "genesis_plus_gx", "genesis-unified", "libretro_genesis_plus_gx.so" -> return "genesis_plus_gx"
             "fceumm", "fceumm-unified", "libretro_fceumm.so" -> return "fceumm"
             "pce", "beetle-pce-fast", "mednafen_pce_fast", "pce-unified", "libretro_mednafen_pce_fast.so" -> return "mednafen_pce_fast"
-            "fbneo", "finalburn-neo", "fbneo-unified", "libretro_fbneo.so" -> return "fbneo"
-            "pcsx", "pcsx-rearmed", "pcsx_rearmed", "pcsx-unified", "libretro_pcsx_rearmed.so" -> return "pcsx_rearmed"
-            "mupen64", "mupen64plus-next", "mupen64plus_next", "mupen64-unified", "libretro_mupen64plus_next.so" -> return "mupen64plus_next"
-            "ppsspp", "ppsspp-unified", "libretro_ppsspp.so" -> return "ppsspp"
-            "melonds", "melonds-unified", "libretro_melonds.so" -> return "melonds"
             "mgba", "mgba-unified", "libretro_mgba.so" -> return "mgba"
         }
 
@@ -42,11 +37,6 @@ object CoreLibraryInjector {
             "genesis", "md", "smd", "gen", "sms", "gg" -> "genesis_plus_gx"
             "nes", "fds", "unf" -> "fceumm"
             "pce", "tg16", "sgx" -> "mednafen_pce_fast"
-            "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> "fbneo"
-            "psx", "ps1", "ps" -> "pcsx_rearmed"
-            "n64", "z64", "v64" -> "mupen64plus_next"
-            "psp" -> "ppsspp"
-            "nds", "dsi" -> "melonds"
             "gba", "gbc", "gb" -> "mgba"
             else -> if (normalizedCore.isNotBlank()) normalizedCore else "mgba"
         }

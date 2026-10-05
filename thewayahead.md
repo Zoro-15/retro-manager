@@ -210,24 +210,22 @@ struct LibretroCore {
 
 ---
 
-## 6. Core Selection Matrix
+## 6. Core Selection Matrix (Golden 5 2D Core Suite)
 
-| Console | Recommended Core | ROM Extensions | Reference Notes |
+> **Strategic Scope Decision**: The 3D and CD-ROM architectures (`mupen64plus_next`, `ppsspp`, `pcsx_rearmed`, `melonds`, `fbneo`) have been pruned. This eliminates mobile storage exhaustion (multi-hundred MB / GB disc images), RAR5 decompression bottlenecks, hardware render context negotiation failures, and 16 KB / W^X dynarec native crashes. RetroPack focuses exclusively on lightweight, software-rasterized 2D retro consoles.
+
+| Console | Recommended Core | ROM Extensions | Architecture / Notes |
 | :--- | :--- | :--- | :--- |
-| **GBA** | `mGBA` | `.gba`, `.bin` | Gold standard for accuracy & performance |
-| **SNES** | `Snes9x` | `.sfc`, `.smc` | High compatibility, low resource footprint |
-| **Genesis / MD / MS / GG** | `Genesis Plus GX` | `.md`, `.gen`, `.smd` | Cycle-accurate, lightweight |
-| **NES** | `FCEUmm` | `.nes`, `.fds` | Fast mapper support |
-| **PC Engine / TG16** | `Beetle PCE Fast` | `.pce`, `.sgx` | Fast and accurate |
-| **PS1** | `PCSX ReARMed` | `.iso`, `.bin`, `.cue`, `.chd` | Optimized ARM NEON dynarec |
-| **NDS** | `melonDS` | `.nds` | Accurate 2D/3D dual-screen renderer |
-| **N64** | `Mupen64Plus-Next` | `.z64`, `.n64`, `.v64` | Libretro GLES surface wrapper |
-| **Arcade / Neo-Geo** | `FBNeo` (Libretro) | `.zip`, `.neo` | Lean Neo-Geo driver configuration |
-| **PSP** | `PPSSPP` (Libretro) | `.iso`, `.cso`, `.chd` | Libretro standalone core wrapper |
+| **GBA / GBC / GB** | `mGBA` | `.gba`, `.gbc`, `.gb`, `.bin` | Gold standard for accuracy & performance, software blit |
+| **SNES** | `Snes9x` | `.sfc`, `.smc` | High compatibility, low resource footprint, pure software Mode 7 |
+| **Genesis / MD / MS / GG** | `Genesis Plus GX` | `.md`, `.gen`, `.smd`, `.sms`, `.gg` | Cycle-accurate, lightweight, 100% 2D software blitter |
+| **NES / Famicom** | `FCEUmm` | `.nes`, `.fds`, `.unf` | Instant boot, fast mapper support, tiny ROM footprints |
+| **PC Engine / TG16** | `Beetle PCE Fast` | `.pce`, `.sgx` | Fast, accurate, lightweight 2D hardware rasterization |
 
 ---
 
 ## 7. Guidelines for Successive Agents
+* **Maintain the 2D Scope Boundary**: Do not reintroduce 3D or CD-ROM consoles (N64, PS1, PSP, NDS). Keep RetroPack fast, lightweight, and crash-resilient.
 * **Do not create new per-emulator JNI bridges**: All platform glue belongs in the universal Libretro host in `retropack-runtime-common`.
 * **Keep Core builds isolated**: Changes to one core's build script must never block compilation of the Manager or other cores.
-* **Preserve Android 15 Invariants**: Always verify 16 KB page-size alignment on any output native binary before deployment.
+* **Preserve Android 15 & 16 Invariants**: Always verify 16 KB page-size alignment on any output native binary before deployment.
