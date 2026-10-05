@@ -15,7 +15,7 @@ import java.io.File
  */
 object RomParser {
 
-    const val MAX_HEADER_PROBE_SIZE = 0x10000 // 64 KB covers SNES Lo/HiROM, PSX PVD, etc.
+    const val MAX_HEADER_PROBE_SIZE = 0x10000 // 64 KB covers SNES Lo/HiROM, PC Engine vectors, etc.
 
     /**
      * Inspects a ROM byte array and resolves its complete [RomIdentity].
