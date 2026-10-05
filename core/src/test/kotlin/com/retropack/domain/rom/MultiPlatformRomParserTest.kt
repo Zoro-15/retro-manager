@@ -61,66 +61,57 @@ class MultiPlatformRomParserTest {
     }
 
     @Test
-    fun `test N64 ROM auto-detection via unified RomParser`() {
-        val bytes = ByteArray(0x1000)
-        // Magic Z64
-        bytes[0] = 0x80.toByte()
-        bytes[1] = 0x37
-        bytes[2] = 0x12
-        bytes[3] = 0x40
+    fun `test PC Engine ROM auto-detection via unified RomParser`() {
+        val bytes = ByteArray(0x40000)
+        // Reset vector at 0x1FFFE (offset 0x3FFFE in 256KB ROM)
+        bytes[0x3FFFE] = 0x00
+        bytes[0x3FFFF] = 0xE0.toByte()
 
-        val title = "SUPER MARIO 64".padEnd(20, ' ').toByteArray(StandardCharsets.US_ASCII)
-        System.arraycopy(title, 0, bytes, 0x20, 20)
-        val code = "NSME".toByteArray(StandardCharsets.US_ASCII)
-        System.arraycopy(code, 0, bytes, 0x3B, 4)
-
-        val identity = RomParser.parse(bytes)
-        assertEquals("n64", identity.platform)
-        assertEquals("SUPER MARIO 64", identity.gameTitle)
-        assertEquals("NSME", identity.gameCode)
+        val identity = RomParser.parse(bytes, "Bonk_Adventure.pce")
+        assertEquals("pce", identity.platform)
+        assertEquals("Bonk Adventure", identity.gameTitle)
     }
 
     @Test
-    fun `test NDS ROM auto-detection via unified RomParser`() {
-        val bytes = ByteArray(0x1000)
-        val title = "MARIO KART".padEnd(12, ' ').toByteArray(StandardCharsets.US_ASCII)
-        System.arraycopy(title, 0, bytes, 0x00, 12)
-        val code = "AMCE".toByteArray(StandardCharsets.US_ASCII)
-        System.arraycopy(code, 0, bytes, 0x0C, 4)
-        val maker = "01".toByteArray(StandardCharsets.US_ASCII)
-        System.arraycopy(maker, 0, bytes, 0x10, 2)
-
-        // arm9 offset = 0x4000
-        bytes[0x20] = 0x00
-        bytes[0x21] = 0x40
-        // arm7 offset = 0x8000
-        bytes[0x28] = 0x00
-        bytes[0x29] = 0x80.toByte()
-
-        val identity = RomParser.parse(bytes)
-        assertEquals("nds", identity.platform)
-        assertEquals("MARIO KART", identity.gameTitle)
-        assertEquals("AMCE", identity.gameCode)
-    }
-
-    @Test
-    fun `test extension fallback for unheadered homebrews and disc formats`() {
+    fun `test extension fallback for unheadered homebrews across 2D consoles`() {
         val dummyBytes = ByteArray(1024) { 0x11 }
 
-        val pspIdentity = RomParser.parse(dummyBytes, "Crisis_Core_FFVII.iso")
-        assertEquals("psp", pspIdentity.platform)
-        assertEquals("Crisis Core FFVII", pspIdentity.gameTitle)
+        val gbaIdentity = RomParser.parse(dummyBytes, "Celeste_Classic.gba")
+        assertEquals("gba", gbaIdentity.platform)
+        assertEquals("Celeste Classic", gbaIdentity.gameTitle)
 
-        val arcadeIdentity = RomParser.parse(dummyBytes, "kof98.zip")
-        assertEquals("arcade", arcadeIdentity.platform)
-        assertEquals("kof98", arcadeIdentity.gameTitle)
+        val nesIdentity = RomParser.parse(dummyBytes, "Micro_Mages.nes")
+        assertEquals("nes", nesIdentity.platform)
+        assertEquals("Micro Mages", nesIdentity.gameTitle)
 
         val snesIdentity = RomParser.parse(dummyBytes, "Chrono_Trigger.sfc")
         assertEquals("snes", snesIdentity.platform)
         assertEquals("Chrono Trigger", snesIdentity.gameTitle)
 
-        val n64Identity = RomParser.parse(dummyBytes, "Zelda_Ocarina_of_Time.z64")
-        assertEquals("n64", n64Identity.platform)
-        assertEquals("Zelda Ocarina of Time", n64Identity.gameTitle)
+        val pceIdentity = RomParser.parse(dummyBytes, "Castlevania_Rondo.pce")
+        assertEquals("pce", pceIdentity.platform)
+        assertEquals("Castlevania Rondo", pceIdentity.gameTitle)
+
+        val genIdentity = RomParser.parse(dummyBytes, "Sonic_The_Hedgehog.md")
+        assertEquals("genesis", genIdentity.platform)
+        assertEquals("Sonic The Hedgehog", genIdentity.gameTitle)
+    }
+
+    @Test
+    fun `test unsupported 3D platforms throw InvalidRomException`() {
+        val dummyBytes = ByteArray(1024) { 0x11 }
+
+        assertThrows(InvalidRomException::class.java) {
+            RomParser.parse(dummyBytes, "Crisis_Core_FFVII.iso")
+        }
+        assertThrows(InvalidRomException::class.java) {
+            RomParser.parse(dummyBytes, "Zelda_Ocarina_of_Time.z64")
+        }
+        assertThrows(InvalidRomException::class.java) {
+            RomParser.parse(dummyBytes, "Mario_Kart_DS.nds")
+        }
+        assertThrows(InvalidRomException::class.java) {
+            RomParser.parse(dummyBytes, "Metal_Slug.neo")
+        }
     }
 }
