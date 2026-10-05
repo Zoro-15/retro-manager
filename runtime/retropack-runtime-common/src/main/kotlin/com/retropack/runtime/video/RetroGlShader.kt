@@ -12,7 +12,7 @@ import java.nio.FloatBuffer
  * Implements Feature 5 specifications:
  * - Clean Pixel (unmodified emulator frame)
  * - 90s CRT Trinitron scanlines with phosphor triad aperture grille, subtle barrel curvature, and bloom vignette
- * - LCD sub-pixel dot-matrix grid with physical gap borders (Game Boy / GBC / GBA / NDS)
+ * - LCD sub-pixel dot-matrix grid with physical gap borders (Game Boy / GBC / GBA)
  * - Color Boost with gamma 1.2 matrix restoration
  * - Sharp Bilinear subpixel anti-aliasing (no pixel shimmering)
  * - Authentic 1989 4-shade monochrome pea-green Game Boy palette

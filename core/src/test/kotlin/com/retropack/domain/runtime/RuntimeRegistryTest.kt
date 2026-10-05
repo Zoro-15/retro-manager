@@ -17,7 +17,7 @@ class RuntimeRegistryTest {
     }
 
     @Test
-    fun `discovers canonical runtimes for all 10 retro console systems`() {
+    fun `discovers canonical runtimes for Golden 5 2D retro console systems`() {
         // GBA / GB / GBC
         assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gba")?.id)
         assertEquals(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("gbc")?.id)
@@ -42,6 +42,7 @@ class RuntimeRegistryTest {
         // PC Engine / TG-16
         assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("pce")?.id)
         assertEquals(RuntimeRegistry.RUNTIME_PCE_UNIFIED, RuntimeRegistry.findRuntimeForPlatform("tg16")?.id)
+    }
 
     @Test
     fun `registers and retrieves all 5 canonical 2D descriptors by ID`() {

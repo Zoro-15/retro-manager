@@ -29,7 +29,7 @@ object PceRomParser {
         }
 
         val title = if (!fileName.isNullOrBlank()) {
-            fileName.substringBeforeLast('.').trim().ifEmpty { fallbackTitle }
+            fileName.substringBeforeLast('.').replace('_', ' ').trim().ifEmpty { fallbackTitle }
         } else {
             fallbackTitle
         }
