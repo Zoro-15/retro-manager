@@ -1,0 +1,61 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-10-05 04:44:48 UTC
+Total Execution : 135.44s (2m 15s)
+Overall Result  : 7/8 Targets Passed (1 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime PASS        51.41s     runtime-common.log
+[02] Packaging Engine & Domain Core         FAIL [!]    11.95s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) PASS        23.39s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.06s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.07s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.08s     rotate-anchors.log
+[07] Manager APK (Main App)                 PASS        30.59s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        PASS        17.89s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [02]: Packaging Engine & Domain Core (ID: core-module)
+### Command : ./gradlew :core:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/core-module.log
+################################################################################
+
+--- [Snippet #1 | Lines 19 to 42] ---
+    L0019: e: file:///home/runner/work/retro-manager/retro-manager/core/src/test/kotlin/com/retropack/domain/runtime/RuntimeRegistryTest.kt:124:2 Syntax error: Missing '}.
+    L0020: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1791175404839.json
+    L0021: 
+    L0022: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0023: 
+>>> [ERROR] L0024: FAILURE: Build failed with an exception.
+    L0025: 
+    L0026: * What went wrong:
+>>> [ERROR] L0027: Execution failed for task ':core:compileTestKotlin' (registered by plugin 'org.jetbrains.kotlin.jvm').
+    L0028: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+    L0029:    > Compilation error. See log for more details
+    L0030: 
+    L0031: * Try:
+    L0032: > Run with --info or --debug option to get more log output.
+    L0033: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0034: > Get more help at https://help.gradle.org.
+    L0035: 
+    L0036: * Exception is:
+>>> [ERROR] L0037: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':core:compileTestKotlin' (registered by plugin 'org.jetbrains.kotlin.jvm').
+    L0038: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0039: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0040: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0041: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0042: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+

@@ -1,0 +1,79 @@
+﻿2026-10-05T04:42:32.7437717Z ##[group]Run python3 scripts/ci-build-matrix.py
+2026-10-05T04:42:32.7438119Z [36;1mpython3 scripts/ci-build-matrix.py[0m
+2026-10-05T04:42:32.7499941Z shell: /usr/bin/bash -e {0}
+2026-10-05T04:42:32.7500213Z env:
+2026-10-05T04:42:32.7500542Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-05T04:42:32.7501057Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-05T04:42:32.7501495Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-10-05T04:42:32.7501808Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-10-05T04:42:32.7502122Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-10-05T04:42:32.7502438Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-10-05T04:42:32.7502899Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-10-05T04:42:32.7503399Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-10-05T04:42:32.7503742Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-10-05T04:42:32.7504043Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-10-05T04:42:32.7504395Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-10-05T04:42:32.7505014Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-10-05T04:42:32.7505365Z ##[endgroup]
+2026-10-05T04:42:32.7880708Z ========================================================================================
+2026-10-05T04:42:32.7881433Z            RETROPACK RESILIENT MULTI-CORE CI BUILD & DIAGNOSTICS MATRIX
+2026-10-05T04:42:32.7881964Z ========================================================================================
+2026-10-05T04:42:32.7882525Z Working Directory: /home/runner/work/retro-manager/retro-manager
+2026-10-05T04:42:32.7883380Z Logs Output Dir  : /home/runner/work/retro-manager/retro-manager/build-logs
+2026-10-05T04:42:32.7883835Z Total Targets    : 8
+2026-10-05T04:42:32.7884240Z ========================================================================================
+2026-10-05T04:42:32.7884499Z 
+2026-10-05T04:42:32.7884957Z [01/08] Building: Universal Libretro Host Native Runtime ...
+2026-10-05T04:42:32.7885564Z        Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+2026-10-05T04:43:24.2003998Z        Status  : [ PASS ] in 51.41s (Exit code: 0)
+2026-10-05T04:43:24.2004335Z 
+2026-10-05T04:43:24.2004829Z [02/08] Building: Packaging Engine & Domain Core ...
+2026-10-05T04:43:24.2005494Z        Command : ./gradlew :core:test --stacktrace
+2026-10-05T04:43:36.1496501Z        Status  : [!FAIL!] in 11.95s (Exit code: 1)
+2026-10-05T04:43:36.1501122Z        --- Diagnostic Snippets (1 merged block(s)) ---
+2026-10-05T04:43:36.1502072Z        [Lines 19-42]:
+2026-10-05T04:43:36.1503373Z              L0019: e: file:///home/runner/work/retro-manager/retro-manager/core/src/test/kotlin/com/retropack/domain/runtime/RuntimeRegistryTest.kt:124:2 Syntax error: Missing '}.
+2026-10-05T04:43:36.1506433Z              L0020: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1791175404839.json
+2026-10-05T04:43:36.1507417Z              L0021: 
+2026-10-05T04:43:36.1509121Z              L0022: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+2026-10-05T04:43:36.1510107Z              L0023: 
+2026-10-05T04:43:36.1511088Z          >>> [ERROR] L0024: FAILURE: Build failed with an exception.
+2026-10-05T04:43:36.1511962Z              L0025: 
+2026-10-05T04:43:36.1512748Z              L0026: * What went wrong:
+2026-10-05T04:43:36.1514694Z          >>> [ERROR] L0027: Execution failed for task ':core:compileTestKotlin' (registered by plugin 'org.jetbrains.kotlin.jvm').
+2026-10-05T04:43:36.1517121Z              L0028: > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+2026-10-05T04:43:36.1590248Z              L0029:    > Compilation error. See log for more details
+2026-10-05T04:43:36.1591011Z              L0030: 
+2026-10-05T04:43:36.1592807Z          ... (12 more lines in full log)
+2026-10-05T04:43:36.1603181Z 
+2026-10-05T04:43:36.1603953Z [03/08] Building: Template APK (Standalone Universal Game Runner) ...
+2026-10-05T04:43:36.1605185Z        Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+2026-10-05T04:43:59.5410911Z        Status  : [ PASS ] in 23.39s (Exit code: 0)
+2026-10-05T04:43:59.5411424Z 
+2026-10-05T04:43:59.5411819Z [04/08] Building: 16 KB ELF Page-Size Alignment Gate ...
+2026-10-05T04:43:59.5413494Z        Command : bash scripts/verify-16kb-alignment.sh
+2026-10-05T04:43:59.5972696Z        Status  : [ PASS ] in 0.06s (Exit code: 0)
+2026-10-05T04:43:59.5973041Z 
+2026-10-05T04:43:59.5973317Z [05/08] Building: Core Catalog & Staged Binaries Verification ...
+2026-10-05T04:43:59.5973858Z        Command : python3 scripts/verify_core_alignment.py
+2026-10-05T04:43:59.6636820Z        Status  : [ PASS ] in 0.07s (Exit code: 0)
+2026-10-05T04:43:59.6637237Z 
+2026-10-05T04:43:59.6637472Z [06/08] Building: Trust Anchor Rotation & Staging ...
+2026-10-05T04:43:59.6638437Z        Command : cp -f template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk 2>/dev/null || true; bash scripts/rotate-trust-anchors.sh
+2026-10-05T04:43:59.7471543Z        Status  : [ PASS ] in 0.08s (Exit code: 0)
+2026-10-05T04:43:59.7472439Z 
+2026-10-05T04:43:59.7473125Z [07/08] Building: Manager APK (Main App) ...
+2026-10-05T04:43:59.7473901Z        Command : ./gradlew :app:assembleDebug --stacktrace
+2026-10-05T04:44:30.3421456Z        Status  : [ PASS ] in 30.59s (Exit code: 0)
+2026-10-05T04:44:30.3422268Z 
+2026-10-05T04:44:30.3422894Z [08/08] Building: Unit Tests (App & Runtime Host) ...
+2026-10-05T04:44:30.3425288Z        Command : ./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace
+2026-10-05T04:44:48.2307030Z        Status  : [ PASS ] in 17.89s (Exit code: 0)
+2026-10-05T04:44:48.2310417Z 
+2026-10-05T04:44:48.2311175Z ========================================================================================
+2026-10-05T04:44:48.2312362Z Summary report written to: /home/runner/work/retro-manager/retro-manager/build-diagnostics.txt
+2026-10-05T04:44:48.2313326Z Total: 7 Passed, 1 Failed.
+2026-10-05T04:44:48.2314077Z ========================================================================================
+2026-10-05T04:44:48.2314813Z 
+2026-10-05T04:44:48.2315320Z [!] Build matrix completed with 1 required component failure(s).
+2026-10-05T04:44:48.2382937Z ##[error]Process completed with exit code 1.
