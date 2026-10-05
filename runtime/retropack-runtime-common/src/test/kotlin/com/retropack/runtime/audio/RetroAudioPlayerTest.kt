@@ -167,4 +167,59 @@ class RetroAudioPlayerTest {
             assertEquals(0.toShort(), fakeSink.writtenData[i], "Muted audio must write zero samples")
         }
     }
+
+    @Test
+    fun `pumpAudio buffers and drains residual unwritten samples on partial writes`() {
+        class PartialSink(val maxPerWrite: Int) : AudioSink {
+            override val sampleRate: Int = 44_100
+            override val channelCount: Int = 2
+            val writtenData = mutableListOf<Short>()
+
+            override fun write(samples: ShortArray, offset: Int, count: Int): Int {
+                val toWrite = minOf(count, maxPerWrite)
+                for (i in offset until offset + toWrite) {
+                    writtenData.add(samples[i])
+                }
+                return toWrite
+            }
+
+            override fun play() {}
+            override fun pause() {}
+            override fun flush() { writtenData.clear() }
+            override fun release() {}
+            override fun setVolume(volume: Float) {}
+            override fun getUnderrunCount(): Int = 0
+        }
+
+        val partialSink = PartialSink(maxPerWrite = 2)
+        val testSamples = shortArrayOf(1, 2, 3, 4)
+        var providerCalls = 0
+
+        val player = RetroAudioPlayer(
+            sink = partialSink,
+            sampleProvider = { buf, max ->
+                providerCalls++
+                if (providerCalls == 1) {
+                    for (i in testSamples.indices) {
+                        buf[i] = testSamples[i]
+                    }
+                    testSamples.size
+                } else {
+                    0
+                }
+            }
+        )
+
+        player.start()
+
+        // Call 1: pulls [1, 2, 3, 4]. Sink only accepts 2 ([1, 2]). Remaining [3, 4] buffered.
+        val written1 = player.pumpAudio()
+        assertEquals(2, written1)
+        assertEquals(listOf<Short>(1, 2), partialSink.writtenData)
+
+        // Call 2: residual buffer drains remaining [3, 4] to sink.
+        val written2 = player.pumpAudio()
+        assertEquals(2, written2)
+        assertEquals(listOf<Short>(1, 2, 3, 4), partialSink.writtenData)
+    }
 }

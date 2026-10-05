@@ -56,16 +56,17 @@ enum class BezelMode(
 
     companion object {
         fun fromId(id: String?): BezelMode {
-            if (id.isNullOrBlank()) return AUTO
+            if (id.isNullOrBlank()) return NONE_OLED_BLACK
             val norm = id.lowercase().trim().replace("-", "_").replace(" ", "_")
             return entries.find { it.id == norm } ?: when (norm) {
                 "none", "black", "oled", "off" -> NONE_OLED_BLACK
+                "auto" -> AUTO
                 "gba", "indigo" -> GBA_INDIGO
                 "sp", "platinum" -> GBA_SP_PLATINUM
                 "dmg", "gameboy", "offwhite" -> DMG_RETRO_OFFWHITE
                 "gbc", "purple", "atomic" -> GBC_ATOMIC_PURPLE
                 "crt", "tv", "trinitron" -> CRT_TRINITRON_90S
-                else -> AUTO
+                else -> NONE_OLED_BLACK
             }
         }
     }

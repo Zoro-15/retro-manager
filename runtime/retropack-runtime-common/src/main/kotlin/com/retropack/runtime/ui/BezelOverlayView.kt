@@ -27,7 +27,7 @@ class BezelOverlayView @JvmOverloads constructor(
     attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
-    var bezelMode: BezelMode = BezelMode.AUTO
+    var bezelMode: BezelMode = BezelMode.NONE_OLED_BLACK
         set(value) {
             field = value
             invalidate()

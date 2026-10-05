@@ -1003,7 +1003,11 @@ static void retro_video_refresh_cb(const void *data, unsigned width, unsigned he
                 const uint32_t *src_row = (const uint32_t *) ((const uint8_t *) data + y * pitch);
                 uint32_t *dst_row = g_host.video_buffer + y * width;
                 for (unsigned x = 0; x < width; ++x) {
-                    dst_row[x] = src_row[x] | 0xFF000000;
+                    uint32_t p = src_row[x];
+                    // Little-endian uint32_t 0x00RRGGBB in RAM is [Byte 0: B, Byte 1: G, Byte 2: R, Byte 3: X].
+                    // OpenGL ES GL_RGBA with GL_UNSIGNED_BYTE maps Byte 0 to Red and Byte 2 to Blue.
+                    // Swap Red and Blue in the stored uint32_t so memory order becomes [R, G, B, 0xFF]:
+                    dst_row[x] = 0xFF000000 | ((p & 0x000000FF) << 16) | (p & 0x0000FF00) | ((p & 0x00FF0000) >> 16);
                 }
             }
             break;
@@ -1018,7 +1022,9 @@ static void retro_video_refresh_cb(const void *data, unsigned width, unsigned he
                     uint32_t r = (p >> 11) & 0x1F; r = (r << 3) | (r >> 2);
                     uint32_t g = (p >> 5) & 0x3F;  g = (g << 2) | (g >> 4);
                     uint32_t b = p & 0x1F;         b = (b << 3) | (b >> 2);
-                    dst_row[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                    // Memory order for GL_RGBA must be [Byte 0: r, Byte 1: g, Byte 2: b, Byte 3: 0xFF].
+                    // On little-endian, bits 0-7 = byte 0 (r), bits 16-23 = byte 2 (b).
+                    dst_row[x] = 0xFF000000 | (b << 16) | (g << 8) | r;
                 }
             }
             break;
@@ -1034,7 +1040,8 @@ static void retro_video_refresh_cb(const void *data, unsigned width, unsigned he
                     uint32_t r = (p >> 10) & 0x1F; r = (r << 3) | (r >> 2);
                     uint32_t g = (p >> 5) & 0x1F;  g = (g << 3) | (g >> 2);
                     uint32_t b = p & 0x1F;         b = (b << 3) | (b >> 2);
-                    dst_row[x] = 0xFF000000 | (r << 16) | (g << 8) | b;
+                    // Memory order for GL_RGBA must be [Byte 0: r, Byte 1: g, Byte 2: b, Byte 3: 0xFF].
+                    dst_row[x] = 0xFF000000 | (b << 16) | (g << 8) | r;
                 }
             }
             break;

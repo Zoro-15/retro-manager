@@ -10,7 +10,7 @@ package com.retropack.runtime.audio
  */
 object OboeNativeBridge {
 
-    private val CANDIDATE_LIBRARIES = listOf("retropack-runtime", "oboe", "mgba")
+    private val CANDIDATE_LIBRARIES = listOf("oboe")
 
     @Volatile
     private var isNativeAvailable: Boolean = false

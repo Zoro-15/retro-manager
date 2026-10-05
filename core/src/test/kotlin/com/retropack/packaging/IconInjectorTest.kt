@@ -36,17 +36,30 @@ class IconInjectorTest {
             backgroundBytes = validPngHeader
         )
 
-        assertEquals(2, entries.size)
+        assertEquals(8, entries.size)
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY_V4))
         assertTrue(entries.containsKey(IconInjector.BACKGROUND_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.BACKGROUND_ENTRY_V4))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_V4_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_V4_ENTRY))
         assertArrayEquals(validPngHeader, entries[IconInjector.FOREGROUND_ENTRY])
+        assertArrayEquals(validPngHeader, entries[IconInjector.FOREGROUND_ENTRY_V4])
         assertArrayEquals(validPngHeader, entries[IconInjector.BACKGROUND_ENTRY])
+        assertArrayEquals(validPngHeader, entries[IconInjector.BACKGROUND_ENTRY_V4])
     }
 
     @Test
     fun `prepareIconEntries works with foreground only`() {
         val entries = IconInjector.prepareIconEntries(foregroundBytes = validPngHeader)
-        assertEquals(1, entries.size)
+        assertEquals(6, entries.size)
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY_V4))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_V4_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_ENTRY))
+        assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_V4_ENTRY))
     }
 }

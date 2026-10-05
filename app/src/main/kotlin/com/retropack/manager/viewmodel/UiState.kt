@@ -67,7 +67,7 @@ data class RuntimeUiState(
     val templateName: String = "mGBA Unified Core (v0.10.5)",
     val scaleMode: String = "integer_fit", // "integer_fit", "aspect_fit", or "stretch_full"
     val shaderMode: String = "none", // "none", "crt_scanlines", "lcd_dotmatrix", "color_boost", "sharp_bilinear", "dmg_pea_green"
-    val bezelMode: String = "auto", // "none_oled_black", "auto", "gba_indigo", "gba_sp_platinum", "dmg_retro_offwhite", "gbc_atomic_purple", "crt_trinitron_90s"
+    val bezelMode: String = "none_oled_black", // "none_oled_black", "auto", "gba_indigo", "gba_sp_platinum", "dmg_retro_offwhite", "gbc_atomic_purple", "crt_trinitron_90s"
     val touchEnabled: Boolean = true,
     val touchOpacity: Float = 0.65f,
     val touchHaptics: Boolean = true,

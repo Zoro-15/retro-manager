@@ -293,7 +293,7 @@ object ControlsPreferences {
      */
     fun loadBezelMode(
         context: Context,
-        defaultMode: com.retropack.domain.model.BezelMode = com.retropack.domain.model.BezelMode.AUTO
+        defaultMode: com.retropack.domain.model.BezelMode = com.retropack.domain.model.BezelMode.NONE_OLED_BLACK
     ): com.retropack.domain.model.BezelMode {
         val id = context.getSharedPreferences(PREFS_NAME, 0).getString(KEY_BEZEL_MODE, defaultMode.id)
         return com.retropack.domain.model.BezelMode.fromId(id)

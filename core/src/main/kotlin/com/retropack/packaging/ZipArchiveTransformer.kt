@@ -44,6 +44,27 @@ object ZipArchiveTransformer {
 
         // Open zero-copy ZipSource from the template APK
         val zipSource = ZipSource(templateApk.toPath())
+
+        val effectiveInjectedEntries = injectedEntries.toMutableMap()
+        if (injectedEntries.containsKey(IconInjector.FOREGROUND_ENTRY) || injectedEntries.containsKey(IconInjector.FOREGROUND_ENTRY_V4)) {
+            val fg = injectedEntries[IconInjector.FOREGROUND_ENTRY_V4] ?: injectedEntries[IconInjector.FOREGROUND_ENTRY]!!
+            val bg = injectedEntries[IconInjector.BACKGROUND_ENTRY_V4] ?: injectedEntries[IconInjector.BACKGROUND_ENTRY]
+            val raster = injectedEntries[IconInjector.MIPMAP_XXHDPI_V4_ENTRY]
+                ?: injectedEntries[IconInjector.MIPMAP_XXHDPI_ENTRY]
+                ?: fg
+
+            for ((name, _) in zipSource.entries()) {
+                val lower = name.lowercase()
+                if (lower.endsWith("/ic_launcher_foreground.png") && !effectiveInjectedEntries.containsKey(name)) {
+                    effectiveInjectedEntries[name] = fg
+                } else if (lower.endsWith("/ic_launcher_background.png") && bg != null && !effectiveInjectedEntries.containsKey(name)) {
+                    effectiveInjectedEntries[name] = bg
+                } else if ((lower.endsWith("/ic_launcher.png") || lower.endsWith("/ic_launcher_round.png")) && !effectiveInjectedEntries.containsKey(name)) {
+                    effectiveInjectedEntries[name] = raster
+                }
+            }
+        }
+
         for ((name, _) in zipSource.entries()) {
             // Step 5: Strip stale signature residue (META-INF/*.SF, *.RSA, *.DSA, *.EC, MANIFEST.MF)
             if (ScratchAllocator.isSignatureResidue(name)) {
@@ -51,7 +72,7 @@ object ZipArchiveTransformer {
             }
 
             // Skip entries being overridden by injected replacements
-            if (injectedEntries.containsKey(name) || injectedFiles.containsKey(name)) {
+            if (effectiveInjectedEntries.containsKey(name) || injectedFiles.containsKey(name)) {
                 continue
             }
 
@@ -79,7 +100,7 @@ object ZipArchiveTransformer {
             archive.add(zipSource)
 
             // 2. Inject mutated and added entries from memory (Steps 6, 7, 8)
-            for ((name, bytes) in injectedEntries) {
+            for ((name, bytes) in effectiveInjectedEntries) {
                 val source = createSourceForEntry(name, bytes)
                 archive.add(source)
             }

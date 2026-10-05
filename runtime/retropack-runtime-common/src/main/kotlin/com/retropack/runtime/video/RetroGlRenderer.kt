@@ -22,7 +22,7 @@ import javax.microedition.khronos.opengles.GL10
 class RetroGlRenderer(
     initialScaleMode: ScaleMode = ScaleMode.INTEGER_FIT,
     initialShaderMode: ShaderMode = ShaderMode.NONE,
-    initialBezelMode: BezelMode = BezelMode.AUTO,
+    initialBezelMode: BezelMode = BezelMode.NONE_OLED_BLACK,
     private val frameBufferSupplier: () -> IntBuffer? = { null }
 ) : GLSurfaceView.Renderer {
 

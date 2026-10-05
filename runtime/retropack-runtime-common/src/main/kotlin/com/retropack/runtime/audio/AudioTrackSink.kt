@@ -14,7 +14,7 @@ class AudioTrackSink(
 ) : AudioSink {
 
     companion object {
-        const val DEFAULT_BUFFER_SIZE = 8_192
+        const val DEFAULT_BUFFER_SIZE = 32_768
     }
 
     private val track: AudioTrack?

@@ -322,7 +322,7 @@ data class EngineConfig(
     val audioBufferSize: Int = 2048,
     val videoScaleMode: ScaleMode = ScaleMode.INTEGER_FIT,
     val videoShaderMode: com.retropack.domain.model.ShaderMode = com.retropack.domain.model.ShaderMode.NONE,
-    val videoBezelMode: com.retropack.domain.model.BezelMode = com.retropack.domain.model.BezelMode.AUTO
+    val videoBezelMode: com.retropack.domain.model.BezelMode = com.retropack.domain.model.BezelMode.NONE_OLED_BLACK
 )
 
 data class GamepadConfig(

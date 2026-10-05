@@ -144,7 +144,7 @@ open class GameActivity : Activity() {
         val effectiveComboMacro = ControlsPreferences.loadComboMacroEnabled(this, false)
         val effectiveLcdGrid = ControlsPreferences.loadLcdGridEnabled(this, false)
         val effectiveGbaColor = ControlsPreferences.loadGbaColorCorrectionEnabled(this, false)
-        val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, true)
+        val effectiveBezel = ControlsPreferences.loadBezelEnabled(this, false)
         val effectiveShaderMode = ControlsPreferences.loadShaderMode(this, config.runtime.videoShaderMode)
         val effectiveBezelMode = ControlsPreferences.loadBezelMode(this, config.runtime.videoBezelMode)
         val effectiveAutoResume = ControlsPreferences.loadAutoResumeEnabled(this, true)

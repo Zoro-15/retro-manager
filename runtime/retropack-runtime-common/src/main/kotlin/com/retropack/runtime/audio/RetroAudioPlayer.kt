@@ -13,7 +13,7 @@ import java.util.Arrays
  * - roadmap.md Part 2.4.
  */
 class RetroAudioPlayer(
-    private val sink: AudioSink = OboeAudioSink(SAMPLE_RATE, CHANNEL_COUNT),
+    private val sink: AudioSink = AudioTrackSink(SAMPLE_RATE, CHANNEL_COUNT),
     private val sampleProvider: (ShortArray, Int) -> Int = { buf, max ->
         if (UniversalLibretroCore.isLoaded()) {
             try {
@@ -46,6 +46,9 @@ class RetroAudioPlayer(
 
     private val scratchBuffer = ShortArray(PUMP_BUFFER_SIZE)
     private val stretchBuffer = ShortArray(PUMP_BUFFER_SIZE)
+    private var residualBuffer = ShortArray(PUMP_BUFFER_SIZE * 2)
+    private var residualOffset = 0
+    private var residualCount = 0
 
     val timeStretcher: WsolaTimeStretcher = WsolaTimeStretcher(SAMPLE_RATE, CHANNEL_COUNT)
 
@@ -115,6 +118,8 @@ class RetroAudioPlayer(
         sink.pause()
         sink.flush()
         driftController.reset()
+        residualCount = 0
+        residualOffset = 0
         isPlaying = false
     }
 
@@ -134,10 +139,31 @@ class RetroAudioPlayer(
     fun pumpAudio(): Int {
         if (!isPlaying) return 0
 
+        var totalDispatched = 0
+
+        // 1. Drain pending residual samples from previous write before pulling new samples
+        if (residualCount > 0) {
+            val writtenResidual = sink.write(residualBuffer, residualOffset, residualCount)
+            if (writtenResidual > 0) {
+                residualOffset += writtenResidual
+                residualCount -= writtenResidual
+                totalDispatched += writtenResidual
+                if (residualCount == 0) {
+                    residualOffset = 0
+                }
+            }
+            if (residualCount > 0) {
+                if (writtenResidual == 0 && speedMultiplier == 1) {
+                    driftController.recordUnderrun()
+                }
+                return totalDispatched
+            }
+        }
+
         val pulled = sampleProvider(scratchBuffer, scratchBuffer.size)
         if (pulled <= 0) {
             driftController.evaluate(0)
-            return 0
+            return totalDispatched
         }
 
         if (isMuted) {
@@ -161,27 +187,50 @@ class RetroAudioPlayer(
 
         // Bypass audio for ultra-high fast-forward (> 4x) to conserve CPU
         if (speedMultiplier > 4) {
-            return 0
+            return totalDispatched
         }
 
-        val written = if (speedMultiplier > 1 && wsolaEnabled) {
+        val sourceBuffer: ShortArray
+        val sourceOffset: Int
+        val totalToWrite: Int
+
+        if (speedMultiplier > 1 && wsolaEnabled) {
             timeStretcher.process(scratchBuffer, 0, samplesToWrite)
             val drained = timeStretcher.drain(stretchBuffer, 0, stretchBuffer.size)
-            if (drained > 0) {
-                sink.write(stretchBuffer, 0, drained)
-            } else 0
+            sourceBuffer = stretchBuffer
+            sourceOffset = 0
+            totalToWrite = drained
         } else {
-            sink.write(scratchBuffer, 0, samplesToWrite)
+            sourceBuffer = scratchBuffer
+            sourceOffset = 0
+            totalToWrite = samplesToWrite
         }
 
-        if (written < samplesToWrite && speedMultiplier == 1) {
-            // Dead/full sink (e.g. AudioTrack init failed and writes return 0):
-            // record it instead of silently discarding drained samples.
-            driftController.recordUnderrun()
-        } else if (written > 0 && !isMuted) {
-            onAudioSamplesProcessed?.invoke(if (speedMultiplier > 1 && wsolaEnabled) stretchBuffer else scratchBuffer, written)
+        if (totalToWrite <= 0) {
+            return totalDispatched
         }
-        return written
+
+        val written = sink.write(sourceBuffer, sourceOffset, totalToWrite)
+
+        if (written < totalToWrite) {
+            val unwritten = totalToWrite - written
+            if (residualBuffer.size < unwritten) {
+                residualBuffer = ShortArray(unwritten * 2)
+            }
+            System.arraycopy(sourceBuffer, sourceOffset + written, residualBuffer, 0, unwritten)
+            residualOffset = 0
+            residualCount = unwritten
+
+            if (written == 0 && speedMultiplier == 1) {
+                driftController.recordUnderrun()
+            }
+        }
+
+        totalDispatched += written
+        if (written > 0 && !isMuted) {
+            onAudioSamplesProcessed?.invoke(sourceBuffer, written)
+        }
+        return totalDispatched
     }
 
     private fun applyVolume() {

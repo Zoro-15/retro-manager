@@ -56,7 +56,7 @@ fun AdvancedOptionsSection(
     onScaleModeChange: (String) -> Unit,
     shaderMode: String = "none",
     onShaderModeChange: (String) -> Unit = {},
-    bezelMode: String = "auto",
+    bezelMode: String = "none_oled_black",
     onBezelModeChange: (String) -> Unit = {},
     touchEnabled: Boolean,
     onTouchEnabledChange: (Boolean) -> Unit,
