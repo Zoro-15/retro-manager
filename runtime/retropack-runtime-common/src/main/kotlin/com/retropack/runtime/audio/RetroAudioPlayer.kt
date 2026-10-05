@@ -182,7 +182,19 @@ class RetroAudioPlayer(
         val decision = driftController.evaluate(if (occupancy >= 0) occupancy else pulled)
         val samplesToWrite = when (decision.action) {
             AudioDriftController.DriftAction.PASS_THROUGH -> pulled
-            AudioDriftController.DriftAction.DROP_EXCESS -> decision.adjustedSampleCount.coerceAtMost(pulled)
+            AudioDriftController.DriftAction.DROP_EXCESS -> {
+                // Drain excess samples from native ring buffer so latency doesn't accumulate
+                // and overflow the 16 KB native buffer (which causes audio pops and crackles).
+                var toDiscard = decision.dropCount
+                val discardBuf = ShortArray(1024)
+                while (toDiscard > 0) {
+                    val chunk = minOf(toDiscard, discardBuf.size)
+                    val drained = sampleProvider(discardBuf, chunk)
+                    if (drained <= 0) break
+                    toDiscard -= drained
+                }
+                pulled
+            }
         }
 
         // Bypass audio for ultra-high fast-forward (> 4x) to conserve CPU

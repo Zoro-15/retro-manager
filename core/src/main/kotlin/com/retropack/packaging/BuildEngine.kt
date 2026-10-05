@@ -61,6 +61,7 @@ object BuildEngine {
         outputDir: File,
         iconForegroundBytes: ByteArray? = null,
         iconBackgroundBytes: ByteArray? = null,
+        fallbackRasterBytes: ByteArray? = null,
         templateOverride: File? = null,
         stageListener: ((BuildStageRecord) -> Unit)? = null,
         precomputedChecksums: ChecksumRecords? = null,
@@ -273,7 +274,7 @@ object BuildEngine {
             var iconEntries: Map<String, ByteArray>? = null
             recordStage(8, "Adaptive Icon Replacement", "Validating and preparing adaptive launcher icon drawables", System.currentTimeMillis()) {
                 if (iconForegroundBytes != null) {
-                    iconEntries = IconInjector.prepareIconEntries(iconForegroundBytes, iconBackgroundBytes)
+                    iconEntries = IconInjector.prepareIconEntries(iconForegroundBytes, iconBackgroundBytes, fallbackRasterBytes)
                 }
             }
 

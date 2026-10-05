@@ -405,5 +405,58 @@ class BuildEngineTest {
         // Verify alignment compliance
         AlignmentVerifier.assertCompliant(result.artifactFile!!)
     }
+
+    @Test
+    fun `test real template apk icon replacement replaces all icon entries`() {
+        val realTemplate = File("runtimes/mgba-unified/template.apk")
+        if (!realTemplate.exists()) return
+
+        val outputDir = File(tempDir, "output-icon-real")
+        val romBytes = GbaTestRomFactory.create(title = "CRASH", gameCode = "ACRE")
+        val signingIdentity = HybridKeystore.generateIdentity("crash_signer", KeyType.RSA_2048)
+
+        val fakeFg = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x01, 0x02, 0x03)
+        val fakeBg = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x04, 0x05, 0x06)
+
+        val request = BuildRequest(
+            identity = GameIdentity(
+                gameId = "crash",
+                gameTitle = "CRASH",
+                packageName = "com.retropack.game.crash_bandicoot"
+            ),
+            content = ContentPayload(sourceRom = "crash.gba", platform = "gba"),
+            runtime = RuntimeConfigPayload(templateId = "mgba-unified")
+        )
+
+        val result = BuildEngine.build(
+            request = request,
+            romBytes = romBytes,
+            signingIdentity = signingIdentity,
+            outputDir = outputDir,
+            templateOverride = realTemplate,
+            iconForegroundBytes = fakeFg,
+            iconBackgroundBytes = fakeBg
+        )
+
+        assertTrue(result.success, "Build failed: ${result.errorMessage}")
+        val apk = result.artifactFile!!
+
+        ZipFile(apk).use { zip ->
+            val fgEntry = zip.getEntry("res/drawable-nodpi-v4/ic_launcher_foreground.png")
+            assertNotNull(fgEntry, "fg entry must exist")
+            val fgBytes = zip.getInputStream(fgEntry).use { it.readBytes() }
+            assertArrayEquals(fakeFg, fgBytes, "Foreground must match injected bytes")
+
+            val bgEntry = zip.getEntry("res/drawable-nodpi-v4/ic_launcher_background.png")
+            assertNotNull(bgEntry, "bg entry must exist")
+            val bgBytes = zip.getInputStream(bgEntry).use { it.readBytes() }
+            assertArrayEquals(fakeBg, bgBytes, "Background must match injected bytes")
+
+            val rasterEntry = zip.getEntry("res/mipmap-xxhdpi-v4/ic_launcher.png")
+            assertNotNull(rasterEntry, "raster entry must exist")
+            val rasterBytes = zip.getInputStream(rasterEntry).use { it.readBytes() }
+            assertArrayEquals(fakeFg, rasterBytes, "Raster icon must match injected bytes")
+        }
+    }
 }
 

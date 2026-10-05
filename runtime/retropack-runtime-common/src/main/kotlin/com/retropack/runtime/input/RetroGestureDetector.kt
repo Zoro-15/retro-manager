@@ -13,7 +13,8 @@ import android.view.MotionEvent
  *  - 3-Finger Tap: Toggle Quick Menu visibility.
  */
 class RetroGestureDetector(
-    var gesturesEnabled: Boolean = true
+    var gesturesEnabled: Boolean = true,
+    var enableTwoFingerDoubleTap: Boolean = true
 ) {
     var swipeThresholdPx: Float = 70f
     var maxVerticalSwipeDeviationPx: Float = 60f
@@ -132,9 +133,11 @@ class RetroGestureDetector(
                         if (now - lastTwoFingerTapTimestamp <= doubleTapTimeoutMs) {
                             // 2-Finger Double-Tap detected!
                             lastTwoFingerTapTimestamp = 0L
-                            onTwoFingerDoubleTap?.invoke()
+                            if (enableTwoFingerDoubleTap) {
+                                onTwoFingerDoubleTap?.invoke()
+                            }
                             isTwoFingerGestureActive = false
-                            return true
+                            return enableTwoFingerDoubleTap
                         } else {
                             lastTwoFingerTapTimestamp = now
                         }

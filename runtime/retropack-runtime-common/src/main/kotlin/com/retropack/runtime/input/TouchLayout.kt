@@ -60,15 +60,27 @@ data class VirtualControl(
         if (!contains(x, y, slopFactor)) return RetroKey.NO_KEYS_MASK
 
         return if (shape == ControlShape.DPAD) {
-            var mask = RetroKey.NO_KEYS_MASK
             val dx = x - cx
             val dy = y - cy
+            val dist = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
             val dead = halfWidth * 0.20f
-            if (dx < -dead) mask = mask or RetroKey.KEY_LEFT
-            if (dx > dead) mask = mask or RetroKey.KEY_RIGHT
-            if (dy < -dead) mask = mask or RetroKey.KEY_UP
-            if (dy > dead) mask = mask or RetroKey.KEY_DOWN
-            mask
+            if (dist < dead) return RetroKey.NO_KEYS_MASK
+
+            // Battle-tested 8-way angular sector snapping
+            // Atan2 yields angle in [-180°, +180°].
+            // Cardinal directions have generous 50° sectors (±25°) to eliminate accidental diagonal drift.
+            val angleDeg = Math.toDegrees(Math.atan2(dy.toDouble(), dx.toDouble())).toFloat()
+            when {
+                angleDeg in -25.0f..25.0f -> RetroKey.KEY_RIGHT
+                angleDeg > 25.0f && angleDeg < 65.0f -> RetroKey.KEY_RIGHT or RetroKey.KEY_DOWN
+                angleDeg in 65.0f..115.0f -> RetroKey.KEY_DOWN
+                angleDeg > 115.0f && angleDeg < 155.0f -> RetroKey.KEY_DOWN or RetroKey.KEY_LEFT
+                angleDeg >= 155.0f || angleDeg <= -155.0f -> RetroKey.KEY_LEFT
+                angleDeg > -155.0f && angleDeg < -115.0f -> RetroKey.KEY_LEFT or RetroKey.KEY_UP
+                angleDeg in -115.0f..-65.0f -> RetroKey.KEY_UP
+                angleDeg > -65.0f && angleDeg < -25.0f -> RetroKey.KEY_UP or RetroKey.KEY_RIGHT
+                else -> RetroKey.NO_KEYS_MASK
+            }
         } else if (customKeyMask != RetroKey.NO_KEYS_MASK) {
             customKeyMask
         } else if (isTurbo) {
@@ -465,19 +477,32 @@ class TouchLayout(
             mask = mask or control.hitKeyMask(x, y, slopFactor, isTurboPhase)
         }
 
-        // Thumb Roll Assist: If touch falls into the transition zone between B and A
+        // Thumb Roll Assist: Only activate both buttons if touch falls into the tight midpoint corridor between B and A
         val btnA = controls.firstOrNull { it.id == ID_A }
         val btnB = controls.firstOrNull { it.id == ID_B }
         if (btnA != null && btnB != null) {
             val distA = Math.hypot((x - btnA.cx).toDouble(), (y - btnA.cy).toDouble()).toFloat()
             val distB = Math.hypot((x - btnB.cx).toDouble(), (y - btnB.cy).toDouble()).toFloat()
             val btnDistance = Math.hypot((btnA.cx - btnB.cx).toDouble(), (btnA.cy - btnB.cy).toDouble()).toFloat()
-            if (distA + distB <= btnDistance * 1.25f && distA <= btnA.halfWidth * 1.5f && distB <= btnB.halfWidth * 1.5f) {
+            if (distA + distB <= btnDistance * 1.15f && Math.abs(distA - distB) <= btnDistance * 0.35f) {
                 mask = mask or RetroKey.KEY_A or RetroKey.KEY_B
             }
         }
 
         return mask
+    }
+
+    /**
+     * Checks whether the given coordinate lands inside any active virtual control or control cluster.
+     */
+    fun isPointOnAnyControl(x: Float, y: Float, slopFactor: Float = DEFAULT_HIT_SLOP): Boolean {
+        for (control in controls) {
+            if (control.contains(x, y, slopFactor)) return true
+        }
+        for (cluster in getClusters()) {
+            if (cluster.contains(x, y)) return true
+        }
+        return false
     }
 
     /**

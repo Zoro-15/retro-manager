@@ -36,7 +36,8 @@ class IconInjectorTest {
             backgroundBytes = validPngHeader
         )
 
-        assertEquals(8, entries.size)
+        // 4 drawable entries + 10 mipmap directories * 2 (ic_launcher + ic_launcher_round) = 24 entries
+        assertEquals(24, entries.size)
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY))
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY_V4))
         assertTrue(entries.containsKey(IconInjector.BACKGROUND_ENTRY))
@@ -45,6 +46,8 @@ class IconInjectorTest {
         assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_V4_ENTRY))
         assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_ENTRY))
         assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ROUND_V4_ENTRY))
+        assertTrue(entries.containsKey("res/mipmap-xxxhdpi/ic_launcher.png"))
+        assertTrue(entries.containsKey("res/mipmap-xxxhdpi-v4/ic_launcher.png"))
         assertArrayEquals(validPngHeader, entries[IconInjector.FOREGROUND_ENTRY])
         assertArrayEquals(validPngHeader, entries[IconInjector.FOREGROUND_ENTRY_V4])
         assertArrayEquals(validPngHeader, entries[IconInjector.BACKGROUND_ENTRY])
@@ -54,7 +57,8 @@ class IconInjectorTest {
     @Test
     fun `prepareIconEntries works with foreground only`() {
         val entries = IconInjector.prepareIconEntries(foregroundBytes = validPngHeader)
-        assertEquals(6, entries.size)
+        // 2 drawable entries + 10 mipmap directories * 2 = 22 entries
+        assertEquals(22, entries.size)
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY))
         assertTrue(entries.containsKey(IconInjector.FOREGROUND_ENTRY_V4))
         assertTrue(entries.containsKey(IconInjector.MIPMAP_XXHDPI_ENTRY))

@@ -251,8 +251,9 @@ class MainViewModel : ViewModel() {
                     _uiState.update { current ->
                         current.copy(
                             identityState = current.identityState.copy(
-                                iconForegroundBytes = layers.first,
-                                iconBackgroundBytes = layers.second,
+                                iconForegroundBytes = layers.foregroundBytes,
+                                iconBackgroundBytes = layers.backgroundBytes,
+                                iconRasterBytes = layers.rasterBytes,
                                 isScrapingIcon = false
                             )
                         )
@@ -532,8 +533,9 @@ class MainViewModel : ViewModel() {
                     it.copy(
                         identityState = it.identityState.copy(
                             iconForegroundUri = uri,
-                            iconForegroundBytes = layers.first,
-                            iconBackgroundBytes = layers.second
+                            iconForegroundBytes = layers.foregroundBytes,
+                            iconBackgroundBytes = layers.backgroundBytes,
+                            iconRasterBytes = layers.rasterBytes
                         )
                     )
                 }
@@ -547,7 +549,8 @@ class MainViewModel : ViewModel() {
                 identityState = it.identityState.copy(
                     iconForegroundUri = null,
                     iconForegroundBytes = null,
-                    iconBackgroundBytes = null
+                    iconBackgroundBytes = null,
+                    iconRasterBytes = null
                 )
             )
         }
@@ -788,6 +791,7 @@ class MainViewModel : ViewModel() {
                         outputDir = outputDir,
                         iconForegroundBytes = state.identityState.iconForegroundBytes,
                         iconBackgroundBytes = state.identityState.iconBackgroundBytes,
+                        fallbackRasterBytes = state.identityState.iconRasterBytes,
                         precomputedChecksums = romIdentity.checksums,
                         coreStagingDir = runtimesBaseDir,
                         verifiedTemplate = provisioned?.let {

@@ -61,6 +61,7 @@ import com.retropack.manager.ui.theme.RetroPrimary
 @Composable
 fun IconPreviewCard(
     foregroundBytes: ByteArray?,
+    backgroundBytes: ByteArray? = null,
     isScraping: Boolean = false,
     onPickImage: () -> Unit,
     onResetDefault: () -> Unit,
@@ -69,27 +70,29 @@ fun IconPreviewCard(
 ) {
     var selectedMask by remember { mutableStateOf(AdaptiveIconComposer.MaskShape.SQUIRCLE) }
 
-    val adaptiveResult = remember(foregroundBytes) {
-        foregroundBytes?.let {
-            try {
-                AdaptiveIconComposer.composeAdaptiveIcon(it)
-            } catch (_: Exception) {
-                null
-            }
-        }
-    }
-
-    val previewBitmap = remember(adaptiveResult, selectedMask) {
-        adaptiveResult?.let { res ->
-            try {
-                val bg = BitmapFactory.decodeByteArray(res.backgroundPng, 0, res.backgroundPng.size)
-                val fg = BitmapFactory.decodeByteArray(res.foregroundPng, 0, res.foregroundPng.size)
+    val previewBitmap = remember(foregroundBytes, backgroundBytes, selectedMask) {
+        if (foregroundBytes == null) return@remember null
+        try {
+            if (backgroundBytes != null) {
+                // Foreground and background layers are already synthesized; decode and composite directly without shrinking
+                val bg = BitmapFactory.decodeByteArray(backgroundBytes, 0, backgroundBytes.size)
+                val fg = BitmapFactory.decodeByteArray(foregroundBytes, 0, foregroundBytes.size)
                 if (bg != null && fg != null) {
                     AdaptiveIconComposer.generateCompositePreview(bg, fg, selectedMask).asImageBitmap()
                 } else null
-            } catch (_: Exception) {
-                null
+            } else {
+                // Raw image provided: compose adaptive icon layers
+                val res = AdaptiveIconComposer.composeAdaptiveIcon(foregroundBytes)
+                if (res != null) {
+                    val bg = BitmapFactory.decodeByteArray(res.backgroundPng, 0, res.backgroundPng.size)
+                    val fg = BitmapFactory.decodeByteArray(res.foregroundPng, 0, res.foregroundPng.size)
+                    if (bg != null && fg != null) {
+                        AdaptiveIconComposer.generateCompositePreview(bg, fg, selectedMask).asImageBitmap()
+                    } else null
+                } else null
             }
+        } catch (_: Exception) {
+            null
         }
     }
 

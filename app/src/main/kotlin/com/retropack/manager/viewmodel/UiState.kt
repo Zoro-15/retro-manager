@@ -59,6 +59,7 @@ data class IdentityUiState(
     val iconForegroundUri: Uri? = null,
     val iconForegroundBytes: ByteArray? = null,
     val iconBackgroundBytes: ByteArray? = null,
+    val iconRasterBytes: ByteArray? = null,
     val isScrapingIcon: Boolean = false
 )
 

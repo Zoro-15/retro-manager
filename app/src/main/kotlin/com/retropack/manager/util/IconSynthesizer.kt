@@ -14,13 +14,20 @@ object IconSynthesizer {
     private const val ICON_SIZE = 512
     private const val FOREGROUND_INSET_RATIO = 0.20f // 20% margin for safe adaptive icon mask
 
+    data class IconLayers(
+        val foregroundBytes: ByteArray,
+        val backgroundBytes: ByteArray,
+        val rasterBytes: ByteArray
+    )
+
     /**
-     * Synthesizes foreground and background layer PNG bytes from an arbitrary user boxart image.
+     * Synthesizes foreground, background, and composited fallback raster icon PNG bytes
+     * from an arbitrary user boxart image.
      */
-    fun synthesizeLayers(sourceBytes: ByteArray): Pair<ByteArray, ByteArray>? {
+    fun synthesizeLayers(sourceBytes: ByteArray): IconLayers? {
         val result = AdaptiveIconComposer.composeAdaptiveIcon(sourceBytes)
         if (result != null) {
-            return Pair(result.foregroundPng, result.backgroundPng)
+            return IconLayers(result.foregroundPng, result.backgroundPng, result.compositePng)
         }
         return try {
             val originalBitmap = BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size) ?: return null
@@ -69,7 +76,16 @@ object IconSynthesizer {
             bgBitmap.compress(Bitmap.CompressFormat.PNG, 100, bgOut)
             val bgBytes = bgOut.toByteArray()
 
-            Pair(fgBytes, bgBytes)
+            // 3. Synthesize Composite Fallback Raster Icon
+            val compositeBitmap = Bitmap.createBitmap(ICON_SIZE, ICON_SIZE, Bitmap.Config.ARGB_8888)
+            val compositeCanvas = Canvas(compositeBitmap)
+            compositeCanvas.drawBitmap(bgBitmap, 0f, 0f, null)
+            compositeCanvas.drawBitmap(fgBitmap, 0f, 0f, null)
+            val compositeOut = ByteArrayOutputStream()
+            compositeBitmap.compress(Bitmap.CompressFormat.PNG, 100, compositeOut)
+            val rasterBytes = compositeOut.toByteArray()
+
+            IconLayers(fgBytes, bgBytes, rasterBytes)
         } catch (e: Exception) {
             null
         }

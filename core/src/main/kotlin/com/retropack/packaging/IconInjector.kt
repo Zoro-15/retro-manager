@@ -33,15 +33,25 @@ object IconInjector {
         }
     }
 
+    val ALL_MIPMAP_DIRS = listOf(
+        "mipmap-mdpi", "mipmap-mdpi-v4",
+        "mipmap-hdpi", "mipmap-hdpi-v4",
+        "mipmap-xhdpi", "mipmap-xhdpi-v4",
+        "mipmap-xxhdpi", "mipmap-xxhdpi-v4",
+        "mipmap-xxxhdpi", "mipmap-xxxhdpi-v4"
+    )
+
     /**
      * Prepares adaptive icon entries to inject into the APK archive.
      * Populates both base drawable and API-qualified (e.g. -v4) paths, as well as fallback
-     * mipmap raster icons so system package installers and older launchers display the game boxart.
+     * mipmap raster icons across all Android display densities (mdpi through xxxhdpi)
+     * so system package installers, OEM launchers, and app switchers display the game boxart.
      */
     fun prepareIconEntries(
         foregroundBytes: ByteArray,
         backgroundBytes: ByteArray? = null,
-        fallbackRasterBytes: ByteArray? = null
+        fallbackRasterBytes: ByteArray? = null,
+        populateAllDensities: Boolean = true
     ): Map<String, ByteArray> {
         validatePng(foregroundBytes, "Foreground icon")
         val result = mutableMapOf<String, ByteArray>()
@@ -56,10 +66,18 @@ object IconInjector {
 
         val rasterBytes = fallbackRasterBytes ?: foregroundBytes
         validatePng(rasterBytes, "Fallback raster icon")
-        result[MIPMAP_XXHDPI_ENTRY] = rasterBytes
-        result[MIPMAP_XXHDPI_V4_ENTRY] = rasterBytes
-        result[MIPMAP_XXHDPI_ROUND_ENTRY] = rasterBytes
-        result[MIPMAP_XXHDPI_ROUND_V4_ENTRY] = rasterBytes
+
+        if (populateAllDensities) {
+            for (dir in ALL_MIPMAP_DIRS) {
+                result["res/$dir/ic_launcher.png"] = rasterBytes
+                result["res/$dir/ic_launcher_round.png"] = rasterBytes
+            }
+        } else {
+            result[MIPMAP_XXHDPI_ENTRY] = rasterBytes
+            result[MIPMAP_XXHDPI_V4_ENTRY] = rasterBytes
+            result[MIPMAP_XXHDPI_ROUND_ENTRY] = rasterBytes
+            result[MIPMAP_XXHDPI_ROUND_V4_ENTRY] = rasterBytes
+        }
 
         return result
     }

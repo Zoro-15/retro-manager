@@ -159,6 +159,7 @@ class TouchOverlayView @JvmOverloads constructor(
 
     var gesturesEnabled: Boolean = true
     val gestureDetector: RetroGestureDetector = RetroGestureDetector().apply {
+        enableTwoFingerDoubleTap = false // Disabled by default to prevent accidental 2x/4x fast-forward speed switching during 2-thumb gameplay
         onTwoFingerSwipeLeft = { onQuickSaveRequested?.invoke() }
         onTwoFingerSwipeRight = { onQuickLoadRequested?.invoke() }
         onTwoFingerDoubleTap = { onToggleFastForwardRequested?.invoke() }
@@ -425,7 +426,15 @@ class TouchOverlayView @JvmOverloads constructor(
         }
 
         // 1. Process Multi-Touch Gestures
-        if (gesturesEnabled) {
+        // Gestures must only trigger when touches are outside virtual controls,
+        // eliminating accidental speed changes or state actions during multi-touch gameplay.
+        val anyPointerOnControl = if (isControlsVisible) {
+            (0 until event.pointerCount).any { idx ->
+                layout.isPointOnAnyControl(event.getX(idx), event.getY(idx))
+            }
+        } else false
+
+        if (gesturesEnabled && !anyPointerOnControl) {
             gestureDetector.gesturesEnabled = true
             gestureDetector.onTouchEvent(event)
         }

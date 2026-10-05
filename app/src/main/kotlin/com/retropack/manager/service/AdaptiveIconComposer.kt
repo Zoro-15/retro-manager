@@ -41,6 +41,7 @@ object AdaptiveIconComposer {
     data class AdaptiveIconResult(
         val foregroundPng: ByteArray,
         val backgroundPng: ByteArray,
+        val compositePng: ByteArray,
         val previewBitmap: Bitmap,
         val dominantColor: Int
     )
@@ -63,9 +64,17 @@ object AdaptiveIconComposer {
             val fgStream = ByteArrayOutputStream()
             fgBitmap.compress(Bitmap.CompressFormat.PNG, 100, fgStream)
 
+            val compositeBitmap = Bitmap.createBitmap(CANVAS_SIZE, CANVAS_SIZE, Bitmap.Config.ARGB_8888)
+            val compositeCanvas = Canvas(compositeBitmap)
+            compositeCanvas.drawBitmap(bgBitmap, 0f, 0f, null)
+            compositeCanvas.drawBitmap(fgBitmap, 0f, 0f, null)
+            val compositeStream = ByteArrayOutputStream()
+            compositeBitmap.compress(Bitmap.CompressFormat.PNG, 100, compositeStream)
+
             AdaptiveIconResult(
                 foregroundPng = fgStream.toByteArray(),
                 backgroundPng = bgStream.toByteArray(),
+                compositePng = compositeStream.toByteArray(),
                 previewBitmap = preview,
                 dominantColor = dominantColor
             )

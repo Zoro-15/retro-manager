@@ -525,6 +525,7 @@ fun MainScreen(
             // Boxart / Launcher Icon Picker
             IconPreviewCard(
                 foregroundBytes = uiState.identityState.iconForegroundBytes,
+                backgroundBytes = uiState.identityState.iconBackgroundBytes,
                 isScraping = uiState.identityState.isScrapingIcon,
                 onPickImage = { iconPickerLauncher.launch("image/*") },
                 onResetDefault = { viewModel.onResetDefaultIcon() },

@@ -67,6 +67,11 @@ size_t ringbuffer_write(RingBuffer* rb, const int16_t* data, size_t count) {
 
     size_t overflow = (rb->size + count > rb->capacity) ? (rb->size + count - rb->capacity) : 0;
     if (overflow > 0) {
+        // Interleaved 16-bit stereo PCM: align overflow to 2 samples so Left/Right channel phase is never inverted.
+        overflow = (overflow + 1) & ~((size_t) 1);
+        if (overflow > rb->size) {
+            overflow = rb->size;
+        }
         rb->tail = (rb->tail + overflow) % rb->capacity;
         rb->size -= overflow;
     }
