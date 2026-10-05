@@ -1,0 +1,63 @@
+﻿2026-10-05T12:28:17.8483202Z ##[group]Run python3 scripts/ci-build-matrix.py
+2026-10-05T12:28:17.8483458Z [36;1mpython3 scripts/ci-build-matrix.py[0m
+2026-10-05T12:28:17.8537471Z shell: /usr/bin/bash -e {0}
+2026-10-05T12:28:17.8537628Z env:
+2026-10-05T12:28:17.8537807Z   JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-05T12:28:17.8538096Z   JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+2026-10-05T12:28:17.8538341Z   GRADLE_ACTION_ID: gradle/actions/setup-gradle
+2026-10-05T12:28:17.8538519Z   GRADLE_USER_HOME: /home/runner/.gradle
+2026-10-05T12:28:17.8538687Z   GRADLE_BUILD_ACTION_SETUP_COMPLETED: true
+2026-10-05T12:28:17.8538861Z   GRADLE_BUILD_ACTION_CACHE_RESTORED: true
+2026-10-05T12:28:17.8539113Z   DEVELOCITY_INJECTION_INIT_SCRIPT_NAME: gradle-actions.inject-develocity.init.gradle
+2026-10-05T12:28:17.8539387Z   DEVELOCITY_INJECTION_CUSTOM_VALUE: gradle-actions
+2026-10-05T12:28:17.8539585Z   GITHUB_DEPENDENCY_GRAPH_ENABLED: false
+2026-10-05T12:28:17.8539753Z   ANDROID_HOME: /usr/local/lib/android/sdk
+2026-10-05T12:28:17.8539958Z   ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+2026-10-05T12:28:17.8540165Z   ANDROID_NDK_HOME: /usr/local/lib/android/sdk/ndk/28.2.13676358
+2026-10-05T12:28:17.8540359Z ##[endgroup]
+2026-10-05T12:28:17.8830441Z ========================================================================================
+2026-10-05T12:28:17.8831051Z            RETROPACK RESILIENT MULTI-CORE CI BUILD & DIAGNOSTICS MATRIX
+2026-10-05T12:28:17.8831337Z ========================================================================================
+2026-10-05T12:28:17.8831635Z Working Directory: /home/runner/work/retro-manager/retro-manager
+2026-10-05T12:28:17.8831953Z Logs Output Dir  : /home/runner/work/retro-manager/retro-manager/build-logs
+2026-10-05T12:28:17.8832345Z Total Targets    : 8
+2026-10-05T12:28:17.8832650Z ========================================================================================
+2026-10-05T12:28:17.8832828Z 
+2026-10-05T12:28:17.8832959Z [01/08] Building: Universal Libretro Host Native Runtime ...
+2026-10-05T12:28:17.8833311Z        Command : ./gradlew :runtime:retropack-runtime-common:assembleDebug --stacktrace
+2026-10-05T12:29:00.9329570Z        Status  : [ PASS ] in 43.05s (Exit code: 0)
+2026-10-05T12:29:00.9329824Z 
+2026-10-05T12:29:00.9330006Z [02/08] Building: Packaging Engine & Domain Core ...
+2026-10-05T12:29:00.9330352Z        Command : ./gradlew :core:test --stacktrace
+2026-10-05T12:29:11.3547490Z        Status  : [ PASS ] in 10.42s (Exit code: 0)
+2026-10-05T12:29:11.3548089Z 
+2026-10-05T12:29:11.3548686Z [03/08] Building: Template APK (Standalone Universal Game Runner) ...
+2026-10-05T12:29:11.3549474Z        Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+2026-10-05T12:29:26.3251355Z        Status  : [ PASS ] in 14.97s (Exit code: 0)
+2026-10-05T12:29:26.3251970Z 
+2026-10-05T12:29:26.3252600Z [04/08] Building: 16 KB ELF Page-Size Alignment Gate ...
+2026-10-05T12:29:26.3253300Z        Command : bash scripts/verify-16kb-alignment.sh
+2026-10-05T12:29:26.3646927Z        Status  : [ PASS ] in 0.04s (Exit code: 0)
+2026-10-05T12:29:26.3647198Z 
+2026-10-05T12:29:26.3647451Z [05/08] Building: Core Catalog & Staged Binaries Verification ...
+2026-10-05T12:29:26.3647778Z        Command : python3 scripts/verify_core_alignment.py
+2026-10-05T12:29:26.4075617Z        Status  : [ PASS ] in 0.04s (Exit code: 0)
+2026-10-05T12:29:26.4075873Z 
+2026-10-05T12:29:26.4076200Z [06/08] Building: Trust Anchor Rotation & Staging ...
+2026-10-05T12:29:26.4076797Z        Command : cp -f template-apk/build/outputs/apk/debug/*.apk runtimes/mgba-unified/template.apk 2>/dev/null || true; bash scripts/rotate-trust-anchors.sh
+2026-10-05T12:29:26.4642106Z        Status  : [ PASS ] in 0.06s (Exit code: 0)
+2026-10-05T12:29:26.4642351Z 
+2026-10-05T12:29:26.4642478Z [07/08] Building: Manager APK (Main App) ...
+2026-10-05T12:29:26.4642736Z        Command : ./gradlew :app:assembleDebug --stacktrace
+2026-10-05T12:29:45.9946343Z        Status  : [ PASS ] in 19.53s (Exit code: 0)
+2026-10-05T12:29:45.9947505Z 
+2026-10-05T12:29:45.9947882Z [08/08] Building: Unit Tests (App & Runtime Host) ...
+2026-10-05T12:29:45.9948846Z        Command : ./gradlew :app:testDebugUnitTest && env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :runtime:retropack-runtime-common:test --stacktrace
+2026-10-05T12:29:56.5924545Z        Status  : [ PASS ] in 10.60s (Exit code: 0)
+2026-10-05T12:29:56.5925720Z 
+2026-10-05T12:29:56.5926117Z ========================================================================================
+2026-10-05T12:29:56.5926665Z Summary report written to: /home/runner/work/retro-manager/retro-manager/build-diagnostics.txt
+2026-10-05T12:29:56.5927030Z Total: 8 Passed, 0 Failed.
+2026-10-05T12:29:56.5927234Z ========================================================================================
+2026-10-05T12:29:56.5927367Z 
+2026-10-05T12:29:56.5927726Z [✓] All required build targets completed successfully.
