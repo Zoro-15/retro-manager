@@ -4,7 +4,7 @@ import java.nio.IntBuffer
 
 /**
  * Universal Native Core Contract implemented by all C/C++ retro emulation engines
- * (mGBA, Snes9x, Genesis Plus GX, FCEUmm, PCSX ReARMed, Beetle PCE Fast, FBNeo, Mupen64Plus-Next, melonDS, PPSSPP).
+ * (mGBA, Snes9x, Genesis Plus GX, FCEUmm, Beetle PCE Fast).
  *
  * Implements the universal engine contract described in Section 3 of the architecture plan.
  */

@@ -127,10 +127,9 @@ open class GameActivity : Activity() {
         val effectiveOpacity = ControlsPreferences.loadOpacity(this, config.controls.touchOpacity)
         val effectiveHaptics = ControlsPreferences.loadHaptics(this, config.controls.haptics)
         val effectiveHapticIntensity = ControlsPreferences.loadHapticIntensity(this, 1.0f)
-        val isN64 = config.game.platform.equals("n64", ignoreCase = true)
         val effectiveFloatingDpad = ControlsPreferences.loadFloatingDpadEnabled(this, false)
-        val defaultDpadType = if (isN64) DpadType.FIXED_JOYSTICK else if (effectiveFloatingDpad) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
-        val defaultSnapMode = if (isN64) JoystickSnapMode.ANALOG_FREE else JoystickSnapMode.RPG_GRID_4WAY
+        val defaultDpadType = if (effectiveFloatingDpad) DpadType.FLOATING_JOYSTICK else DpadType.CLASSIC_CROSS
+        val defaultSnapMode = JoystickSnapMode.RPG_GRID_4WAY
         val effectiveDpadType = ControlsPreferences.loadDpadType(this, defaultDpadType)
         val effectiveSnapMode = ControlsPreferences.loadJoystickSnapMode(this, defaultSnapMode)
         val effectiveDeadzone = ControlsPreferences.loadJoystickDeadzone(this, 12.0f)
@@ -270,11 +269,6 @@ open class GameActivity : Activity() {
             }
             to.onToggleQuickMenuRequested = {
                 quickMenu?.let { q -> q.isExpanded = !q.isExpanded }
-            }
-            to.onStylusTouch = { x, y, isTouching ->
-                if (config.game.platform.lowercase() == "nds" || config.runtime.core.contains("melon")) {
-                    com.retropack.runtime.core.UniversalLibretroCore.nativeSetTouch(x, y, isTouching)
-                }
             }
 
             this.touchOverlay = to
@@ -453,8 +447,8 @@ open class GameActivity : Activity() {
             to?.let {
                 it.opacity = config.controls.touchOpacity
                 it.hapticFeedbackEnabledState = config.controls.haptics
-                it.dpadType = if (isN64) DpadType.FIXED_JOYSTICK else DpadType.CLASSIC_CROSS
-                it.joystickSnapMode = if (isN64) JoystickSnapMode.ANALOG_FREE else JoystickSnapMode.RPG_GRID_4WAY
+                it.dpadType = DpadType.CLASSIC_CROSS
+                it.joystickSnapMode = JoystickSnapMode.RPG_GRID_4WAY
                 it.gesturesEnabled = true
                 it.theme = TouchTheme.CLASSIC_INDIGO
                 it.turboEnabled = false

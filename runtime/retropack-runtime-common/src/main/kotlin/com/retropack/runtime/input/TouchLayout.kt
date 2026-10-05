@@ -82,7 +82,7 @@ data class VirtualControl(
 /**
  * Immutable layout geometry and hit-testing engine for virtual touch controls.
  *
- * Supports system-specific layout presets for SNES, Sega Genesis, NES, PS1, N64, NDS, and GBA/GBC/GB.
+ * Supports system-specific layout presets for SNES, Sega Genesis, NES, PC Engine, and GBA/GBC/GB.
  */
 class TouchLayout(
     val width: Float,
@@ -117,12 +117,6 @@ class TouchLayout(
         const val ID_SELECT = "btn_select"
         const val ID_MODE = "btn_mode"
 
-        // N64 C-Buttons
-        const val ID_C_UP = "btn_c_up"
-        const val ID_C_DOWN = "btn_c_down"
-        const val ID_C_LEFT = "btn_c_left"
-        const val ID_C_RIGHT = "btn_c_right"
-
         // Clustered control identifiers for layout positioning
         const val CLUSTER_DPAD = "dpad"
         const val CLUSTER_ACTION = "action"
@@ -131,7 +125,6 @@ class TouchLayout(
         const val CLUSTER_SYSTEM = "system"
         const val CLUSTER_TURBO = "turbo"
         const val CLUSTER_COMBO = "combo"
-        const val CLUSTER_C_BUTTONS = "c_buttons"
 
         /**
          * Dispatches to the appropriate platform-specific touch layout.
@@ -149,11 +142,6 @@ class TouchLayout(
                 "genesis", "megadrive", "md", "smd", "gen", "sms", "gg" -> genesis(width, height, opacity, turboEnabled, comboEnabled)
                 "nes", "fds", "unf" -> nes(width, height, opacity, turboEnabled, comboEnabled)
                 "pce", "tg16", "sgx" -> pce(width, height, opacity, turboEnabled, comboEnabled)
-                "arcade", "fbneo", "neogeo", "cps", "cps1", "cps2", "cps3" -> arcade(width, height, opacity, turboEnabled, comboEnabled)
-                "psx", "ps1", "ps" -> ps1(width, height, opacity, turboEnabled, comboEnabled)
-                "n64" -> n64(width, height, opacity, turboEnabled, comboEnabled)
-                "psp", "ppsspp", "ppsspp-unified" -> psp(width, height, opacity, turboEnabled, comboEnabled)
-                "nds", "dsi", "melonds", "melonds-unified" -> nds(width, height, opacity, turboEnabled, comboEnabled)
                 else -> create(width, height, opacity, turboEnabled, comboEnabled)
             }
         }
@@ -424,169 +412,7 @@ class TouchLayout(
             return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "nes")
         }
 
-        /**
-         * PlayStation 1 layout (Cross, Circle, Square, Triangle, L1, R1, L2, R2, Select, Start).
-         */
-        fun ps1(
-            width: Float,
-            height: Float,
-            opacity: Float = DEFAULT_OPACITY,
-            turboEnabled: Boolean = false,
-            comboEnabled: Boolean = false
-        ): TouchLayout {
-            val isLandscape = width > height
-            val unit = Math.min(width, height)
-            val controls = mutableListOf<VirtualControl>()
 
-            val dpadHalf = if (isLandscape) unit * 0.19f else unit * 0.22f
-            val dpadX = if (isLandscape) width * 0.14f else width * 0.25f
-            val mainY = if (isLandscape) height * 0.65f else height * 0.75f
-
-            controls.add(VirtualControl(ID_DPAD, null, "+", ControlShape.DPAD, dpadX, mainY, dpadHalf, dpadHalf))
-
-            // Dual Shoulders: L1/L2 and R1/R2
-            val shoulderW = if (isLandscape) unit * 0.12f else unit * 0.14f
-            val shoulderH = if (isLandscape) unit * 0.045f else unit * 0.05f
-            val topRowShoulderY = if (isLandscape) height * 0.15f else height * 0.50f
-            val botRowShoulderY = if (isLandscape) height * 0.26f else height * 0.58f
-
-            controls.add(VirtualControl(ID_L2, RetroKey.L2, "L2", ControlShape.PILL, if (isLandscape) width * 0.14f else width * 0.20f, topRowShoulderY, shoulderW, shoulderH))
-            controls.add(VirtualControl(ID_L, RetroKey.L, "L1", ControlShape.PILL, if (isLandscape) width * 0.14f else width * 0.20f, botRowShoulderY, shoulderW, shoulderH))
-            controls.add(VirtualControl(ID_R2, RetroKey.R2, "R2", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.80f, topRowShoulderY, shoulderW, shoulderH))
-            controls.add(VirtualControl(ID_R, RetroKey.R, "R1", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.80f, botRowShoulderY, shoulderW, shoulderH))
-
-            // 4 Face Buttons (Triangle, Square, Circle, Cross)
-            val faceRadius = if (isLandscape) unit * 0.08f else unit * 0.09f
-            val faceCenterX = if (isLandscape) width * 0.86f else width * 0.75f
-            val spacing = faceRadius * 1.55f
-
-            controls.add(VirtualControl(ID_X, RetroKey.X, "▲", ControlShape.CIRCLE, faceCenterX, mainY - spacing, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_Y, RetroKey.Y, "■", ControlShape.CIRCLE, faceCenterX - spacing, mainY, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_A, RetroKey.A, "●", ControlShape.CIRCLE, faceCenterX + spacing, mainY, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_B, RetroKey.B, "✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing, faceRadius, faceRadius))
-
-            if (turboEnabled) {
-                val turboRadius = faceRadius * 0.72f
-                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "T✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing + faceRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
-                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "T●", ControlShape.CIRCLE, faceCenterX + spacing + faceRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
-            }
-
-            // Select & Start
-            val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
-            val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
-            val sysY = if (isLandscape) height * 0.90f else height * 0.93f
-            controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "SELECT", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
-            controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
-
-            if (comboEnabled) {
-                val stickBtnW = if (isLandscape) unit * 0.06f else unit * 0.08f
-                val stickBtnH = if (isLandscape) unit * 0.035f else unit * 0.04f
-                controls.add(VirtualControl(ID_L3, RetroKey.L3, "L3", ControlShape.PILL, if (isLandscape) width * 0.25f else width * 0.20f, sysY, stickBtnW, stickBtnH))
-                controls.add(VirtualControl(ID_R3, RetroKey.R3, "R3", ControlShape.PILL, if (isLandscape) width * 0.75f else width * 0.80f, sysY, stickBtnW, stickBtnH))
-            }
-
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "psx")
-        }
-
-        /**
-         * Nintendo 64 layout (A, B, Z, C-Buttons, L, R, Start).
-         */
-        fun n64(
-            width: Float,
-            height: Float,
-            opacity: Float = DEFAULT_OPACITY,
-            turboEnabled: Boolean = false,
-            comboEnabled: Boolean = false
-        ): TouchLayout {
-            val isLandscape = width > height
-            val unit = Math.min(width, height)
-            val controls = mutableListOf<VirtualControl>()
-
-            val dpadHalf = if (isLandscape) unit * 0.19f else unit * 0.22f
-            val dpadX = if (isLandscape) width * 0.14f else width * 0.25f
-            val mainY = if (isLandscape) height * 0.65f else height * 0.75f
-
-            controls.add(VirtualControl(ID_DPAD, null, "+", ControlShape.DPAD, dpadX, mainY, dpadHalf, dpadHalf))
-
-            // Shoulders & Z-Trigger
-            val shoulderW = if (isLandscape) unit * 0.12f else unit * 0.14f
-            val shoulderH = if (isLandscape) unit * 0.045f else unit * 0.05f
-            val shoulderY = if (isLandscape) height * 0.18f else height * 0.55f
-            controls.add(VirtualControl(ID_L, RetroKey.L, "L", ControlShape.PILL, if (isLandscape) width * 0.14f else width * 0.20f, shoulderY, shoulderW, shoulderH))
-            controls.add(VirtualControl(ID_Z, RetroKey.Z, "Z", ControlShape.PILL, if (isLandscape) width * 0.50f else width * 0.50f, shoulderY, shoulderW, shoulderH))
-            controls.add(VirtualControl(ID_R, RetroKey.R, "R", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.80f, shoulderY, shoulderW, shoulderH))
-
-            // A and B buttons
-            val btnRadius = if (isLandscape) unit * 0.08f else unit * 0.09f
-            controls.add(VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE, width * 0.68f, mainY + btnRadius * 0.8f, btnRadius, btnRadius))
-            controls.add(VirtualControl(ID_A, RetroKey.A, "A", ControlShape.CIRCLE, width * 0.76f, mainY + btnRadius * 1.5f, btnRadius, btnRadius))
-
-            // 4 C-Buttons Diamond
-            val cRadius = btnRadius * 0.65f
-            val cCenterX = if (isLandscape) width * 0.88f else width * 0.82f
-            val cCenterY = mainY - btnRadius * 0.5f
-            val cSpacing = cRadius * 1.5f
-
-            controls.add(VirtualControl(ID_C_UP, RetroKey.C_UP, "▲", ControlShape.CIRCLE, cCenterX, cCenterY - cSpacing, cRadius, cRadius))
-            controls.add(VirtualControl(ID_C_LEFT, RetroKey.C_LEFT, "◀", ControlShape.CIRCLE, cCenterX - cSpacing, cCenterY, cRadius, cRadius))
-            controls.add(VirtualControl(ID_C_RIGHT, RetroKey.C_RIGHT, "▶", ControlShape.CIRCLE, cCenterX + cSpacing, cCenterY, cRadius, cRadius))
-            controls.add(VirtualControl(ID_C_DOWN, RetroKey.C_DOWN, "▼", ControlShape.CIRCLE, cCenterX, cCenterY + cSpacing, cRadius, cRadius))
-
-            // Start
-            val smallHalfW = if (isLandscape) unit * 0.09f else unit * 0.12f
-            val smallHalfH = if (isLandscape) unit * 0.04f else unit * 0.045f
-            val sysY = if (isLandscape) height * 0.90f else height * 0.93f
-            controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, width * 0.50f, sysY, smallHalfW, smallHalfH))
-
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "n64")
-        }
-
-        /**
-         * Arcade (FBNeo) 6-button layout.
-         */
-        fun arcade(
-            width: Float,
-            height: Float,
-            opacity: Float = DEFAULT_OPACITY,
-            turboEnabled: Boolean = false,
-            comboEnabled: Boolean = false
-        ): TouchLayout {
-            val isLandscape = width > height
-            val unit = Math.min(width, height)
-            val controls = mutableListOf<VirtualControl>()
-
-            val dpadHalf = if (isLandscape) unit * 0.19f else unit * 0.22f
-            val dpadX = if (isLandscape) width * 0.14f else width * 0.25f
-            val mainY = if (isLandscape) height * 0.65f else height * 0.75f
-
-            controls.add(VirtualControl(ID_DPAD, null, "+", ControlShape.DPAD, dpadX, mainY, dpadHalf, dpadHalf))
-
-            val btnRadius = if (isLandscape) unit * 0.065f else unit * 0.075f
-            val arcCenterX = if (isLandscape) width * 0.82f else width * 0.72f
-            val spacingX = btnRadius * 2.15f
-            val spacingY = btnRadius * 2.15f
-
-            // Top row: LP(X), MP(Y), HP(Z)
-            val topRowY = mainY - spacingY * 0.7f
-            controls.add(VirtualControl(ID_X, RetroKey.X, "LP", ControlShape.CIRCLE, arcCenterX - spacingX, topRowY + btnRadius * 0.3f, btnRadius, btnRadius))
-            controls.add(VirtualControl(ID_Y, RetroKey.Y, "MP", ControlShape.CIRCLE, arcCenterX, topRowY, btnRadius, btnRadius))
-            controls.add(VirtualControl(ID_Z, RetroKey.Z, "HP", ControlShape.CIRCLE, arcCenterX + spacingX, topRowY - btnRadius * 0.3f, btnRadius, btnRadius))
-
-            // Bottom row: LK(A), MK(B), HK(C)
-            val bottomRowY = mainY + spacingY * 0.7f
-            controls.add(VirtualControl(ID_A, RetroKey.A, "LK", ControlShape.CIRCLE, arcCenterX - spacingX, bottomRowY + btnRadius * 0.3f, btnRadius, btnRadius))
-            controls.add(VirtualControl(ID_B, RetroKey.B, "MK", ControlShape.CIRCLE, arcCenterX, bottomRowY, btnRadius, btnRadius))
-            controls.add(VirtualControl(ID_C, RetroKey.C, "HK", ControlShape.CIRCLE, arcCenterX + spacingX, bottomRowY - btnRadius * 0.3f, btnRadius, btnRadius))
-
-            // Coin & Start
-            val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
-            val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
-            val sysY = if (isLandscape) height * 0.90f else height * 0.93f
-            controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "COIN", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
-            controls.add(VirtualControl(ID_START, RetroKey.START, "1P START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
-
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "arcade")
-        }
 
         /**
          * PC Engine / TurboGrafx-16 layout (I, II, Run, Select).
@@ -627,120 +453,6 @@ class TouchLayout(
             controls.add(VirtualControl(ID_START, RetroKey.START, "RUN", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
 
             return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "pce")
-        }
-
-        /**
-         * PlayStation Portable (PSP) layout.
-         */
-         fun psp(
-            width: Float,
-            height: Float,
-            opacity: Float = DEFAULT_OPACITY,
-            turboEnabled: Boolean = false,
-            comboEnabled: Boolean = false
-        ): TouchLayout {
-            val isLandscape = width > height
-            val unit = Math.min(width, height)
-            val controls = mutableListOf<VirtualControl>()
-
-            val dpadHalf = if (isLandscape) unit * 0.19f else unit * 0.22f
-            val dpadX = if (isLandscape) width * 0.14f else width * 0.25f
-            val mainY = if (isLandscape) height * 0.65f else height * 0.75f
-
-            controls.add(VirtualControl(ID_DPAD, null, "+", ControlShape.DPAD, dpadX, mainY, dpadHalf, dpadHalf))
-
-            // Shoulders L and R
-            val shoulderHalfW = if (isLandscape) unit * 0.14f else unit * 0.16f
-            val shoulderHalfH = if (isLandscape) unit * 0.055f else unit * 0.06f
-            val shoulderY = if (isLandscape) height * 0.20f else height * 0.55f
-            controls.add(VirtualControl(ID_L, RetroKey.L, "L", ControlShape.PILL, if (isLandscape) width * 0.14f else width * 0.20f, shoulderY, shoulderHalfW, shoulderHalfH))
-            controls.add(VirtualControl(ID_R, RetroKey.R, "R", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.80f, shoulderY, shoulderHalfW, shoulderHalfH))
-
-            // 4 Face Buttons (Triangle, Square, Circle, Cross)
-            val faceRadius = if (isLandscape) unit * 0.08f else unit * 0.09f
-            val faceCenterX = if (isLandscape) width * 0.86f else width * 0.75f
-            val spacing = faceRadius * 1.55f
-
-            controls.add(VirtualControl(ID_X, RetroKey.X, "▲", ControlShape.CIRCLE, faceCenterX, mainY - spacing, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_Y, RetroKey.Y, "■", ControlShape.CIRCLE, faceCenterX - spacing, mainY, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_A, RetroKey.A, "●", ControlShape.CIRCLE, faceCenterX + spacing, mainY, faceRadius, faceRadius))
-            controls.add(VirtualControl(ID_B, RetroKey.B, "✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing, faceRadius, faceRadius))
-
-            if (turboEnabled) {
-                val turboRadius = faceRadius * 0.72f
-                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "T✖", ControlShape.CIRCLE, faceCenterX, mainY + spacing + faceRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
-                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "T●", ControlShape.CIRCLE, faceCenterX + spacing + faceRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
-            }
-
-            // Select & Start
-            val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
-            val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
-            val sysY = if (isLandscape) height * 0.90f else height * 0.93f
-            controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "SELECT", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
-            controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
-
-            if (comboEnabled) {
-                controls.add(VirtualControl(ID_MODE, RetroKey.MODE, "HOME", ControlShape.PILL, width * 0.50f, sysY, smallHalfW * 0.9f, smallHalfH))
-            }
-
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "psp")
-        }
-
-        /**
-         * Nintendo DS (NDS) layout.
-         */
-        fun nds(
-            width: Float,
-            height: Float,
-            opacity: Float = DEFAULT_OPACITY,
-            turboEnabled: Boolean = false,
-            comboEnabled: Boolean = false
-        ): TouchLayout {
-            val isLandscape = width > height
-            val unit = Math.min(width, height)
-            val controls = mutableListOf<VirtualControl>()
-
-            val dpadHalf = if (isLandscape) unit * 0.19f else unit * 0.22f
-            val dpadX = if (isLandscape) width * 0.14f else width * 0.25f
-            val mainY = if (isLandscape) height * 0.65f else height * 0.75f
-
-            controls.add(VirtualControl(ID_DPAD, null, "+", ControlShape.DPAD, dpadX, mainY, dpadHalf, dpadHalf))
-
-            // Shoulders L and R
-            val shoulderHalfW = if (isLandscape) unit * 0.14f else unit * 0.16f
-            val shoulderHalfH = if (isLandscape) unit * 0.055f else unit * 0.06f
-            val shoulderY = if (isLandscape) height * 0.20f else height * 0.55f
-            controls.add(VirtualControl(ID_L, RetroKey.L, "L", ControlShape.PILL, if (isLandscape) width * 0.14f else width * 0.20f, shoulderY, shoulderHalfW, shoulderHalfH))
-            controls.add(VirtualControl(ID_R, RetroKey.R, "R", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.80f, shoulderY, shoulderHalfW, shoulderHalfH))
-
-            // NDS 4-Button Diamond: X (top), Y (left), A (right), B (bottom)
-            val diamondRadius = if (isLandscape) unit * 0.08f else unit * 0.09f
-            val diamondCenterX = if (isLandscape) width * 0.86f else width * 0.75f
-            val spacing = diamondRadius * 1.55f
-
-            controls.add(VirtualControl(ID_X, RetroKey.X, "X", ControlShape.CIRCLE, diamondCenterX, mainY - spacing, diamondRadius, diamondRadius))
-            controls.add(VirtualControl(ID_Y, RetroKey.Y, "Y", ControlShape.CIRCLE, diamondCenterX - spacing, mainY, diamondRadius, diamondRadius))
-            controls.add(VirtualControl(ID_A, RetroKey.A, "A", ControlShape.CIRCLE, diamondCenterX + spacing, mainY, diamondRadius, diamondRadius))
-            controls.add(VirtualControl(ID_B, RetroKey.B, "B", ControlShape.CIRCLE, diamondCenterX, mainY + spacing, diamondRadius, diamondRadius))
-
-            if (turboEnabled) {
-                val turboRadius = diamondRadius * 0.72f
-                controls.add(VirtualControl(ID_TURBO_B, RetroKey.B, "TB", ControlShape.CIRCLE, diamondCenterX, mainY + spacing + diamondRadius * 1.55f, turboRadius, turboRadius, isTurbo = true))
-                controls.add(VirtualControl(ID_TURBO_A, RetroKey.A, "TA", ControlShape.CIRCLE, diamondCenterX + spacing + diamondRadius * 1.55f, mainY, turboRadius, turboRadius, isTurbo = true))
-            }
-
-            if (comboEnabled) {
-                controls.add(VirtualControl(ID_COMBO_AB, null, "A+B", ControlShape.PILL, if (isLandscape) width * 0.86f else width * 0.75f, mainY + spacing * 2.2f, diamondRadius * 0.95f, diamondRadius * 0.50f, customKeyMask = RetroKey.KEY_A or RetroKey.KEY_B))
-            }
-
-            // Select & Start
-            val smallHalfW = if (isLandscape) unit * 0.08f else unit * 0.12f
-            val smallHalfH = if (isLandscape) unit * 0.035f else unit * 0.045f
-            val sysY = if (isLandscape) height * 0.90f else height * 0.93f
-            controls.add(VirtualControl(ID_SELECT, RetroKey.SELECT, "SELECT", ControlShape.PILL, if (isLandscape) width * 0.40f else width * 0.35f, sysY, smallHalfW, smallHalfH))
-            controls.add(VirtualControl(ID_START, RetroKey.START, "START", ControlShape.PILL, if (isLandscape) width * 0.60f else width * 0.65f, sysY, smallHalfW, smallHalfH))
-
-            return TouchLayout(width, height, Collections.unmodifiableList(controls), opacity, turboEnabled, comboEnabled, "nds")
         }
     }
 
@@ -817,8 +529,7 @@ class TouchLayout(
             Triple(CLUSTER_SHOULDER_R, "R", listOf(ID_R, ID_R2)),
             Triple(CLUSTER_SYSTEM, "SYSTEM", listOf(ID_SELECT, ID_START, ID_MODE)),
             Triple(CLUSTER_TURBO, "TURBO", listOf(ID_TURBO_B, ID_TURBO_A)),
-            Triple(CLUSTER_COMBO, "COMBO", listOf(ID_COMBO_AB)),
-            Triple(CLUSTER_C_BUTTONS, "C-BUTTONS", listOf(ID_C_UP, ID_C_DOWN, ID_C_LEFT, ID_C_RIGHT))
+            Triple(CLUSTER_COMBO, "COMBO", listOf(ID_COMBO_AB))
         )
 
         val result = mutableListOf<ClusterInfo>()

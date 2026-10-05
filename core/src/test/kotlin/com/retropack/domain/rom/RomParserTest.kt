@@ -105,7 +105,7 @@ class RomParserTest {
     }
 
     @Test
-    fun `test NDS ROM detection and title parsing`() {
+    fun `test NDS ROM is rejected with InvalidRomException`() {
         val ndsBytes = ByteArray(0x1000)
         // Title at 0x00: "POKEMON D"
         "POKEMON D".toByteArray(Charsets.US_ASCII).copyInto(ndsBytes, 0x00)
@@ -116,18 +116,13 @@ class RomParserTest {
         // arm9Offset at 0x20: 0x4000
         ndsBytes[0x20] = 0x00
         ndsBytes[0x21] = 0x40
-        ndsBytes[0x22] = 0x00
-        ndsBytes[0x23] = 0x00
         // arm7Offset at 0x28: 0x8000
-        ndsBytes[0x28] = 0x00
         ndsBytes[0x29] = 0x80.toByte()
-        ndsBytes[0x2A] = 0x00
-        ndsBytes[0x2B] = 0x00
 
-        val identity = RomParser.parse(ndsBytes, "Pokemon - Diamond Version (USA).nds")
-        assertEquals("nds", identity.platform)
-        assertEquals("POKEMON D", identity.gameTitle)
-        assertEquals("ADAE", identity.gameCode)
+        val ex = assertThrows<InvalidRomException> {
+            RomParser.parse(ndsBytes, "Pokemon - Diamond Version (USA).nds")
+        }
+        assertTrue(ex.message!!.contains("Nintendo DS"))
     }
 
     @Test
@@ -145,7 +140,7 @@ class RomParserTest {
     }
 
     @Test
-    fun `test N64 ROM detection`() {
+    fun `test N64 ROM is rejected with InvalidRomException`() {
         val n64Bytes = ByteArray(0x1000)
         // N64 Big Endian Magic: 0x80 0x37 0x12 0x40
         n64Bytes[0] = 0x80.toByte()
@@ -157,8 +152,18 @@ class RomParserTest {
         // Game code at 0x3B: "NKT"
         "NKT".toByteArray(Charsets.US_ASCII).copyInto(n64Bytes, 0x3B)
 
-        val identity = RomParser.parse(n64Bytes, "Mario Kart 64 (USA).z64")
-        assertEquals("n64", identity.platform)
-        assertEquals("MARIOKART64", identity.gameTitle)
+        val ex = assertThrows<InvalidRomException> {
+            RomParser.parse(n64Bytes, "Mario Kart 64 (USA).z64")
+        }
+        assertTrue(ex.message!!.contains("Nintendo 64"))
+    }
+
+    @Test
+    fun `test PlayStation disc image is rejected with InvalidRomException`() {
+        val isoBytes = ByteArray(0x1000)
+        val ex = assertThrows<InvalidRomException> {
+            RomParser.parse(isoBytes, "Final Fantasy VII (Disc 1).cue")
+        }
+        assertTrue(ex.message!!.contains("PlayStation"))
     }
 }

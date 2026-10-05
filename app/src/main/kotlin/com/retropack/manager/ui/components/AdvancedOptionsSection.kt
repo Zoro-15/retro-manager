@@ -39,11 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.retropack.domain.model.BezelMode
 import com.retropack.domain.model.ShaderMode
 import com.retropack.manager.ui.theme.RetroDarkOutline
+import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
 import com.retropack.manager.ui.theme.RetroDarkSurfaceVariant
 import com.retropack.manager.ui.theme.RetroPrimary
 
@@ -71,39 +74,39 @@ fun AdvancedOptionsSection(
 
     Column(modifier = modifier.fillMaxWidth()) {
         val headerShape = if (expanded) {
-            RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
+            RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
         } else {
-            RoundedCornerShape(18.dp)
+            RoundedCornerShape(24.dp)
         }
 
         Surface(
             onClick = { expanded = !expanded },
             shape = headerShape,
-            color = RetroDarkSurfaceVariant.copy(alpha = 0.45f),
-            border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.3f)),
+            color = RetroDarkSurfaceVariant.copy(alpha = 0.6f),
+            border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.45f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier
-                    .padding(horizontal = 18.dp, vertical = 14.dp)
+                    .padding(horizontal = 20.dp, vertical = 18.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = null,
-                        tint = RetroPrimary,
-                        modifier = Modifier.size(20.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = "Runtime, Display & Controls Configuration",
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
                     )
                 }
 
@@ -111,7 +114,7 @@ fun AdvancedOptionsSection(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
@@ -122,25 +125,28 @@ fun AdvancedOptionsSection(
             exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessLow))
         ) {
             Card(
-                shape = RoundedCornerShape(bottomStart = 18.dp, bottomEnd = 18.dp),
+                shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = RetroDarkSurfaceVariant.copy(alpha = 0.25f)
+                    containerColor = RetroDarkSurfaceElevated.copy(alpha = 0.4f)
                 ),
-                border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.25f)),
+                border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.35f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 18.dp)) {
 
                     // 1. Scaling Mode Selector
                     Text(
                         text = "VIDEO SCALING MODE",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = RetroPrimary
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         ActionTile(
                             title = "Integer Fit",
@@ -165,22 +171,25 @@ fun AdvancedOptionsSection(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.2f))
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // 2. GLSL Post-Processing Shader Selector (Feature 5)
                     Text(
                         text = "GLSL RETRO DISPLAY FILTER / SHADER",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = RetroPrimary
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         ShaderMode.entries.forEach { mode ->
                             ActionTile(
@@ -192,22 +201,25 @@ fun AdvancedOptionsSection(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.2f))
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // 3. Console Bezel & Screen Frame Selector (Feature 6)
                     Text(
                         text = "CONSOLE BEZEL & SCREEN FRAME",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = RetroPrimary
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp
+                        ),
+                        color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         BezelMode.entries.forEach { bMode ->
                             ActionTile(
@@ -219,9 +231,9 @@ fun AdvancedOptionsSection(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.2f))
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // 4. Virtual Touch Controls Switch
                     Row(
@@ -233,12 +245,12 @@ fun AdvancedOptionsSection(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Virtual Touch Overlay",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Render on-screen D-pad and action buttons",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -246,14 +258,14 @@ fun AdvancedOptionsSection(
                             checked = touchEnabled,
                             onCheckedChange = onTouchEnabledChange,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                checkedTrackColor = RetroPrimary
+                                checkedThumbColor = Color.Black,
+                                checkedTrackColor = Color.White
                             )
                         )
                     }
 
                     if (touchEnabled) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         // Touch Opacity Slider
                         Row(
@@ -263,13 +275,13 @@ fun AdvancedOptionsSection(
                         ) {
                             Text(
                                 text = "Touch Overlay Opacity",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
                                 text = "${(touchOpacity * 100).toInt()}%",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = RetroPrimary
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = Color.White
                             )
                         }
                         Slider(
@@ -278,8 +290,9 @@ fun AdvancedOptionsSection(
                             valueRange = 0.1f..1.0f,
                             steps = 9,
                             colors = SliderDefaults.colors(
-                                thumbColor = RetroPrimary,
-                                activeTrackColor = RetroPrimary
+                                thumbColor = Color.White,
+                                activeTrackColor = Color.White,
+                                inactiveTrackColor = RetroDarkOutline
                             )
                         )
 
@@ -287,18 +300,18 @@ fun AdvancedOptionsSection(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Touch Haptic Feedback",
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Vibrate briefly on virtual button press",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -306,16 +319,16 @@ fun AdvancedOptionsSection(
                                 checked = touchHaptics,
                                 onCheckedChange = onTouchHapticsChange,
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                    checkedTrackColor = RetroPrimary
+                                    checkedThumbColor = Color.Black,
+                                    checkedTrackColor = Color.White
                                 )
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
-                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.2f))
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
+                    HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.35f))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // 5. Gamepad Settings
                     Row(
@@ -327,12 +340,12 @@ fun AdvancedOptionsSection(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Physical Gamepad HID Support",
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = "Map Bluetooth / USB controllers directly",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -340,13 +353,14 @@ fun AdvancedOptionsSection(
                             checked = gamepadEnabled,
                             onCheckedChange = onGamepadEnabledChange,
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                checkedTrackColor = RetroPrimary
+                                checkedThumbColor = Color.Black,
+                                checkedTrackColor = Color.White
                             )
                         )
                     }
 
                     if (gamepadEnabled) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -356,12 +370,12 @@ fun AdvancedOptionsSection(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = "Auto-Hide Virtual Controls",
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
                                     text = "Fade out virtual touch buttons when controller is used",
-                                    style = MaterialTheme.typography.bodySmall,
+                                    style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -369,8 +383,8 @@ fun AdvancedOptionsSection(
                                 checked = gamepadAutoHide,
                                 onCheckedChange = onGamepadAutoHideChange,
                                 colors = SwitchDefaults.colors(
-                                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                    checkedTrackColor = RetroPrimary
+                                    checkedThumbColor = Color.Black,
+                                    checkedTrackColor = Color.White
                                 )
                             )
                         }

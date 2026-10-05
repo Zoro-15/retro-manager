@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.retropack.manager.ui.theme.RetroDarkOutline
+import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
 import com.retropack.manager.ui.theme.RetroDarkSurfaceVariant
 import com.retropack.manager.ui.theme.RetroPrimary
 
@@ -47,44 +50,45 @@ fun ActionTile(
     Surface(
         onClick = onClick,
         interactionSource = pressSource,
-        shape = RoundedCornerShape(18.dp),
-        color = if (selected) RetroPrimary.copy(alpha = 0.12f) else RetroDarkSurfaceVariant.copy(alpha = 0.5f),
+        shape = RoundedCornerShape(20.dp),
+        color = if (selected) RetroDarkSurfaceElevated else RetroDarkSurfaceVariant.copy(alpha = 0.6f),
         border = if (selected) {
-            BorderStroke(1.5.dp, RetroPrimary.copy(alpha = 0.8f))
+            BorderStroke(1.5.dp, Color.White)
         } else {
-            BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.3f))
+            BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.45f))
         },
         modifier = modifier
             .fillMaxWidth()
+            .defaultMinSize(minHeight = 88.dp)
             .then(pressModifier)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
                 if (icon != null) {
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .size(56.dp)
                             .background(
-                                if (selected) RetroPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
-                                RoundedCornerShape(10.dp)
+                                if (selected) Color.White.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f),
+                                RoundedCornerShape(14.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = if (selected) RetroPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
+                            tint = if (selected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }
@@ -92,14 +96,15 @@ fun ActionTile(
                 Column {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
-                        color = if (selected) RetroPrimary else MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface
                     )
                     if (!subtitle.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(3.dp))
                         Text(
                             text = subtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -109,15 +114,15 @@ fun ActionTile(
                 Box(
                     modifier = Modifier
                         .background(
-                            if (selected) RetroPrimary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            if (selected) Color.White else RetroDarkOutline.copy(alpha = 0.4f),
                             RoundedCornerShape(8.dp)
                         )
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                 ) {
                     Text(
                         text = badgeText,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (selected) RetroPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = if (selected) Color.Black else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -142,39 +147,40 @@ fun FileSelectorCard(
     Surface(
         onClick = onSelect,
         interactionSource = pressSource,
-        shape = RoundedCornerShape(18.dp),
-        color = RetroDarkSurfaceVariant.copy(alpha = 0.5f),
-        border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.35f)),
+        shape = RoundedCornerShape(20.dp),
+        color = RetroDarkSurfaceVariant.copy(alpha = 0.6f),
+        border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.45f)),
         modifier = modifier
             .fillMaxWidth()
+            .defaultMinSize(minHeight = 88.dp)
             .then(pressModifier)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 18.dp, vertical = 14.dp),
+                .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(56.dp)
                         .background(
-                            if (fileName != null) RetroPrimary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
-                            RoundedCornerShape(10.dp)
+                            if (fileName != null) Color.White.copy(alpha = 0.12f) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f),
+                            RoundedCornerShape(14.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (fileName != null) RetroPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.size(22.dp)
+                        tint = if (fileName != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
@@ -185,30 +191,33 @@ fun FileSelectorCard(
                     ) {
                         Text(
                             text = label,
-                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = RetroPrimary
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = Color.White
                         )
                         if (badge != null) {
                             Box(
                                 modifier = Modifier
-                                    .background(RetroPrimary.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    .background(Color.White.copy(alpha = 0.15f), RoundedCornerShape(6.dp))
+                                    .padding(horizontal = 7.dp, vertical = 3.dp)
                             ) {
                                 Text(
                                     text = badge,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = RetroPrimary
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
                                 )
                             }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = fileName ?: placeholder,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (fileName != null) FontWeight.Medium else FontWeight.Normal
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontWeight = if (fileName != null) FontWeight.SemiBold else FontWeight.Normal
                         ),
                         color = if (fileName != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         maxLines = 1,
@@ -216,10 +225,11 @@ fun FileSelectorCard(
                     )
 
                     if (fileSizeFormatted != null && fileName != null) {
+                        Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = fileSizeFormatted,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -228,8 +238,8 @@ fun FileSelectorCard(
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                modifier = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(24.dp)
             )
         }
     }

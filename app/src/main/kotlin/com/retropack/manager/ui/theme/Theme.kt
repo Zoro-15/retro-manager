@@ -17,15 +17,15 @@ import androidx.core.view.WindowCompat
 
 private val RetroDarkColorScheme = darkColorScheme(
     primary = RetroPrimary,
-    onPrimary = Color.White,
+    onPrimary = Color.Black,
     primaryContainer = RetroPrimaryContainer,
-    onPrimaryContainer = RetroOnPrimaryContainer,
+    onPrimaryContainer = Color.White,
     secondary = RetroSecondary,
     onSecondary = Color.Black,
     secondaryContainer = RetroSecondaryContainer,
-    onSecondaryContainer = RetroOnSecondaryContainer,
+    onSecondaryContainer = Color.White,
     tertiary = RetroTertiary,
-    onTertiary = Color.White,
+    onTertiary = Color.Black,
     tertiaryContainer = RetroTertiaryContainer,
     onTertiaryContainer = Color.White,
     background = RetroDarkBackground,
@@ -33,37 +33,37 @@ private val RetroDarkColorScheme = darkColorScheme(
     surface = RetroDarkSurface,
     onSurface = Color.White,
     surfaceVariant = RetroDarkSurfaceVariant,
-    onSurfaceVariant = Color(0xFF94A3B8),
+    onSurfaceVariant = Color(0xFFA1A1AA),
     outline = RetroDarkOutline,
     outlineVariant = RetroDarkOutlineVariant,
     error = RetroError,
-    onError = Color.White,
+    onError = Color.Black,
     errorContainer = RetroErrorContainer,
-    onErrorContainer = Color(0xFFFCA5A5)
+    onErrorContainer = Color.White
 )
 
 private val RetroLightColorScheme = lightColorScheme(
-    primary = RetroPrimaryDark,
+    primary = Color.Black,
     onPrimary = Color.White,
-    primaryContainer = Color(0xFFE0E7FF),
-    onPrimaryContainer = Color(0xFF1E1F3B),
-    secondary = Color(0xFF0891B2),
+    primaryContainer = Color(0xFFE4E4E7),
+    onPrimaryContainer = Color.Black,
+    secondary = Color(0xFF27272A),
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFCFFAFE),
-    onSecondaryContainer = Color(0xFF083344),
-    surface = Color(0xFFF8FAFC),
-    onSurface = Color(0xFF0F172A),
-    surfaceVariant = Color(0xFFE2E8F0),
-    onSurfaceVariant = Color(0xFF475569),
-    outline = Color(0xFFCBD5E1),
-    background = Color(0xFFF1F5F9),
-    onBackground = Color(0xFF0F172A)
+    secondaryContainer = Color(0xFFF4F4F5),
+    onSecondaryContainer = Color.Black,
+    surface = Color(0xFFFFFFFF),
+    onSurface = Color(0xFF18181B),
+    surfaceVariant = Color(0xFFF4F4F5),
+    onSurfaceVariant = Color(0xFF71717A),
+    outline = Color(0xFFE4E4E7),
+    background = Color(0xFFFAFAFA),
+    onBackground = Color(0xFF18181B)
 )
 
 @Composable
 fun RetroPackTheme(
-    darkTheme: Boolean = true, // Default to rich OLED Dark theme
-    dynamicColor: Boolean = false, // Keep branded retro cyber palette
+    darkTheme: Boolean = true, // Default to pure OLED Deep Black theme
+    dynamicColor: Boolean = false, // Keep high-contrast monochromatic palette
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current

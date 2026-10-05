@@ -283,14 +283,6 @@ class GamepadMapper(
         if (lTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_L
         if (rTrigger > triggerThreshold) newAxisMask = newAxisMask or RetroKey.KEY_R
 
-        // 4. Right Analog Stick (AXIS_Z / AXIS_RZ) -> N64 C-Buttons
-        val rStickX = event.getAxisValue(MotionEvent.AXIS_Z)
-        val rStickY = event.getAxisValue(MotionEvent.AXIS_RZ)
-        if (rStickX < -axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_LEFT
-        if (rStickX > axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_RIGHT
-        if (rStickY < -axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_UP
-        if (rStickY > axisDeadzone) newAxisMask = newAxisMask or RetroKey.KEY_C_DOWN
-
         // If any axis is active, notify controller detected
         if (newAxisMask != RetroKey.NO_KEYS_MASK || filteredX != 0f || filteredY != 0f) {
             onGamepadDetected?.invoke()

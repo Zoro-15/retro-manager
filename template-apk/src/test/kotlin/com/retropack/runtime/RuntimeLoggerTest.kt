@@ -52,7 +52,7 @@ class RuntimeLoggerTest {
 
     @Test
     fun testPublicDownloadDirectoryResolution() {
-        val dir = RuntimeLogger.resolvePublicDownloadLogsDir("pcsx_game")
-        assertTrue(dir.path.replace("\\", "/").contains("logs/pcsx_game"))
+        val dir = RuntimeLogger.resolvePublicDownloadLogsDir("snes_game")
+        assertTrue(dir.path.replace("\\", "/").contains("logs/snes_game"))
     }
 }

@@ -296,28 +296,9 @@ class TouchLayoutTest {
     }
 
     @Test
-    fun `createForPlatform creates authentic PSP layout`() {
-        val layout = TouchLayout.createForPlatform("psp", 1920f, 1080f, turboEnabled = true, comboEnabled = true)
-        assertEquals("psp", layout.platform)
-        val controlIds = layout.controls.map { it.id }.toSet()
-        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
-        assertTrue(controlIds.contains(TouchLayout.ID_A)) // Circle
-        assertTrue(controlIds.contains(TouchLayout.ID_B)) // Cross
-        assertTrue(controlIds.contains(TouchLayout.ID_X)) // Triangle
-        assertTrue(controlIds.contains(TouchLayout.ID_Y)) // Square
-        assertTrue(controlIds.contains(TouchLayout.ID_L))
-        assertTrue(controlIds.contains(TouchLayout.ID_R))
-        assertTrue(controlIds.contains(TouchLayout.ID_START))
-        assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
-        assertTrue(controlIds.contains(TouchLayout.ID_MODE)) // Home
-        assertTrue(controlIds.contains(TouchLayout.ID_TURBO_A))
-        assertTrue(controlIds.contains(TouchLayout.ID_TURBO_B))
-    }
-
-    @Test
-    fun `createForPlatform creates authentic Nintendo DS layout`() {
-        val layout = TouchLayout.createForPlatform("melonds", 1080f, 1920f, turboEnabled = true, comboEnabled = true)
-        assertEquals("nds", layout.platform)
+    fun `createForPlatform creates authentic SNES layout`() {
+        val layout = TouchLayout.createForPlatform("snes", 1920f, 1080f, turboEnabled = true, comboEnabled = true)
+        assertEquals("snes", layout.platform)
         val controlIds = layout.controls.map { it.id }.toSet()
         assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
         assertTrue(controlIds.contains(TouchLayout.ID_A))
@@ -328,7 +309,34 @@ class TouchLayoutTest {
         assertTrue(controlIds.contains(TouchLayout.ID_R))
         assertTrue(controlIds.contains(TouchLayout.ID_START))
         assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
-        assertTrue(controlIds.contains(TouchLayout.ID_COMBO_AB))
+    }
+
+    @Test
+    fun `createForPlatform creates authentic Genesis layout`() {
+        val layout = TouchLayout.createForPlatform("genesis", 1920f, 1080f, turboEnabled = true, comboEnabled = true)
+        assertEquals("genesis", layout.platform)
+        val controlIds = layout.controls.map { it.id }.toSet()
+        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
+        assertTrue(controlIds.contains(TouchLayout.ID_A))
+        assertTrue(controlIds.contains(TouchLayout.ID_B))
+        assertTrue(controlIds.contains(TouchLayout.ID_C))
+        assertTrue(controlIds.contains(TouchLayout.ID_X))
+        assertTrue(controlIds.contains(TouchLayout.ID_Y))
+        assertTrue(controlIds.contains(TouchLayout.ID_Z))
+        assertTrue(controlIds.contains(TouchLayout.ID_START))
+        assertTrue(controlIds.contains(TouchLayout.ID_MODE))
+    }
+
+    @Test
+    fun `createForPlatform creates authentic PC Engine layout`() {
+        val layout = TouchLayout.createForPlatform("pce", 1080f, 1920f, turboEnabled = true, comboEnabled = true)
+        assertEquals("pce", layout.platform)
+        val controlIds = layout.controls.map { it.id }.toSet()
+        assertTrue(controlIds.contains(TouchLayout.ID_DPAD))
+        assertTrue(controlIds.contains(TouchLayout.ID_A)) // I
+        assertTrue(controlIds.contains(TouchLayout.ID_B)) // II
+        assertTrue(controlIds.contains(TouchLayout.ID_START)) // RUN
+        assertTrue(controlIds.contains(TouchLayout.ID_SELECT))
         assertTrue(controlIds.contains(TouchLayout.ID_TURBO_A))
         assertTrue(controlIds.contains(TouchLayout.ID_TURBO_B))
     }

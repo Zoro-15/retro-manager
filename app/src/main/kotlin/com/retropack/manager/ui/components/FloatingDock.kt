@@ -44,8 +44,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -53,11 +54,9 @@ import androidx.compose.ui.unit.sp
 import com.retropack.manager.ui.theme.RetroDarkBackground
 import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
+import com.retropack.manager.ui.theme.RetroDarkSurfaceVariant
 import com.retropack.manager.ui.theme.RetroError
 import com.retropack.manager.ui.theme.RetroPrimary
-import com.retropack.manager.ui.theme.RetroPrimaryDark
-import com.retropack.manager.ui.theme.RetroPrimaryLight
-import com.retropack.manager.ui.theme.RetroSecondary
 import com.retropack.manager.ui.theme.RetroSuccess
 
 @Composable
@@ -73,12 +72,13 @@ fun FloatingDock(
     onOpenLogs: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val haptic = LocalHapticFeedback.current
     val (pressSource, pressModifier) = rememberPressScale()
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val glowAlpha by infiniteTransition.animateFloat(
         initialValue = 0.4f,
-        targetValue = 0.9f,
+        targetValue = 0.95f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -90,20 +90,20 @@ fun FloatingDock(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        shape = RoundedCornerShape(26.dp),
-        color = RetroDarkSurfaceElevated.copy(alpha = 0.88f),
+        shape = RoundedCornerShape(30.dp),
+        color = RetroDarkSurfaceElevated.copy(alpha = 0.95f),
         border = BorderStroke(
             1.5.dp,
-            if (isBuilding) RetroPrimary.copy(alpha = glowAlpha)
-            else if (isComplete && isSuccess) RetroSuccess.copy(alpha = 0.6f)
-            else RetroDarkOutline.copy(alpha = 0.45f)
+            if (isBuilding) Color.White.copy(alpha = glowAlpha)
+            else if (isComplete && isSuccess) Color.White
+            else RetroDarkOutline.copy(alpha = 0.6f)
         ),
-        shadowElevation = 12.dp
+        shadowElevation = 16.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(16.dp)
         ) {
             // Active Building Progress Header
             AnimatedVisibility(
@@ -114,7 +114,7 @@ fun FloatingDock(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .padding(bottom = 14.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -126,23 +126,23 @@ fun FloatingDock(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                color = RetroPrimary,
-                                strokeWidth = 2.dp
+                                modifier = Modifier.size(16.dp),
+                                color = Color.White,
+                                strokeWidth = 2.5.dp
                             )
                             Text(
                                 text = "TRANSFORMING APK",
-                                style = MaterialTheme.typography.labelSmall.copy(
+                                style = MaterialTheme.typography.labelMedium.copy(
                                     fontWeight = FontWeight.ExtraBold,
                                     letterSpacing = 1.2.sp
                                 ),
-                                color = RetroPrimary
+                                color = Color.White
                             )
                         }
 
                         Text(
                             text = "STAGE $currentStageIndex/$totalStages",
-                            style = MaterialTheme.typography.labelSmall.copy(
+                            style = MaterialTheme.typography.labelMedium.copy(
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Bold
                             ),
@@ -150,23 +150,23 @@ fun FloatingDock(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     LinearProgressIndicator(
                         progress = { currentStageIndex.toFloat() / totalStages.toFloat() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(4.dp)
+                            .height(6.dp)
                             .clip(CircleShape),
-                        color = RetroPrimary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        color = Color.White,
+                        trackColor = RetroDarkSurfaceVariant
                     )
 
                     if (!currentStageName.isNullOrBlank()) {
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = currentStageName,
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
@@ -174,84 +174,93 @@ fun FloatingDock(
                 }
             }
 
-            // Main Action Row
+            // Main Action Row (Scaled 76dp Height Dock Action)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Primary CTA Button
+                // Primary CTA Button (High-Contrast Monochrome with Bold Typography)
                 Button(
-                    onClick = onStartBuild,
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onStartBuild()
+                    },
                     enabled = canBuild && !isBuilding,
                     interactionSource = pressSource,
                     modifier = Modifier
                         .weight(1f)
-                        .height(54.dp)
+                        .height(76.dp)
                         .then(pressModifier),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(22.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isComplete && isSuccess) RetroSuccess else RetroPrimary,
-                        contentColor = Color.White,
-                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        containerColor = if (isComplete && isSuccess) Color.White else Color.White,
+                        contentColor = Color.Black,
+                        disabledContainerColor = RetroDarkSurfaceVariant.copy(alpha = 0.6f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                     )
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         if (isBuilding) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = Color.White,
-                                strokeWidth = 2.5.dp
+                                modifier = Modifier.size(24.dp),
+                                color = Color.Black,
+                                strokeWidth = 3.dp
                             )
                             Text(
                                 text = "Packaging Standalone APK...",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
                             )
                         } else if (isComplete && isSuccess) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                             Text(
-                                text = "Build Complete (Tap to Rebuild)",
-                                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold)
+                                text = "BUILD COMPLETE (REBUILD)",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.8.sp
+                                )
                             )
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Bolt,
                                 contentDescription = null,
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                             Text(
                                 text = "PACKAGE STANDALONE APK",
-                                style = MaterialTheme.typography.titleSmall.copy(
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 0.5.sp
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    letterSpacing = 0.8.sp
                                 )
                             )
                         }
                     }
                 }
 
-                // Terminal Logs Toggle Button
+                // Terminal Logs Toggle Button (Scaled 76dp)
                 Surface(
-                    onClick = onOpenLogs,
-                    shape = RoundedCornerShape(18.dp),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onOpenLogs()
+                    },
+                    shape = RoundedCornerShape(22.dp),
                     color = RetroDarkBackground,
-                    border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.4f)),
-                    modifier = Modifier.size(54.dp)
+                    border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.5f)),
+                    modifier = Modifier.size(76.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Default.Terminal,
                             contentDescription = "View Terminal Logs",
-                            tint = if (isBuilding) RetroPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
+                            tint = if (isBuilding) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(28.dp)
                         )
                     }
                 }

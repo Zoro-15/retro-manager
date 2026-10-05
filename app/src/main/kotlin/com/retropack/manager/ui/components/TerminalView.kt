@@ -1,6 +1,7 @@
 package com.retropack.manager.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,12 +25,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroTerminalBg
 import com.retropack.manager.ui.theme.RetroTerminalCommand
 import com.retropack.manager.ui.theme.RetroTerminalError
 import com.retropack.manager.ui.theme.RetroTerminalStage
 import com.retropack.manager.ui.theme.RetroTerminalSuccess
 import com.retropack.manager.ui.theme.RetroTerminalText
+import com.retropack.manager.ui.theme.RetroTerminalTextMuted
+import com.retropack.manager.ui.theme.RetroTerminalTimestamp
 import com.retropack.manager.ui.theme.RetroTerminalWarning
 
 @Composable
@@ -41,40 +45,51 @@ fun TerminalView(
     if (logs.isBlank()) return
 
     val scrollState = rememberScrollState()
+    val timestampRegex = Regex("^(\\[[0-9]{2}:[0-9]{2}(?::[0-9]{2})?\\]|\\b[0-9]{2}:[0-9]{2}:[0-9]{2}\\b)\\s*")
 
     val annotatedText = buildAnnotatedString {
         val lines = logs.split('\n')
         lines.forEachIndexed { index, line ->
-            val trimmed = line.trim()
+            val match = timestampRegex.find(line)
+            val lineWithoutTimestamp = if (match != null) line.substring(match.range.last + 1) else line
+
+            // Render timestamp in #71717A tag style if present
+            if (match != null) {
+                withStyle(SpanStyle(color = RetroTerminalTimestamp, fontWeight = FontWeight.Normal)) {
+                    append(match.value)
+                }
+            }
+
+            val trimmed = lineWithoutTimestamp.trim()
             when {
                 trimmed.startsWith("$") -> {
                     withStyle(SpanStyle(color = RetroTerminalCommand, fontWeight = FontWeight.Bold)) {
-                        append(line)
+                        append(lineWithoutTimestamp)
                     }
                 }
                 trimmed.startsWith("[✓]") || trimmed.contains("SUCCESS") || trimmed.contains("PASSED") -> {
-                    withStyle(SpanStyle(color = RetroTerminalSuccess, fontWeight = FontWeight.SemiBold)) {
-                        append(line)
+                    withStyle(SpanStyle(color = RetroTerminalSuccess, fontWeight = FontWeight.Bold)) {
+                        append(lineWithoutTimestamp)
                     }
                 }
                 trimmed.startsWith("[✗]") || trimmed.contains("FAILED") || trimmed.contains("ERROR") -> {
-                    withStyle(SpanStyle(color = RetroTerminalError, fontWeight = FontWeight.Bold)) {
-                        append(line)
+                    withStyle(SpanStyle(color = RetroTerminalError, fontWeight = FontWeight.ExtraBold)) {
+                        append(lineWithoutTimestamp)
                     }
                 }
                 trimmed.startsWith("--> Stage") || trimmed.startsWith("[STAGE") -> {
                     withStyle(SpanStyle(color = RetroTerminalStage, fontWeight = FontWeight.Bold)) {
-                        append(line)
+                        append(lineWithoutTimestamp)
                     }
                 }
                 trimmed.startsWith("[!]") || trimmed.contains("WARN") -> {
                     withStyle(SpanStyle(color = RetroTerminalWarning, fontWeight = FontWeight.Medium)) {
-                        append(line)
+                        append(lineWithoutTimestamp)
                     }
                 }
                 else -> {
-                    withStyle(SpanStyle(color = RetroTerminalText)) {
-                        append(line)
+                    withStyle(SpanStyle(color = RetroTerminalTextMuted)) {
+                        append(lineWithoutTimestamp)
                     }
                 }
             }
@@ -93,9 +108,10 @@ fun TerminalView(
         modifier = modifier
             .fillMaxWidth()
             .then(if (fillHeight) Modifier.fillMaxHeight() else Modifier.heightIn(max = 420.dp))
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(RetroTerminalBg)
-            .padding(14.dp)
+            .border(1.dp, RetroDarkOutline.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
         SelectionContainer {

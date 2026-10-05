@@ -29,9 +29,9 @@ import com.retropack.manager.ui.theme.RetroDarkSurfaceVariant
 @Composable
 fun RetroCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(20.dp),
+    shape: Shape = RoundedCornerShape(24.dp),
     containerColor: Color = RetroDarkSurfaceVariant.copy(alpha = 0.6f),
-    borderColor: Color = RetroDarkOutline.copy(alpha = 0.35f),
+    borderColor: Color = RetroDarkOutline.copy(alpha = 0.5f),
     borderWidth: Dp = 1.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {

@@ -4,7 +4,9 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,14 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,23 +40,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.retropack.domain.model.RomIdentity
-import com.retropack.manager.ui.theme.PlatformArcade
-import com.retropack.manager.ui.theme.PlatformGameBoy
-import com.retropack.manager.ui.theme.PlatformGameBoyAdvance
-import com.retropack.manager.ui.theme.PlatformGameBoyColor
-import com.retropack.manager.ui.theme.PlatformGenesis
-import com.retropack.manager.ui.theme.PlatformN64
-import com.retropack.manager.ui.theme.PlatformNds
-import com.retropack.manager.ui.theme.PlatformNes
-import com.retropack.manager.ui.theme.PlatformPce
-import com.retropack.manager.ui.theme.PlatformPsp
-import com.retropack.manager.ui.theme.PlatformPsx
-import com.retropack.manager.ui.theme.PlatformSnes
 import com.retropack.manager.ui.theme.RetroDarkOutline
 import com.retropack.manager.ui.theme.RetroDarkSurfaceElevated
-import com.retropack.manager.ui.theme.RetroError
+import com.retropack.manager.ui.theme.RetroDarkSurfaceVariant
 import com.retropack.manager.ui.theme.RetroPrimary
-import com.retropack.manager.ui.theme.RetroSuccess
 import com.retropack.manager.util.UriUtils
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -66,23 +53,6 @@ fun RomInspectionCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-
-    val platformColor = when (identity.platform.lowercase()) {
-        "gba" -> PlatformGameBoyAdvance
-        "gbc" -> PlatformGameBoyColor
-        "gb" -> PlatformGameBoy
-        "snes", "sfc", "smc" -> PlatformSnes
-        "genesis", "md", "smd", "gen" -> PlatformGenesis
-        "sms", "gg" -> PlatformGenesis
-        "nes", "fds", "unf" -> PlatformNes
-        "pce", "tg16", "sgx" -> PlatformPce
-        "arcade", "neogeo", "cps1", "cps2", "cps3", "fbneo" -> PlatformArcade
-        "psx", "ps1", "ps" -> PlatformPsx
-        "n64", "z64", "v64" -> PlatformN64
-        "psp" -> PlatformPsp
-        "nds", "dsi" -> PlatformNds
-        else -> PlatformGameBoy
-    }
 
     val platformLabel = when (identity.platform.lowercase()) {
         "gba" -> "GAME BOY ADVANCE"
@@ -105,10 +75,10 @@ fun RomInspectionCard(
     RetroCard(
         modifier = modifier,
         containerColor = RetroDarkSurfaceElevated.copy(alpha = 0.7f),
-        borderColor = platformColor.copy(alpha = 0.4f)
+        borderColor = RetroDarkOutline.copy(alpha = 0.5f)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Platform Badge + Verification Status
+        Column(modifier = Modifier.padding(20.dp)) {
+            // Header: Enlarge Platform Badge + Verification Status
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -116,43 +86,44 @@ fun RomInspectionCard(
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(platformColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                            .background(Color.White, RoundedCornerShape(10.dp))
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
                     ) {
                         Text(
                             text = platformLabel,
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                fontWeight = FontWeight.ExtraBold,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Black,
                                 letterSpacing = 1.2.sp
                             ),
-                            color = platformColor
+                            color = Color.Black
                         )
                     }
 
                     if (identity.hasBattery) {
                         Box(
                             modifier = Modifier
-                                .background(RetroSuccess.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .background(RetroDarkSurfaceVariant, RoundedCornerShape(10.dp))
+                                .border(BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.6f)), RoundedCornerShape(10.dp))
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
                         ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(5.dp)
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Save,
                                     contentDescription = null,
-                                    tint = RetroSuccess,
-                                    modifier = Modifier.size(12.dp)
+                                    tint = Color.White,
+                                    modifier = Modifier.size(14.dp)
                                 )
                                 Text(
                                     text = "BATTERY SRAM",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = RetroSuccess
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = Color.White
                                 )
                             }
                         }
@@ -163,37 +134,40 @@ fun RomInspectionCard(
                 val isFullyValid = identity.headerChecksumValid && identity.logoOrFixedValid
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         imageVector = if (isFullyValid) Icons.Default.CheckCircle else Icons.Default.Error,
                         contentDescription = null,
-                        tint = if (isFullyValid) RetroSuccess else RetroError,
-                        modifier = Modifier.size(16.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(18.dp)
                     )
                     Text(
                         text = if (isFullyValid) "VERIFIED" else "HEADER ISSUE",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isFullyValid) RetroSuccess else RetroError
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                        color = Color.White
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Game Title & Details
             Text(
                 text = identity.gameTitle,
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                color = MaterialTheme.colorScheme.onSurface
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    letterSpacing = (-0.3).sp
+                ),
+                color = Color.White
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Metadata Row: Game Code / Maker / Version / Size
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val gameCode = identity.gameCode
                 if (!gameCode.isNullOrBlank()) {
@@ -211,23 +185,23 @@ fun RomInspectionCard(
                 MetadataChip(label = "SIZE", value = UriUtils.formatFileSize(identity.fileSize))
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = RetroDarkOutline.copy(alpha = 0.3f))
-            Spacer(modifier = Modifier.height(12.dp))
 
-            // Checksums Section
+            // Expanded Checksums Section
             Text(
                 text = "CRYPTOGRAPHIC CHECKSUMS",
-                style = MaterialTheme.typography.labelSmall.copy(
+                style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.2.sp
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ChecksumRow(label = "SHA-256", hash = identity.checksums.sha256, onCopy = { copyToClipboard(context, "SHA-256", identity.checksums.sha256) })
                 ChecksumRow(label = "SHA-1", hash = identity.checksums.sha1, onCopy = { copyToClipboard(context, "SHA-1", identity.checksums.sha1) })
                 ChecksumRow(label = "CRC-32", hash = identity.checksums.crc32, onCopy = { copyToClipboard(context, "CRC-32", identity.checksums.crc32) })
@@ -242,18 +216,19 @@ fun MetadataChip(
     value: String
 ) {
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+        shape = RoundedCornerShape(8.dp),
+        color = RetroDarkSurfaceVariant,
+        border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.4f))
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 9.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -261,11 +236,11 @@ fun MetadataChip(
             Text(
                 text = value,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontSize = 11.sp,
+                    fontSize = 12.sp,
                     fontFamily = FontFamily.Monospace,
                     fontWeight = FontWeight.SemiBold
                 ),
-                color = MaterialTheme.colorScheme.onSurface
+                color = Color.White
             )
         }
     }
@@ -279,38 +254,38 @@ fun ChecksumRow(
 ) {
     Surface(
         onClick = onCopy,
-        shape = RoundedCornerShape(8.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+        shape = RoundedCornerShape(12.dp),
+        color = RetroDarkSurfaceVariant.copy(alpha = 0.8f),
+        border = BorderStroke(1.dp, RetroDarkOutline.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 6.dp),
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
                 modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = 10.sp,
+                    style = MaterialTheme.typography.labelMedium.copy(
                         fontWeight = FontWeight.Bold,
-                        color = RetroPrimary
+                        color = Color.White
                     ),
-                    modifier = Modifier.width(54.dp)
+                    modifier = Modifier.width(64.dp)
                 )
                 Text(
                     text = hash,
-                    style = MaterialTheme.typography.labelSmall.copy(
+                    style = MaterialTheme.typography.bodySmall.copy(
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Normal
                     ),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.85f),
+                    color = Color(0xFFE4E4E7),
                     maxLines = 1
                 )
             }
@@ -318,8 +293,8 @@ fun ChecksumRow(
             Icon(
                 imageVector = Icons.Default.ContentCopy,
                 contentDescription = "Copy $label",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(14.dp)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp)
             )
         }
     }

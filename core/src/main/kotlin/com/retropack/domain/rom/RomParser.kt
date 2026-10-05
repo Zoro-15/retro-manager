@@ -6,14 +6,11 @@ import java.io.File
 /**
  * Unified multi-platform ROM inspection facade.
  *
- * Automatically identifies platforms across Tier 1 and Tier 2 retro cores:
+ * Automatically identifies platforms across the Golden 5 2D retro cores:
  * - GBA / GBC / GB (mGBA)
  * - SNES / Super Famicom (Snes9x)
  * - Sega Genesis / Mega Drive / Master System / Game Gear (Genesis Plus GX)
  * - NES / Famicom (FCEUmm)
- * - PlayStation 1 (PCSX ReARMed)
- * - Nintendo 64 (Mupen64Plus-Next)
- * - Nintendo DS (melonDS)
  * - PC Engine / TG-16 (Beetle PCE Fast)
  */
 object RomParser {
@@ -168,64 +165,7 @@ object RomParser {
             }
         }
 
-        // 6. Attempt Nintendo 64 (N64) detection
-        if (N64RomParser.isN64Rom(headerBytes)) {
-            val n64Header = runCatching { N64RomParser.parse(headerBytes) }.getOrNull()
-            if (n64Header != null) {
-                return RomIdentity(
-                    platform = "n64",
-                    gameTitle = n64Header.title,
-                    gameCode = n64Header.gameCode,
-                    softwareVersion = n64Header.version,
-                    fileSize = fileSize,
-                    checksums = checksumResult.checksums,
-                    headerChecksumValid = true,
-                    logoOrFixedValid = true,
-                    hasBattery = true,
-                    n64Header = n64Header
-                )
-            }
-        }
-
-        // 7. Attempt Nintendo DS (NDS) detection
-        if (NdsRomParser.isNdsRom(headerBytes, fileName)) {
-            val ndsHeader = runCatching { NdsRomParser.parse(headerBytes, fileName) }.getOrNull()
-            if (ndsHeader != null) {
-                return RomIdentity(
-                    platform = "nds",
-                    gameTitle = ndsHeader.title,
-                    gameCode = ndsHeader.gameCode,
-                    makerCode = ndsHeader.makerCode,
-                    softwareVersion = ndsHeader.version,
-                    fileSize = fileSize,
-                    checksums = checksumResult.checksums,
-                    headerChecksumValid = true,
-                    logoOrFixedValid = true,
-                    hasBattery = true,
-                    ndsHeader = ndsHeader
-                )
-            }
-        }
-
-        // 8. Attempt PlayStation 1 (PS1) detection
-        if (PsxRomParser.isPsxRom(headerBytes)) {
-            val psxHeader = runCatching { PsxRomParser.parse(headerBytes) }.getOrNull()
-            if (psxHeader != null) {
-                return RomIdentity(
-                    platform = "psx",
-                    gameTitle = psxHeader.title,
-                    gameCode = psxHeader.discId,
-                    fileSize = fileSize,
-                    checksums = checksumResult.checksums,
-                    headerChecksumValid = true,
-                    logoOrFixedValid = true,
-                    hasBattery = true,
-                    psxHeader = psxHeader
-                )
-            }
-        }
-
-        // 9. Attempt PC Engine (PCE) detection
+        // 6. Attempt PC Engine (PCE) detection
         if (PceRomParser.isPceRom(headerBytes, fileName)) {
             val pceHeader = runCatching { PceRomParser.parse(headerBytes, fileName) }.getOrNull()
             if (pceHeader != null) {
@@ -242,9 +182,33 @@ object RomParser {
             }
         }
 
-        // 10. Extension-based fallback for unheadered homebrews, disc images, and arcade archives
+        // 7. Check for unsupported 3D / complex formats and reject with an informative explanation
+        if (isN64Magic(headerBytes)) {
+            throw InvalidRomException("Nintendo 64 ROMs (.z64, .n64, .v64) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+        }
+        if (isNdsHeader(headerBytes, fileName)) {
+            throw InvalidRomException("Nintendo DS ROMs (.nds) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+        }
+        if (isPsxHeader(headerBytes, fileName)) {
+            throw InvalidRomException("PlayStation disc images are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+        }
+
+        // 8. Extension-based fallback for unheadered homebrews
         if (!fileName.isNullOrBlank()) {
             val ext = fileName.substringAfterLast('.', "").lowercase()
+            if (ext in setOf("n64", "z64", "v64", "u64", "ndd")) {
+                throw InvalidRomException("Nintendo 64 ROMs (.${ext}) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+            }
+            if (ext in setOf("nds", "srl", "dsi", "ids")) {
+                throw InvalidRomException("Nintendo DS ROMs (.${ext}) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+            }
+            if (ext in setOf("cso", "prx", "elf", "pbp", "cue", "chd", "iso", "img", "mdf", "ecm")) {
+                throw InvalidRomException("PlayStation / PSP disc images (.${ext}) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+            }
+            if (ext in setOf("neo")) {
+                throw InvalidRomException("Arcade ROMs (.${ext}) are not supported. RetroPack is dedicated exclusively to lightweight 2D retro consoles (GBA/GBC/GB, SNES, Genesis/SMS/GG, NES, and PC Engine).")
+            }
+
             val fallbackPlatform = when (ext) {
                 // Game Boy / Color / Advance
                 "gba", "agb" -> "gba"
@@ -259,19 +223,8 @@ object RomParser {
                 "sms" -> "sms"
                 "gg" -> "gg"
                 "sg", "sc" -> "genesis"
-                // PC Engine / TG-16 / SuperGrafx / PCE-CD
-                "pce", "tg16", "sgx", "ccd", "toc" -> "pce"
-                // Nintendo 64
-                "n64", "z64", "v64", "u64", "ndd" -> "n64"
-                // Nintendo DS / DSi
-                "nds", "srl", "dsi", "ids" -> "nds"
-                // PlayStation Portable / PS1 / Disc Images
-                "cso", "prx", "elf" -> "psp"
-                "pbp" -> "psp"
-                "cue", "chd", "img", "mdf", "ecm" -> "psx"
-                "iso" -> "psp"
-                // Arcade / Neo Geo
-                "neo", "zip" -> "arcade"
+                // PC Engine / TG-16 / SuperGrafx
+                "pce", "tg16", "sgx" -> "pce"
                 "bin" -> "genesis"
                 else -> null
             }
@@ -336,9 +289,49 @@ object RomParser {
      */
     fun isCdRomPlatform(platform: String): Boolean {
         return when (platform.lowercase().trim().removePrefix(".")) {
-            "psx", "ps1", "ps", "pce", "tg16", "pcecd", "psp", "segacd" -> true
+            "pce", "tg16", "pcecd", "segacd" -> true
             else -> false
         }
+    }
+
+    private fun isN64Magic(bytes: ByteArray): Boolean {
+        if (bytes.size < 4) return false
+        val z64 = bytes[0] == 0x80.toByte() && bytes[1] == 0x37.toByte() && bytes[2] == 0x12.toByte() && bytes[3] == 0x40.toByte()
+        val v64 = bytes[0] == 0x37.toByte() && bytes[1] == 0x80.toByte() && bytes[2] == 0x40.toByte() && bytes[3] == 0x12.toByte()
+        val n64 = bytes[0] == 0x40.toByte() && bytes[1] == 0x12.toByte() && bytes[2] == 0x37.toByte() && bytes[3] == 0x80.toByte()
+        return z64 || v64 || n64
+    }
+
+    private fun isNdsHeader(bytes: ByteArray, fileName: String?): Boolean {
+        if (!fileName.isNullOrBlank()) {
+            val ext = fileName.substringAfterLast('.', "").lowercase()
+            if (ext in setOf("nds", "srl", "dsi", "ids")) return true
+        }
+        if (bytes.size < 0x200) return false
+        val arm9Offset = (bytes[0x20].toLong() and 0xFF) or
+            ((bytes[0x21].toLong() and 0xFF) shl 8) or
+            ((bytes[0x22].toLong() and 0xFF) shl 16) or
+            ((bytes[0x23].toLong() and 0xFF) shl 24)
+        val arm7Offset = (bytes[0x28].toLong() and 0xFF) or
+            ((bytes[0x29].toLong() and 0xFF) shl 8) or
+            ((bytes[0x2A].toLong() and 0xFF) shl 16) or
+            ((bytes[0x2B].toLong() and 0xFF) shl 24)
+        return arm9Offset in 0x200..0x2000000 && arm7Offset in 0x200..0x2000000
+    }
+
+    private fun isPsxHeader(bytes: ByteArray, fileName: String?): Boolean {
+        if (!fileName.isNullOrBlank()) {
+            val ext = fileName.substringAfterLast('.', "").lowercase()
+            if (ext in setOf("cue", "chd", "pbp", "cso")) return true
+        }
+        if (bytes.size >= 8) {
+            val magic8 = bytes.copyOfRange(0, 8).toString(Charsets.US_ASCII)
+            if (magic8 == "PS-X EXE" || magic8 == "MComprHD") return true
+        }
+        if (bytes.size >= 4 && bytes[0] == 0.toByte() && bytes[1] == 'P'.code.toByte() && bytes[2] == 'B'.code.toByte() && bytes[3] == 'P'.code.toByte()) {
+            return true
+        }
+        return false
     }
 }
 

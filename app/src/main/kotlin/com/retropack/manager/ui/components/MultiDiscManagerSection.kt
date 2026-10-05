@@ -85,7 +85,7 @@ fun MultiDiscManagerSection(
                         modifier = Modifier
                             .size(36.dp)
                             .background(
-                                Brush.linearGradient(listOf(RetroPrimary, Color(0xFF06B6D4))),
+                                Color.White.copy(alpha = 0.15f),
                                 RoundedCornerShape(10.dp)
                             ),
                         contentAlignment = Alignment.Center

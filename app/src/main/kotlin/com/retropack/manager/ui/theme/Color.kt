@@ -2,55 +2,59 @@ package com.retropack.manager.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Deep OLED Dark Palette
-val RetroDarkBackground = Color(0xFF090A0F)
-val RetroDarkSurface = Color(0xFF10131B)
-val RetroDarkSurfaceVariant = Color(0xFF171B26)
-val RetroDarkSurfaceElevated = Color(0xFF1E2433)
-val RetroDarkOutline = Color(0xFF2C3345)
-val RetroDarkOutlineVariant = Color(0xFF1C2230)
+// Pure OLED Deep Black & Monochromatic Charcoal / Zinc Palette
+val RetroDarkBackground = Color(0xFF000000)
+val RetroDarkBackgroundSubtle = Color(0xFF09090B)
+val RetroDarkSurface = Color(0xFF121214)
+val RetroDarkSurfaceVariant = Color(0xFF18181B)
+val RetroDarkSurfaceElevated = Color(0xFF27272A)
+val RetroDarkOutline = Color(0xFF3F3F46)
+val RetroDarkOutlineVariant = Color(0xFF52525B)
 
-// Vibrant Retro Neon & Cyber Accents
-val RetroPrimary = Color(0xFF6366F1) // Electric Indigo
-val RetroPrimaryDark = Color(0xFF4F46E5)
-val RetroPrimaryLight = Color(0xFF818CF8)
-val RetroPrimaryContainer = Color(0xFF1E1F3B)
-val RetroOnPrimaryContainer = Color(0xFFE0E7FF)
+// Monochromatic High-Contrast Crisp Pure White & Zinc Accents
+val RetroPrimary = Color(0xFFFFFFFF) // Crisp Pure White
+val RetroPrimaryDark = Color(0xFFE4E4E7)
+val RetroPrimaryLight = Color(0xFFFFFFFF)
+val RetroPrimaryContainer = Color(0xFF27272A)
+val RetroOnPrimaryContainer = Color(0xFFFFFFFF)
 
-val RetroSecondary = Color(0xFF06B6D4) // Cyber Teal
-val RetroSecondaryContainer = Color(0xFF0B2E3D)
-val RetroOnSecondaryContainer = Color(0xFFCFFAFE)
+// Secondary & Muted Elements (Greyish White)
+val RetroSecondary = Color(0xFFE4E4E7)
+val RetroSecondaryContainer = Color(0xFF18181B)
+val RetroOnSecondaryContainer = Color(0xFFFFFFFF)
 
-val RetroTertiary = Color(0xFFA855F7) // Neon Violet
-val RetroTertiaryContainer = Color(0xFF2E174D)
+val RetroTertiary = Color(0xFFA1A1AA)
+val RetroTertiaryContainer = Color(0xFF27272A)
 
-// Status & Platform Specific Colors
-val RetroSuccess = Color(0xFF10B981) // Emerald Green
-val RetroSuccessContainer = Color(0xFF063321)
-val RetroWarning = Color(0xFFF59E0B) // Amber
-val RetroWarningContainer = Color(0xFF382306)
-val RetroError = Color(0xFFEF4444) // Coral Red
-val RetroErrorContainer = Color(0xFF3A0D0D)
+// Status Elements (Monochromatic High Contrast & Crisp Greyish White)
+val RetroSuccess = Color(0xFFFFFFFF)
+val RetroSuccessContainer = Color(0xFF27272A)
+val RetroWarning = Color(0xFFE4E4E7)
+val RetroWarningContainer = Color(0xFF27272A)
+val RetroError = Color(0xFFFFFFFF)
+val RetroErrorContainer = Color(0xFF27272A)
 
-// Monospace & Terminal Specific Colors
-val RetroTerminalBg = Color(0xFF07080B)
-val RetroTerminalText = Color(0xFFE2E8F0)
-val RetroTerminalCommand = Color(0xFF38BDF8)
-val RetroTerminalSuccess = Color(0xFF34D399)
-val RetroTerminalWarning = Color(0xFFFBBF24)
-val RetroTerminalError = Color(0xFFF87171)
-val RetroTerminalStage = Color(0xFFA78BFA)
+// Monochromatic Phosphor Terminal Console
+val RetroTerminalBg = Color(0xFF000000)
+val RetroTerminalText = Color(0xFFFFFFFF)
+val RetroTerminalTextMuted = Color(0xFFE4E4E7)
+val RetroTerminalTimestamp = Color(0xFF71717A)
+val RetroTerminalCommand = Color(0xFFFFFFFF)
+val RetroTerminalSuccess = Color(0xFFFFFFFF)
+val RetroTerminalWarning = Color(0xFFE4E4E7)
+val RetroTerminalError = Color(0xFFFFFFFF)
+val RetroTerminalStage = Color(0xFFE4E4E7)
 
-// Platform Branding
-val PlatformGameBoy = Color(0xFF8BAC0F)
-val PlatformGameBoyColor = Color(0xFFEC4899)
-val PlatformGameBoyAdvance = Color(0xFF6366F1)
-val PlatformSnes = Color(0xFF8B5CF6)
-val PlatformGenesis = Color(0xFF0EA5E9)
-val PlatformNes = Color(0xFFEF4444)
-val PlatformPce = Color(0xFFF97316)
-val PlatformArcade = Color(0xFFEAB308)
-val PlatformPsx = Color(0xFF94A3B8)
-val PlatformN64 = Color(0xFF10B981)
-val PlatformPsp = Color(0xFF38BDF8)
-val PlatformNds = Color(0xFFA855F7)
+// Platform Branding (Refined Monochromatic Zinc & Silver Tones)
+val PlatformGameBoy = Color(0xFFE4E4E7)
+val PlatformGameBoyColor = Color(0xFFF4F4F5)
+val PlatformGameBoyAdvance = Color(0xFFFFFFFF)
+val PlatformSnes = Color(0xFFE4E4E7)
+val PlatformGenesis = Color(0xFFD4D4D8)
+val PlatformNes = Color(0xFFFFFFFF)
+val PlatformPce = Color(0xFFE4E4E7)
+val PlatformArcade = Color(0xFFF4F4F5)
+val PlatformPsx = Color(0xFFD4D4D8)
+val PlatformN64 = Color(0xFFFFFFFF)
+val PlatformPsp = Color(0xFFE4E4E7)
+val PlatformNds = Color(0xFFF4F4F5)

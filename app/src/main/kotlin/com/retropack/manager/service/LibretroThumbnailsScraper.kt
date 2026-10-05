@@ -25,15 +25,15 @@ import java.security.MessageDigest
 object LibretroThumbnailsScraper {
 
     private const val CACHE_DIR_NAME = "boxarts"
-    private const val CONNECT_TIMEOUT_MS = 2500
-    private const val READ_TIMEOUT_MS = 2500
+    private const val CONNECT_TIMEOUT_MS = 8000
+    private const val READ_TIMEOUT_MS = 8000
     private const val MAX_IMAGE_SIZE_BYTES = 8 * 1024 * 1024 // 8 MB max
     private const val MAX_CACHE_SIZE_BYTES = 100L * 1024 * 1024 // 100 MB LRU limit
 
     private const val LIBRETRO_CDN_BASE = "https://thumbnails.libretro.com"
 
     /**
-     * Complete 14-Console Architecture System Directory Mapping Table
+     * Golden 5 2D Console Architecture System Directory Mapping Table
      */
     val SYSTEM_DIR_MAP = mapOf(
         "gba" to "Nintendo%20-%20Game%20Boy%20Advance",
@@ -43,8 +43,6 @@ object LibretroThumbnailsScraper {
         "sfc" to "Nintendo%20-%20Super%20Nintendo%20Entertainment%20System",
         "nes" to "Nintendo%20-%20Nintendo%20Entertainment%20System",
         "fds" to "Nintendo%20-%20Family%20Computer%20Disk%20System",
-        "n64" to "Nintendo%20-%20Nintendo%2064",
-        "nds" to "Nintendo%20-%20Nintendo%20DS",
         "genesis" to "Sega%20-%20Mega%20Drive%20-%20Genesis",
         "md" to "Sega%20-%20Mega%20Drive%20-%20Genesis",
         "gen" to "Sega%20-%20Mega%20Drive%20-%20Genesis",
@@ -52,17 +50,81 @@ object LibretroThumbnailsScraper {
         "gg" to "Sega%20-%20Game%20Gear",
         "pce" to "NEC%20-%20PC%20Engine%20-%20TurboGrafx%2016",
         "tg16" to "NEC%20-%20PC%20Engine%20-%20TurboGrafx%2016",
-        "sgx" to "NEC%20-%20PC%20Engine%20SuperGrafx",
-        "psx" to "Sony%20-%20PlayStation",
-        "ps1" to "Sony%20-%20PlayStation",
-        "ps" to "Sony%20-%20PlayStation",
-        "psp" to "Sony%20-%20PlayStation%20Portable",
-        "arcade" to "FBNeo%20-%20Arcade%20Games",
-        "neogeo" to "SNK%20-%20Neo%20Geo",
-        "fbneo" to "FBNeo%20-%20Arcade%20Games"
+        "sgx" to "NEC%20-%20PC%20Engine%20SuperGrafx"
     )
 
     val CATEGORIES = listOf("Named_Boxarts", "Named_Titles", "Named_Snaps")
+
+    private val ROMAN_NUMERALS = setOf("II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV")
+
+    private val KNOWN_GAMING_WORDS = listOf(
+        "CASTLEVANIA", "BANDICOOT", "BOMBERMAN", "DONKEY", "DRAGON", "FANTASY",
+        "FIGHTER", "GOLDEN", "HARVEST", "KAZOOIE", "KOMBAT", "LEGEND",
+        "METROID", "MONSTER", "PACMAN", "POKEMON", "RAIDER", "RESIDENT",
+        "SILENT", "STREET", "TRIGGER", "TURISMO", "TWISTED", "WARRIOR",
+        "ADVANCE", "CONTRA", "CRASH", "EARTH", "FINAL", "KART", "KIRBY",
+        "KONG", "MARIO", "METAL", "NINJA", "RIDGE", "RACER", "SONIC",
+        "SPEED", "SPYRO", "SUPER", "TOOIE", "WARIO", "WORLD", "YOSHI",
+        "ZELDA", "BROS", "CHOP", "EVIL", "FIRE", "FUSION", "GEAR", "HERO",
+        "HILL", "LAND", "MEGA", "MOON", "RUSH", "SOLID", "STAR", "TOMB",
+        "WARS", "WAVE", "WILD", "AUTO", "BALL", "BOMB", "DARK", "DEAD",
+        "DUAL", "EYE", "FOX", "FZERO", "MAN", "RACE", "SOUL", "ZERO", "EMER"
+    ).sortedByDescending { it.length }
+
+    /**
+     * Splits compressed titles like MARIOKART64 -> Mario Kart 64, SUPERMARIO -> Super Mario.
+     */
+    fun splitCompressedTitle(raw: String): String {
+        if (raw.isBlank()) return raw
+
+        // 1. Separate digits and letters (e.g. MARIOKART64 -> MARIOKART 64, 1080SNOW -> 1080 SNOW)
+        var s = raw.replace(Regex("([a-zA-Z])([0-9])"), "$1 $2")
+            .replace(Regex("([0-9])([a-zA-Z])"), "$1 $2")
+
+        // 2. Separate CamelCase (e.g. MarioKart -> Mario Kart)
+        s = s.replace(Regex("([a-z])([A-Z])"), "$1 $2")
+            .replace(Regex("([A-Z]+)([A-Z][a-z])"), "$1 $2")
+
+        // 3. Segment all-caps words by known gaming vocabulary
+        val tokens = s.split(Regex("\\s+")).filter { it.isNotBlank() }
+        val segmentedTokens = mutableListOf<String>()
+
+        for (token in tokens) {
+            if (token.all { it.isUpperCase() } && token.length > 5 && !ROMAN_NUMERALS.contains(token)) {
+                val words = segmentAllCapsWord(token)
+                segmentedTokens.addAll(words)
+            } else {
+                segmentedTokens.add(token)
+            }
+        }
+
+        // 4. Convert all-caps tokens to title case (e.g. MARIO -> Mario, preserves roman numerals)
+        return segmentedTokens.joinToString(" ") { word ->
+            if (ROMAN_NUMERALS.contains(word)) {
+                word
+            } else if (word.all { it.isUpperCase() } && word.length > 1) {
+                word.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+            } else {
+                word
+            }
+        }.trim()
+    }
+
+    private fun segmentAllCapsWord(word: String): List<String> {
+        val result = mutableListOf<String>()
+        var remaining = word
+        while (remaining.isNotEmpty()) {
+            val match = KNOWN_GAMING_WORDS.firstOrNull { remaining.startsWith(it) }
+            if (match != null && (remaining.length == match.length || remaining.length - match.length >= 2)) {
+                result.add(match)
+                remaining = remaining.substring(match.length)
+            } else {
+                result.add(remaining)
+                break
+            }
+        }
+        return if (result.isEmpty()) listOf(word) else result
+    }
 
     /**
      * Sanitizes title string according to Libretro repository naming conventions:
@@ -71,7 +133,7 @@ object LibretroThumbnailsScraper {
     fun sanitizeLibretroTitle(raw: String): String {
         var s = raw
         // Strip common extension
-        s = s.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx|n64|z64|v64|nds|srl|dsi|iso|cso|pbp|cue|chd)$", RegexOption.IGNORE_CASE), "")
+        s = s.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx)$", RegexOption.IGNORE_CASE), "")
         // Libretro illegal characters: & * : / < > ? \ | " -> _
         val illegalChars = charArrayOf('&', '*', ':', '/', '<', '>', '?', '\\', '|', '"')
         for (c in illegalChars) {
@@ -99,6 +161,7 @@ object LibretroThumbnailsScraper {
 
     /**
      * Generates prioritized multi-tier resolution candidates.
+     * Prioritizes clean file name first, then smart-tokenized header titles.
      */
     fun generateCandidateTitles(
         gameTitle: String,
@@ -107,24 +170,10 @@ object LibretroThumbnailsScraper {
     ): List<String> {
         val candidates = mutableListOf<String>()
 
-        val baseTitles = mutableListOf<String>()
-        if (rawFileName != null && rawFileName.isNotBlank()) {
-            val stripped = rawFileName.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx|n64|z64|v64|nds|srl|dsi|iso|cso|pbp|cue|chd)$", RegexOption.IGNORE_CASE), "")
-            candidates.add(sanitizeLibretroTitle(stripped))
-            baseTitles.add(stripped.replace(Regex("\\s*\\([^)]*\\)"), "").replace(Regex("\\s*\\[[^\\]]*\\]"), "").trim())
-        }
-
-        if (gameTitle.isNotBlank()) {
-            val cleanHeader = gameTitle.replace(Regex("\\s*\\([^)]*\\)"), "").replace(Regex("\\s*\\[[^\\]]*\\]"), "").trim()
-            baseTitles.add(cleanHeader)
-        }
-
-        for (base in baseTitles) {
-            val cleanBase = sanitizeLibretroTitle(base)
-            if (cleanBase.isBlank()) continue
-
-            // 1. Article reorderings
-            val reordered = normalizeArticleReordering(cleanBase)
+        fun addTierVariants(base: String) {
+            val clean = sanitizeLibretroTitle(base)
+            if (clean.isBlank()) return
+            val reordered = normalizeArticleReordering(clean)
             for (t in reordered) {
                 // Tier 1: Exact region candidates
                 candidates.add("$t ($region)")
@@ -136,6 +185,26 @@ object LibretroThumbnailsScraper {
                 // Tier 2: Clean title only
                 candidates.add(t)
             }
+        }
+
+        // Priority 1: Clean Raw File Name
+        if (rawFileName != null && rawFileName.isNotBlank()) {
+            val stripped = rawFileName.replace(Regex("\\.(gba|gbc|gb|zip|7z|bin|sfc|smc|snes|fig|nes|fds|unf|md|smd|gen|sms|gg|pce|tg16|sgx)$", RegexOption.IGNORE_CASE), "")
+            val cleanStripped = sanitizeLibretroTitle(stripped)
+            // Top priority: literal stripped file name if it already has region / brackets
+            candidates.add(cleanStripped)
+            val baseFileName = stripped.replace(Regex("\\s*\\([^)]*\\)"), "").replace(Regex("\\s*\\[[^\\]]*\\]"), "").trim()
+            addTierVariants(baseFileName)
+        }
+
+        // Priority 2: Smart-tokenized ROM header title (e.g. "MARIOKART64" -> "Mario Kart 64")
+        if (gameTitle.isNotBlank()) {
+            val cleanHeader = gameTitle.replace(Regex("\\s*\\([^)]*\\)"), "").replace(Regex("\\s*\\[[^\\]]*\\]"), "").trim()
+            val tokenized = splitCompressedTitle(cleanHeader)
+            if (tokenized.isNotBlank() && !tokenized.equals(cleanHeader, ignoreCase = false)) {
+                addTierVariants(tokenized)
+            }
+            addTierVariants(cleanHeader)
         }
 
         return candidates.distinct()
@@ -188,7 +257,12 @@ object LibretroThumbnailsScraper {
 
         for (category in CATEGORIES) {
             for (candidate in candidates) {
-                val encodedCandidate = URLEncoder.encode(candidate, "UTF-8").replace("+", "%20")
+                val encodedCandidate = URLEncoder.encode(candidate, "UTF-8")
+                    .replace("+", "%20")
+                    .replace("%28", "(")
+                    .replace("%29", ")")
+                    .replace("%2C", ",")
+                    .replace("%27", "'")
                 val url = "$LIBRETRO_CDN_BASE/$systemDir/$category/$encodedCandidate.png"
                 val bytes = fetcher(url)
                 if (bytes != null && bytes.isNotEmpty()) {

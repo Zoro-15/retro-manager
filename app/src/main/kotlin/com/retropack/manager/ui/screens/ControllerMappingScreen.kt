@@ -139,7 +139,7 @@ fun ControllerMappingScreen(
                     modifier = Modifier
                         .size(44.dp)
                         .background(
-                            Brush.linearGradient(listOf(RetroPrimary, Color(0xFF06B6D4))),
+                            Color.White,
                             RoundedCornerShape(14.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -147,7 +147,7 @@ fun ControllerMappingScreen(
                     Icon(
                         imageVector = Icons.Default.VideogameAsset,
                         contentDescription = null,
-                        tint = Color.White,
+                        tint = Color.Black,
                         modifier = Modifier.size(26.dp)
                     )
                 }

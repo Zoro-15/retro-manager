@@ -917,30 +917,6 @@ static bool retro_environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_VARIABLE: {
             struct retro_variable *var = (struct retro_variable *) data;
             if (var && var->key) {
-                if (strcmp(var->key, "mupen64plus-cpucore") == 0) {
-                    var->value = "dynamic_recompiler";
-                    return true;
-                }
-                if (strcmp(var->key, "mupen64plus-rdp-plugin") == 0) {
-                    var->value = "gliden64";
-                    return true;
-                }
-                if (strcmp(var->key, "mupen64plus-rsp-plugin") == 0) {
-                    var->value = "hle";
-                    return true;
-                }
-                if (strcmp(var->key, "mupen64plus-43screensize") == 0) {
-                    var->value = "320x240";
-                    return true;
-                }
-                if (strcmp(var->key, "mupen64plus-aspect") == 0) {
-                    var->value = "4:3";
-                    return true;
-                }
-                if (strcmp(var->key, "pcsx_rearmed_dithering") == 0) {
-                    var->value = "enabled";
-                    return true;
-                }
                 var->value = NULL;
                 return true;
             }
