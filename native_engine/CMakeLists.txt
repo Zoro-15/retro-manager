@@ -1,0 +1,84 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(retro_engine C CXX)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Compulsory Android 15+ / 16 KB ELF Page Alignment
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-z,max-page-size=16384 -Wl,-z,common-page-size=16384")
+
+# Compiler optimization and hardening flags
+add_compile_options(
+    -O3
+    -flto
+    -fvisibility=hidden
+    -Wall
+    -Wextra
+    -Wno-unused-parameter
+)
+
+# Locate android_native_app_glue from NDK
+if(DEFINED ANDROID_NDK)
+    include_directories(${ANDROID_NDK}/sources/android/native_app_glue)
+    add_library(native_app_glue STATIC
+        ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c
+    )
+    set_target_properties(native_app_glue PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+    )
+else()
+    # Fallback include path if toolchain provides glue headers
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/compat)
+endif()
+
+# Core native engine sources
+set(ENGINE_SOURCES
+    src/main.cpp
+    src/core/libretro_bridge.cpp
+    src/video/gles_renderer.cpp
+    src/audio/aaudio_player.cpp
+    src/input/virtual_pad.cpp
+    src/ui/osd_menu.cpp
+    src/storage/state_manager.cpp
+)
+
+# Main shared library: libretro_engine.so
+add_library(retro_engine SHARED
+    ${ENGINE_SOURCES}
+)
+
+target_include_directories(retro_engine PRIVATE
+    src
+    src/core
+    src/video
+    src/audio
+    src/input
+    src/ui
+    src/storage
+)
+
+set(LINK_LIBRARIES
+    android
+    log
+    EGL
+    GLESv2
+    aaudio
+    dl
+    m
+)
+
+if(TARGET native_app_glue)
+    list(APPEND LINK_LIBRARIES native_app_glue)
+endif()
+
+target_link_libraries(retro_engine PRIVATE
+    ${LINK_LIBRARIES}
+)
+
+target_link_options(retro_engine PRIVATE
+    "-Wl,-z,max-page-size=16384"
+    "-Wl,-z,common-page-size=16384"
+    "-flto"
+)

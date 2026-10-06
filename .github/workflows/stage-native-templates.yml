@@ -1,0 +1,109 @@
+name: Stage Native Templates
+
+# Builds pure C++ native_engine, fetches 16 KB-aligned Libretro cores,
+# and packages the 5 universal zero-code NativeActivity base template APKs.
+
+on:
+  push:
+    branches: [main, master, v2]
+    paths:
+      - "native_engine/**"
+      - "runtimes/**"
+      - "scripts/assemble_base_templates.py"
+      - "scripts/fetch_libretro_cores.py"
+      - "scripts/verify_core_alignment.py"
+      - ".github/workflows/stage-native-templates.yml"
+  pull_request:
+    branches: [main, master, v2]
+    paths:
+      - "native_engine/**"
+      - "runtimes/**"
+      - "scripts/assemble_base_templates.py"
+      - "scripts/fetch_libretro_cores.py"
+      - "scripts/verify_core_alignment.py"
+      - ".github/workflows/stage-native-templates.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-stage-templates:
+    name: Build Native Engine & Assemble Base Templates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r27c
+          add-to-path: true
+
+      - name: Compile Native Engine (arm64-v8a)
+        run: |
+          set -euo pipefail
+          mkdir -p native_engine/build_arm64
+          cd native_engine/build_arm64
+          
+          cmake .. \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI="arm64-v8a" \
+            -DANDROID_PLATFORM=android-26 \
+            -DCMAKE_BUILD_TYPE=Release
+            
+          cmake --build . --config Release --parallel $(nproc)
+          
+          mkdir -p ../build
+          cp libretro_engine.so ../build/libretro_engine.so
+
+      - name: Fetch Libretro Cores
+        run: |
+          set -euo pipefail
+          chmod +x scripts/*.py
+          python3 scripts/fetch_libretro_cores.py --abis arm64-v8a
+
+      - name: Assemble Universal Base Template APKs
+        run: |
+          set -euo pipefail
+          python3 scripts/assemble_base_templates.py
+
+      - name: Verify 16 KB Page Alignment & Congruence
+        run: |
+          set -euo pipefail
+          python3 scripts/verify_core_alignment.py runtimes \
+            --manifest runtimes/cores.json \
+            --strict \
+            --verbose
+
+      - name: Verify Zero-Bytecode Invariant (No DEX in templates)
+        run: |
+          set -euo pipefail
+          for apk in runtimes/template_*.apk; do
+            echo "Inspecting $apk for DEX bytecode..."
+            if unzip -l "$apk" | grep -E '\.dex$' > /dev/null; then
+              echo "ERROR: Found DEX bytecode in pure NativeActivity template $apk"
+              exit 1
+            fi
+            echo "PASS: $apk contains 0 classes.dex"
+          done
+
+      - name: Upload Universal Base Templates Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: retropack-native-base-templates
+          path: runtimes/template_*.apk
+          if-no-files-found: error
+          retention-days: 30
