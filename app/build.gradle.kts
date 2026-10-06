@@ -44,6 +44,10 @@ android {
         compose = true
     }
 
+    androidResources {
+        ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~:*.so:x86_64:x86:armeabi-v7a"
+    }
+
     sourceSets {
         getByName("main") {
             assets.srcDirs("${rootDir}/runtimes")

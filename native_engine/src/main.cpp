@@ -111,7 +111,7 @@ static std::string discoverCoreLibrary(struct android_app* app) {
         }
     }
 
-    // 2. Fallback candidate core names directly resolvable via system linker
+    // 2. Candidate core names directly resolvable via Android dynamic linker
     const char* fallbackCores[] = {
         "libretro_mgba.so",
         "libretro_snes9x.so",
@@ -121,9 +121,10 @@ static std::string discoverCoreLibrary(struct android_app* app) {
     };
 
     for (const char* coreName : fallbackCores) {
-        void* handle = dlopen(coreName, RTLD_NOW | RTLD_NOLOAD);
+        void* handle = dlopen(coreName, RTLD_NOW);
         if (handle) {
             dlclose(handle);
+            LOGI("Discovered Libretro core via dynamic linker: %s", coreName);
             return coreName;
         }
     }

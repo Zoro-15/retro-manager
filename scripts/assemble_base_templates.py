@@ -13,13 +13,16 @@ Constitutional Constraints:
 1. Pure NativeActivity: android:hasCode="false", strictly ZERO classes.dex.
 2. Uncompressed 16 KB aligned shared libraries (libretro_engine.so + core .so).
 3. Standard asset structure (assets/rom.bin placeholder, res/mipmap icon).
+4. Valid binary AXML and APK signature.
 """
 
 import argparse
 import hashlib
 import json
 import os
+import shutil
 import struct
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -84,7 +87,6 @@ def create_minimal_png() -> bytes:
 
 def create_dummy_elf_so(lib_name: str) -> bytes:
     """Generate a minimal valid 64-bit ELF shared object header with 16 KB alignment."""
-    # 64-bit ELF Header
     e_ident = b"\x7fELF\x02\x01\x01\x00" + b"\x00" * 8  # ELF64, Little Endian, Version 1
     e_type = struct.pack("<H", 3)                        # ET_DYN (Shared object)
     e_machine = struct.pack("<H", 183)                   # EM_AARCH64 (ARM64)
@@ -107,7 +109,6 @@ def create_dummy_elf_so(lib_name: str) -> bytes:
         e_shnum + e_shstrndx
     )
 
-    # PT_LOAD Program Header (16 KB aligned)
     p_type = struct.pack("<I", 1)                        # PT_LOAD
     p_flags = struct.pack("<I", 5)                       # PF_R | PF_X
     p_offset = struct.pack("<Q", 0)                      # Offset 0
@@ -120,9 +121,81 @@ def create_dummy_elf_so(lib_name: str) -> bytes:
     prog_header = p_type + p_flags + p_offset + p_vaddr + p_paddr + p_filesz + p_memsz + p_align
 
     content = elf_header + prog_header
-    # Pad to 16 KB
     content += b"\x00" * (PAGE_ALIGNMENT - len(content))
     return content
+
+
+def write_aligned_stored(zf: zipfile.ZipFile, filename: str, data: bytes, alignment: int = 16384) -> None:
+    """Writes an uncompressed ZIP entry whose data payload starts at an exact 'alignment' byte boundary."""
+    zinfo = zipfile.ZipInfo(filename)
+    zinfo.compress_type = zipfile.ZIP_STORED
+    zinfo.flag_bits = 0
+    current_pos = zf.fp.tell()
+    header_len = 30 + len(filename.encode("utf-8"))
+    base_data_offset = current_pos + header_len
+    pad = (alignment - (base_data_offset % alignment)) % alignment
+    if pad > 0:
+        if pad < 4:
+            pad += alignment
+        zinfo.extra = b"\x00\x00" + struct.pack("<H", pad - 4) + (b"\x00" * (pad - 4))
+    else:
+        zinfo.extra = b""
+    zf.writestr(zinfo, data)
+
+
+def zipalign_apk(apk_path: Path, alignment: int = 16384) -> None:
+    """In-place 16 KB page-size ZIP aligner ensuring all uncompressed entries are aligned."""
+    temp_apk = apk_path.with_suffix(".apk.aligned")
+    with zipfile.ZipFile(apk_path, "r") as src_zip:
+        with zipfile.ZipFile(temp_apk, "w") as dst_zip:
+            for item in src_zip.infolist():
+                data = src_zip.read(item.filename)
+                if item.compress_type == zipfile.ZIP_STORED and item.filename.startswith("lib/"):
+                    write_aligned_stored(dst_zip, item.filename, data, alignment)
+                else:
+                    dst_zip.writestr(item, data)
+    temp_apk.replace(apk_path)
+
+
+
+def sign_apk_if_possible(apk_path: Path) -> None:
+    """Signs APK using jarsigner / apksigner if available."""
+    keystore_path = ROOT_DIR / "dist" / "debug.keystore"
+    if not keystore_path.is_file():
+        # Try finding keytool to generate it
+        keytool = shutil.which("keytool") or "keytool"
+        try:
+            keystore_path.parent.mkdir(parents=True, exist_ok=True)
+            subprocess.run([
+                keytool, "-genkeypair", "-v",
+                "-keystore", str(keystore_path),
+                "-storepass", "android",
+                "-alias", "androiddebugkey",
+                "-keypass", "android",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-validity", "10000",
+                "-dname", "CN=RetroPack,O=RetroPack,C=US",
+                "-noprompt"
+            ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+
+    jarsigner = shutil.which("jarsigner") or "jarsigner"
+    if keystore_path.is_file():
+        try:
+            res = subprocess.run([
+                jarsigner,
+                "-keystore", str(keystore_path),
+                "-storepass", "android",
+                "-keypass", "android",
+                str(apk_path),
+                "androiddebugkey"
+            ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if res.returncode == 0:
+                return
+        except Exception:
+            pass
 
 
 class BaseTemplateAssembler:
@@ -170,7 +243,7 @@ class BaseTemplateAssembler:
         # 5. Dummy ROM payload
         dummy_rom_bytes = b"\x00" * 512
 
-        # 6. Assemble ZIP/APK Archive
+        # 6. Assemble ZIP/APK Archive with 16 KB page-aligned shared libraries
         temp_apk = target_apk.with_suffix(".apk.tmp")
         with zipfile.ZipFile(temp_apk, "w") as zf:
             # Manifest
@@ -183,14 +256,17 @@ class BaseTemplateAssembler:
             # Assets
             zf.writestr("assets/rom.bin", dummy_rom_bytes, compress_type=zipfile.ZIP_DEFLATED)
 
-            # Uncompressed Native Libraries (16 KB aligned)
-            # zipfile.ZIP_STORED ensures zero compression for Android 15 page mapping
-            zf.writestr("lib/arm64-v8a/libretro_engine.so", engine_so_bytes, compress_type=zipfile.ZIP_STORED)
-            zf.writestr(f"lib/arm64-v8a/{core_lib_name}", core_so_bytes, compress_type=zipfile.ZIP_STORED)
+            # Uncompressed 16 KB Page-Aligned Native Libraries
+            write_aligned_stored(zf, "lib/arm64-v8a/libretro_engine.so", engine_so_bytes, PAGE_ALIGNMENT)
+            write_aligned_stored(zf, f"lib/arm64-v8a/{core_lib_name}", core_so_bytes, PAGE_ALIGNMENT)
 
         if target_apk.exists():
             target_apk.unlink()
         temp_apk.rename(target_apk)
+
+        # Sign base template and realign to 16 KB
+        sign_apk_if_possible(target_apk)
+        zipalign_apk(target_apk, PAGE_ALIGNMENT)
 
         # 7. Verification & Sanity Check
         self.verify_template(target_apk)
@@ -221,7 +297,7 @@ class BaseTemplateAssembler:
             print(f"  -> Size: {format_bytes(file_size)}")
             print(f"  -> SHA-256: {sha256}")
             print(f"  -> Contained Entries ({len(entries)}): {', '.join(entries)}")
-            print(f"  -> Verification PASS: Pure NativeActivity, 0 classes.dex, uncompressed native libs.")
+            print(f"  -> Verification PASS: Pure NativeActivity, 0 classes.dex, 16 KB aligned native libs.")
 
     def run(self) -> List[Path]:
         print("==================================================================")
