@@ -66,40 +66,11 @@ jobs:
           echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"
 
-      - name: Make gradlew and scripts executable
-        run: |
-          chmod +x gradlew
-          chmod +x scripts/*.sh 2>/dev/null || true
-          chmod +x scripts/*.py 2>/dev/null || true
+      - name: Make gradlew executable
+        run: chmod +x gradlew
 
-      - name: Run Resilient Multi-Core CI Build Matrix & Diagnostics
-        run: python3 scripts/ci-build-matrix.py
-
-      - name: Upload Build Diagnostics Report & Logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-diagnostics-report
-          path: |
-            build-diagnostics.txt
-            build-logs/*.log
-          if-no-files-found: warn
-
-      - name: Upload runtime AAR artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: runtime-aar-debug
-          path: runtime/*/build/outputs/aar/*.aar
-          if-no-files-found: warn
-
-      - name: Upload Template APK artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: template-apk-debug
-          path: template-apk/build/outputs/apk/debug/*.apk
-          if-no-files-found: warn
+      - name: Build Android Manager APK & Run Core Tests
+        run: ./gradlew :app:assembleDebug :core:test --stacktrace
 
       - name: Upload Manager APK artifact
         if: always()
