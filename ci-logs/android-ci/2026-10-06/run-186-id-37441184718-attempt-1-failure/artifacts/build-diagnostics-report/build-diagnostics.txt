@@ -1,0 +1,62 @@
+========================================================================================
+                  RETROPACK CI MULTI-CORE BUILD & DIAGNOSTICS REPORT
+========================================================================================
+Generated At    : 2026-10-06 09:13:40 UTC
+Total Execution : 124.05s (2m 4s)
+Overall Result  : 7/8 Targets Passed (1 Failed)
+========================================================================================
+
+TARGET EXECUTION SUMMARY MATRIX:
+----------------------------------------------------------------------------------------
+Idx  Target Component                       Status     Duration   Log File            
+----------------------------------------------------------------------------------------
+[01] Universal Libretro Host Native Runtime PASS        50.66s     runtime-common.log
+[02] Packaging Engine & Domain Core         PASS        16.23s     core-module.log
+[03] Template APK (Standalone Universal Game Runner) FAIL [!]     2.09s     template-apk.log
+[04] 16 KB ELF Page-Size Alignment Gate     PASS         0.05s     verify-16kb.log
+[05] Core Catalog & Staged Binaries Verification PASS         0.06s     verify-cores-catalog.log
+[06] Trust Anchor Rotation & Staging        PASS         0.08s     rotate-anchors.log
+[07] Manager APK (Main App)                 PASS        36.63s     app-manager.log
+[08] Unit Tests (App & Runtime Host)        PASS        18.25s     unit-tests.log
+----------------------------------------------------------------------------------------
+
+========================================================================================
+                      DETAILED FAILURE LOG DIAGNOSTICS
+========================================================================================
+Note: Error and warning lines are highlighted with '>>> [ERROR]' or '! [WARN]'.
+      Overlapping +/- 5 context lines are de-duplicated and merged continuously.
+========================================================================================
+
+################################################################################
+### Target [03]: Template APK (Standalone Universal Game Runner) (ID: template-apk)
+### Command : ./gradlew :template-apk:assembleDebug :template-apk:test --stacktrace
+### ExitCode: 1 | Log File: build-logs/template-apk.log
+################################################################################
+
+--- [Snippet #1 | Lines 26 to 50] ---
+    L0026: Recommendation: remove package="com.retro.game.template" from the source AndroidManifest.xml: /home/runner/work/retro-manager/retro-manager/template-apk/src/main/AndroidManifest.xml.
+    L0027: gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1791277964423.json
+    L0028: 
+    L0029: [Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+    L0030: 
+>>> [ERROR] L0031: FAILURE: Build failed with an exception.
+    L0032: 
+    L0033: * What went wrong:
+>>> [ERROR] L0034: Execution failed for task ':template-apk:processDebugMainManifest' (registered by plugin 'com.android.internal.application').
+    L0035: > Incorrect package="com.retro.game.template" found in source AndroidManifest.xml: /home/runner/work/retro-manager/retro-manager/template-apk/src/main/AndroidManifest.xml.
+    L0036:   Setting the namespace via the package attribute in the source AndroidManifest.xml is no longer supported.
+    L0037:   Recommendation: remove package="com.retro.game.template" from the source AndroidManifest.xml: /home/runner/work/retro-manager/retro-manager/template-apk/src/main/AndroidManifest.xml.
+    L0038: 
+    L0039: * Try:
+    L0040: > Run with --info or --debug option to get more log output.
+    L0041: > Run with --scan to get full insights from a Build Scan (powered by Develocity).
+    L0042: > Get more help at https://help.gradle.org.
+    L0043: 
+    L0044: * Exception is:
+>>> [ERROR] L0045: org.gradle.api.tasks.TaskExecutionException: Execution failed for task ':template-apk:processDebugMainManifest' (registered by plugin 'com.android.internal.application').
+    L0046: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.lambda$executeIfValid$1(ExecuteActionsTaskExecuter.java:135)
+    L0047: 	at org.gradle.internal.Try$Failure.ifSuccessfulOrElse(Try.java:288)
+    L0048: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.executeIfValid(ExecuteActionsTaskExecuter.java:133)
+    L0049: 	at org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter.execute(ExecuteActionsTaskExecuter.java:121)
+    L0050: 	at org.gradle.api.internal.tasks.execution.ProblemsTaskPathTrackingTaskExecuter.execute(ProblemsTaskPathTrackingTaskExecuter.java:41)
+
