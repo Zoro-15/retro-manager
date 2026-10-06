@@ -84,7 +84,10 @@ def patch_binary_manifest(manifest_bytes: bytes, package_name: str, app_title: s
     # If the manifest is plain XML (development templates), replace directly
     if manifest_bytes.startswith(b"<?xml") or b"<manifest" in manifest_bytes[:100]:
         text = manifest_bytes.decode("utf-8", errors="replace")
-        text = re.sub(r'package="[^"]*"', f'package="{package_name}"', text)
+        if 'package="' in text:
+            text = re.sub(r'package="[^"]*"', f'package="{package_name}"', text)
+        else:
+            text = re.sub(r'<manifest\b', f'<manifest package="{package_name}"', text)
         text = re.sub(r'android:label="[^"]*"', f'android:label="{app_title}"', text)
         return text.encode("utf-8")
 
