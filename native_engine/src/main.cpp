@@ -11,6 +11,7 @@
 #include <memory>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <dlfcn.h>
 
 #include "core/libretro_bridge.hpp"
 #include "video/gles_renderer.hpp"

@@ -1,5 +1,6 @@
 #include "aaudio_player.hpp"
 
+#include <aaudio/AAudio.h>
 #include <android/log.h>
 #include <cstring>
 
@@ -95,7 +96,7 @@ bool AAudioPlayer::start() {
     if (!m_stream) return false;
 
     aaudio_stream_state_t state = AAudioStream_getState(m_stream);
-    if (state == AAUDIO_STREAM_STATE_RUNNING || state == AAUDIO_STREAM_STATE_STARTING) {
+    if (state == AAUDIO_STREAM_STATE_STARTED || state == AAUDIO_STREAM_STATE_STARTING) {
         return true;
     }
 

@@ -1,9 +1,14 @@
 #include "virtual_pad.hpp"
 
 #include <android/log.h>
+#define _USE_MATH_DEFINES
 #include <cmath>
 #include <algorithm>
 #include <cstring>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 #define LOG_TAG "RetroEngine-Pad"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
