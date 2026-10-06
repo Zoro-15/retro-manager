@@ -10,7 +10,15 @@ import java.nio.IntBuffer
  * core (.so) via dlopen/dlsym at runtime.
  */
 object UniversalLibretroCore : NativeCoreBridge {
-    private val HOST_LIBRARIES = listOf("retropack-host", "libretro_host", "retro_host")
+    private val HOST_LIBRARIES = listOf(
+        "retropack-runtime",
+        "retropack-host",
+        "libretro_host",
+        "retro_host",
+        "retro_engine",
+        "retropack",
+        "mgba"
+    )
 
     @Volatile
     private var hostLibraryLoaded: Boolean = false
@@ -28,6 +36,11 @@ object UniversalLibretroCore : NativeCoreBridge {
         private set
 
     init {
+        tryLoadHostLibrary()
+    }
+
+    private fun tryLoadHostLibrary(): Boolean {
+        if (hostLibraryLoaded) return true
         var loaded = false
         var lastError: Throwable? = null
         for (lib in HOST_LIBRARIES) {
@@ -46,12 +59,18 @@ object UniversalLibretroCore : NativeCoreBridge {
             hostLibraryLoaded = false
             hostLoadError = lastError?.message ?: "Universal Libretro host library not found"
         }
+        return loaded
     }
 
     /**
      * Returns true if the universal host native shared library is loaded.
      */
-    override fun isLoaded(): Boolean = hostLibraryLoaded
+    override fun isLoaded(): Boolean {
+        if (!hostLibraryLoaded) {
+            tryLoadHostLibrary()
+        }
+        return hostLibraryLoaded
+    }
 
     /**
      * Loads a standalone Libretro core .so file dynamically into the universal host.
@@ -60,14 +79,36 @@ object UniversalLibretroCore : NativeCoreBridge {
      * @return true if core symbols were resolved and retro_init succeeded, false otherwise.
      */
     fun loadCore(corePath: String): Boolean {
-        if (!hostLibraryLoaded) return false
-        val success = try {
-            nativeLoadCore(corePath)
-        } catch (e: UnsatisfiedLinkError) {
-            false
+        if (!isLoaded()) return false
+        val candidates = mutableListOf(corePath)
+        val normalized = corePath.substringAfterLast('/').substringAfterLast('\\')
+        if (normalized != corePath) {
+            candidates.add(normalized)
         }
+        if (!normalized.startsWith("lib")) {
+            candidates.add("lib$normalized")
+            candidates.add("libretro_$normalized.so")
+        }
+        if (!normalized.endsWith(".so")) {
+            candidates.add("$normalized.so")
+        }
+
+        var success = false
+        var lastAttemptedPath = corePath
+        for (cand in candidates.distinct()) {
+            success = try {
+                nativeLoadCore(cand)
+            } catch (e: UnsatisfiedLinkError) {
+                false
+            }
+            if (success) {
+                lastAttemptedPath = cand
+                break
+            }
+        }
+
         if (success) {
-            loadedCorePath = corePath
+            loadedCorePath = lastAttemptedPath
         }
         return success
     }

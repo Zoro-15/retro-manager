@@ -138,6 +138,13 @@ bool GlesRenderer::initEGL(ANativeWindow* window) {
     }
 
     updateViewport();
+
+    // Immediately present a pure black clear to prevent uninitialized surface flicker
+    glViewport(0, 0, m_screenWidth, m_screenHeight);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    eglSwapBuffers(m_display, m_surface);
+
     m_initialized = true;
     return true;
 }

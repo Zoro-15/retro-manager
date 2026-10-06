@@ -227,6 +227,25 @@ bool host_load_core(const char* core_path) {
         handle = dlopen(core_path, RTLD_LAZY | RTLD_GLOBAL);
     }
     if (!handle) {
+        const char* slash = strrchr(core_path, '/');
+        const char* bslash = strrchr(core_path, '\\');
+        const char* basename = slash ? (slash + 1) : (bslash ? (bslash + 1) : NULL);
+        if (basename && strlen(basename) > 0) {
+            handle = dlopen(basename, RTLD_LAZY | RTLD_LOCAL);
+            if (!handle) {
+                handle = dlopen(basename, RTLD_LAZY | RTLD_GLOBAL);
+            }
+        }
+    }
+    if (!handle) {
+        char alt_name[256];
+        if (strncmp(core_path, "libretro_", 9) != 0 && strstr(core_path, "lib") == NULL) {
+            snprintf(alt_name, sizeof(alt_name), "libretro_%s.so", core_path);
+            handle = dlopen(alt_name, RTLD_LAZY | RTLD_LOCAL);
+            if (!handle) handle = dlopen(alt_name, RTLD_LAZY | RTLD_GLOBAL);
+        }
+    }
+    if (!handle) {
         LOGW("host_load_core: dlopen failed for %s, retrying process lookup with dlopen(NULL)", core_path);
         handle = dlopen(NULL, RTLD_NOW);
     }
@@ -384,10 +403,33 @@ bool host_load_game(const char* rom_path) {
     pthread_mutex_lock(&g_host.lock);
 
     if (!g_host.core_loaded) {
-        set_last_error("host_load_game: no libretro core loaded before loading game");
-        LOGE("host_load_game: no core loaded");
+        LOGI("host_load_game: no core loaded yet, attempting auto-discovery of candidate libretro cores");
         pthread_mutex_unlock(&g_host.lock);
-        return false;
+
+        const char* auto_candidates[] = {
+            "libretro_mgba.so",
+            "libretro_snes9x.so",
+            "libretro_genesis_plus_gx.so",
+            "libretro_fceumm.so",
+            "libretro_mednafen_pce_fast.so",
+            "libmgba.so",
+            "mgba",
+            NULL
+        };
+        bool auto_loaded = false;
+        for (int i = 0; auto_candidates[i] != NULL; ++i) {
+            if (host_load_core(auto_candidates[i])) {
+                auto_loaded = true;
+                LOGI("host_load_game: successfully auto-loaded fallback core %s", auto_candidates[i]);
+                break;
+            }
+        }
+        if (!auto_loaded) {
+            set_last_error("host_load_game: no libretro core loaded and auto-discovery failed");
+            LOGE("host_load_game: no core loaded and auto-discovery failed");
+            return false;
+        }
+        pthread_mutex_lock(&g_host.lock);
     }
 
     if (g_host.game_loaded) {

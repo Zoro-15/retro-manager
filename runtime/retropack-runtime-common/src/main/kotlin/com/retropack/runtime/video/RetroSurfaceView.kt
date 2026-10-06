@@ -18,6 +18,7 @@ class RetroSurfaceView @JvmOverloads constructor(
         setEGLContextClientVersion(2)
         setRenderer(renderer)
         renderMode = RENDERMODE_WHEN_DIRTY
+        setBackgroundColor(0xFF000000.toInt())
     }
 
     var scaleMode: ScaleMode
