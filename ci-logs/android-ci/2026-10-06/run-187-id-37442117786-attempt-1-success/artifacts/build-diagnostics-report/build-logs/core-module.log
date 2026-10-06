@@ -1,0 +1,338 @@
+> Task :core:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core:processResources NO-SOURCE
+> Task :core:processTestResources NO-SOURCE
+
+> Task :core:compileKotlin
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:316:40 'constructor(p0: File!): SevenZFile' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:334:13 'constructor(p0: File!): SevenZFile' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:374:52 'var fileNameW: String!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:384:58 'var fileNameW: String!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:387:36 'var fileNameW: String!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:640:62 'var fileNameW: String!' is deprecated. Deprecated in Java.
+w: file:///home/runner/work/retro-manager/retro-manager/core/src/main/kotlin/com/retropack/domain/rom/ArchiveExtractor.kt:691:40 'constructor(p0: SeekableByteChannel!): SevenZFile' is deprecated. Deprecated in Java.
+
+> Task :core:compileJava NO-SOURCE
+> Task :core:classes UP-TO-DATE
+> Task :core:jar
+> Task :core:compileTestKotlin
+> Task :core:compileTestJava NO-SOURCE
+> Task :core:testClasses UP-TO-DATE
+
+> Task :core:test
+
+ArchiveExtractorTest > isMultiPartArchive identifies split multi-volume archives() PASSED
+
+ArchiveExtractorTest > isArchive correctly detects ZIP and GZIP magic bytes and extensions() PASSED
+
+ArchiveExtractorTest > SUPPORTED_ROM_EXTENSIONS contains all Golden 5 2D console architectures() PASSED
+
+ArchiveExtractorTest > extractCandidateRom unpacks ZIP containing GBA ROM and ignores metadata() PASSED
+
+ArchiveExtractorTest > isRar5 correctly detects RAR5 magic bytes and rejects gracefully() PASSED
+
+ArchiveExtractorTest > extractCandidateRom handles nested ZIP archives recursively() PASSED
+
+ArchiveExtractorTest > extractCandidateRomToDisk unpacks ZIP directly to output directory() PASSED
+
+ArchiveExtractorTest > selectBestEntry prioritizes explicit console extensions over generic bin() PASSED
+
+ArchiveExtractorTest > extractCandidateRom rejects multi-part archives with actionable message() PASSED
+
+ArchiveExtractorTest > extractCandidateRom decompresses GZIP stream() PASSED
+
+GbRomParserTest > test valid Game Boy Color header parsing with battery SRAM() PASSED
+
+GbRomParserTest > test corrupted header checksum detection() PASSED
+
+GbRomParserTest > test valid Game Boy monochrome header parsing() PASSED
+
+GbRomParserTest > test file too small throws InvalidRomException() PASSED
+
+GbRomParserTest > test corrupted Nintendo logo detection() PASSED
+
+GbaRomParserTest > test rejection of invalid fixed-value byte() PASSED
+
+GbaRomParserTest > test file too small throws InvalidRomException() PASSED
+
+GbaRomParserTest > test header checksum recalculation and mismatch detection() PASSED
+
+GbaRomParserTest > test valid GBA header parsing with known game code and maker code() PASSED
+
+GenesisRomParserTest > test Genesis Mega Drive ROM detection and parsing() PASSED
+
+IpsUpsPatcherTest > test UPS patch rejects mismatched base ROM CRC() PASSED
+
+IpsUpsPatcherTest > test UPS inspection and XOR patch application() PASSED
+
+IpsUpsPatcherTest > test streaming patch application produces identical result to in-memory application() PASSED
+
+IpsUpsPatcherTest > test IPS literal and RLE record application() PASSED
+
+IpsUpsPatcherTest > test IPS truncation record() PASSED
+
+IpsUpsPatcherTest > test rejection of unknown patch signature() PASSED
+
+MultiPlatformRomParserTest > test unsupported 3D platforms throw InvalidRomException() PASSED
+
+MultiPlatformRomParserTest > test Genesis ROM auto-detection via unified RomParser() PASSED
+
+MultiPlatformRomParserTest > test PC Engine ROM auto-detection via unified RomParser() PASSED
+
+MultiPlatformRomParserTest > test extension fallback for unheadered homebrews across 2D consoles() PASSED
+
+MultiPlatformRomParserTest > test NES ROM auto-detection via unified RomParser() PASSED
+
+MultiPlatformRomParserTest > test SNES ROM auto-detection via unified RomParser() PASSED
+
+NesRomParserTest > test iNES header parsing with MMC1 mapper and battery() PASSED
+
+RomParserTest > test digit-leading title gets g_ prefixed package segment() PASSED
+
+RomParserTest > test NDS ROM is rejected with InvalidRomException() PASSED
+
+RomParserTest > test GBA checksum match with bad fixed byte falls through to GB() PASSED
+
+RomParserTest > test PlayStation disc image is rejected with InvalidRomException() PASSED
+
+RomParserTest > test auto-detection and identity generation for GBA ROM() PASSED
+
+RomParserTest > test auto-detection and identity generation for GBC ROM() PASSED
+
+RomParserTest > test auto-detection and identity generation for GB ROM() PASSED
+
+RomParserTest > test unidentifiable data throws InvalidRomException() PASSED
+
+RomParserTest > test N64 ROM is rejected with InvalidRomException() PASSED
+
+RomParserTest > test PCE ROM detection requires extension or copier header and rejects arbitrary 64KB buffer() PASSED
+
+SnesRomParserTest > test HiROM parsing with 512-byte copier header() PASSED
+
+SnesRomParserTest > test LoROM parsing without copier header() PASSED
+
+StreamChecksumTest > test standard ASCII test vector() PASSED
+
+StreamChecksumTest > test file checksum calculation(File) PASSED
+
+StreamChecksumTest > test multi-chunk stream exceeding 64 KB buffer boundary() PASSED
+
+StreamChecksumTest > test empty byte array checksums() PASSED
+
+CoreCatalogTest > default catalog contains all 5 canonical 2D Libretro cores() PASSED
+
+CoreCatalogTest > parses runtimes cores_json file correctly() PASSED
+
+CoreCatalogTest > getCore resolves by core ID, platform, alias, and extension() PASSED
+
+CoreCatalogTest > toRuntimeDescriptors converts all catalog entries to valid RuntimeDescriptors() PASSED
+
+CoreCatalogTest > converts CoreCatalogEntry to RuntimeDescriptor correctly() PASSED
+
+RuntimeBundleIntegrityTest > pinned bundle files exist() PASSED
+
+RuntimeBundleIntegrityTest > descriptor entry names match the real native library produced by the NDK build() PASSED
+
+RuntimeBundleIntegrityTest > compiled-in descriptor and descriptor file agree in lockstep() PASSED
+
+RuntimeBundleIntegrityTest > descriptor file protected entries match actual template apk entries() PASSED
+
+RuntimeBundleIntegrityTest > template apk digest matches compiled-in TRUSTED_TEMPLATES anchor() PASSED
+
+RuntimeBundleIntegrityTest > loadFromDirectory registers the template retrievable via getTemplate() PASSED
+
+RuntimeBundleIntegrityTest > tampered template fails verification (guard against weakening the gate)() PASSED
+
+RuntimeDescriptorTest > roundtrip serialization preserves descriptor structure() PASSED
+
+RuntimeDescriptorTest > all 5 canonical 2D runtime descriptors have valid configurations() PASSED
+
+RuntimeDescriptorTest > parses canonical runtime descriptor correctly() PASSED
+
+RuntimeDescriptorTest > fromCatalog creates valid descriptors from CoreCatalog() PASSED
+
+RuntimeDescriptorTest > canonical core IDs and library names map correctly for all descriptors() PASSED
+
+RuntimeProvisionerTest > detects whole-APK digest mismatch against the trust anchor() PASSED
+
+RuntimeProvisionerTest > protected-entry mismatch is reported as integrity failure with entry context() PASSED
+
+RuntimeProvisionerTest > re-registers a cached bundle and skips re-extraction() PASSED
+
+RuntimeProvisionerTest > extracts nested bundle recursively and registers the template() PASSED
+
+RuntimeProvisionerTest > re-extracts zero-byte stale files() PASSED
+
+RuntimeProvisionerTest > reports MissingTemplate with actionable guidance when bundle asset is absent() PASSED
+
+RuntimeProvisionerTest > reports ExtractionFailure instead of swallowing a malformed descriptor() PASSED
+
+RuntimeProvisionerTest > empty asset container yields MissingTemplate without throwing() PASSED
+
+RuntimeRegistryTest > loadCatalog registers all descriptors from CoreCatalog() PASSED
+
+RuntimeRegistryTest > discovers canonical runtimes for Golden 5 2D retro console systems() PASSED
+
+RuntimeRegistryTest > getDescriptor resolves by catalog core ID and alias() PASSED
+
+RuntimeRegistryTest > registers and retrieves all 5 canonical 2D descriptors by ID() PASSED
+
+RuntimeRegistryTest > verifyProtectedEntries validates classes dex and native library against bytecode trust anchors() PASSED
+
+RuntimeRegistryTest > isTrustedTemplate validates compiled bytecode fingerprint() PASSED
+
+RuntimeRegistryTest > loads runtime bundle from directory and registers template() PASSED
+
+RuntimeTemplateTest > verifyProtectedEntries fails closed when protected entry is tampered() PASSED
+
+RuntimeTemplateTest > verifyProtectedEntries succeeds when digests match() PASSED
+
+RuntimeTemplateTest > template apk exists and passes integrity check against trusted hash() PASSED
+
+AlignmentVerifierTest > test assertCompliant passes on compliant archive and fails on unaligned() PASSED
+
+AlignmentVerifierTest > test non-existent file throws exception() PASSED
+
+AlignmentVerifierTest > test report on empty or non-native zip() PASSED
+
+ApkSignerAndVerificationTest > test tampered signed APK fails verification() PASSED
+
+ApkSignerAndVerificationTest > test single-pass v1 v2 v3 signing and verification with RSA key() PASSED
+
+ApkSignerAndVerificationTest > test single-pass v1 v2 v3 signing and verification with EC P-256 key() PASSED
+
+AxmlMutatorTest > mutate fails when activity name has no package qualifier() PASSED
+
+AxmlMutatorTest > mutate updates package name label versionCode and versionName() PASSED
+
+AxmlMutatorTest > mutate fails when extractNativeLibs attribute is absent() PASSED
+
+AxmlMutatorTest > mutate fails with IllegalStateException when activity uses shorthand relative name() PASSED
+
+AxmlMutatorTest > mutate fails with IllegalStateException when extractNativeLibs is true() PASSED
+
+BuildEngineTest > test complete 15-step transformation pipeline with GBA rom() PASSED
+
+BuildEngineTest > test build fails cleanly on empty ROM() PASSED
+
+BuildEngineTest > test build fails on missing template() PASSED
+
+BuildEngineTest > test real template apk icon replacement replaces all icon entries() PASSED
+
+BuildEngineTest > test build packages game with single-core native library injection() PASSED
+
+BuildEngineTest > test template hash skip decision honors identity match only() PASSED
+
+BuildEngineTest > test precomputed checksums path matches default build outputs() PASSED
+
+BuildTerminalReporterTest > genuine success renders the complete banner with real artifact path() PASSED
+
+BuildTerminalReporterTest > success marked result pointing at missing file is rendered as failure() PASSED
+
+BuildTerminalReporterTest > abort summary never claims completion() PASSED
+
+BuildTerminalReporterTest > success marked result without artifact file is rendered as failure() PASSED
+
+BuildTerminalReporterTest > failure summary defaults null error to explicit message() PASSED
+
+BuildTerminalReporterTest > failed result never renders success banner or verification claims() PASSED
+
+CoreLibraryInjectorTest > resolves canonical core IDs for all supported platforms() PASSED
+
+CoreLibraryInjectorTest > sanitizes valid core entries map() PASSED
+
+CoreLibraryInjectorTest > constructs valid APK entry paths() PASSED
+
+CoreLibraryInjectorTest > rejects core entries with invalid non-ELF binaries() PASSED
+
+CoreLibraryInjectorTest > resolves canonical core library names() PASSED
+
+CoreLibraryInjectorTest > sanitizes entry paths preventing directory traversal() PASSED
+
+CoreLibraryInjectorTest > rejects invalid ABI or non-so library names() PASSED
+
+CoreLibraryInjectorTest > prepares core entries from staged directory structure() PASSED
+
+CoreLibraryInjectorTest > validates ELF magic header bytes() PASSED
+
+HomebrewConformanceTest > conformance test 3 - Game Boy Advance Anguna Warriors of the Demis() PASSED
+
+HomebrewConformanceTest > conformance test 1 - Game Boy Tobu Tobu Girl Deluxe() PASSED
+
+HomebrewConformanceTest > conformance test 2 - Game Boy Color Dangan GB() PASSED
+
+IconInjectorTest > validatePng rejects invalid headers or short byte arrays() PASSED
+
+IconInjectorTest > prepareIconEntries maps foreground and optional background correctly() PASSED
+
+IconInjectorTest > prepareIconEntries works with foreground only() PASSED
+
+IconInjectorTest > validatePng succeeds on valid png header() PASSED
+
+PackageIdentityTest > createWithHash reuses precomputed digest without rehashing rom() PASSED
+
+PackageIdentityTest > validatePackageName accepts valid Android package identifiers() PASSED
+
+PackageIdentityTest > slug sanitization handles punctuation and spaces() PASSED
+
+PackageIdentityTest > slug sanitization prefixes numeric first character with g_() PASSED
+
+PackageIdentityTest > validatePackageName rejects invalid formats() PASSED
+
+PackageIdentityTest > same rom bytes and title produce identical package identity() PASSED
+
+PackageIdentityTest > different rom bytes produce different hash10 and package names() PASSED
+
+PackageIdentityTest > creates deterministic package name from game title and rom hash() PASSED
+
+PackageIdentityTest > slug sanitization falls back to game when empty() PASSED
+
+ProtectedEntriesVerifierTest > verifyApk validates the real pinned runtime template descriptor() PASSED
+
+ProtectedEntriesVerifierTest > verifyEntries accepts uppercase SHA256-prefixed and whitespace-padded digests() PASSED
+
+ProtectedEntriesVerifierTest > verifyEntries throws SecurityException when protected entry is missing() PASSED
+
+ProtectedEntriesVerifierTest > verifyEntries throws SecurityException when protected entry is tampered() PASSED
+
+ProtectedEntriesVerifierTest > matchesDigest still rejects mismatching prefixed digests() PASSED
+
+ProtectedEntriesVerifierTest > verifyEntries accepts sha256-prefixed declared digests() PASSED
+
+ProtectedEntriesVerifierTest > verifyEntries succeeds when all digests match() PASSED
+
+RomAssetInjectorTest > sanitizeEntryPath rejects path traversal sequences() PASSED
+
+RomAssetInjectorTest > empty rom bytes or blank json throws exception() PASSED
+
+RomAssetInjectorTest > prepares correct asset entries for rom and config() PASSED
+
+ScratchAllocatorTest > atomicFinalize renames scratch file to target and replaces existing() PASSED
+
+ScratchAllocatorTest > allocates scratch file in same directory as target() PASSED
+
+ScratchAllocatorTest > detects signature residue correctly() PASSED
+
+ZipArchiveTransformerTest > test transform aligns so files to 16KB and strips signature residue() PASSED
+
+HybridKeystoreTest > test EC P-256 identity generation and certificate validity() PASSED
+
+HybridKeystoreTest > test encrypted persistence at rest roundtrip(File) PASSED
+
+HybridKeystoreTest > test RSA-2048 identity generation and certificate validity() PASSED
+
+HybridKeystoreTest > test corrupt payload sizes rejected without large allocation() PASSED
+
+HybridKeystoreTest > test PKCS12 password-protected export and re-import() PASSED
+gradle/actions: Writing build results to /home/runner/work/_temp/.gradle-actions/build-results/__run_3-1791278458684.json
+
+[Incubating] Problems report is available at: file:///home/runner/work/retro-manager/retro-manager/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 17s
+4 actionable tasks: 4 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html
