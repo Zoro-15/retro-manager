@@ -21,6 +21,10 @@
 #include "storage/state_manager.hpp"
 
 #include <csignal>
+#include <cstdlib>
+#include <unistd.h>
+#include <cstdio>
+#include <ctime>
 #include <fstream>
 
 #define LOG_TAG "RetroEngine-Main"
