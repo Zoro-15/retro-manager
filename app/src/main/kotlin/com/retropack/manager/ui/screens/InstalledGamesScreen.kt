@@ -72,9 +72,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.Terminal
 import com.retropack.manager.service.InstalledGame
 import com.retropack.manager.service.InstalledGamesRepository
 import com.retropack.manager.service.SaveSyncManager
+import com.retropack.manager.ui.components.GameLogViewerBottomSheet
 import com.retropack.manager.ui.components.RetroCard
 import com.retropack.manager.ui.theme.RetroDarkBackground
 import com.retropack.manager.ui.theme.RetroDarkOutline
@@ -97,6 +99,7 @@ import java.util.Locale
  * - Quick "Play" button launching game directly via explicit Intent.
  * - Battery save backup & export to Downloads/RetroPack/Saves/<GameTitle>/.
  * - Save Import tool injecting PC Emulator (.sav, .srm, .mcd) saves into games.
+ * - Diagnostic Logcat & Native Runtime Engine Log Capture tool.
  */
 @Composable
 fun InstalledGamesScreen(
@@ -111,6 +114,7 @@ fun InstalledGamesScreen(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilterPlatform by remember { mutableStateOf("ALL") }
     var targetImportGame by remember { mutableStateOf<InstalledGame?>(null) }
+    var activeLogGame by remember { mutableStateOf<InstalledGame?>(null) }
 
     fun refreshGames() {
         scope.launch {
@@ -333,6 +337,9 @@ fun InstalledGamesScreen(
                                 Toast.makeText(context, "Failed to launch ${game.gameTitle}", Toast.LENGTH_SHORT).show()
                             }
                         },
+                        onViewLogs = {
+                            activeLogGame = game
+                        },
                         onExportSave = {
                             scope.launch {
                                 val result = SaveSyncManager.exportSave(context, game)
@@ -363,6 +370,14 @@ fun InstalledGamesScreen(
                 }
             }
         }
+
+        // Diagnostic Log Viewer Bottom Sheet
+        if (activeLogGame != null) {
+            GameLogViewerBottomSheet(
+                game = activeLogGame!!,
+                onDismiss = { activeLogGame = null }
+            )
+        }
     }
 }
 
@@ -370,6 +385,7 @@ fun InstalledGamesScreen(
 private fun InstalledGameCard(
     game: InstalledGame,
     onPlay: () -> Unit,
+    onViewLogs: () -> Unit,
     onExportSave: () -> Unit,
     onImportSave: () -> Unit
 ) {
@@ -465,19 +481,38 @@ private fun InstalledGameCard(
                     }
                 }
 
-                // Quick Play Action Button
-                Button(
-                    onClick = onPlay,
-                    colors = ButtonDefaults.buttonColors(containerColor = RetroPrimary),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PlayArrow,
-                        contentDescription = "Play",
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("PLAY", fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Logs / Diagnostics Button
+                    OutlinedButton(
+                        onClick = onViewLogs,
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = RetroPrimaryLight),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.height(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Terminal,
+                            contentDescription = "View Logs",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("LOGS", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    // Quick Play Action Button
+                    Button(
+                        onClick = onPlay,
+                        colors = ButtonDefaults.buttonColors(containerColor = RetroPrimary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.height(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayArrow,
+                            contentDescription = "Play",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("PLAY", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 

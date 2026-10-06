@@ -205,15 +205,21 @@ bool LibretroBridge::loadGameFromAsset(AAssetManager* assetManager, const char* 
 
     LOGI("Streaming ROM asset from APK: %s", assetPath);
 
-    AAsset* asset = AAssetManager_open(assetManager, assetPath, AASSET_MODE_BUFFER);
+    // Sanitize path: strip leading '/' and 'assets/' prefix if present
+    const char* sanitizedPath = assetPath;
+    while (sanitizedPath[0] == '/') sanitizedPath++;
+    if (std::strncmp(sanitizedPath, "assets/", 7) == 0) {
+        sanitizedPath += 7;
+    }
+    while (sanitizedPath[0] == '/') sanitizedPath++;
+
+    AAsset* asset = AAssetManager_open(assetManager, sanitizedPath, AASSET_MODE_BUFFER);
     if (!asset) {
-        // Try stripping leading slashes if present
-        const char* sanitizedPath = (assetPath[0] == '/') ? assetPath + 1 : assetPath;
-        asset = AAssetManager_open(assetManager, sanitizedPath, AASSET_MODE_BUFFER);
+        asset = AAssetManager_open(assetManager, assetPath, AASSET_MODE_BUFFER);
     }
 
     if (!asset) {
-        setError(std::string("Failed to open APK asset: ") + assetPath);
+        setError(std::string("Failed to open APK asset: ") + assetPath + " (also tried " + sanitizedPath + ")");
         return false;
     }
 

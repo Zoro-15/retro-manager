@@ -20,10 +20,81 @@
 #include "ui/osd_menu.hpp"
 #include "storage/state_manager.hpp"
 
+#include <csignal>
+#include <fstream>
+
 #define LOG_TAG "RetroEngine-Main"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
-#define LOGW(...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+namespace {
+
+static std::string g_logFilePath;
+static std::string g_publicLogFilePath;
+static std::mutex g_logMutex;
+
+static void writeEngineLog(const char* level, const char* fmt, ...) {
+    char buffer[2048];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+
+    // 1. Android system logcat
+    int androidLevel = ANDROID_LOG_INFO;
+    if (strcmp(level, "ERROR") == 0) androidLevel = ANDROID_LOG_ERROR;
+    else if (strcmp(level, "WARN") == 0) androidLevel = ANDROID_LOG_WARN;
+    else if (strcmp(level, "DEBUG") == 0) androidLevel = ANDROID_LOG_DEBUG;
+    __android_log_print(androidLevel, LOG_TAG, "%s", buffer);
+
+    // 2. Persistent file logging
+    std::lock_guard<std::mutex> lock(g_logMutex);
+    auto writeToFile = [&](const std::string& path) {
+        if (!path.empty()) {
+            FILE* f = fopen(path.c_str(), "a");
+            if (f) {
+                time_t now = time(nullptr);
+                struct tm* tmInfo = localtime(&now);
+                char timeBuf[64];
+                strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
+                fprintf(f, "[%s] [%s] %s\n", timeBuf, level, buffer);
+                fflush(f);
+                fclose(f);
+            }
+        }
+    };
+    writeToFile(g_logFilePath);
+    writeToFile(g_publicLogFilePath);
+}
+
+#define LOGI(...) writeEngineLog("INFO", __VA_ARGS__)
+#define LOGW(...) writeEngineLog("WARN", __VA_ARGS__)
+#define LOGE(...) writeEngineLog("ERROR", __VA_ARGS__)
+
+static void signalCrashHandler(int sig) {
+    const char* sigName = "UNKNOWN";
+    switch (sig) {
+        case SIGSEGV: sigName = "SIGSEGV (Segmentation Fault)"; break;
+        case SIGABRT: sigName = "SIGABRT (Abort)"; break;
+        case SIGBUS:  sigName = "SIGBUS (Bus Error)"; break;
+        case SIGFPE:  sigName = "SIGFPE (Floating Point Exception)"; break;
+        case SIGILL:  sigName = "SIGILL (Illegal Instruction)"; break;
+    }
+    LOGE("FATAL CRASH SIGNAL RECEIVED: %s (%d)", sigName, sig);
+    _exit(128 + sig);
+}
+
+static void installCrashHandlers() {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = signalCrashHandler;
+    sigemptyset(&sa.sa_mask);
+    sigaction(SIGSEGV, &sa, nullptr);
+    sigaction(SIGABRT, &sa, nullptr);
+    sigaction(SIGBUS, &sa, nullptr);
+    sigaction(SIGFPE, &sa, nullptr);
+    sigaction(SIGILL, &sa, nullptr);
+}
+
+} // namespace
 
 namespace {
 
@@ -85,40 +156,83 @@ static void ensureDirectoryExists(const std::string& path) {
     }
 }
 
+static std::string scanDirectoryForCores(const std::string& dirPath) {
+    DIR* dir = opendir(dirPath.c_str());
+    if (!dir) return "";
+
+    struct dirent* entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string name = entry->d_name;
+        // Match standard libretro cores: libretro_*.so or *_libretro_android.so
+        if ((name.rfind("libretro_", 0) == 0 || name.find("libretro") != std::string::npos) &&
+            name.rfind(".so") == name.length() - 3) {
+            if (name != "libretro_engine.so") {
+                std::string fullPath = dirPath + "/" + name;
+                closedir(dir);
+                LOGI("Discovered Libretro core: %s", fullPath.c_str());
+                return fullPath;
+            }
+        }
+    }
+    closedir(dir);
+    return "";
+}
+
 static std::string discoverCoreLibrary(struct android_app* app) {
     if (!app || !app->activity) return "";
 
-    // 1. Search in app's native library directory
-    const char* internalPath = app->activity->internalDataPath;
-    if (internalPath) {
-        std::string libDir = std::string(internalPath) + "/../lib";
-        DIR* dir = opendir(libDir.c_str());
-        if (dir) {
-            struct dirent* entry;
-            while ((entry = readdir(dir)) != nullptr) {
-                std::string name = entry->d_name;
-                // Match standard libretro cores: libretro_*.so
-                if (name.rfind("libretro_", 0) == 0 && name.rfind(".so") == name.length() - 3) {
-                    // Ignore our own host engine library: libretro_engine.so
-                    if (name != "libretro_engine.so") {
-                        std::string fullPath = libDir + "/" + name;
-                        closedir(dir);
-                        LOGI("Discovered Libretro core in libDir: %s", fullPath.c_str());
-                        return fullPath;
+    // 1. Query JNI ApplicationInfo.nativeLibraryDir
+    if (app->activity->vm && app->activity->clazz) {
+        JNIEnv* env = nullptr;
+        JavaVM* vm = app->activity->vm;
+        if (vm->AttachCurrentThread(&env, nullptr) == JNI_OK && env) {
+            jclass activityClass = env->GetObjectClass(app->activity->clazz);
+            if (activityClass) {
+                jmethodID getAppInfoMethod = env->GetMethodID(activityClass, "getApplicationInfo", "()Landroid/content/pm/ApplicationInfo;");
+                if (getAppInfoMethod) {
+                    jobject appInfo = env->CallObjectMethod(app->activity->clazz, getAppInfoMethod);
+                    if (appInfo) {
+                        jclass appInfoClass = env->GetObjectClass(appInfo);
+                        jfieldID nativeLibDirField = env->GetFieldID(appInfoClass, "nativeLibraryDir", "Ljava/lang/String;");
+                        if (nativeLibDirField) {
+                            jstring nativeLibDir = (jstring)env->GetObjectField(appInfo, nativeLibDirField);
+                            if (nativeLibDir) {
+                                const char* pathStr = env->GetStringUTFChars(nativeLibDir, nullptr);
+                                if (pathStr) {
+                                    std::string found = scanDirectoryForCores(pathStr);
+                                    env->ReleaseStringUTFChars(nativeLibDir, pathStr);
+                                    if (!found.empty()) {
+                                        return found;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-            closedir(dir);
         }
     }
 
-    // 2. Candidate core names directly resolvable via Android dynamic linker
+    // 2. Search in app's internal library directory
+    const char* internalPath = app->activity->internalDataPath;
+    if (internalPath) {
+        std::string libDir = std::string(internalPath) + "/../lib";
+        std::string found = scanDirectoryForCores(libDir);
+        if (!found.empty()) return found;
+    }
+
+    // 3. Candidate core names directly resolvable via Android dynamic linker
     const char* fallbackCores[] = {
         "libretro_mgba.so",
         "libretro_snes9x.so",
         "libretro_genesis_plus_gx.so",
         "libretro_fceumm.so",
-        "libretro_mednafen_pce_fast.so"
+        "libretro_mednafen_pce_fast.so",
+        "mgba_libretro_android.so",
+        "snes9x_libretro_android.so",
+        "genesis_plus_gx_libretro_android.so",
+        "fceumm_libretro_android.so",
+        "mednafen_pce_fast_libretro_android.so"
     };
 
     for (const char* coreName : fallbackCores) {
@@ -257,9 +371,7 @@ static int32_t handleEngineInput(struct android_app* app, AInputEvent* event) {
  * Pure NativeActivity Main Entry Point
  */
 void android_main(struct android_app* app) {
-    LOGI("=================================================");
-    LOGI("   RetroPack Pure C++ Native Engine Starting     ");
-    LOGI("=================================================");
+    installCrashHandlers();
 
     EngineContext ctx;
     ctx.app = app;
@@ -267,17 +379,30 @@ void android_main(struct android_app* app) {
     app->onAppCmd = handleEngineCommand;
     app->onInputEvent = handleEngineInput;
 
-    // 1. Configure filesystem directories
+    // 1. Configure filesystem directories & logging paths
     if (app->activity && app->activity->internalDataPath) {
         ctx.internalDataPath = app->activity->internalDataPath;
     } else {
         ctx.internalDataPath = "/data/data/com.retro.game/files";
     }
 
+    ensureDirectoryExists(ctx.internalDataPath);
+    g_logFilePath = ctx.internalDataPath + "/engine.log";
+
+    // Public log folder in /sdcard/Download/logs/
+    std::string publicLogsBase = "/sdcard/Download/logs";
+    ensureDirectoryExists(publicLogsBase);
+    g_publicLogFilePath = publicLogsBase + "/game_launch.log";
+
+    LOGI("=================================================");
+    LOGI("   RetroPack Pure C++ Native Engine Starting     ");
+    LOGI("=================================================");
+    LOGI("Internal Data Path: %s", ctx.internalDataPath.c_str());
+    LOGI("Persistent Log Target: %s", g_logFilePath.c_str());
+
     ctx.systemDir = ctx.internalDataPath + "/system";
     ctx.saveDir = ctx.internalDataPath + "/saves";
 
-    ensureDirectoryExists(ctx.internalDataPath);
     ensureDirectoryExists(ctx.systemDir);
     ensureDirectoryExists(ctx.saveDir);
 
