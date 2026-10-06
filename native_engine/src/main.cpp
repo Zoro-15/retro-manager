@@ -31,9 +31,22 @@
 
 namespace {
 
-static std::string g_logFilePath;
-static std::string g_publicLogFilePath;
+static std::vector<std::string> g_logFilePaths;
 static std::mutex g_logMutex;
+
+static void ensureDirectoryRecursive(const std::string& path) {
+    if (path.empty()) return;
+    std::string current = "";
+    for (size_t i = 0; i < path.length(); ++i) {
+        current += path[i];
+        if (path[i] == '/' || i == path.length() - 1) {
+            struct stat st;
+            if (stat(current.c_str(), &st) != 0) {
+                mkdir(current.c_str(), 0777);
+            }
+        }
+    }
+}
 
 static void writeEngineLog(const char* level, const char* fmt, ...) {
     char buffer[2048];
@@ -49,24 +62,23 @@ static void writeEngineLog(const char* level, const char* fmt, ...) {
     else if (strcmp(level, "DEBUG") == 0) androidLevel = ANDROID_LOG_DEBUG;
     __android_log_print(androidLevel, LOG_TAG, "%s", buffer);
 
-    // 2. Persistent file logging
+    // 2. Persistent file logging across all registered targets
     std::lock_guard<std::mutex> lock(g_logMutex);
-    auto writeToFile = [&](const std::string& path) {
+    time_t now = time(nullptr);
+    struct tm* tmInfo = localtime(&now);
+    char timeBuf[64];
+    strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
+
+    for (const auto& path : g_logFilePaths) {
         if (!path.empty()) {
             FILE* f = fopen(path.c_str(), "a");
             if (f) {
-                time_t now = time(nullptr);
-                struct tm* tmInfo = localtime(&now);
-                char timeBuf[64];
-                strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
                 fprintf(f, "[%s] [%s] %s\n", timeBuf, level, buffer);
                 fflush(f);
                 fclose(f);
             }
         }
-    };
-    writeToFile(g_logFilePath);
-    writeToFile(g_publicLogFilePath);
+    }
 }
 
 #define LOGI(...) writeEngineLog("INFO", __VA_ARGS__)
@@ -390,25 +402,80 @@ void android_main(struct android_app* app) {
         ctx.internalDataPath = "/data/data/com.retro.game/files";
     }
 
-    ensureDirectoryExists(ctx.internalDataPath);
-    g_logFilePath = ctx.internalDataPath + "/engine.log";
+    ensureDirectoryRecursive(ctx.internalDataPath);
 
-    // Public log folder in /sdcard/Download/logs/
-    std::string publicLogsBase = "/sdcard/Download/logs";
-    ensureDirectoryExists(publicLogsBase);
-    g_publicLogFilePath = publicLogsBase + "/game_launch.log";
+    // Derive package name & app slug
+    std::string packageName = "retro_game";
+    if (app->activity && app->activity->internalDataPath) {
+        std::string raw(app->activity->internalDataPath);
+        // Typical format: /data/user/0/<packageName>/files or /data/data/<packageName>/files
+        size_t filesPos = raw.rfind("/files");
+        if (filesPos != std::string::npos) {
+            std::string sub = raw.substr(0, filesPos);
+            size_t slashPos = sub.rfind('/');
+            if (slashPos != std::string::npos) {
+                packageName = sub.substr(slashPos + 1);
+            }
+        }
+    }
+
+    std::string appSlug = packageName;
+    size_t lastDot = packageName.rfind('.');
+    if (lastDot != std::string::npos) {
+        appSlug = packageName.substr(lastDot + 1);
+    }
+
+    // Register all internal and public Download log destinations
+    {
+        std::lock_guard<std::mutex> lock(g_logMutex);
+        g_logFilePaths.clear();
+        
+        // 1. App-private internal storage: files/engine.log
+        g_logFilePaths.push_back(ctx.internalDataPath + "/engine.log");
+
+        // 2. App-specific external storage if available
+        if (app->activity && app->activity->externalDataPath) {
+            std::string extPath(app->activity->externalDataPath);
+            ensureDirectoryRecursive(extPath);
+            g_logFilePaths.push_back(extPath + "/" + appSlug + ".log");
+            g_logFilePaths.push_back(extPath + "/retropack_runtime.log");
+        }
+
+        // 3. Public Download logs directory: /sdcard/Download/logs/<app_slug>/<app_slug>.log
+        std::vector<std::string> downloadBases = {
+            "/sdcard/Download",
+            "/storage/emulated/0/Download"
+        };
+
+        for (const auto& base : downloadBases) {
+            std::string slugDir = base + "/logs/" + appSlug;
+            ensureDirectoryRecursive(slugDir);
+            g_logFilePaths.push_back(slugDir + "/" + appSlug + ".log");
+
+            std::string generalLogsDir = base + "/logs";
+            ensureDirectoryRecursive(generalLogsDir);
+            g_logFilePaths.push_back(generalLogsDir + "/" + appSlug + ".log");
+            g_logFilePaths.push_back(generalLogsDir + "/game_launch.log");
+
+            std::string retroPackLogsDir = base + "/RetroPack/Logs";
+            ensureDirectoryRecursive(retroPackLogsDir);
+            g_logFilePaths.push_back(retroPackLogsDir + "/" + appSlug + ".log");
+        }
+    }
 
     LOGI("=================================================");
     LOGI("   RetroPack Pure C++ Native Engine Starting     ");
     LOGI("=================================================");
-    LOGI("Internal Data Path: %s", ctx.internalDataPath.c_str());
-    LOGI("Persistent Log Target: %s", g_logFilePath.c_str());
+    LOGI("Package Name       : %s", packageName.c_str());
+    LOGI("App Slug           : %s", appSlug.c_str());
+    LOGI("Internal Data Path : %s", ctx.internalDataPath.c_str());
+    LOGI("Public Log Target  : /sdcard/Download/logs/%s/%s.log", appSlug.c_str(), appSlug.c_str());
 
     ctx.systemDir = ctx.internalDataPath + "/system";
     ctx.saveDir = ctx.internalDataPath + "/saves";
 
-    ensureDirectoryExists(ctx.systemDir);
-    ensureDirectoryExists(ctx.saveDir);
+    ensureDirectoryRecursive(ctx.systemDir);
+    ensureDirectoryRecursive(ctx.saveDir);
 
     ctx.bridge.setSystemDirectory(ctx.systemDir);
     ctx.bridge.setSaveDirectory(ctx.saveDir);
