@@ -6,10 +6,12 @@ import org.junit.jupiter.api.Test
 import java.io.File
 
 /**
- * Validates AndroidManifest invariants from architechture.md and masterplan.md:
- * - Invariant 1: Fully qualified activity name (`com.retropack.runtime.GameActivity`)
- * - Invariant 2: `android:extractNativeLibs="false"`
- * - Invariant 3: Fullscreen theme declaration
+ * Validates AndroidManifest invariants for pure NativeActivity (plan2):
+ * - Invariant 1: android:hasCode="false" application declaration
+ * - Invariant 2: android.app.NativeActivity with retro_engine lib_name metadata
+ * - Invariant 3: android:extractNativeLibs="false" for 16 KB page alignment
+ * - Invariant 4: Fullscreen no titlebar theme declaration
+ * - Invariant 5: Standard MAIN / LAUNCHER intent filter
  */
 class AndroidManifestValidationTest {
 
@@ -27,15 +29,24 @@ class AndroidManifestValidationTest {
     }
 
     @Test
-    fun `manifest declares fully qualified GameActivity to prevent ClassNotFoundException`() {
+    fun `manifest declares android hasCode false for pure native execution`() {
         val content = manifestFile.readText()
         assertTrue(
-            content.contains("""android:name="com.retropack.runtime.GameActivity""""),
-            "Manifest must explicitly declare fully qualified com.retropack.runtime.GameActivity (Invariant 1)"
+            content.contains("""android:hasCode="false""""),
+            "Manifest must explicitly declare android:hasCode=\"false\""
         )
-        assertFalse(
-            content.contains("""android:name=".GameActivity""""),
-            "Manifest must NOT use shorthand .GameActivity as AXML package renaming breaks it"
+    }
+
+    @Test
+    fun `manifest declares android app NativeActivity with retro_engine library`() {
+        val content = manifestFile.readText()
+        assertTrue(
+            content.contains("""android:name="android.app.NativeActivity""""),
+            "Manifest must explicitly declare android:name=\"android.app.NativeActivity\""
+        )
+        assertTrue(
+            content.contains("""android:name="android.app.lib_name"""") && content.contains("""android:value="retro_engine""""),
+            "Manifest must declare retro_engine lib_name meta-data"
         )
     }
 

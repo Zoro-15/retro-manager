@@ -46,11 +46,27 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Set up Android NDK
-        uses: nttld/setup-ndk@v1
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
         with:
-          ndk-version: r27c
-          add-to-path: true
+          packages: platform-tools
+
+      - name: Install SDK packages & NDK r28+
+        run: |
+          sdkmanager --install "platforms;android-35" "platform-tools" "build-tools;35.0.0" "cmake;3.22.1"
+          NDK_PKG="$(sdkmanager --list 2>/dev/null | grep -oE 'ndk;28\.[0-9.]+' | sort -uV | tail -n 1)"
+          if [ -z "$NDK_PKG" ]; then
+            echo "::error::No NDK r28.x revision found in the SDK channel"
+            exit 1
+          fi
+          echo "Installing $NDK_PKG ..."
+          sdkmanager --install "$NDK_PKG"
+          NDK_VER="${NDK_PKG#ndk;}"
+          sdkmanager --licenses > /dev/null <<< "y"
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_HOME=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ANDROID_SDK_ROOT/ndk/$NDK_VER" >> "$GITHUB_ENV"
 
       - name: Compile Native Engine (arm64-v8a)
         run: |
@@ -59,7 +75,7 @@ jobs:
           cd native_engine/build_arm64
           
           cmake .. \
-            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_ROOT/build/cmake/android.toolchain.cmake" \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK_HOME/build/cmake/android.toolchain.cmake" \
             -DANDROID_ABI="arm64-v8a" \
             -DANDROID_PLATFORM=android-26 \
             -DCMAKE_BUILD_TYPE=Release
