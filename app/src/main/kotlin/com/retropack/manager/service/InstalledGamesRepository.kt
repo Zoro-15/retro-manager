@@ -37,6 +37,8 @@ class InstalledGamesRepository {
         for (app in installedApps) {
             val pkg = app.packageName
             val isRetroPackApp = pkg.startsWith("com.retropack.game") ||
+                    pkg.startsWith("com.retro.") ||
+                    pkg.contains("retro", ignoreCase = true) ||
                     (app.metaData?.containsKey("com.retropack.runtime") == true) ||
                     (app.metaData?.containsKey("com.retropack.platform") == true)
 
