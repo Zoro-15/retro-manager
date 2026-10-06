@@ -298,13 +298,38 @@ object BuildEngine {
                 }
 
                 // Resolve and inject standalone target Libretro core (.so) binaries
+                val coreId = CoreLibraryInjector.resolveCoreId(request.content.platform, request.runtime.core)
+                var hasInjectedCore = false
+
                 if (coreLibraries.isNotEmpty()) {
                     val sanitizedCoreLibs = CoreLibraryInjector.sanitizeCoreEntries(coreLibraries)
                     allInjected.putAll(sanitizedCoreLibs)
+                    hasInjectedCore = true
                 } else if (coreStagingDir != null && coreStagingDir.exists()) {
-                    val coreId = CoreLibraryInjector.resolveCoreId(request.content.platform, request.runtime.core)
                     val stagedEntries = CoreLibraryInjector.prepareCoreEntriesFromDirectory(coreId, coreStagingDir)
-                    allInjected.putAll(stagedEntries)
+                    if (stagedEntries.isNotEmpty()) {
+                        allInjected.putAll(stagedEntries)
+                        hasInjectedCore = true
+                    }
+                }
+
+                if (!hasInjectedCore) {
+                    // Check if template APK itself has the required core library, engine, or if templateOverride is used (unit tests)
+                    val templateHasCore = templateOverride != null || ZipFile(templateFile).use { zip ->
+                        zip.entries().asSequence().any { entry ->
+                            val name = entry.name
+                            name.contains("libretro_$coreId.so") ||
+                                name.contains("libretro_engine.so") ||
+                                name.contains("lib$coreId.so")
+                        }
+                    }
+                    if (!templateHasCore) {
+                        throw IllegalStateException(
+                            "Required Libretro core binary 'libretro_$coreId.so' was not found in staging directory " +
+                                "(${coreStagingDir?.absolutePath}) or template APK (${templateFile.name}). " +
+                                "Ensure runtime core assets are provisioned."
+                        )
+                    }
                 }
 
                 ZipArchiveTransformer.transform(

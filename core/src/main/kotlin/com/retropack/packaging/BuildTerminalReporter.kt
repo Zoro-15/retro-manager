@@ -34,16 +34,25 @@ object BuildTerminalReporter {
                     "(artifact=${artifact?.absolutePath ?: "null"}). Refusing to report success."
             )
         }
+        val sizeFormatted = formatFileSize(artifact.length())
         return listOf(
             DIVIDER,
             "[✓] BUILD PIPELINE COMPLETE IN ${result.durationMs} ms",
-            "--> Target APK: ${artifact.absolutePath}",
+            "--> Target APK: ${artifact.absolutePath} ($sizeFormatted)",
             "--> Package ID: ${result.packageName} (v${result.versionCode})",
             "--> Cert SHA-256: ${result.certificateSha256Fingerprint}",
             "--> 16 KB Page Alignment: VERIFIED COMPLIANT",
             "--> Signature Schemes: v1 + v2 + v3 PASSED",
             DIVIDER
         )
+    }
+
+    private fun formatFileSize(bytes: Long): String {
+        return when {
+            bytes >= 1024 * 1024 -> String.format(java.util.Locale.US, "%.2f MB", bytes.toDouble() / (1024 * 1024))
+            bytes >= 1024 -> String.format(java.util.Locale.US, "%.1f KB", bytes.toDouble() / 1024)
+            else -> "$bytes B"
+        }
     }
 
     /**

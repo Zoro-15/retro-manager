@@ -813,7 +813,7 @@ class MainViewModel : ViewModel() {
                                 )
                             }
                             if (stageRecord.passed) {
-                                appendLog("[✓] Stage ${stageRecord.stageNumber}/15: ${stageRecord.stageName} (${stageRecord.durationMs} ms)")
+                                appendLog("[✓] Stage ${stageRecord.stageNumber}/15: ${stageRecord.stageName} (${stageRecord.durationMs} ms) - ${stageRecord.description}")
                             } else {
                                 appendLog("[✗] Stage ${stageRecord.stageNumber}/15: ${stageRecord.stageName} (FAILED: ${stageRecord.description})")
                             }
@@ -918,6 +918,14 @@ class MainViewModel : ViewModel() {
             runtimeId = runtimeId,
             log = appendLog
         )
+
+        val coreFiles = targetRuntimesDir.walkTopDown().filter { it.isFile && it.name.endsWith(".so") }.map { "${it.name} (${it.length() / 1024} KB)" }.toList()
+        if (coreFiles.isNotEmpty()) {
+            appendLog("[✓] Discovered ${coreFiles.size} Libretro core shared libraries in staging: ${coreFiles.joinToString(", ")}")
+        } else {
+            appendLog("[!] Warning: No Libretro core (.so) binaries detected in staging directory (${targetRuntimesDir.absolutePath})")
+        }
+
         return when (outcome) {
             is RuntimeProvisionResult.Provisioned -> {
                 appendLog(
