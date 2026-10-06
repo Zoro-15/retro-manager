@@ -430,8 +430,11 @@ void android_main(struct android_app* app) {
         std::lock_guard<std::mutex> lock(g_logMutex);
         g_logFilePaths.clear();
         
-        // 1. App-private internal storage: files/engine.log
+        // 1. App-private internal storage: files/engine.log, launch.log, game_launch.log
         g_logFilePaths.push_back(ctx.internalDataPath + "/engine.log");
+        g_logFilePaths.push_back(ctx.internalDataPath + "/launch.log");
+        g_logFilePaths.push_back(ctx.internalDataPath + "/game_launch.log");
+        g_logFilePaths.push_back(ctx.internalDataPath + "/" + appSlug + ".log");
 
         // 2. App-specific external storage if available
         if (app->activity && app->activity->externalDataPath) {

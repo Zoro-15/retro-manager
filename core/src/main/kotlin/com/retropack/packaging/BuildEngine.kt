@@ -228,10 +228,14 @@ object BuildEngine {
 
                 if (romFile != null) {
                     RomAssetInjector.sanitizeEntryPath(RomAssetInjector.ROM_ENTRY)
+                    RomAssetInjector.sanitizeEntryPath("assets/rom.bin")
                     fileAssetEntries[RomAssetInjector.ROM_ENTRY] = romFile
+                    fileAssetEntries["assets/rom.bin"] = romFile
                 } else if (romBytes != null) {
                     RomAssetInjector.sanitizeEntryPath(RomAssetInjector.ROM_ENTRY)
+                    RomAssetInjector.sanitizeEntryPath("assets/rom.bin")
                     memoryAssetEntries[RomAssetInjector.ROM_ENTRY] = romBytes
+                    memoryAssetEntries["assets/rom.bin"] = romBytes
                 }
 
                 if (additionalDiscFiles.isNotEmpty()) {

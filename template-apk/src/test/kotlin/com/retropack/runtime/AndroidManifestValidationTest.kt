@@ -63,8 +63,9 @@ class AndroidManifestValidationTest {
     fun `manifest declares fullscreen no titlebar theme`() {
         val content = manifestFile.readText()
         assertTrue(
-            content.contains("""android:theme="@android:style/Theme.NoTitleBar.Fullscreen""""),
-            "Manifest must explicitly declare android:theme=\"@android:style/Theme.NoTitleBar.Fullscreen\""
+            content.contains("""android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"""") ||
+                content.contains("""android:theme="@android:style/Theme.NoTitleBar.Fullscreen""""),
+            "Manifest must explicitly declare black fullscreen theme"
         )
     }
 
