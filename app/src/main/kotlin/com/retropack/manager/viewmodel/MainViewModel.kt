@@ -138,10 +138,16 @@ class MainViewModel : ViewModel() {
             }
 
             parseResult.onSuccess { identity ->
-                val derivedPkg = identity.derivePackageName()
+                val resolvedTitle = com.retropack.domain.rom.RomTitleResolver.resolveTitle(
+                    fileName = finalFileName,
+                    gameCode = identity.gameCode,
+                    headerTitle = identity.gameTitle,
+                    platform = identity.platform
+                )
+                val derivedPkg = identity.derivePackageName(customSlug = resolvedTitle)
                 val matchedRuntime = RuntimeRegistry.findRuntimeForPlatform(identity.platform)
                 val templateId = matchedRuntime?.id ?: RuntimeRegistry.RUNTIME_MGBA_UNIFIED
-                com.retropack.manager.util.AppLogger.i("ROM_PARSER", "Header analysis successful: Platform=${identity.platform}, Title='${identity.gameTitle}', Package=$derivedPkg, Template=$templateId, SHA-256=${identity.checksums.sha256}")
+                com.retropack.manager.util.AppLogger.i("ROM_PARSER", "Header analysis successful: Platform=${identity.platform}, Title='$resolvedTitle' (Header: '${identity.gameTitle}'), Package=$derivedPkg, Template=$templateId, SHA-256=${identity.checksums.sha256}")
 
                 val isCd = RomParser.isCdRomPlatform(identity.platform)
                 val initialDiscs = if (isCd) {
@@ -157,14 +163,6 @@ class MainViewModel : ViewModel() {
                         )
                     )
                 } else emptyList()
-
-                val resolvedTitle = com.retropack.domain.rom.RomTitleResolver.resolveTitle(
-                    fileName = finalFileName,
-                    gameCode = identity.gameCode,
-                    headerTitle = identity.gameTitle,
-                    platform = identity.platform
-                )
-                val derivedPkg = identity.derivePackageName(customSlug = resolvedTitle)
 
                 _uiState.update { current ->
                     current.copy(
