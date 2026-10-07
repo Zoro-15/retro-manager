@@ -74,19 +74,26 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
 
     if (screenWidth <= 0 || screenHeight <= 0) return;
 
-    float cardW = std::min(static_cast<float>(screenWidth) * 0.75f, 560.0f);
-    float cardH = std::min(static_cast<float>(screenHeight) * 0.88f, 440.0f);
+    float baseScale = static_cast<float>(std::min(screenWidth, screenHeight)) / 720.0f;
+    if (baseScale < 0.90f) baseScale = 0.90f;
+    if (baseScale > 1.80f) baseScale = 1.80f;
+    m_uiScale = baseScale;
+
+    // Generous card sizing for touch screens
+    float cardW = std::min(static_cast<float>(screenWidth) * 0.84f, 660.0f * baseScale);
+    float cardH = std::min(static_cast<float>(screenHeight) * 0.92f, 540.0f * baseScale);
     float cardX = (static_cast<float>(screenWidth) - cardW) * 0.5f;
     float cardY = (static_cast<float>(screenHeight) - cardH) * 0.5f;
 
-    float padX = 24.0f;
-    float currentY = cardY + 56.0f;
+    float padX = 22.0f * baseScale;
+    float headerH = 46.0f * baseScale;
+    float currentY = cardY + headerH + 12.0f * baseScale;
     float usableW = cardW - (padX * 2.0f);
 
     // 1. Slot Selector Pills (5 slots across)
-    float pillSpacing = 8.0f;
+    float pillSpacing = 8.0f * baseScale;
     float pillW = (usableW - (pillSpacing * 4.0f)) / 5.0f;
-    float pillH = 38.0f;
+    float pillH = 40.0f * baseScale;
 
     for (int i = 1; i <= 5; ++i) {
         OsdButton pill;
@@ -100,13 +107,14 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
         m_slotPills.push_back(pill);
     }
 
-    currentY += pillH + 16.0f;
+    currentY += pillH + 14.0f * baseScale;
 
     // 2. Action Buttons
-    float btnH = 44.0f;
-    float rowSpacing = 10.0f;
+    float btnH = 46.0f * baseScale;
+    float rowSpacing = 9.0f * baseScale;
+    float colW = (usableW - (12.0f * baseScale)) * 0.5f;
 
-    // Row A: Resume Game
+    // Row A: Resume Game (Large Full Width)
     OsdButton btnResume;
     btnResume.action = OSD_RESUME;
     btnResume.x = cardX + padX;
@@ -117,9 +125,27 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
     m_buttons.push_back(btnResume);
     currentY += btnH + rowSpacing;
 
-    // Row B: Save State & Load State (Dual columns)
-    float colW = (usableW - 12.0f) * 0.5f;
+    // Row B: Customize Controls & Left Input Mode (Dual columns)
+    OsdButton btnCustomize;
+    btnCustomize.action = OSD_CUSTOMIZE_CONTROLS;
+    btnCustomize.x = cardX + padX;
+    btnCustomize.y = currentY;
+    btnCustomize.width = colW;
+    btnCustomize.height = btnH;
+    btnCustomize.title = "Customize Controls";
+    m_buttons.push_back(btnCustomize);
 
+    OsdButton btnInputMode;
+    btnInputMode.action = OSD_TOGGLE_INPUT_MODE;
+    btnInputMode.x = cardX + padX + colW + (12.0f * baseScale);
+    btnInputMode.y = currentY;
+    btnInputMode.width = colW;
+    btnInputMode.height = btnH;
+    btnInputMode.title = "Input Mode";
+    m_buttons.push_back(btnInputMode);
+    currentY += btnH + rowSpacing;
+
+    // Row C: Save State & Load State (Dual columns)
     OsdButton btnSave;
     btnSave.action = OSD_SAVE_STATE;
     btnSave.x = cardX + padX;
@@ -131,7 +157,7 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
 
     OsdButton btnLoad;
     btnLoad.action = OSD_LOAD_STATE;
-    btnLoad.x = cardX + padX + colW + 12.0f;
+    btnLoad.x = cardX + padX + colW + (12.0f * baseScale);
     btnLoad.y = currentY;
     btnLoad.width = colW;
     btnLoad.height = btnH;
@@ -139,7 +165,7 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
     m_buttons.push_back(btnLoad);
     currentY += btnH + rowSpacing;
 
-    // Row C: Fast-Forward Toggle
+    // Row D: Fast-Forward Toggle (Full width)
     OsdButton btnFF;
     btnFF.action = OSD_FAST_FORWARD;
     btnFF.x = cardX + padX;
@@ -150,7 +176,7 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
     m_buttons.push_back(btnFF);
     currentY += btnH + rowSpacing;
 
-    // Row D: Reset & Exit (Dual columns)
+    // Row E: Reset & Exit (Dual columns)
     OsdButton btnReset;
     btnReset.action = OSD_RESET;
     btnReset.x = cardX + padX;
@@ -162,7 +188,7 @@ void OsdMenu::updateLayout(int screenWidth, int screenHeight) {
 
     OsdButton btnExit;
     btnExit.action = OSD_EXIT;
-    btnExit.x = cardX + padX + colW + 12.0f;
+    btnExit.x = cardX + padX + colW + (12.0f * baseScale);
     btnExit.y = currentY;
     btnExit.width = colW;
     btnExit.height = btnH;
@@ -204,6 +230,15 @@ int OsdMenu::handleInputEvent(const AInputEvent* event) {
                 case OSD_RESUME:
                     m_open = false;
                     if (m_onResume) m_onResume();
+                    break;
+
+                case OSD_CUSTOMIZE_CONTROLS:
+                    m_open = false;
+                    if (m_onCustomizeControls) m_onCustomizeControls();
+                    break;
+
+                case OSD_TOGGLE_INPUT_MODE:
+                    if (m_onToggleInputMode) m_onToggleInputMode();
                     break;
 
                 case OSD_SAVE_STATE:
@@ -312,44 +347,46 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
     glUniform2f(m_locScreenSize, static_cast<float>(screenWidth), static_cast<float>(screenHeight));
 
     // 1. Semi-transparent backdrop overlay
-    renderRect(0, 0, static_cast<float>(screenWidth), static_cast<float>(screenHeight), 0.02f, 0.03f, 0.05f, 0.85f);
+    renderRect(0, 0, static_cast<float>(screenWidth), static_cast<float>(screenHeight), 0.02f, 0.03f, 0.05f, 0.88f);
 
-    float cardW = std::min(static_cast<float>(screenWidth) * 0.75f, 560.0f);
-    float cardH = std::min(static_cast<float>(screenHeight) * 0.88f, 440.0f);
+    float cardW = std::min(static_cast<float>(screenWidth) * 0.84f, 660.0f * m_uiScale);
+    float cardH = std::min(static_cast<float>(screenHeight) * 0.92f, 540.0f * m_uiScale);
     float cardX = (static_cast<float>(screenWidth) - cardW) * 0.5f;
     float cardY = (static_cast<float>(screenHeight) - cardH) * 0.5f;
 
     // 2. Dialog Container Card with glowing border
-    renderBorderedRect(cardX, cardY, cardW, cardH, 2.0f,
-                       0.09f, 0.11f, 0.16f, 0.98f,
-                       0.25f, 0.35f, 0.55f, 1.0f);
+    renderBorderedRect(cardX, cardY, cardW, cardH, 2.5f,
+                       0.08f, 0.10f, 0.15f, 0.98f,
+                       0.25f, 0.45f, 0.75f, 1.0f);
 
     // 3. Header Accent Bar
-    renderRect(cardX, cardY, cardW, 44.0f, 0.15f, 0.20f, 0.30f, 1.0f);
-    renderRect(cardX, cardY + 42.0f, cardW, 2.0f, 0.25f, 0.50f, 0.90f, 1.0f);
+    float headerH = 46.0f * m_uiScale;
+    renderRect(cardX, cardY, cardW, headerH, 0.14f, 0.18f, 0.28f, 1.0f);
+    renderRect(cardX, cardY + headerH - 2.0f, cardW, 2.0f, 0.30f, 0.60f, 1.0f, 1.0f);
 
     // 4. Slot Selector Pills
     for (const auto& pill : m_slotPills) {
         bool selected = (pill.slotIndex == m_selectedSlot);
         bool hasSave = m_stateManager ? m_stateManager->hasSlot(pill.slotIndex) : false;
 
-        float bgR = selected ? 0.20f : 0.13f;
+        float bgR = selected ? 0.20f : 0.12f;
         float bgG = selected ? 0.50f : 0.16f;
-        float bgB = selected ? 0.90f : 0.23f;
+        float bgB = selected ? 0.90f : 0.24f;
 
         float bdR = selected ? 0.45f : 0.25f;
-        float bdG = selected ? 0.75f : 0.30f;
-        float bdB = selected ? 1.00f : 0.42f;
+        float bdG = selected ? 0.75f : 0.32f;
+        float bdB = selected ? 1.00f : 0.45f;
 
         renderBorderedRect(pill.x, pill.y, pill.width, pill.height, 1.5f,
                            bgR, bgG, bgB, 1.0f,
                            bdR, bdG, bdB, 1.0f);
 
-        // Small indicator dot if slot contains save data
+        // Indicator dot if slot contains save data
         if (hasSave) {
-            float dotR = pill.x + pill.width - 9.0f;
-            float dotY = pill.y + 6.0f;
-            renderRect(dotR, dotY, 5.0f, 5.0f, 0.2f, 0.95f, 0.3f, 1.0f);
+            float dotR = pill.x + pill.width - 10.0f * m_uiScale;
+            float dotY = pill.y + 6.0f * m_uiScale;
+            float dotSz = 6.0f * m_uiScale;
+            renderRect(dotR, dotY, dotSz, dotSz, 0.20f, 0.95f, 0.35f, 1.0f);
         }
     }
 
@@ -361,6 +398,12 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
         if (btn.action == OSD_RESUME) {
             bgR = 0.12f; bgG = 0.48f; bgB = 0.28f; // Emerald green
             bdR = 0.25f; bdG = 0.85f; bdB = 0.50f;
+        } else if (btn.action == OSD_CUSTOMIZE_CONTROLS) {
+            bgR = 0.14f; bgG = 0.35f; bgB = 0.60f; // Glowing Cyan / Blue
+            bdR = 0.30f; bdG = 0.70f; bdB = 1.00f;
+        } else if (btn.action == OSD_TOGGLE_INPUT_MODE) {
+            bgR = 0.25f; bgG = 0.18f; bgB = 0.42f; // Indigo / Amber
+            bdR = 0.65f; bdG = 0.45f; bdB = 0.95f;
         } else if (btn.action == OSD_SAVE_STATE) {
             bgR = 0.18f; bgG = 0.38f; bgB = 0.72f; // Cobalt blue
             bdR = 0.35f; bdG = 0.65f; bdB = 1.00f;
@@ -372,7 +415,7 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
                 bgR = 0.80f; bgG = 0.50f; bgB = 0.12f; // Orange active FF
                 bdR = 1.00f; bdG = 0.75f; bdB = 0.25f;
             } else {
-                bgR = 0.20f; bgG = 0.24f; bgB = 0.32f;
+                bgR = 0.18f; bgG = 0.22f; bgB = 0.30f;
                 bdR = 0.35f; bdG = 0.42f; bdB = 0.55f;
             }
         } else if (btn.action == OSD_RESET) {
@@ -394,7 +437,7 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
     FontRenderer& font = FontRenderer::instance();
 
     // 6a. Header Title
-    font.renderText("RETROPACK MENU", cardX + cardW * 0.5f, cardY + 22.0f, 2.2f,
+    font.renderText("RETROPACK MENU", cardX + cardW * 0.5f, cardY + headerH * 0.5f, 2.4f * m_uiScale,
                     1.0f, 1.0f, 1.0f, 1.0f, screenWidth, screenHeight, true, true);
 
     // 6b. Slot Selector Labels
@@ -405,7 +448,7 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
         float textG = selected ? 1.0f : 0.88f;
         float textB = selected ? 1.0f : 0.95f;
 
-        font.renderText(slotLabel, pill.x + pill.width * 0.5f, pill.y + pill.height * 0.5f, 1.7f,
+        font.renderText(slotLabel, pill.x + pill.width * 0.5f, pill.y + pill.height * 0.5f, 1.8f * m_uiScale,
                         textR, textG, textB, 1.0f, screenWidth, screenHeight, true, true);
     }
 
@@ -414,12 +457,18 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
         std::string labelText = btn.title;
         if (btn.action == OSD_FAST_FORWARD) {
             labelText = "Fast-Forward (" + std::to_string(m_fastForwardSpeed) + "x)";
+        } else if (btn.action == OSD_TOGGLE_INPUT_MODE) {
+            LeftInputMode mode = m_inputModeQuery ? m_inputModeQuery() : LeftInputMode::JOYSTICK;
+            labelText = (mode == LeftInputMode::DPAD) ? "Input: [D-Pad]" : "Input: [Joystick]";
+        } else if (btn.action == OSD_SAVE_STATE) {
+            labelText = "Save Slot " + std::to_string(m_selectedSlot);
+        } else if (btn.action == OSD_LOAD_STATE) {
+            labelText = "Load Slot " + std::to_string(m_selectedSlot);
         }
 
-        font.renderText(labelText, btn.x + btn.width * 0.5f, btn.y + btn.height * 0.5f, 2.0f,
+        font.renderText(labelText, btn.x + btn.width * 0.5f, btn.y + btn.height * 0.5f, 2.0f * m_uiScale,
                         1.0f, 1.0f, 1.0f, 1.0f, screenWidth, screenHeight, true, true);
     }
 }
 
 } // namespace retropack
-

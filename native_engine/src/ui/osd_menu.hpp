@@ -9,6 +9,8 @@
 #include <vector>
 #include <mutex>
 
+#include "input/virtual_pad.hpp"
+
 namespace retropack {
 
 class StateManager;
@@ -16,6 +18,8 @@ class StateManager;
 enum OsdAction {
     OSD_NONE = 0,
     OSD_RESUME,
+    OSD_CUSTOMIZE_CONTROLS,
+    OSD_TOGGLE_INPUT_MODE,
     OSD_SAVE_STATE,
     OSD_LOAD_STATE,
     OSD_FAST_FORWARD,
@@ -36,7 +40,8 @@ struct OsdButton {
 
 /**
  * OsdMenu provides a standalone, in-engine pause overlay menu supporting
- * Save/Load States (Slots 1–5), Fast-Forward toggle (1x–8x), Reset, and Exit.
+ * Save/Load States (Slots 1–5), Fast-Forward toggle (1x–8x), Reset, Exit,
+ * and In-Engine Touch Controls Customization (Free Fire style).
  */
 class OsdMenu {
 public:
@@ -51,11 +56,14 @@ public:
      * Connect external handlers for menu actions.
      */
     void setResumeHandler(std::function<void()> handler) { m_onResume = std::move(handler); }
+    void setCustomizeControlsHandler(std::function<void()> handler) { m_onCustomizeControls = std::move(handler); }
+    void setToggleInputModeHandler(std::function<void()> handler) { m_onToggleInputMode = std::move(handler); }
     void setSaveHandler(std::function<void(int slot)> handler) { m_onSave = std::move(handler); }
     void setLoadHandler(std::function<void(int slot)> handler) { m_onLoad = std::move(handler); }
     void setFastForwardHandler(std::function<void(int speed)> handler) { m_onFastForward = std::move(handler); }
     void setResetHandler(std::function<void()> handler) { m_onReset = std::move(handler); }
     void setExitHandler(std::function<void()> handler) { m_onExit = std::move(handler); }
+    void setInputModeQuery(std::function<LeftInputMode()> query) { m_inputModeQuery = std::move(query); }
     void setStateManager(StateManager* stateManager) { m_stateManager = stateManager; }
 
     /**
@@ -99,14 +107,18 @@ private:
     StateManager* m_stateManager{nullptr};
 
     std::function<void()> m_onResume;
+    std::function<void()> m_onCustomizeControls;
+    std::function<void()> m_onToggleInputMode;
     std::function<void(int slot)> m_onSave;
     std::function<void(int slot)> m_onLoad;
     std::function<void(int speed)> m_onFastForward;
     std::function<void()> m_onReset;
     std::function<void()> m_onExit;
+    std::function<LeftInputMode()> m_inputModeQuery;
 
     int m_screenWidth{0};
     int m_screenHeight{0};
+    float m_uiScale{1.0f};
 
     std::vector<OsdButton> m_buttons;
     std::vector<OsdButton> m_slotPills;

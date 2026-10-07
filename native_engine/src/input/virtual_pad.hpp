@@ -9,6 +9,7 @@
 #include <vector>
 #include <mutex>
 #include <string>
+#include <array>
 
 #include "core/libretro.h"
 
@@ -38,6 +39,25 @@ enum class ConsoleLayout {
     PCE
 };
 
+enum class LeftInputMode {
+    JOYSTICK = 0,
+    DPAD = 1
+};
+
+enum ElementId {
+    ELEM_STICK_OR_DPAD = 0,
+    ELEM_BTN_A,
+    ELEM_BTN_B,
+    ELEM_BTN_X,
+    ELEM_BTN_Y,
+    ELEM_BTN_L,
+    ELEM_BTN_R,
+    ELEM_BTN_SELECT,
+    ELEM_BTN_START,
+    ELEM_BTN_MENU,
+    ELEM_COUNT
+};
+
 struct TouchPoint {
     int id{-1};
     float x{0.0f};
@@ -45,29 +65,42 @@ struct TouchPoint {
     bool active{false};
 };
 
-struct CircleButton {
-    float x{0.0f};
-    float y{0.0f};
-    float radius{0.0f};
-    uint32_t mask{0};
-    const char* label{""};
-    bool enabled{true};
+struct ElementProfile {
+    float normX{0.0f};      // Normalized X [0.0, 1.0]
+    float normY{0.0f};      // Normalized Y [0.0, 1.0]
+    float scale{1.0f};      // Size multiplier [0.5, 2.0]
+    float opacity{0.35f};   // Opacity [0.1, 1.0]
 };
 
-struct RectButton {
-    float x{0.0f};
-    float y{0.0f};
+struct ControlElement {
+    ElementId id{ELEM_STICK_OR_DPAD};
+    std::string name;
+    std::string label;
+    uint32_t mask{0};
+    bool isCircle{true};
+    bool enabled{true};
+
+    // User customized properties (relative / normalized)
+    float normX{0.0f};
+    float normY{0.0f};
+    float scale{1.0f};
+    float opacity{0.35f};
+
+    // Computed screen pixel metrics
+    float px{0.0f};
+    float py{0.0f};
+    float radius{0.0f};
     float width{0.0f};
     float height{0.0f};
-    uint32_t mask{0};
-    const char* label{""};
-    bool enabled{true};
 };
 
 /**
  * VirtualPad provides a high-responsiveness multi-touch virtual controller
- * featuring a PPSSPP-style dynamic Floating Thumbstick, console-adaptive
- * button layouts (GBA, SNES, NES, Genesis, PCE), and modern translucent graphics.
+ * featuring:
+ *  - Dynamic Floating Thumbstick or Classic Frosted Glass D-Pad modes
+ *  - Fully movable, resizable, and opacity-customizable controls (Free Fire HUD editor)
+ *  - Console-adaptive button layouts (GBA, SNES, NES, Genesis, PCE)
+ *  - Multi-profile layout persistence
  */
 class VirtualPad {
 public:
@@ -79,11 +112,39 @@ public:
     VirtualPad& operator=(const VirtualPad&) = delete;
 
     /**
+     * Initialize config persistence file path.
+     */
+    void initConfig(const std::string& configFilePath);
+
+    /**
      * Set console target layout (GBA, SNES, NES, Genesis, PCE)
      * which dynamically enables/disables X, Y, and Shoulder buttons.
      */
     void setConsoleLayout(ConsoleLayout layout);
     ConsoleLayout getConsoleLayout() const { return m_consoleLayout; }
+
+    /**
+     * Left Input Mode (Floating Thumbstick vs Cross D-Pad)
+     */
+    void setLeftInputMode(LeftInputMode mode);
+    LeftInputMode getLeftInputMode() const { return m_leftInputMode; }
+    void toggleLeftInputMode();
+
+    /**
+     * Custom HUD Editor Mode
+     */
+    void startCustomizing();
+    void stopCustomizing();
+    bool isCustomizing() const { return m_isCustomizing; }
+    void resetCustomLayout();
+    void saveCustomLayout();
+    void loadCustomLayout();
+
+    /**
+     * Profile switcher (Profile 0 / Profile 1)
+     */
+    void setActiveProfile(int profile);
+    int getActiveProfile() const { return m_activeProfile; }
 
     /**
      * Update screen geometry and compute responsive control layouts.
@@ -118,16 +179,20 @@ public:
     void render(int screenWidth, int screenHeight);
 
     /**
-     * Configuration.
+     * Global Configuration.
      */
     void setVisible(bool visible) { m_visible = visible; }
     bool isVisible() const { return m_visible; }
-    void setOpacity(float opacity) { m_opacity = opacity; }
-    float getOpacity() const { return m_opacity; }
+    void setOpacity(float opacity);
+    float getOpacity() const { return m_globalOpacity; }
 
 private:
     void updatePointers(const AInputEvent* event);
     void recomputeBitmask();
+    int handleCustomHudInput(const AInputEvent* event);
+    void updateElementPixelMetrics(int elementIndex);
+    void applyConsoleLayoutDefaults();
+
     bool initGL();
     void renderCircle(float cx, float cy, float radius, float r, float g, float b, float a);
     void renderRing(float cx, float cy, float innerRadius, float outerRadius, float r, float g, float b, float a);
@@ -135,51 +200,64 @@ private:
     void renderBorderedRect(float x, float y, float w, float h, float borderWidth,
                             float bgR, float bgG, float bgB, float bgA,
                             float borderR, float borderG, float borderB, float borderA);
+    void renderDpad(float cx, float cy, float span, float opacity, uint32_t activeMask);
+    void renderCustomHudEditor(int screenWidth, int screenHeight);
 
     mutable std::mutex m_mutex;
     bool m_visible{true};
-    float m_opacity{0.30f}; // Default 30% translucent glass style
+    float m_globalOpacity{0.35f};
     bool m_menuRequested{false};
 
     ConsoleLayout m_consoleLayout{ConsoleLayout::GBA};
+    LeftInputMode m_leftInputMode{LeftInputMode::JOYSTICK};
+    int m_activeProfile{0}; // 0 = Profile 1, 1 = Profile 2
+    std::string m_configFilePath;
+
     bool m_hasX{false};
     bool m_hasY{false};
     bool m_hasShoulders{true};
 
     int m_screenWidth{0};
     int m_screenHeight{0};
+    float m_uiScale{1.0f};
 
     static constexpr size_t MAX_TOUCH_POINTERS = 10;
     TouchPoint m_pointers[MAX_TOUCH_POINTERS];
 
     uint32_t m_activeBitmask{0};
 
+    // Array of all 10 Control Elements
+    std::array<ControlElement, ELEM_COUNT> m_elements;
+
+    // Profiles storage [profileIndex 0..1][consoleLayout 0..4][elem 0..9]
+    ElementProfile m_profiles[2][5][ELEM_COUNT];
+    bool m_profilesInitialized{false};
+
     // PPSSPP Dynamic Floating Thumbstick State
     bool m_stickActive{false};
     int m_stickPointerId{-1};
-    float m_defaultStickX{0.0f};
-    float m_defaultStickY{0.0f};
     float m_stickBaseX{0.0f};
     float m_stickBaseY{0.0f};
     float m_stickNubX{0.0f};
     float m_stickNubY{0.0f};
-    float m_stickOuterRadius{70.0f};
-    float m_stickNubRadius{32.0f};
-    float m_stickMaxDist{60.0f};
+    float m_stickOuterRadius{78.0f};
+    float m_stickNubRadius{34.0f};
+    float m_stickMaxDist{65.0f};
     float m_stickDeadzone{12.0f};
 
-    // Action Buttons
-    CircleButton m_btnA;
-    CircleButton m_btnB;
-    CircleButton m_btnX;
-    CircleButton m_btnY;
-
-    // Shoulder & Utility Buttons
-    RectButton m_btnL;
-    RectButton m_btnR;
-    RectButton m_btnSelect;
-    RectButton m_btnStart;
-    RectButton m_btnMenu;
+    // Custom HUD Editing State
+    bool m_isCustomizing{false};
+    int m_selectedElement{0};
+    bool m_inspectorCollapsed{false};
+    bool m_isDraggingElement{false};
+    float m_dragTouchStartX{0.0f};
+    float m_dragTouchStartY{0.0f};
+    float m_elementStartX{0.0f};
+    float m_elementStartY{0.0f};
+    bool m_draggingOpacitySlider{false};
+    bool m_draggingSizeSlider{false};
+    std::string m_hudToastMessage;
+    int m_hudToastFrames{0};
 
     // Shader program for procedural vector UI
     bool m_glInitialized{false};

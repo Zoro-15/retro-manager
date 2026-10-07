@@ -334,8 +334,8 @@ static int32_t handleEngineInput(struct android_app* app, AInputEvent* event) {
     // 2. Otherwise route to VirtualPad multi-touch controller
     int handled = ctx->virtualPad.handleInputEvent(event);
 
-    // 3. Check if menu trigger was pressed
-    if (ctx->virtualPad.consumeMenuRequest()) {
+    // 3. Check if menu trigger was pressed (only when not in HUD customizer mode)
+    if (!ctx->virtualPad.isCustomizing() && ctx->virtualPad.consumeMenuRequest()) {
         ctx->osdMenu.open();
         ctx->audioPlayer.pause();
         ctx->persistSram();
@@ -419,15 +419,29 @@ void android_main(struct android_app* app) {
         ANativeActivity_finish(app->activity);
     });
 
-    // 2. Initialize StateManager
+    // 2. Initialize StateManager & VirtualPad Persistence
     ctx.stateManager.init(ctx.saveDir, &ctx.bridge);
     ctx.osdMenu.setStateManager(&ctx.stateManager);
+    ctx.virtualPad.initConfig(ctx.internalDataPath + "/controls_config.dat");
 
     // 3. Configure OSD Menu Handlers
     ctx.osdMenu.setResumeHandler([&ctx]() {
         if (ctx.hasFocus && ctx.running) {
             ctx.audioPlayer.start();
         }
+    });
+
+    ctx.osdMenu.setCustomizeControlsHandler([&ctx]() {
+        ctx.osdMenu.close();
+        ctx.virtualPad.startCustomizing();
+    });
+
+    ctx.osdMenu.setToggleInputModeHandler([&ctx]() {
+        ctx.virtualPad.toggleLeftInputMode();
+    });
+
+    ctx.osdMenu.setInputModeQuery([&ctx]() -> retropack::LeftInputMode {
+        return ctx.virtualPad.getLeftInputMode();
     });
 
     ctx.osdMenu.setSaveHandler([&ctx](int slot) {
@@ -477,8 +491,8 @@ void android_main(struct android_app* app) {
     });
 
     ctx.bridge.setInputStateCallback([&ctx](unsigned port, unsigned device, unsigned index, unsigned id) -> int16_t {
-        if (ctx.osdMenu.isOpen()) {
-            return 0; // Inhibit game input while in OSD menu
+        if (ctx.osdMenu.isOpen() || ctx.virtualPad.isCustomizing()) {
+            return 0; // Inhibit game input while in OSD menu or customizing controls
         }
         return ctx.virtualPad.getInputState(port, device, index, id);
     });
@@ -587,8 +601,8 @@ void android_main(struct android_app* app) {
             if (elapsed >= ctx.currentFrameInterval) {
                 ctx.lastFrameTime = now;
 
-                // Step core emulation (if not in OSD menu)
-                if (!ctx.osdMenu.isOpen()) {
+                // Step core emulation (if not in OSD menu and not customizing controls)
+                if (!ctx.osdMenu.isOpen() && !ctx.virtualPad.isCustomizing()) {
                     ctx.bridge.runFrame();
                 }
 
