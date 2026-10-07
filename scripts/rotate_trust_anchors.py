@@ -58,8 +58,39 @@ def rotate_bundle(bundle_dir: Path):
             rf'\g<1>{apk_hash}\g<2>',
             reg_text
         )
+
+        # Update TRUSTED_PROTECTED_ENTRIES
+        entries_block = "mapOf(\n"
+        for k, v in protected_entries.items():
+            clean_hash = v.replace("sha256:", "")
+            entries_block += f'            "{k}" to "{clean_hash}",\n'
+        entries_block = entries_block.rstrip(",\n") + "\n        )"
+
+        reg_text = re.sub(
+            rf'({const_id}\s+to\s+)mapOf\([\s\S]*?\n\s*\)',
+            rf'\g<1>{entries_block}',
+            reg_text
+        )
+
         REGISTRY_FILE.write_text(reg_text, encoding="utf-8")
         print(f"  updated {const_id} in {REGISTRY_FILE.name}")
+
+    # 3. Update RuntimeDescriptor.kt
+    if DESCRIPTOR_FILE.is_file():
+        desc_text = DESCRIPTOR_FILE.read_text(encoding="utf-8")
+        desc_val_name = bundle_name.upper().replace("-", "_")
+        entries_desc_block = "mapOf(\n"
+        for k, v in protected_entries.items():
+            entries_desc_block += f'                "{k}" to "{v}",\n'
+        entries_desc_block = entries_desc_block.rstrip(",\n") + "\n            )"
+
+        desc_text = re.sub(
+            rf'(val\s+{desc_val_name}\s*=\s*RuntimeDescriptor\([\s\S]*?protectedEntries\s*=\s*)mapOf\([\s\S]*?\n\s*\)',
+            rf'\g<1>{entries_desc_block}',
+            desc_text
+        )
+        DESCRIPTOR_FILE.write_text(desc_text, encoding="utf-8")
+        print(f"  updated {desc_val_name} in {DESCRIPTOR_FILE.name}")
 
 def main():
     target_arg = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else None
@@ -73,3 +104,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
