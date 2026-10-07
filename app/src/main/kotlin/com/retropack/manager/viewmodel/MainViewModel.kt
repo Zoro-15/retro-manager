@@ -158,6 +158,14 @@ class MainViewModel : ViewModel() {
                     )
                 } else emptyList()
 
+                val resolvedTitle = com.retropack.domain.rom.RomTitleResolver.resolveTitle(
+                    fileName = finalFileName,
+                    gameCode = identity.gameCode,
+                    headerTitle = identity.gameTitle,
+                    platform = identity.platform
+                )
+                val derivedPkg = identity.derivePackageName(customSlug = resolvedTitle)
+
                 _uiState.update { current ->
                     current.copy(
                         romState = current.romState.copy(
@@ -172,7 +180,7 @@ class MainViewModel : ViewModel() {
                             errorMessage = null
                         ),
                         identityState = current.identityState.copy(
-                            gameTitle = identity.gameTitle,
+                            gameTitle = resolvedTitle,
                             derivedPackageName = derivedPkg
                         ),
                         runtimeState = current.runtimeState.copy(
@@ -186,7 +194,7 @@ class MainViewModel : ViewModel() {
                 scrapeGameArt(
                     context = context.applicationContext,
                     platform = identity.platform,
-                    gameTitle = identity.gameTitle,
+                    gameTitle = resolvedTitle,
                     rawFileName = finalFileName,
                     gameCode = identity.gameCode
                 )

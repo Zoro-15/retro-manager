@@ -33,7 +33,7 @@ class RomTitleResolverTest {
             RomTitleResolver.resolveTitle(fileName = "Castlevania - Aria of Sorrow (USA) (Rev 1).gba", headerTitle = "CASTLEVANIA", platform = "gba")
         )
         assertEquals(
-            "Metroid - Zero Mission",
+            "Metroid Zero Mission",
             RomTitleResolver.resolveTitle(fileName = "Metroid_Zero_Mission_[!].zip", headerTitle = "METROID ZERO", platform = "gba")
         )
     }
@@ -45,7 +45,7 @@ class RomTitleResolverTest {
             RomTitleResolver.resolveTitle(fileName = "game.rom", gameCode = "AHYE", headerTitle = "MARIO DELUXAHYE", platform = "gbc")
         )
         assertEquals(
-            "Golden_Sun",
+            "Golden Sun",
             RomTitleResolver.resolveTitle(fileName = "rom.bin", headerTitle = "Golden_Sun_A", platform = "gba")
         )
         assertEquals(

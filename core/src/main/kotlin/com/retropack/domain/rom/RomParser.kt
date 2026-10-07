@@ -67,6 +67,7 @@ object RomParser {
         fileName: String? = null
     ): RomIdentity {
         // 1. Attempt GBA detection
+        // 1. Attempt GBA detection
         if (headerBytes.size >= GbaRomParser.MIN_HEADER_SIZE) {
             val isGbaFixedByte = (headerBytes[0xB2].toInt() and 0xFF) == 0x96
             val gbaChecksumCalculated = GbaRomParser.calculateHeaderChecksum(headerBytes)
@@ -76,15 +77,9 @@ object RomParser {
             if (isGbaFixedByte || isGbaChecksumMatch) {
                 val gbaHeader = runCatching { GbaRomParser.parse(headerBytes) }.getOrNull()
                 if (gbaHeader != null) {
-                    val resolvedTitle = RomTitleResolver.resolveTitle(
-                        fileName = fileName,
-                        gameCode = gbaHeader.gameCode,
-                        headerTitle = gbaHeader.title,
-                        platform = "gba"
-                    )
                     return RomIdentity(
                         platform = "gba",
-                        gameTitle = resolvedTitle,
+                        gameTitle = gbaHeader.title,
                         gameCode = gbaHeader.gameCode,
                         makerCode = gbaHeader.makerCode,
                         softwareVersion = gbaHeader.softwareVersion,
@@ -101,15 +96,9 @@ object RomParser {
         if (headerBytes.size >= GbRomParser.MIN_HEADER_SIZE) {
             val gbHeader = runCatching { GbRomParser.parse(headerBytes) }.getOrNull()
             if (gbHeader != null && (gbHeader.logoValid || gbHeader.headerChecksumValid)) {
-                val resolvedTitle = RomTitleResolver.resolveTitle(
-                    fileName = fileName,
-                    gameCode = null,
-                    headerTitle = gbHeader.title,
-                    platform = gbHeader.platform
-                )
                 return RomIdentity(
                     platform = gbHeader.platform,
-                    gameTitle = resolvedTitle,
+                    gameTitle = gbHeader.title,
                     softwareVersion = gbHeader.maskRomVersion,
                     fileSize = fileSize,
                     checksums = checksumResult.checksums,
@@ -127,14 +116,9 @@ object RomParser {
         if (NesRomParser.isNesRom(headerBytes)) {
             val nesHeader = runCatching { NesRomParser.parse(headerBytes) }.getOrNull()
             if (nesHeader != null) {
-                val resolvedTitle = RomTitleResolver.resolveTitle(
-                    fileName = fileName,
-                    headerTitle = nesHeader.title,
-                    platform = "nes"
-                )
                 return RomIdentity(
                     platform = "nes",
-                    gameTitle = resolvedTitle,
+                    gameTitle = nesHeader.title,
                     fileSize = fileSize,
                     checksums = checksumResult.checksums,
                     headerChecksumValid = true,
@@ -149,15 +133,9 @@ object RomParser {
         if (GenesisRomParser.isGenesisRom(headerBytes)) {
             val genesisHeader = runCatching { GenesisRomParser.parse(headerBytes) }.getOrNull()
             if (genesisHeader != null) {
-                val resolvedTitle = RomTitleResolver.resolveTitle(
-                    fileName = fileName,
-                    gameCode = genesisHeader.productNumber.takeIf { it.isNotBlank() },
-                    headerTitle = genesisHeader.overseasTitle,
-                    platform = genesisHeader.platform
-                )
                 return RomIdentity(
                     platform = genesisHeader.platform,
-                    gameTitle = resolvedTitle,
+                    gameTitle = genesisHeader.overseasTitle,
                     gameCode = genesisHeader.productNumber.takeIf { it.isNotBlank() },
                     fileSize = fileSize,
                     checksums = checksumResult.checksums,
@@ -173,14 +151,9 @@ object RomParser {
         if (SnesRomParser.isSnesRom(headerBytes)) {
             val snesHeader = runCatching { SnesRomParser.parse(headerBytes) }.getOrNull()
             if (snesHeader != null) {
-                val resolvedTitle = RomTitleResolver.resolveTitle(
-                    fileName = fileName,
-                    headerTitle = snesHeader.title,
-                    platform = "snes"
-                )
                 return RomIdentity(
                     platform = "snes",
-                    gameTitle = resolvedTitle,
+                    gameTitle = snesHeader.title,
                     softwareVersion = snesHeader.version,
                     fileSize = fileSize,
                     checksums = checksumResult.checksums,
@@ -197,14 +170,9 @@ object RomParser {
         if (PceRomParser.isPceRom(headerBytes, fileName)) {
             val pceHeader = runCatching { PceRomParser.parse(headerBytes, fileName) }.getOrNull()
             if (pceHeader != null) {
-                val resolvedTitle = RomTitleResolver.resolveTitle(
-                    fileName = fileName,
-                    headerTitle = pceHeader.title,
-                    platform = "pce"
-                )
                 return RomIdentity(
                     platform = "pce",
-                    gameTitle = resolvedTitle,
+                    gameTitle = pceHeader.title,
                     fileSize = fileSize,
                     checksums = checksumResult.checksums,
                     headerChecksumValid = true,
