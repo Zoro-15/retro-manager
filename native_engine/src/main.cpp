@@ -19,6 +19,7 @@
 #include "audio/aaudio_player.hpp"
 #include "input/virtual_pad.hpp"
 #include "ui/osd_menu.hpp"
+#include "ui/font_renderer.hpp"
 #include "storage/state_manager.hpp"
 
 #include <csignal>
@@ -570,6 +571,7 @@ void android_main(struct android_app* app) {
                 LOGI("NativeActivity destroy requested, exiting frame loop");
                 ctx.persistSram();
                 ctx.audioPlayer.destroy();
+                retropack::FontRenderer::instance().terminateGL();
                 ctx.renderer.terminateEGL();
                 ctx.bridge.unloadGame();
                 ctx.bridge.unloadCore();

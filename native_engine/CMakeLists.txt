@@ -38,6 +38,7 @@ set(ENGINE_SOURCES
     src/video/gles_renderer.cpp
     src/audio/aaudio_player.cpp
     src/input/virtual_pad.cpp
+    src/ui/font_renderer.cpp
     src/ui/osd_menu.cpp
     src/storage/state_manager.cpp
 )

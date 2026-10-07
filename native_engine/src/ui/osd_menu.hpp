@@ -86,6 +86,9 @@ private:
     void updateLayout(int screenWidth, int screenHeight);
     bool initGL();
     void renderRect(float x, float y, float w, float h, float r, float g, float b, float a);
+    void renderBorderedRect(float x, float y, float w, float h, float borderWidth,
+                            float bgR, float bgG, float bgB, float bgA,
+                            float borderR, float borderG, float borderB, float borderA);
 
     mutable std::mutex m_mutex;
     bool m_open{false};

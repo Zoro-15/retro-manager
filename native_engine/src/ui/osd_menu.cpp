@@ -1,4 +1,5 @@
 #include "osd_menu.hpp"
+#include "font_renderer.hpp"
 #include "storage/state_manager.hpp"
 
 #include <android/log.h>
@@ -283,6 +284,16 @@ void OsdMenu::renderRect(float x, float y, float w, float h, float r, float g, f
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
+void OsdMenu::renderBorderedRect(float x, float y, float w, float h, float borderWidth,
+                                float bgR, float bgG, float bgB, float bgA,
+                                float borderR, float borderG, float borderB, float borderA) {
+    renderRect(x, y, w, h, bgR, bgG, bgB, bgA);
+    renderRect(x, y, w, borderWidth, borderR, borderG, borderB, borderA);
+    renderRect(x, y + h - borderWidth, w, borderWidth, borderR, borderG, borderB, borderA);
+    renderRect(x, y, borderWidth, h, borderR, borderG, borderB, borderA);
+    renderRect(x + w - borderWidth, y, borderWidth, h, borderR, borderG, borderB, borderA);
+}
+
 void OsdMenu::render(int screenWidth, int screenHeight) {
     if (!m_open || screenWidth <= 0 || screenHeight <= 0) return;
 
@@ -308,58 +319,107 @@ void OsdMenu::render(int screenWidth, int screenHeight) {
     float cardX = (static_cast<float>(screenWidth) - cardW) * 0.5f;
     float cardY = (static_cast<float>(screenHeight) - cardH) * 0.5f;
 
-    // 2. Dialog Container Card
-    renderRect(cardX, cardY, cardW, cardH, 0.10f, 0.12f, 0.16f, 0.98f);
+    // 2. Dialog Container Card with glowing border
+    renderBorderedRect(cardX, cardY, cardW, cardH, 2.0f,
+                       0.09f, 0.11f, 0.16f, 0.98f,
+                       0.25f, 0.35f, 0.55f, 1.0f);
 
     // 3. Header Accent Bar
-    renderRect(cardX, cardY, cardW, 44.0f, 0.18f, 0.22f, 0.32f, 1.0f);
+    renderRect(cardX, cardY, cardW, 44.0f, 0.15f, 0.20f, 0.30f, 1.0f);
+    renderRect(cardX, cardY + 42.0f, cardW, 2.0f, 0.25f, 0.50f, 0.90f, 1.0f);
 
     // 4. Slot Selector Pills
     for (const auto& pill : m_slotPills) {
         bool selected = (pill.slotIndex == m_selectedSlot);
         bool hasSave = m_stateManager ? m_stateManager->hasSlot(pill.slotIndex) : false;
 
-        float r = selected ? 0.20f : 0.14f;
-        float g = selected ? 0.55f : 0.16f;
-        float b = selected ? 0.90f : 0.22f;
-        float a = 1.0f;
+        float bgR = selected ? 0.20f : 0.13f;
+        float bgG = selected ? 0.50f : 0.16f;
+        float bgB = selected ? 0.90f : 0.23f;
 
-        renderRect(pill.x, pill.y, pill.width, pill.height, r, g, b, a);
+        float bdR = selected ? 0.45f : 0.25f;
+        float bdG = selected ? 0.75f : 0.30f;
+        float bdB = selected ? 1.00f : 0.42f;
+
+        renderBorderedRect(pill.x, pill.y, pill.width, pill.height, 1.5f,
+                           bgR, bgG, bgB, 1.0f,
+                           bdR, bdG, bdB, 1.0f);
 
         // Small indicator dot if slot contains save data
         if (hasSave) {
-            float dotR = pill.x + pill.width - 10.0f;
+            float dotR = pill.x + pill.width - 9.0f;
             float dotY = pill.y + 6.0f;
-            renderRect(dotR, dotY, 6.0f, 6.0f, 0.2f, 0.85f, 0.3f, 1.0f);
+            renderRect(dotR, dotY, 5.0f, 5.0f, 0.2f, 0.95f, 0.3f, 1.0f);
         }
     }
 
     // 5. Action Buttons
     for (const auto& btn : m_buttons) {
-        float r = 0.16f, g = 0.20f, b = 0.26f, a = 1.0f;
+        float bgR = 0.16f, bgG = 0.20f, bgB = 0.26f;
+        float bdR = 0.30f, bdG = 0.38f, bdB = 0.50f;
 
         if (btn.action == OSD_RESUME) {
-            r = 0.15f; g = 0.55f; b = 0.35f; // Green accent
+            bgR = 0.12f; bgG = 0.48f; bgB = 0.28f; // Emerald green
+            bdR = 0.25f; bdG = 0.85f; bdB = 0.50f;
         } else if (btn.action == OSD_SAVE_STATE) {
-            r = 0.20f; g = 0.45f; b = 0.75f; // Blue accent
+            bgR = 0.18f; bgG = 0.38f; bgB = 0.72f; // Cobalt blue
+            bdR = 0.35f; bdG = 0.65f; bdB = 1.00f;
         } else if (btn.action == OSD_LOAD_STATE) {
-            r = 0.40f; g = 0.35f; b = 0.70f; // Purple accent
+            bgR = 0.35f; bgG = 0.28f; bgB = 0.65f; // Purple
+            bdR = 0.65f; bdG = 0.50f; bdB = 0.95f;
         } else if (btn.action == OSD_FAST_FORWARD) {
             if (m_fastForwardSpeed > 1) {
-                r = 0.85f; g = 0.55f; b = 0.15f; // Orange active FF
+                bgR = 0.80f; bgG = 0.50f; bgB = 0.12f; // Orange active FF
+                bdR = 1.00f; bdG = 0.75f; bdB = 0.25f;
             } else {
-                r = 0.22f; g = 0.26f; b = 0.34f;
+                bgR = 0.20f; bgG = 0.24f; bgB = 0.32f;
+                bdR = 0.35f; bdG = 0.42f; bdB = 0.55f;
             }
         } else if (btn.action == OSD_RESET) {
-            r = 0.65f; g = 0.30f; b = 0.20f; // Warm red
+            bgR = 0.60f; bgG = 0.25f; bgB = 0.18f; // Warm red
+            bdR = 0.90f; bdG = 0.45f; bdB = 0.35f;
         } else if (btn.action == OSD_EXIT) {
-            r = 0.55f; g = 0.18f; b = 0.18f; // Dark red
+            bgR = 0.50f; bgG = 0.15f; bgB = 0.15f; // Crimson
+            bdR = 0.85f; bdG = 0.30f; bdB = 0.30f;
         }
 
-        renderRect(btn.x, btn.y, btn.width, btn.height, r, g, b, a);
+        renderBorderedRect(btn.x, btn.y, btn.width, btn.height, 1.5f,
+                           bgR, bgG, bgB, 1.0f,
+                           bdR, bdG, bdB, 1.0f);
     }
 
     glDisable(GL_BLEND);
+
+    // 6. Draw Crisp Text Labels using FontRenderer
+    FontRenderer& font = FontRenderer::instance();
+
+    // 6a. Header Title
+    font.renderText("RETROPACK MENU", cardX + cardW * 0.5f, cardY + 22.0f, 2.2f,
+                    1.0f, 1.0f, 1.0f, 1.0f, screenWidth, screenHeight, true, true);
+
+    // 6b. Slot Selector Labels
+    for (const auto& pill : m_slotPills) {
+        std::string slotLabel = "SLOT " + std::to_string(pill.slotIndex);
+        bool selected = (pill.slotIndex == m_selectedSlot);
+        float textR = selected ? 1.0f : 0.80f;
+        float textG = selected ? 1.0f : 0.88f;
+        float textB = selected ? 1.0f : 0.95f;
+
+        font.renderText(slotLabel, pill.x + pill.width * 0.5f, pill.y + pill.height * 0.5f, 1.7f,
+                        textR, textG, textB, 1.0f, screenWidth, screenHeight, true, true);
+    }
+
+    // 6c. Action Button Labels
+    for (const auto& btn : m_buttons) {
+        std::string labelText = btn.title;
+        if (btn.action == OSD_FAST_FORWARD) {
+            labelText = "Fast-Forward (" + std::to_string(m_fastForwardSpeed) + "x)";
+        }
+
+        font.renderText(labelText, btn.x + btn.width * 0.5f, btn.y + btn.height * 0.5f, 2.0f,
+                        1.0f, 1.0f, 1.0f, 1.0f, screenWidth, screenHeight, true, true);
+    }
 }
 
 } // namespace retropack
+

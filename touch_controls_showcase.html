@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroPack — On-Screen Touch Controls Showcase & Selector</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #090c15;
+            --bg-surface: #111726;
+            --bg-elevated: #192237;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --accent-purple: #8b5cf6;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(59, 130, 246, 0.6);
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 22px;
+            --radius-full: 9999px;
+            --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.09) 0%, transparent 45%),
+                radial-gradient(circle at 88% 82%, rgba(139, 92, 246, 0.09) 0%, transparent 45%);
+        }
+
+        header {
+            padding: 20px 36px;
+            background: rgba(17, 23, 38, 0.82);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-block {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            color: white;
+            font-weight: 800;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+
+        .brand-title {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .status-pill {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: 6px 16px;
+            border-radius: var(--radius-full);
+            font-size: 13px;
+            color: var(--accent-emerald);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-emerald);
+            box-shadow: 0 0 12px var(--accent-emerald);
+        }
+
+        main {
+            flex: 1;
+            padding: 32px 36px;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 32px;
+        }
+
+        @media (max-width: 1150px) {
+            main { grid-template-columns: 1fr; }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-label {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+        }
+
+        .style-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .style-cards::-webkit-scrollbar {
+            width: 6px;
+        }
+        .style-cards::-webkit-scrollbar-thumb {
+            background: var(--bg-elevated);
+            border-radius: 3px;
+        }
+
+        .style-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .style-card:hover {
+            background: var(--bg-elevated);
+            border-color: rgba(255, 255, 255, 0.18);
+            transform: translateY(-2px);
+        }
+
+        .style-card.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 24px rgba(59, 130, 246, 0.22);
+        }
+
+        .style-card.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--accent-purple));
+        }
+
+        .style-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .style-name {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .style-origin {
+            font-size: 11px;
+            font-weight: 700;
+            background: var(--bg-elevated);
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .style-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .style-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .feature-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-dim);
+        }
+
+        /* Playground / Viewport Area */
+        .viewport-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .controls-toolbar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .segmented-control {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: 3px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            gap: 2px;
+        }
+
+        .seg-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .seg-btn:hover { color: var(--text-main); }
+        .seg-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 10px var(--primary-glow);
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-group input[type="range"] {
+            accent-color: var(--primary);
+            cursor: pointer;
+            width: 80px;
+        }
+
+        /* Simulator Screen Frame */
+        .simulator-card {
+            background: #000;
+            border: 2px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            position: relative;
+            aspect-ratio: 20 / 9;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+        }
+
+        .game-canvas-mock {
+            position: absolute;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.95);
+            z-index: 1;
+            transition: var(--transition-smooth);
+        }
+
+        .aspect-gba { width: 62%; height: 90%; }
+        .aspect-snes { width: 48%; height: 90%; }
+        .aspect-nes { width: 45%; height: 90%; }
+        .aspect-genesis { width: 50%; height: 90%; }
+
+        .mock-game-art {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-dim);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            text-align: center;
+            padding: 16px;
+        }
+
+        .mock-fps-tag {
+            font-size: 11px;
+            background: rgba(0, 0, 0, 0.65);
+            color: var(--accent-emerald);
+            padding: 4px 8px;
+            border-radius: 4px;
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .live-input-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            font-size: 11px;
+            background: rgba(0,0,0,0.7);
+            color: #60a5fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        /* TOUCH CONTROLS OVERLAY */
+        .touch-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: auto;
+            display: flex;
+            justify-content: space-between;
+            padding: 24px 28px;
+            transition: opacity 0.15s ease;
+        }
+
+        .left-control-zone, .right-control-zone {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            position: relative;
+            width: 280px;
+            height: 100%;
+        }
+
+        .top-shoulder-zone {
+            position: absolute;
+            top: 14px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: auto;
+            z-index: 15;
+            transition: opacity 0.15s ease;
+        }
+
+        .center-utility-zone {
+            position: absolute;
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
+            z-index: 15;
+            transition: opacity 0.15s ease;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* JOYSTICK / THUMBSTICK COMPONENT                                  */
+        /* ----------------------------------------------------------------- */
+        .joystick-container {
+            width: 154px;
+            height: 154px;
+            position: relative;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+        }
+
+        .joystick-base {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+        }
+
+        .joystick-nub {
+            width: 68px;
+            height: 68px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            border: 2px solid rgba(255, 255, 255, 0.35);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.3);
+            position: absolute;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 800;
+            transition: transform 0.05s ease-out;
+            pointer-events: none;
+        }
+
+        .joystick-nub::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 3DS Circle Pad style */
+        .joystick-circlepad .joystick-base {
+            background: #252834;
+            border: 3px solid #3d4356;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+        }
+        .joystick-circlepad .joystick-nub {
+            width: 74px;
+            height: 74px;
+            background: radial-gradient(circle at 40% 40%, #52596d, #2f3444);
+            border: 2px solid #6b738c;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+        }
+        .joystick-circlepad .joystick-nub::after {
+            background: #252834;
+            border: 2px solid #52596d;
+        }
+
+        /* PPSSPP / Neon Vector Stick style */
+        .joystick-neon .joystick-base {
+            background: rgba(59, 130, 246, 0.06);
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+        }
+        .joystick-neon .joystick-nub {
+            background: rgba(59, 130, 246, 0.25);
+            border: 2px solid #60a5fa;
+            box-shadow: 0 0 16px rgba(59, 130, 246, 0.5);
+        }
+        .joystick-neon .joystick-nub::after {
+            background: #3b82f6;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* STYLE 1: DELTA FROSTED NEO-GLASS                              */
+        /* ------------------------------------------------------------- */
+        .theme-delta .dpad {
+            width: 154px;
+            height: 154px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.09);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .theme-delta .dpad-btn {
+            position: absolute;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 700;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.08s ease, background 0.08s ease;
+        }
+
+        .theme-delta .dpad-up { top: 6px; left: 52px; width: 50px; height: 46px; border-radius: 14px 14px 0 0; }
+        .theme-delta .dpad-down { bottom: 6px; left: 52px; width: 50px; height: 46px; border-radius: 0 0 14px 14px; }
+        .theme-delta .dpad-left { top: 52px; left: 6px; width: 46px; height: 50px; border-radius: 14px 0 0 14px; }
+        .theme-delta .dpad-right { top: 52px; right: 6px; width: 46px; height: 50px; border-radius: 0 14px 14px 0; }
+        .theme-delta .dpad-center { top: 52px; left: 52px; width: 50px; height: 50px; background: rgba(0,0,0,0.18); border-radius: 50%; position: absolute; pointer-events: none; }
+
+        .theme-delta .dpad-btn:active, .theme-delta .dpad-btn.pressed {
+            background: rgba(255, 255, 255, 0.28);
+            transform: scale(0.92);
+        }
+
+        .theme-delta .action-cluster {
+            width: 160px;
+            height: 160px;
+            position: relative;
+        }
+
+        .theme-delta .btn-action {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            transition: transform 0.08s ease, filter 0.08s ease;
+        }
+
+        .theme-delta .btn-a { bottom: 35px; right: 10px; background: rgba(239, 68, 68, 0.3); border-color: rgba(239, 68, 68, 0.5); color: #fca5a5; }
+        .theme-delta .btn-b { bottom: 0px; left: 35px; background: rgba(245, 158, 11, 0.3); border-color: rgba(245, 158, 11, 0.5); color: #fde68a; }
+        .theme-delta .btn-x { top: 0px; right: 35px; background: rgba(59, 130, 246, 0.3); border-color: rgba(59, 130, 246, 0.5); color: #93c5fd; }
+        .theme-delta .btn-y { top: 35px; left: 10px; background: rgba(16, 185, 129, 0.3); border-color: rgba(16, 185, 129, 0.5); color: #6ee7b7; }
+
+        .theme-delta .btn-action:active, .theme-delta .btn-action.pressed {
+            transform: scale(0.9);
+            filter: brightness(1.5);
+        }
+
+        .theme-delta .btn-shoulder {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 8px 26px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+            transition: transform 0.08s ease;
+        }
+
+        .theme-delta .btn-shoulder:active { transform: scale(0.92); }
+
+        .theme-delta .utility-pill {
+            background: rgba(255, 255, 255, 0.09);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 6px 16px;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* STYLE 2: PIZZA BOY GBA (Tactile Matte Cross & Angled Thumb Arc)  */
+        /* ----------------------------------------------------------------- */
+        .theme-pizzaboy .dpad {
+            width: 144px;
+            height: 144px;
+            position: relative;
+        }
+
+        .theme-pizzaboy .dpad-cross {
+            position: absolute;
+            background: #252834;
+            border-radius: 6px;
+            box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.12), 0 6px 16px rgba(0, 0, 0, 0.7);
+            border: 1px solid #373c4d;
+        }
+
+        .theme-pizzaboy .dpad-vert { width: 46px; height: 140px; left: 49px; top: 2px; }
+        .theme-pizzaboy .dpad-horiz { height: 46px; width: 140px; top: 49px; left: 2px; }
+
+        .theme-pizzaboy .dpad-btn {
+            position: absolute;
+            background: transparent;
+            border: none;
+            color: #838a9d;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-pizzaboy .dpad-up { top: 4px; left: 49px; width: 46px; height: 46px; }
+        .theme-pizzaboy .dpad-down { bottom: 4px; left: 49px; width: 46px; height: 46px; }
+        .theme-pizzaboy .dpad-left { top: 49px; left: 4px; width: 46px; height: 46px; }
+        .theme-pizzaboy .dpad-right { top: 49px; right: 4px; width: 46px; height: 46px; }
+        .theme-pizzaboy .dpad-center {
+            position: absolute;
+            top: 56px; left: 56px; width: 32px; height: 32px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #1a1d26, #252834);
+            border: 1px solid #373c4d;
+            z-index: 4;
+        }
+
+        .theme-pizzaboy .dpad-btn:active, .theme-pizzaboy .dpad-btn.pressed {
+            color: #60a5fa;
+            text-shadow: 0 0 10px #3b82f6;
+        }
+
+        .theme-pizzaboy .action-cluster {
+            width: 156px;
+            height: 130px;
+            position: relative;
+            transform: rotate(-25deg);
+        }
+
+        .theme-pizzaboy .btn-action {
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #4f2558, #2a1230);
+            border: 2px solid #753784;
+            color: #e5c4ef;
+            font-weight: 800;
+            font-size: 19px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.75), inset 0 2px 3px rgba(255, 255, 255, 0.25);
+            cursor: pointer;
+            transform: rotate(25deg);
+        }
+
+        .theme-pizzaboy .btn-a { right: 0; top: 12px; }
+        .theme-pizzaboy .btn-b { left: 16px; bottom: 0; }
+        .theme-pizzaboy .btn-x { top: -20px; right: 45px; background: linear-gradient(145deg, #203554, #0f1d30); border-color: #355380; color: #9bc2f7; }
+        .theme-pizzaboy .btn-y { bottom: 12px; left: -20px; background: linear-gradient(145deg, #204a3e, #0e2b23); border-color: #2e6d5b; color: #9be0cd; }
+
+        .theme-pizzaboy .btn-action:active, .theme-pizzaboy .btn-action.pressed {
+            transform: rotate(25deg) scale(0.92);
+            filter: brightness(1.3);
+        }
+
+        .theme-pizzaboy .btn-shoulder {
+            background: linear-gradient(to bottom, #393e4e, #222631);
+            border: 1px solid #4a5166;
+            border-radius: 6px;
+            padding: 8px 32px;
+            color: #adb4c8;
+            font-weight: 800;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+            cursor: pointer;
+        }
+
+        .theme-pizzaboy .utility-pill {
+            background: #252834;
+            border: 1px solid #3d4356;
+            border-radius: 4px;
+            padding: 5px 18px;
+            color: #8c93a8;
+            font-size: 10px;
+            font-weight: 800;
+            transform: rotate(-25deg);
+            cursor: pointer;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* STYLE 3: RETROARCH FLAT NEON (Vector Wireframe & Low Clutter) */
+        /* ------------------------------------------------------------- */
+        .theme-retroarch .dpad {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            border: 2px solid rgba(59, 130, 246, 0.35);
+            border-radius: 50%;
+        }
+
+        .theme-retroarch .dpad-btn {
+            position: absolute;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            color: #60a5fa;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-retroarch .dpad-up { top: 0; left: 45px; width: 50px; height: 45px; border-radius: 50px 50px 0 0; }
+        .theme-retroarch .dpad-down { bottom: 0; left: 45px; width: 50px; height: 45px; border-radius: 0 0 50px 50px; }
+        .theme-retroarch .dpad-left { top: 45px; left: 0; width: 45px; height: 50px; border-radius: 50px 0 0 50px; }
+        .theme-retroarch .dpad-right { top: 45px; right: 0; width: 45px; height: 50px; border-radius: 0 50px 50px 0; }
+        .theme-retroarch .dpad-center { display: none; }
+
+        .theme-retroarch .dpad-btn:active, .theme-retroarch .dpad-btn.pressed {
+            background: rgba(59, 130, 246, 0.6);
+            color: white;
+            box-shadow: 0 0 16px var(--primary);
+        }
+
+        .theme-retroarch .action-cluster {
+            width: 150px;
+            height: 150px;
+            position: relative;
+        }
+
+        .theme-retroarch .btn-action {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(139, 92, 246, 0.12);
+            border: 2px solid rgba(139, 92, 246, 0.6);
+            color: #c4b5fd;
+            font-weight: 800;
+            font-size: 16px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .theme-retroarch .btn-a { right: 0; top: 50px; border-color: #f43f5e; color: #fda4af; background: rgba(244, 63, 94, 0.15); }
+        .theme-retroarch .btn-b { bottom: 0; left: 50px; border-color: #f59e0b; color: #fcd34d; background: rgba(245, 158, 11, 0.15); }
+        .theme-retroarch .btn-x { top: 0; left: 50px; border-color: #3b82f6; color: #93c5fd; background: rgba(59, 130, 246, 0.15); }
+        .theme-retroarch .btn-y { left: 0; top: 50px; border-color: #10b981; color: #6ee7b7; background: rgba(16, 185, 129, 0.15); }
+
+        .theme-retroarch .btn-action:active, .theme-retroarch .btn-action.pressed {
+            background: currentColor;
+            color: #000;
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .theme-retroarch .btn-shoulder {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 24px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .theme-retroarch .utility-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+            padding: 4px 14px;
+            color: var(--text-muted);
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* STYLE 4: 3DS / DRASTIC CIRCLE PAD (Analog Joystick)          */
+        /* ------------------------------------------------------------- */
+        .theme-circlepad .dpad { display: none; }
+        .theme-circlepad .joystick-container { display: flex; }
+
+        .theme-circlepad .action-cluster {
+            width: 156px;
+            height: 156px;
+            position: relative;
+        }
+
+        .theme-circlepad .btn-action {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #252834;
+            border: 2px solid #3e4457;
+            color: #cbd5e1;
+            font-weight: 800;
+            font-size: 17px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+            cursor: pointer;
+        }
+
+        .theme-circlepad .btn-a { right: 0; top: 52px; border-color: #ef4444; color: #fca5a5; }
+        .theme-circlepad .btn-b { bottom: 0; left: 52px; border-color: #f59e0b; color: #fde68a; }
+        .theme-circlepad .btn-x { top: 0; left: 52px; border-color: #3b82f6; color: #93c5fd; }
+        .theme-circlepad .btn-y { left: 0; top: 52px; border-color: #10b981; color: #6ee7b7; }
+
+        .theme-circlepad .btn-shoulder {
+            background: #252834;
+            border: 2px solid #3e4457;
+            border-radius: 10px;
+            padding: 8px 28px;
+            color: #cbd5e1;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .theme-circlepad .utility-pill {
+            background: #252834;
+            border: 1px solid #3e4457;
+            border-radius: 6px;
+            padding: 5px 16px;
+            color: #94a3b8;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* STYLE 5: PPSSPP FLOATING THUMBSTICK (Dynamic & Modern)       */
+        /* ------------------------------------------------------------- */
+        .theme-ppsspp .dpad { display: none; }
+        .theme-ppsspp .joystick-container { display: flex; }
+
+        .theme-ppsspp .action-cluster {
+            width: 156px;
+            height: 156px;
+            position: relative;
+        }
+
+        .theme-ppsspp .btn-action {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            font-weight: 800;
+            font-size: 18px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+            cursor: pointer;
+        }
+
+        .theme-ppsspp .btn-a { right: 0; top: 52px; border-color: #f43f5e; color: #fda4af; }
+        .theme-ppsspp .btn-b { bottom: 0; left: 52px; border-color: #3b82f6; color: #93c5fd; }
+        .theme-ppsspp .btn-x { top: 0; left: 52px; border-color: #10b981; color: #6ee7b7; }
+        .theme-ppsspp .btn-y { left: 0; top: 52px; border-color: #ec4899; color: #fbcfe8; }
+
+        .theme-ppsspp .btn-shoulder {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 8px 28px;
+            color: #fff;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .theme-ppsspp .utility-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 5px 16px;
+            color: #94a3b8;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* Selection Panel */
+        .selection-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .selection-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .picked-output {
+            background: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent-emerald);
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 16px var(--primary-glow);
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-block">
+            <div class="brand-badge">RetroPack Studio</div>
+            <div>
+                <h1 class="brand-title">On-Screen Touch Controls Showcase & Selector</h1>
+                <p class="brand-subtitle">Interactive comparison of D-Pad vs Analog Joystick layouts for standalone game APKs</p>
+            </div>
+        </div>
+        <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>Single-Handed / Thumb Optimizations</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Sidebar Selector -->
+        <div class="sidebar">
+            <div class="section-label">All Available Controller Styles</div>
+            <div class="style-cards" id="styleCardsContainer">
+                
+                <!-- Style 1: Delta Glass -->
+                <div class="style-card active" onclick="selectStyle('delta', this)">
+                    <div class="style-card-header">
+                        <span class="style-name">1. Frosted Neo-Glass D-Pad</span>
+                        <span class="style-origin">Delta (iOS)</span>
+                    </div>
+                    <p class="style-desc">Modern translucent frosted glass disc with soft tactile contour D-pad and ergonomic colored action buttons.</p>
+                    <div class="style-features">
+                        <span class="feature-tag">Glassmorphism</span>
+                        <span class="feature-tag">Cross D-Pad</span>
+                        <span class="feature-tag">High Visibility</span>
+                    </div>
+                </div>
+
+                <!-- Style 2: Pizza Boy -->
+                <div class="style-card" onclick="selectStyle('pizzaboy', this)">
+                    <div class="style-card-header">
+                        <span class="style-name">2. Precision Matte Cross</span>
+                        <span class="style-origin">Pizza Boy GBA</span>
+                    </div>
+                    <p class="style-desc">Recessed center-dish cross D-pad with angled arcade A/B layout matching the thumb's natural sweep.</p>
+                    <div class="style-features">
+                        <span class="feature-tag">Center Dish</span>
+                        <span class="feature-tag">Thumb Arc</span>
+                        <span class="feature-tag">Platformer Favorite</span>
+                    </div>
+                </div>
+
+                <!-- Style 3: 3DS Circle Pad (Joystick) -->
+                <div class="style-card" onclick="selectStyle('circlepad', this)">
+                    <div class="style-card-header">
+                        <span class="style-name">3. 3DS Circle Pad (Analog Joystick)</span>
+                        <span class="style-origin">DraStic / Citra</span>
+                    </div>
+                    <p class="style-desc"><strong>Replaces D-pad with smooth Analog Circle Pad!</strong> 360-degree fluid dragging with automatic return spring and 8-way digital mapping.</p>
+                    <div class="style-features">
+                        <span class="feature-tag" style="background: rgba(59,130,246,0.2); color: #93c5fd;">Analog Joystick</span>
+                        <span class="feature-tag">360° Motion</span>
+                        <span class="feature-tag">Auto-Center</span>
+                    </div>
+                </div>
+
+                <!-- Style 4: PPSSPP Floating Thumbstick -->
+                <div class="style-card" onclick="selectStyle('ppsspp', this)">
+                    <div class="style-card-header">
+                        <span class="style-name">4. Floating Thumbstick</span>
+                        <span class="style-origin">PPSSPP / M64Plus</span>
+                    </div>
+                    <p class="style-desc"><strong>Dynamic Floating Analog Nub!</strong> The thumbstick centers wherever you first place your thumb on screen—zero missed inputs!</p>
+                    <div class="style-features">
+                        <span class="feature-tag" style="background: rgba(59,130,246,0.2); color: #93c5fd;">Floating Stick</span>
+                        <span class="feature-tag">Zero Misses</span>
+                        <span class="feature-tag">Modern Touch</span>
+                    </div>
+                </div>
+
+                <!-- Style 5: RetroArch Vector -->
+                <div class="style-card" onclick="selectStyle('retroarch', this)">
+                    <div class="style-card-header">
+                        <span class="style-name">5. Vector Wireframe Neon</span>
+                        <span class="style-origin">RetroArch Neo</span>
+                    </div>
+                    <p class="style-desc">Ultra-clean glowing vector lines with zero background opacity, maximizing viewable screen area.</p>
+                    <div class="style-features">
+                        <span class="feature-tag">Low Clutter</span>
+                        <span class="feature-tag">Wireframe</span>
+                        <span class="feature-tag">Glow On-Press</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Selection Output -->
+            <div class="selection-panel">
+                <div class="selection-title">Selected Design Choice</div>
+                <div class="picked-output" id="selectionOutput">Selected Style: 1. Frosted Neo-Glass D-Pad (Delta)
+Left Control  : 8-Way Cross D-Pad
+Console Mode  : GBA (A/B + L/R)
+Opacity Level : 70%</div>
+                <button class="btn-copy" onclick="copySelection()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    Copy Choice to Clipboard
+                </button>
+            </div>
+        </div>
+
+        <!-- Interactive Playground -->
+        <div class="viewport-wrapper">
+            <!-- Toolbar -->
+            <div class="controls-toolbar">
+                <div class="toolbar-group">
+                    <span class="toolbar-label">Left Control:</span>
+                    <div class="segmented-control">
+                        <button class="seg-btn active" id="btnModeDpad" onclick="setLeftControlMode('dpad')">D-Pad</button>
+                        <button class="seg-btn" id="btnModeStick" onclick="setLeftControlMode('joystick')">Analog Joystick</button>
+                    </div>
+                </div>
+
+                <div class="toolbar-group">
+                    <span class="toolbar-label">Console:</span>
+                    <div class="segmented-control">
+                        <button class="seg-btn active" onclick="setConsole('gba', this)">GBA (A/B)</button>
+                        <button class="seg-btn" onclick="setConsole('snes', this)">SNES (A/B/X/Y)</button>
+                        <button class="seg-btn" onclick="setConsole('nes', this)">NES</button>
+                        <button class="seg-btn" onclick="setConsole('genesis', this)">Genesis</button>
+                    </div>
+                </div>
+
+                <div class="toolbar-group slider-group">
+                    <span class="toolbar-label">Opacity:</span>
+                    <input type="range" id="opacitySlider" min="20" max="100" value="70" oninput="updateOpacity(this.value)">
+                    <span id="opacityVal" style="font-size: 12px; font-weight: 700; width: 36px;">70%</span>
+                </div>
+            </div>
+
+            <!-- Interactive Simulator Frame -->
+            <div class="simulator-card theme-delta" id="simulatorFrame">
+                
+                <!-- Game Canvas -->
+                <div class="game-canvas-mock aspect-gba" id="mockCanvas">
+                    <div class="mock-fps-tag">60.00 FPS • Native Res</div>
+                    <div class="mock-game-art">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                            <path d="M6 12h4m-2-2v4"></path>
+                            <circle cx="15" cy="12" r="1"></circle>
+                            <circle cx="18" cy="10" r="1"></circle>
+                        </svg>
+                        <span id="canvasTitle">Game Boy Advance Viewport (3:2)</span>
+                        <span style="font-size: 11px; color: var(--text-dim);">Drag joystick or click buttons to test interactive response</span>
+                    </div>
+                    <div class="live-input-indicator" id="inputIndicator">Input: IDLE (Centered)</div>
+                </div>
+
+                <!-- Top Shoulders (L / R) -->
+                <div class="top-shoulder-zone" id="shoulderZone">
+                    <button class="btn-shoulder" id="btnL" onmousedown="pressBtn(this, 'L')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'L')" ontouchend="releaseBtn(this)">L</button>
+                    <button class="utility-pill" style="font-size: 11px; background: rgba(59,130,246,0.25); border-color: var(--primary); color: #93c5fd;" onclick="triggerMenu()">MENU</button>
+                    <button class="btn-shoulder" id="btnR" onmousedown="pressBtn(this, 'R')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'R')" ontouchend="releaseBtn(this)">R</button>
+                </div>
+
+                <!-- Main Touch Overlay -->
+                <div class="touch-overlay" id="touchOverlay">
+                    
+                    <!-- Left Zone: D-Pad OR Joystick -->
+                    <div class="left-control-zone">
+                        <!-- Option A: D-Pad -->
+                        <div class="dpad" id="dpadWidget">
+                            <div class="dpad-cross dpad-vert"></div>
+                            <div class="dpad-cross dpad-horiz"></div>
+                            <button class="dpad-btn dpad-up" onmousedown="pressBtn(this, 'UP')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'UP')" ontouchend="releaseBtn(this)">▲</button>
+                            <button class="dpad-btn dpad-down" onmousedown="pressBtn(this, 'DOWN')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'DOWN')" ontouchend="releaseBtn(this)">▼</button>
+                            <button class="dpad-btn dpad-left" onmousedown="pressBtn(this, 'LEFT')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'LEFT')" ontouchend="releaseBtn(this)">◀</button>
+                            <button class="dpad-btn dpad-right" onmousedown="pressBtn(this, 'RIGHT')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'RIGHT')" ontouchend="releaseBtn(this)">▶</button>
+                            <div class="dpad-center"></div>
+                        </div>
+
+                        <!-- Option B: Interactive Drag Joystick -->
+                        <div class="joystick-container" id="joystickWidget">
+                            <div class="joystick-base"></div>
+                            <div class="joystick-nub" id="joystickNub"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Zone: Action Buttons -->
+                    <div class="right-control-zone" style="align-items: flex-end;">
+                        <div class="action-cluster" id="actionCluster">
+                            <button class="btn-action btn-a" onmousedown="pressBtn(this, 'A')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'A')" ontouchend="releaseBtn(this)">A</button>
+                            <button class="btn-action btn-b" onmousedown="pressBtn(this, 'B')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'B')" ontouchend="releaseBtn(this)">B</button>
+                            <button class="btn-action btn-x" onmousedown="pressBtn(this, 'X')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'X')" ontouchend="releaseBtn(this)">X</button>
+                            <button class="btn-action btn-y" onmousedown="pressBtn(this, 'Y')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'Y')" ontouchend="releaseBtn(this)">Y</button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Center: Select & Start -->
+                <div class="center-utility-zone" id="utilityZone">
+                    <button class="utility-pill" id="btnSelect" onmousedown="pressBtn(this, 'SELECT')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'SELECT')" ontouchend="releaseBtn(this)">SELECT</button>
+                    <button class="utility-pill" id="btnStart" onmousedown="pressBtn(this, 'START')" onmouseup="releaseBtn(this)" ontouchstart="pressBtn(this, 'START')" ontouchend="releaseBtn(this)">START</button>
+                </div>
+
+            </div>
+
+            <!-- Joystick vs D-Pad Deep Dive -->
+            <div style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 22px; font-size: 13px; line-height: 1.6; color: var(--text-muted);">
+                <div style="font-weight: 800; font-size: 14px; color: var(--text-main); margin-bottom: 12px;">D-Pad vs Analog Joystick for Retro 2D Consoles:</div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
+                    <div style="background: var(--bg-elevated); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                        <strong style="color: #60a5fa; font-size: 14px;">🕹️ Analog Joystick / Circle Pad Option</strong>
+                        <ul style="margin-left: 18px; margin-top: 6px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <li><strong>Used by:</strong> DraStic DS, PPSSPP, M64Plus, Dolphin, RetroArch overlay.</li>
+                            <li><strong>How it works:</strong> The joystick measures radial angle $(0-360^\circ)$ and maps it to digital D-Pad signals (Up/Down/Left/Right + 4 Diagonals).</li>
+                            <li><strong>Pros:</strong> Smooth sweeping circles, great for Pokémon walking, Metroid running, and fighting game circular motions (Hadouken).</li>
+                        </ul>
+                    </div>
+                    <div style="background: var(--bg-elevated); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                        <strong style="color: #d8b4e2; font-size: 14px;">➕ Classic 8-Way D-Pad Cross</strong>
+                        <ul style="margin-left: 18px; margin-top: 6px; font-size: 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <li><strong>Used by:</strong> Pizza Boy GBA, Delta iOS, MyBoy, John GBA, Lemuroid.</li>
+                            <li><strong>How it works:</strong> 4 discrete directional quadrants with overlapping diagonal deadzones.</li>
+                            <li><strong>Pros:</strong> 100% precision for grid movement (Fire Emblem, Zelda menus) and precise platforming ladders/crouches.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentStyle = 'delta';
+        let currentConsole = 'gba';
+        let currentLeftMode = 'dpad';
+        let currentOpacity = 70;
+
+        const styleNames = {
+            'delta': '1. Frosted Neo-Glass D-Pad (Delta)',
+            'pizzaboy': '2. Precision Matte Cross (Pizza Boy)',
+            'circlepad': '3. 3DS Circle Pad (DraStic/Citra)',
+            'ppsspp': '4. Floating Thumbstick (PPSSPP)',
+            'retroarch': '5. Vector Wireframe Neon (RetroArch)'
+        };
+
+        function selectStyle(styleId, cardEl) {
+            currentStyle = styleId;
+            const sim = document.getElementById('simulatorFrame');
+            sim.className = 'simulator-card theme-' + styleId;
+
+            document.querySelectorAll('.style-card').forEach(card => card.classList.remove('active'));
+            cardEl.classList.add('active');
+
+            if (styleId === 'circlepad' || styleId === 'ppsspp') {
+                setLeftControlMode('joystick');
+            } else {
+                setLeftControlMode('dpad');
+            }
+
+            updateOutput();
+        }
+
+        function setLeftControlMode(mode) {
+            currentLeftMode = mode;
+            const dpad = document.getElementById('dpadWidget');
+            const stick = document.getElementById('joystickWidget');
+            const btnDpad = document.getElementById('btnModeDpad');
+            const btnStick = document.getElementById('btnModeStick');
+
+            if (mode === 'joystick') {
+                dpad.style.display = 'none';
+                stick.style.display = 'flex';
+                btnDpad.classList.remove('active');
+                btnStick.classList.add('active');
+            } else {
+                dpad.style.display = 'block';
+                stick.style.display = 'none';
+                btnDpad.classList.add('active');
+                btnStick.classList.remove('active');
+            }
+
+            updateOutput();
+        }
+
+        function setConsole(consoleId, btn) {
+            currentConsole = consoleId;
+            document.querySelectorAll('.seg-btn').forEach(b => {
+                if (b.id !== 'btnModeDpad' && b.id !== 'btnModeStick') {
+                    b.classList.remove('active');
+                }
+            });
+            btn.classList.add('active');
+
+            const canvas = document.getElementById('mockCanvas');
+            const title = document.getElementById('canvasTitle');
+            const btnX = document.querySelector('.btn-x');
+            const btnY = document.querySelector('.btn-y');
+
+            canvas.className = 'game-canvas-mock aspect-' + consoleId;
+
+            if (consoleId === 'gba') {
+                title.innerText = 'Game Boy Advance Viewport (3:2)';
+                if (btnX) btnX.style.display = 'none';
+                if (btnY) btnY.style.display = 'none';
+            } else if (consoleId === 'snes') {
+                title.innerText = 'Super Nintendo Viewport (4:3)';
+                if (btnX) btnX.style.display = 'flex';
+                if (btnY) btnY.style.display = 'flex';
+            } else if (consoleId === 'nes') {
+                title.innerText = 'NES Viewport (4:3)';
+                if (btnX) btnX.style.display = 'none';
+                if (btnY) btnY.style.display = 'none';
+            } else if (consoleId === 'genesis') {
+                title.innerText = 'SEGA Genesis Viewport (4:3)';
+                if (btnX) btnX.style.display = 'flex';
+                if (btnY) btnY.style.display = 'flex';
+            }
+
+            updateOutput();
+        }
+
+        function updateOpacity(val) {
+            currentOpacity = val;
+            document.getElementById('opacityVal').innerText = val + '%';
+            document.getElementById('touchOverlay').style.opacity = val / 100;
+            document.getElementById('shoulderZone').style.opacity = val / 100;
+            document.getElementById('utilityZone').style.opacity = val / 100;
+            updateOutput();
+        }
+
+        function updateOutput() {
+            const out = document.getElementById('selectionOutput');
+            const leftName = currentLeftMode === 'joystick' ? 'Analog Circle Pad / Floating Thumbstick' : '8-Way Cross D-Pad';
+            out.innerText = `Selected Style: ${styleNames[currentStyle]}\nLeft Control  : ${leftName}\nConsole Mode  : ${currentConsole.toUpperCase()}\nOpacity Level : ${currentOpacity}%`;
+        }
+
+        function pressBtn(el, name) {
+            el.classList.add('pressed');
+            document.getElementById('inputIndicator').innerText = `Input: ${name} [PRESSED]`;
+            if (navigator.vibrate) navigator.vibrate(12);
+        }
+
+        function releaseBtn(el) {
+            el.classList.remove('pressed');
+            document.getElementById('inputIndicator').innerText = `Input: IDLE`;
+        }
+
+        function triggerMenu() {
+            alert("In-Engine OSD Menu Triggered!\n(Save State, Load State, Fast Forward, Reset, Exit)");
+        }
+
+        function copySelection() {
+            const text = document.getElementById('selectionOutput').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Copied configuration to clipboard:\n\n" + text);
+            });
+        }
+
+        /* Interactive Joystick Drag Physics */
+        const joystickContainer = document.getElementById('joystickWidget');
+        const joystickNub = document.getElementById('joystickNub');
+        let isDragging = false;
+        const maxRadius = 42;
+
+        function handleJoystickMove(clientX, clientY) {
+            const rect = joystickContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            let dx = clientX - centerX;
+            let dy = clientY - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist > maxRadius) {
+                dx = (dx / dist) * maxRadius;
+                dy = (dy / dist) * maxRadius;
+            }
+
+            joystickNub.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            // Compute 8-way directional mapping from angle
+            if (dist > 10) {
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI); // -180 to 180
+                let dir = "";
+                if (angle >= -22.5 && angle <= 22.5) dir = "RIGHT ▶";
+                else if (angle > 22.5 && angle < 67.5) dir = "DOWN-RIGHT ◢";
+                else if (angle >= 67.5 && angle <= 112.5) dir = "DOWN ▼";
+                else if (angle > 112.5 && angle < 157.5) dir = "DOWN-LEFT ◣";
+                else if (angle >= 157.5 || angle <= -157.5) dir = "LEFT ◀";
+                else if (angle < -112.5 && angle > -157.5) dir = "UP-LEFT ◤";
+                else if (angle <= -67.5 && angle >= -112.5) dir = "UP ▲";
+                else if (angle < -22.5 && angle > -67.5) dir = "UP-RIGHT ◥";
+
+                document.getElementById('inputIndicator').innerText = `Joystick: ${dir} (${Math.round(dist/maxRadius*100)}%)`;
+            } else {
+                document.getElementById('inputIndicator').innerText = `Joystick: CENTER (Deadzone)`;
+            }
+        }
+
+        function resetJoystick() {
+            isDragging = false;
+            joystickNub.style.transform = `translate(0px, 0px)`;
+            document.getElementById('inputIndicator').innerText = `Input: IDLE`;
+        }
+
+        joystickContainer.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            handleJoystickMove(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) handleJoystickMove(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('mouseup', resetJoystick);
+
+        joystickContainer.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            const touch = e.touches[0];
+            handleJoystickMove(touch.clientX, touch.clientY);
+            e.preventDefault();
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                handleJoystickMove(touch.clientX, touch.clientY);
+            }
+        });
+
+        window.addEventListener('touchend', resetJoystick);
+
+        // Initialize GBA mode
+        setConsole('gba', document.querySelectorAll('.seg-btn')[2]);
+    </script>
+</body>
+</html>

@@ -1,4 +1,5 @@
 #include "virtual_pad.hpp"
+#include "ui/font_renderer.hpp"
 
 #include <android/log.h>
 #define _USE_MATH_DEFINES
@@ -549,6 +550,16 @@ void VirtualPad::renderRect(float x, float y, float w, float h, float r, float g
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
+void VirtualPad::renderBorderedRect(float x, float y, float w, float h, float borderWidth,
+                                    float bgR, float bgG, float bgB, float bgA,
+                                    float borderR, float borderG, float borderB, float borderA) {
+    renderRect(x, y, w, h, bgR, bgG, bgB, bgA);
+    renderRect(x, y, w, borderWidth, borderR, borderG, borderB, borderA);
+    renderRect(x, y + h - borderWidth, w, borderWidth, borderR, borderG, borderB, borderA);
+    renderRect(x, y, borderWidth, h, borderR, borderG, borderB, borderA);
+    renderRect(x + w - borderWidth, y, borderWidth, h, borderR, borderG, borderB, borderA);
+}
+
 void VirtualPad::render(int screenWidth, int screenHeight) {
     if (!m_visible || screenWidth <= 0 || screenHeight <= 0) return;
 
@@ -566,25 +577,26 @@ void VirtualPad::render(int screenWidth, int screenHeight) {
     glUseProgram(m_program);
     glUniform2f(m_locScreenSize, static_cast<float>(screenWidth), static_cast<float>(screenHeight));
 
-    float baseAlpha = m_opacity;              // ~0.30f
-    float activeAlpha = std::min(1.0f, baseAlpha * 2.5f); // ~0.75f upon touch
+    float baseAlpha = m_opacity;                          // ~0.30f default
+    float activeAlpha = std::min(1.0f, baseAlpha * 2.5f); // ~0.75f upon active touch
 
     // 1. PPSSPP Floating Thumbstick Rendering
-    // 1a. Outer Base Disc & Ring
-    renderCircle(m_stickBaseX, m_stickBaseY, m_stickOuterRadius, 0.15f, 0.20f, 0.30f, baseAlpha * 0.4f);
-    renderRing(m_stickBaseX, m_stickBaseY, m_stickOuterRadius - 2.5f, m_stickOuterRadius, 0.4f, 0.6f, 0.9f, m_stickActive ? activeAlpha : baseAlpha);
+    // 1a. Outer Base Disc & Glowing Ring
+    renderCircle(m_stickBaseX, m_stickBaseY, m_stickOuterRadius, 0.08f, 0.12f, 0.18f, baseAlpha * 0.8f);
+    renderRing(m_stickBaseX, m_stickBaseY, m_stickOuterRadius - 3.0f, m_stickOuterRadius,
+               0.35f, 0.65f, 1.0f, m_stickActive ? activeAlpha : baseAlpha * 1.5f);
 
     // 1b. Directional Guide Ticks (Up, Down, Left, Right)
-    float tickLen = 8.0f;
-    renderRect(m_stickBaseX - 1.5f, m_stickBaseY - m_stickOuterRadius - tickLen, 3.0f, tickLen, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
-    renderRect(m_stickBaseX - 1.5f, m_stickBaseY + m_stickOuterRadius, 3.0f, tickLen, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
-    renderRect(m_stickBaseX - m_stickOuterRadius - tickLen, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
-    renderRect(m_stickBaseX + m_stickOuterRadius, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
+    float tickLen = 10.0f;
+    renderRect(m_stickBaseX - 1.5f, m_stickBaseY - m_stickOuterRadius - tickLen, 3.0f, tickLen, 0.45f, 0.70f, 1.0f, baseAlpha * 1.2f);
+    renderRect(m_stickBaseX - 1.5f, m_stickBaseY + m_stickOuterRadius, 3.0f, tickLen, 0.45f, 0.70f, 1.0f, baseAlpha * 1.2f);
+    renderRect(m_stickBaseX - m_stickOuterRadius - tickLen, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.45f, 0.70f, 1.0f, baseAlpha * 1.2f);
+    renderRect(m_stickBaseX + m_stickOuterRadius, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.45f, 0.70f, 1.0f, baseAlpha * 1.2f);
 
     // 1c. Inner Draggable Nub
-    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius, 0.25f, 0.45f, 0.75f, m_stickActive ? activeAlpha : baseAlpha * 1.2f);
-    renderRing(m_stickNubX, m_stickNubY, m_stickNubRadius - 2.0f, m_stickNubRadius, 0.7f, 0.85f, 1.0f, m_stickActive ? activeAlpha : baseAlpha * 1.5f);
-    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius * 0.35f, 0.4f, 0.6f, 0.9f, m_stickActive ? activeAlpha : baseAlpha * 0.8f);
+    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius, 0.20f, 0.35f, 0.60f, m_stickActive ? activeAlpha : baseAlpha * 1.5f);
+    renderRing(m_stickNubX, m_stickNubY, m_stickNubRadius - 2.5f, m_stickNubRadius, 0.60f, 0.85f, 1.0f, m_stickActive ? activeAlpha : baseAlpha * 1.8f);
+    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius * 0.35f, 0.40f, 0.65f, 0.95f, m_stickActive ? activeAlpha : baseAlpha * 1.2f);
 
     // 2. Action Buttons (A, B, X, Y)
     bool aActive = (m_activeBitmask & BTN_A) != 0;
@@ -592,50 +604,110 @@ void VirtualPad::render(int screenWidth, int screenHeight) {
     bool xActive = (m_activeBitmask & BTN_X) != 0;
     bool yActive = (m_activeBitmask & BTN_Y) != 0;
 
-    // Button A (Red/Pink Accent)
+    // Button A (Coral Red Accent)
     if (m_btnA.enabled) {
-        renderCircle(m_btnA.x, m_btnA.y, m_btnA.radius, 0.9f, 0.3f, 0.4f, aActive ? activeAlpha : baseAlpha);
-        renderRing(m_btnA.x, m_btnA.y, m_btnA.radius - 2.5f, m_btnA.radius, 1.0f, 0.5f, 0.6f, aActive ? activeAlpha : baseAlpha * 1.4f);
+        float bgAlpha = aActive ? activeAlpha * 0.85f : baseAlpha * 1.2f;
+        renderCircle(m_btnA.x, m_btnA.y, m_btnA.radius, aActive ? 0.90f : 0.09f, aActive ? 0.20f : 0.12f, aActive ? 0.30f : 0.18f, bgAlpha);
+        renderRing(m_btnA.x, m_btnA.y, m_btnA.radius - 3.0f, m_btnA.radius, 1.0f, 0.35f, 0.48f, aActive ? activeAlpha : baseAlpha * 1.8f);
     }
 
-    // Button B (Amber/Yellow Accent)
+    // Button B (Warm Amber Accent)
     if (m_btnB.enabled) {
-        renderCircle(m_btnB.x, m_btnB.y, m_btnB.radius, 0.95f, 0.65f, 0.2f, bActive ? activeAlpha : baseAlpha);
-        renderRing(m_btnB.x, m_btnB.y, m_btnB.radius - 2.5f, m_btnB.radius, 1.0f, 0.8f, 0.3f, bActive ? activeAlpha : baseAlpha * 1.4f);
+        float bgAlpha = bActive ? activeAlpha * 0.85f : baseAlpha * 1.2f;
+        renderCircle(m_btnB.x, m_btnB.y, m_btnB.radius, bActive ? 0.90f : 0.09f, bActive ? 0.60f : 0.12f, bActive ? 0.15f : 0.18f, bgAlpha);
+        renderRing(m_btnB.x, m_btnB.y, m_btnB.radius - 3.0f, m_btnB.radius, 0.95f, 0.70f, 0.25f, bActive ? activeAlpha : baseAlpha * 1.8f);
     }
 
-    // Button X (Blue Accent)
+    // Button X (Sky Blue Accent)
     if (m_btnX.enabled) {
-        renderCircle(m_btnX.x, m_btnX.y, m_btnX.radius, 0.25f, 0.55f, 0.95f, xActive ? activeAlpha : baseAlpha);
-        renderRing(m_btnX.x, m_btnX.y, m_btnX.radius - 2.5f, m_btnX.radius, 0.5f, 0.75f, 1.0f, xActive ? activeAlpha : baseAlpha * 1.4f);
+        float bgAlpha = xActive ? activeAlpha * 0.85f : baseAlpha * 1.2f;
+        renderCircle(m_btnX.x, m_btnX.y, m_btnX.radius, xActive ? 0.20f : 0.09f, xActive ? 0.50f : 0.12f, xActive ? 0.90f : 0.18f, bgAlpha);
+        renderRing(m_btnX.x, m_btnX.y, m_btnX.radius - 3.0f, m_btnX.radius, 0.30f, 0.65f, 1.0f, xActive ? activeAlpha : baseAlpha * 1.8f);
     }
 
-    // Button Y (Green Accent)
+    // Button Y (Emerald Green Accent)
     if (m_btnY.enabled) {
-        renderCircle(m_btnY.x, m_btnY.y, m_btnY.radius, 0.2f, 0.8f, 0.5f, yActive ? activeAlpha : baseAlpha);
-        renderRing(m_btnY.x, m_btnY.y, m_btnY.radius - 2.5f, m_btnY.radius, 0.4f, 0.95f, 0.65f, yActive ? activeAlpha : baseAlpha * 1.4f);
+        float bgAlpha = yActive ? activeAlpha * 0.85f : baseAlpha * 1.2f;
+        renderCircle(m_btnY.x, m_btnY.y, m_btnY.radius, yActive ? 0.20f : 0.09f, yActive ? 0.75f : 0.12f, yActive ? 0.40f : 0.18f, bgAlpha);
+        renderRing(m_btnY.x, m_btnY.y, m_btnY.radius - 3.0f, m_btnY.radius, 0.35f, 0.85f, 0.55f, yActive ? activeAlpha : baseAlpha * 1.8f);
     }
 
     // 3. Shoulder Buttons (L, R)
+    bool lActive = false;
+    bool rActive = false;
     if (m_hasShoulders) {
-        bool lActive = (m_activeBitmask & BTN_L) != 0;
-        bool rActive = (m_activeBitmask & BTN_R) != 0;
+        lActive = (m_activeBitmask & BTN_L) != 0;
+        rActive = (m_activeBitmask & BTN_R) != 0;
 
-        renderRect(m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height, 0.3f, 0.4f, 0.55f, lActive ? activeAlpha : baseAlpha);
-        renderRect(m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height, 0.3f, 0.4f, 0.55f, rActive ? activeAlpha : baseAlpha);
+        renderBorderedRect(m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height, 2.0f,
+                           lActive ? 0.25f : 0.08f, lActive ? 0.40f : 0.12f, lActive ? 0.65f : 0.18f, lActive ? activeAlpha : baseAlpha * 1.2f,
+                           0.40f, 0.65f, 0.95f, lActive ? activeAlpha : baseAlpha * 1.8f);
+
+        renderBorderedRect(m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height, 2.0f,
+                           rActive ? 0.25f : 0.08f, rActive ? 0.40f : 0.12f, rActive ? 0.65f : 0.18f, rActive ? activeAlpha : baseAlpha * 1.2f,
+                           0.40f, 0.65f, 0.95f, rActive ? activeAlpha : baseAlpha * 1.8f);
     }
 
     // 4. Utility Buttons (Select, Start)
     bool selActive = (m_activeBitmask & BTN_SELECT) != 0;
     bool staActive = (m_activeBitmask & BTN_START) != 0;
 
-    renderRect(m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height, 0.25f, 0.3f, 0.4f, selActive ? activeAlpha : baseAlpha);
-    renderRect(m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height, 0.25f, 0.3f, 0.4f, staActive ? activeAlpha : baseAlpha);
+    renderBorderedRect(m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height, 1.5f,
+                       selActive ? 0.25f : 0.08f, selActive ? 0.35f : 0.12f, selActive ? 0.55f : 0.18f, selActive ? activeAlpha : baseAlpha * 1.2f,
+                       0.40f, 0.55f, 0.75f, selActive ? activeAlpha : baseAlpha * 1.6f);
+
+    renderBorderedRect(m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height, 1.5f,
+                       staActive ? 0.25f : 0.08f, staActive ? 0.35f : 0.12f, staActive ? 0.55f : 0.18f, staActive ? activeAlpha : baseAlpha * 1.2f,
+                       0.40f, 0.55f, 0.75f, staActive ? activeAlpha : baseAlpha * 1.6f);
 
     // 5. Menu Trigger Button
-    renderRect(m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height, 0.2f, 0.45f, 0.75f, baseAlpha * 0.9f);
+    renderBorderedRect(m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height, 1.5f,
+                       0.10f, 0.20f, 0.35f, baseAlpha * 1.4f,
+                       0.35f, 0.70f, 1.0f, baseAlpha * 1.9f);
 
     glDisable(GL_BLEND);
+
+    // 6. Draw Crisp Button Glyphs & Text Labels using FontRenderer
+    FontRenderer& font = FontRenderer::instance();
+    float actionFontScale = std::max(2.8f, (m_btnA.radius * 0.7f) / 8.0f);
+
+    if (m_btnA.enabled) {
+        font.renderText(m_btnA.label, m_btnA.x, m_btnA.y, actionFontScale,
+                        1.0f, 1.0f, 1.0f, aActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+    }
+
+    if (m_btnB.enabled) {
+        font.renderText(m_btnB.label, m_btnB.x, m_btnB.y, actionFontScale,
+                        1.0f, 1.0f, 1.0f, bActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+    }
+
+    if (m_btnX.enabled) {
+        font.renderText(m_btnX.label, m_btnX.x, m_btnX.y, actionFontScale,
+                        1.0f, 1.0f, 1.0f, xActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+    }
+
+    if (m_btnY.enabled) {
+        font.renderText(m_btnY.label, m_btnY.x, m_btnY.y, actionFontScale,
+                        1.0f, 1.0f, 1.0f, yActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+    }
+
+    if (m_hasShoulders) {
+        font.renderText("L", m_btnL.x + m_btnL.width * 0.5f, m_btnL.y + m_btnL.height * 0.5f, 2.6f,
+                        1.0f, 1.0f, 1.0f, lActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+
+        font.renderText("R", m_btnR.x + m_btnR.width * 0.5f, m_btnR.y + m_btnR.height * 0.5f, 2.6f,
+                        1.0f, 1.0f, 1.0f, rActive ? 1.0f : 0.85f, screenWidth, screenHeight, true, true);
+    }
+
+    font.renderText("SELECT", m_btnSelect.x + m_btnSelect.width * 0.5f, m_btnSelect.y + m_btnSelect.height * 0.5f, 1.7f,
+                    0.85f, 0.92f, 1.0f, selActive ? 1.0f : 0.75f, screenWidth, screenHeight, true, true);
+
+    font.renderText("START", m_btnStart.x + m_btnStart.width * 0.5f, m_btnStart.y + m_btnStart.height * 0.5f, 1.7f,
+                    0.85f, 0.92f, 1.0f, staActive ? 1.0f : 0.75f, screenWidth, screenHeight, true, true);
+
+    font.renderText("MENU", m_btnMenu.x + m_btnMenu.width * 0.5f, m_btnMenu.y + m_btnMenu.height * 0.5f, 1.8f,
+                    0.50f, 0.85f, 1.0f, 0.90f, screenWidth, screenHeight, true, true);
 }
 
 } // namespace retropack
+

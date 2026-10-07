@@ -132,6 +132,9 @@ private:
     void renderCircle(float cx, float cy, float radius, float r, float g, float b, float a);
     void renderRing(float cx, float cy, float innerRadius, float outerRadius, float r, float g, float b, float a);
     void renderRect(float x, float y, float w, float h, float r, float g, float b, float a);
+    void renderBorderedRect(float x, float y, float w, float h, float borderWidth,
+                            float bgR, float bgG, float bgB, float bgA,
+                            float borderR, float borderG, float borderB, float borderA);
 
     mutable std::mutex m_mutex;
     bool m_visible{true};
