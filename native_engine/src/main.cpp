@@ -197,6 +197,50 @@ static std::string scanDirectoryForCores(const std::string& dirPath) {
 static std::string discoverCoreLibrary(struct android_app* app) {
     if (!app || !app->activity) return "";
 
+    std::string preferredCore = "";
+
+    // 0. Inspect assets/retropack.json to extract configured core name if available
+    if (app->activity->assetManager) {
+        AAsset* configAsset = AAssetManager_open(app->activity->assetManager, "retropack.json", AASSET_MODE_BUFFER);
+        if (!configAsset) {
+            configAsset = AAssetManager_open(app->activity->assetManager, "assets/retropack.json", AASSET_MODE_BUFFER);
+        }
+        if (configAsset) {
+            off_t len = AAsset_getLength(configAsset);
+            if (len > 0 && len < 65536) {
+                std::vector<char> buf(len + 1, 0);
+                AAsset_read(configAsset, buf.data(), len);
+                std::string jsonStr(buf.data());
+                // Simple search for "core": "<core_id>"
+                size_t coreKeyPos = jsonStr.find("\"core\"");
+                if (coreKeyPos != std::string::npos) {
+                    size_t colonPos = jsonStr.find(':', coreKeyPos);
+                    if (colonPos != std::string::npos) {
+                        size_t quoteStart = jsonStr.find('\"', colonPos);
+                        if (quoteStart != std::string::npos) {
+                            size_t quoteEnd = jsonStr.find('\"', quoteStart + 1);
+                            if (quoteEnd != std::string::npos) {
+                                preferredCore = jsonStr.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
+                                LOGI("Configured core in retropack.json: %s", preferredCore.c_str());
+                            }
+                        }
+                    }
+                }
+            }
+            AAsset_close(configAsset);
+        }
+    }
+
+    if (!preferredCore.empty()) {
+        std::string preferredLibName = "libretro_" + preferredCore + ".so";
+        void* handle = dlopen(preferredLibName.c_str(), RTLD_NOW);
+        if (handle) {
+            dlclose(handle);
+            LOGI("Discovered configured core via dynamic linker: %s", preferredLibName.c_str());
+            return preferredLibName;
+        }
+    }
+
     // 1. Query JNI ApplicationInfo.nativeLibraryDir
     if (app->activity->vm && app->activity->clazz) {
         JNIEnv* env = nullptr;

@@ -240,16 +240,57 @@ bool LibretroBridge::loadGameFromAsset(AAssetManager* assetManager, const char* 
         return false;
     }
 
-    LOGI("ROM buffer loaded into memory (%zu bytes)", m_romBuffer.size());
+    LOGI("ROM buffer loaded into memory (%zu bytes, need_fullpath: %d)", m_romBuffer.size(), m_systemInfo.need_fullpath);
 
-    struct retro_game_info game_info;
-    std::memset(&game_info, 0, sizeof(game_info));
-    game_info.path = assetPath;
-    game_info.data = m_romBuffer.data();
-    game_info.size = m_romBuffer.size();
-    game_info.meta = "";
+    bool loaded = false;
 
-    if (!m_core.retro_load_game(&game_info)) {
+    // 1. If core does not require fullpath, attempt in-memory load first
+    if (!m_systemInfo.need_fullpath) {
+        struct retro_game_info game_info;
+        std::memset(&game_info, 0, sizeof(game_info));
+        game_info.path = assetPath;
+        game_info.data = m_romBuffer.data();
+        game_info.size = m_romBuffer.size();
+        game_info.meta = "";
+
+        if (m_core.retro_load_game(&game_info)) {
+            loaded = true;
+            LOGI("Core successfully loaded game in-memory from asset: %s", assetPath);
+        } else {
+            LOGW("In-memory retro_load_game returned false for %s, trying staged file fallback...", assetPath);
+        }
+    }
+
+    // 2. If need_fullpath is true or in-memory load failed, stage ROM to disk and load from file
+    if (!loaded) {
+        std::string stagedRomPath = m_saveDir.empty() ? "/data/data/com.retro.game/files/game.rom" : (m_saveDir + "/game.rom");
+        FILE* stagedFile = std::fopen(stagedRomPath.c_str(), "wb");
+        if (stagedFile) {
+            std::fwrite(m_romBuffer.data(), 1, m_romBuffer.size(), stagedFile);
+            std::fflush(stagedFile);
+            int fd = fileno(stagedFile);
+            if (fd >= 0) fsync(fd);
+            std::fclose(stagedFile);
+
+            struct retro_game_info file_game_info;
+            std::memset(&file_game_info, 0, sizeof(file_game_info));
+            file_game_info.path = stagedRomPath.c_str();
+            file_game_info.data = m_systemInfo.need_fullpath ? nullptr : m_romBuffer.data();
+            file_game_info.size = m_systemInfo.need_fullpath ? 0 : m_romBuffer.size();
+            file_game_info.meta = "";
+
+            if (m_core.retro_load_game(&file_game_info)) {
+                loaded = true;
+                LOGI("Core successfully loaded staged ROM from filesystem: %s", stagedRomPath.c_str());
+            } else {
+                LOGE("Core failed to load staged game from filesystem: %s", stagedRomPath.c_str());
+            }
+        } else {
+            LOGE("Failed to open staging ROM file for writing: %s", stagedRomPath.c_str());
+        }
+    }
+
+    if (!loaded) {
         m_romBuffer.clear();
         setError(std::string("Core failed to load game from asset: ") + assetPath);
         return false;

@@ -224,11 +224,31 @@ class BaseTemplateAssembler:
             icon_bytes = create_minimal_png()
 
         # 3. Read or generate libretro_engine.so
-        engine_so_path = NATIVE_ENGINE_DIR / "build" / "libretro_engine.so"
-        if engine_so_path.is_file():
-            with open(engine_so_path, "rb") as f:
-                engine_so_bytes = f.read()
-        else:
+        engine_candidates = [
+            NATIVE_ENGINE_DIR / "build" / "libretro_engine.so",
+            NATIVE_ENGINE_DIR / "build_arm64" / "libretro_engine.so",
+            NATIVE_ENGINE_DIR / "libs" / "arm64-v8a" / "libretro_engine.so",
+            ROOT_DIR / "native_engine" / "build" / "libretro_engine.so",
+            RUNTIMES_DIR / "libretro_engine.so"
+        ]
+        engine_so_bytes = None
+        for cand in engine_candidates:
+            if cand.is_file() and cand.stat().st_size > 16384:
+                with open(cand, "rb") as f:
+                    engine_so_bytes = f.read()
+                print(f"  [✓] Loaded real compiled libretro_engine.so ({format_bytes(len(engine_so_bytes))}) from {cand}")
+                break
+
+        if engine_so_bytes is None:
+            for cand in engine_candidates:
+                if cand.is_file():
+                    with open(cand, "rb") as f:
+                        engine_so_bytes = f.read()
+                    print(f"  [!] Using existing libretro_engine.so from {cand}")
+                    break
+
+        if engine_so_bytes is None:
+            print(f"  [!] Warning: Real libretro_engine.so not found; generating fallback ELF stub.")
             engine_so_bytes = create_dummy_elf_so("libretro_engine.so")
 
         # 4. Read or generate core .so
@@ -237,7 +257,9 @@ class BaseTemplateAssembler:
         if staged_core_path.is_file():
             with open(staged_core_path, "rb") as f:
                 core_so_bytes = f.read()
+            print(f"  [✓] Loaded real core library {core_lib_name} ({format_bytes(len(core_so_bytes))})")
         else:
+            print(f"  [!] Warning: Real {core_lib_name} not found; generating fallback ELF stub.")
             core_so_bytes = create_dummy_elf_so(core_lib_name)
 
         # 5. Dummy ROM payload
