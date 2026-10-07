@@ -74,13 +74,13 @@ object RomTitleResolver {
     )
 
     private val GENERIC_FILE_NAMES = setOf(
-        "rom", "game", "disc1", "disc2", "disc3", "disc4",
-        "track01", "track02", "download", "archive", "content",
-        "image", "cartridge", "bios", "boot"
+        "rom", "game", "disc", "disc1", "disc2", "disc3", "disc4",
+        "track01", "track02", "track1", "track2", "download", "archive", "content",
+        "image", "cartridge", "bios", "boot", "untitled", "test"
     )
 
     private val ROM_EXTENSIONS = Regex(
-        """\.(gba|agb|gbc|cgb|gb|sgb|sfc|smc|snes|fig|swc|nes|fds|unf|unif|fam|md|smd|gen|68k|sms|gg|sg|pce|tg16|sgx|bin|zip|7z|rar|iso|cue|chd)$""",
+        """\.(gba|agb|gbc|cgb|gb|sgb|sfc|smc|snes|fig|swc|nes|fds|unf|unif|fam|md|smd|gen|68k|sms|gg|sg|pce|tg16|sgx|bin|zip|7z|rar|iso|cue|chd|rom|nds|n64|z64|v64|elf|tar|gz|bz2|xz)$""",
         RegexOption.IGNORE_CASE
     )
 
@@ -97,8 +97,9 @@ object RomTitleResolver {
         // 1. Clean source filename if available and non-generic
         if (!fileName.isNullOrBlank()) {
             val cleanFromFileName = sanitizeTitle(fileName)
-            val baseName = cleanFromFileName.lowercase().trim()
-            if (cleanFromFileName.isNotBlank() && baseName !in GENERIC_FILE_NAMES) {
+            val baseName = cleanFromFileName.substringBeforeLast('.').lowercase().trim()
+            val fullCleanLower = cleanFromFileName.lowercase().trim()
+            if (cleanFromFileName.isNotBlank() && baseName !in GENERIC_FILE_NAMES && fullCleanLower !in GENERIC_FILE_NAMES) {
                 return cleanFromFileName
             }
         }
@@ -125,6 +126,8 @@ object RomTitleResolver {
             if (rawHeader.endsWith("_A") || rawHeader.endsWith("_B") || rawHeader.endsWith("_C")) {
                 rawHeader = rawHeader.substring(0, rawHeader.length - 2).trim()
             }
+
+            rawHeader = rawHeader.replace('_', ' ').trim()
 
             return rawHeader
         }
