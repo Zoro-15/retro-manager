@@ -46,6 +46,7 @@ endif()
 # Core native engine sources
 set(ENGINE_SOURCES
     src/main.cpp
+    src/common/logger.cpp
     src/core/libretro_bridge.cpp
     src/video/gles_renderer.cpp
     src/audio/aaudio_player.cpp
@@ -61,6 +62,7 @@ add_library(retro_engine SHARED
 
 target_include_directories(retro_engine PRIVATE
     src
+    src/common
     src/core
     src/video
     src/audio

@@ -5,15 +5,23 @@
 #include <vector>
 #include <mutex>
 #include <cstdarg>
+#include <csignal>
 
 namespace retropack {
 
 class Logger {
 public:
-    static void init(const std::string& internalPath, const std::string& externalPath, const std::string& packageName);
+    static void init(
+        const std::string& internalPath,
+        const std::string& externalPath,
+        const std::string& packageName,
+        const std::string& appSlug
+    );
+
     static void log(int androidPriority, const char* tag, const char* fmt, ...);
     static void logV(int androidPriority, const char* tag, const char* fmt, va_list args);
-    static void logCrash(int sig, const char* sigName);
+    static void logCrash(int sig, siginfo_t* info, void* ucontext);
+    static void installCrashHandlers();
     static void flush();
 
     static void info(const char* tag, const char* fmt, ...);
@@ -29,9 +37,14 @@ private:
     static std::mutex s_mutex;
     static bool s_initialized;
     static std::string s_packageName;
+    static std::string s_appSlug;
 };
 
 } // namespace retropack
+
+#ifndef LOG_TAG
+#define LOG_TAG "RetroEngine"
+#endif
 
 #define LOGI(...) retropack::Logger::info(LOG_TAG, __VA_ARGS__)
 #define LOGW(...) retropack::Logger::warn(LOG_TAG, __VA_ARGS__)

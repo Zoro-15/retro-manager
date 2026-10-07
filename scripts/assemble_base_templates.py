@@ -271,8 +271,12 @@ class BaseTemplateAssembler:
             # Manifest
             zf.writestr("AndroidManifest.xml", manifest_bytes, compress_type=zipfile.ZIP_DEFLATED)
             
-            # Icons
-            zf.writestr("res/mipmap-xxhdpi/ic_launcher.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
+            # Standard multi-density Launcher Icons & Drawables
+            for density in ["mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"]:
+                zf.writestr(f"res/mipmap-{density}/ic_launcher.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
+                zf.writestr(f"res/mipmap-{density}/ic_launcher_round.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
+            zf.writestr("res/drawable-nodpi/ic_launcher_foreground.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
+            zf.writestr("res/drawable-nodpi/ic_launcher_background.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
 
             # Assets
             zf.writestr("assets/rom.bin", dummy_rom_bytes, compress_type=zipfile.ZIP_DEFLATED)

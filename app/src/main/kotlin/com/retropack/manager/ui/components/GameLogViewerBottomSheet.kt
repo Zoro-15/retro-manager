@@ -194,6 +194,46 @@ fun GameLogViewerBottomSheet(
                         )
                     }
                 }
+
+                // Crash Diagnostic Deep Dive Card
+                if (currentLog.crashDiagnostic != null) {
+                    val diag = currentLog.crashDiagnostic
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = RetroError.copy(alpha = 0.08f),
+                        border = BorderStroke(1.dp, RetroError.copy(alpha = 0.5f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                text = "CRASH ANALYSIS: ${diag.signal}",
+                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                                color = RetroError
+                            )
+                            Text(
+                                text = diag.description,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.9f),
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                            if (!diag.faultAddress.isNullOrBlank()) {
+                                Text(
+                                    text = "Fault Address: ${diag.faultAddress}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp),
+                                    color = Color(0xFFFFB4A9)
+                                )
+                            }
+                            if (!diag.faultingModule.isNullOrBlank()) {
+                                Text(
+                                    text = "Module: ${diag.faultingModule}",
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace, fontSize = 11.sp),
+                                    color = Color(0xFFFFD8D3)
+                                )
+                            }
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

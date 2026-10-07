@@ -13,6 +13,7 @@
 #include <dirent.h>
 #include <dlfcn.h>
 
+#include "common/logger.hpp"
 #include "core/libretro_bridge.hpp"
 #include "video/gles_renderer.hpp"
 #include "audio/aaudio_player.hpp"
@@ -28,89 +29,6 @@
 #include <fstream>
 
 #define LOG_TAG "RetroEngine-Main"
-
-namespace {
-
-static std::vector<std::string> g_logFilePaths;
-static std::mutex g_logMutex;
-
-static void ensureDirectoryRecursive(const std::string& path) {
-    if (path.empty()) return;
-    std::string current = "";
-    for (size_t i = 0; i < path.length(); ++i) {
-        current += path[i];
-        if (path[i] == '/' || i == path.length() - 1) {
-            struct stat st;
-            if (stat(current.c_str(), &st) != 0) {
-                mkdir(current.c_str(), 0777);
-            }
-        }
-    }
-}
-
-static void writeEngineLog(const char* level, const char* fmt, ...) {
-    char buffer[2048];
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-
-    // 1. Android system logcat
-    int androidLevel = ANDROID_LOG_INFO;
-    if (strcmp(level, "ERROR") == 0) androidLevel = ANDROID_LOG_ERROR;
-    else if (strcmp(level, "WARN") == 0) androidLevel = ANDROID_LOG_WARN;
-    else if (strcmp(level, "DEBUG") == 0) androidLevel = ANDROID_LOG_DEBUG;
-    __android_log_print(androidLevel, LOG_TAG, "%s", buffer);
-
-    // 2. Persistent file logging across all registered targets
-    std::lock_guard<std::mutex> lock(g_logMutex);
-    time_t now = time(nullptr);
-    struct tm* tmInfo = localtime(&now);
-    char timeBuf[64];
-    strftime(timeBuf, sizeof(timeBuf), "%Y-%m-%d %H:%M:%S", tmInfo);
-
-    for (const auto& path : g_logFilePaths) {
-        if (!path.empty()) {
-            FILE* f = fopen(path.c_str(), "a");
-            if (f) {
-                fprintf(f, "[%s] [%s] %s\n", timeBuf, level, buffer);
-                fflush(f);
-                fclose(f);
-            }
-        }
-    }
-}
-
-#define LOGI(...) writeEngineLog("INFO", __VA_ARGS__)
-#define LOGW(...) writeEngineLog("WARN", __VA_ARGS__)
-#define LOGE(...) writeEngineLog("ERROR", __VA_ARGS__)
-
-static void signalCrashHandler(int sig) {
-    const char* sigName = "UNKNOWN";
-    switch (sig) {
-        case SIGSEGV: sigName = "SIGSEGV (Segmentation Fault)"; break;
-        case SIGABRT: sigName = "SIGABRT (Abort)"; break;
-        case SIGBUS:  sigName = "SIGBUS (Bus Error)"; break;
-        case SIGFPE:  sigName = "SIGFPE (Floating Point Exception)"; break;
-        case SIGILL:  sigName = "SIGILL (Illegal Instruction)"; break;
-    }
-    LOGE("FATAL CRASH SIGNAL RECEIVED: %s (%d)", sigName, sig);
-    _exit(128 + sig);
-}
-
-static void installCrashHandlers() {
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = signalCrashHandler;
-    sigemptyset(&sa.sa_mask);
-    sigaction(SIGSEGV, &sa, nullptr);
-    sigaction(SIGABRT, &sa, nullptr);
-    sigaction(SIGBUS, &sa, nullptr);
-    sigaction(SIGFPE, &sa, nullptr);
-    sigaction(SIGILL, &sa, nullptr);
-}
-
-} // namespace
 
 namespace {
 
@@ -431,7 +349,7 @@ static int32_t handleEngineInput(struct android_app* app, AInputEvent* event) {
  * Pure NativeActivity Main Entry Point
  */
 void android_main(struct android_app* app) {
-    installCrashHandlers();
+    retropack::Logger::installCrashHandlers();
 
     EngineContext ctx;
     ctx.app = app;
@@ -446,10 +364,10 @@ void android_main(struct android_app* app) {
         ctx.internalDataPath = "/data/data/com.retro.game/files";
     }
 
-    ensureDirectoryRecursive(ctx.internalDataPath);
+    retropack::Logger::ensureDirectoryRecursive(ctx.internalDataPath);
 
     // Derive package name & app slug
-    std::string packageName = "retro_game";
+    std::string packageName = "com.retropack.game";
     if (app->activity && app->activity->internalDataPath) {
         std::string raw(app->activity->internalDataPath);
         // Typical format: /data/user/0/<packageName>/files or /data/data/<packageName>/files
@@ -469,60 +387,23 @@ void android_main(struct android_app* app) {
         appSlug = packageName.substr(lastDot + 1);
     }
 
-    // Register all internal and public Download log destinations
-    {
-        std::lock_guard<std::mutex> lock(g_logMutex);
-        g_logFilePaths.clear();
-        
-        // 1. App-private internal storage: files/engine.log, launch.log, game_launch.log
-        g_logFilePaths.push_back(ctx.internalDataPath + "/engine.log");
-        g_logFilePaths.push_back(ctx.internalDataPath + "/launch.log");
-        g_logFilePaths.push_back(ctx.internalDataPath + "/game_launch.log");
-        g_logFilePaths.push_back(ctx.internalDataPath + "/" + appSlug + ".log");
+    std::string externalDataPath = (app->activity && app->activity->externalDataPath) ? app->activity->externalDataPath : "";
+    retropack::Logger::init(ctx.internalDataPath, externalDataPath, packageName, appSlug);
 
-        // 2. App-specific external storage if available
-        if (app->activity && app->activity->externalDataPath) {
-            std::string extPath(app->activity->externalDataPath);
-            ensureDirectoryRecursive(extPath);
-            g_logFilePaths.push_back(extPath + "/" + appSlug + ".log");
-            g_logFilePaths.push_back(extPath + "/retropack_runtime.log");
-        }
-
-        // 3. Public Download logs directory: /sdcard/Download/logs/<app_slug>/<app_slug>.log
-        std::vector<std::string> downloadBases = {
-            "/sdcard/Download",
-            "/storage/emulated/0/Download"
-        };
-
-        for (const auto& base : downloadBases) {
-            std::string slugDir = base + "/logs/" + appSlug;
-            ensureDirectoryRecursive(slugDir);
-            g_logFilePaths.push_back(slugDir + "/" + appSlug + ".log");
-
-            std::string generalLogsDir = base + "/logs";
-            ensureDirectoryRecursive(generalLogsDir);
-            g_logFilePaths.push_back(generalLogsDir + "/" + appSlug + ".log");
-            g_logFilePaths.push_back(generalLogsDir + "/game_launch.log");
-
-            std::string retroPackLogsDir = base + "/RetroPack/Logs";
-            ensureDirectoryRecursive(retroPackLogsDir);
-            g_logFilePaths.push_back(retroPackLogsDir + "/" + appSlug + ".log");
-        }
-    }
-
-    LOGI("=================================================");
-    LOGI("   RetroPack Pure C++ Native Engine Starting     ");
-    LOGI("=================================================");
+    LOGI("================================================================================");
+    LOGI("   RetroPack Standalone Pure C++ NativeActivity Booting                         ");
+    LOGI("================================================================================");
     LOGI("Package Name       : %s", packageName.c_str());
     LOGI("App Slug           : %s", appSlug.c_str());
     LOGI("Internal Data Path : %s", ctx.internalDataPath.c_str());
-    LOGI("Public Log Target  : /sdcard/Download/logs/%s/%s.log", appSlug.c_str(), appSlug.c_str());
+    LOGI("External Data Path : %s", externalDataPath.c_str());
+    LOGI("Public Log Target  : /sdcard/Download/RetroPack/Logs/%s.log", appSlug.c_str());
 
     ctx.systemDir = ctx.internalDataPath + "/system";
     ctx.saveDir = ctx.internalDataPath + "/saves";
 
-    ensureDirectoryRecursive(ctx.systemDir);
-    ensureDirectoryRecursive(ctx.saveDir);
+    retropack::Logger::ensureDirectoryRecursive(ctx.systemDir);
+    retropack::Logger::ensureDirectoryRecursive(ctx.saveDir);
 
     ctx.bridge.setSystemDirectory(ctx.systemDir);
     ctx.bridge.setSaveDirectory(ctx.saveDir);
