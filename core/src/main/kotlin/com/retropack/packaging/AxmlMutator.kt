@@ -2,8 +2,10 @@ package com.retropack.packaging
 
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
 import com.reandroid.arsc.chunk.xml.ResXmlElement
+import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import javax.xml.parsers.DocumentBuilderFactory
 
 /**
  * Mutates AndroidManifest.xml binary XML (AXML) via REAndroid/ARSCLib (Step 7).
@@ -22,15 +24,14 @@ object AxmlMutator {
     private const val CATEGORY_LAUNCHER = "android.intent.category.LAUNCHER"
 
     /**
-     * Mutates raw AXML [manifestBytes] using [packageIdentity] and [gameTitle].
+     * Mutates raw AXML (or plain-text XML) [manifestBytes] using [packageIdentity] and [gameTitle].
      */
     fun mutate(
         manifestBytes: ByteArray,
         packageIdentity: PackageIdentity,
         gameTitle: String
     ): ByteArray {
-        val manifest = AndroidManifestBlock()
-        ByteArrayInputStream(manifestBytes).use { manifest.readBytes(it) }
+        val manifest = loadManifestBlock(manifestBytes)
 
         // 1. Mutate root package name
         manifest.packageName = packageIdentity.packageName
@@ -55,6 +56,122 @@ object AxmlMutator {
         val out = ByteArrayOutputStream()
         manifest.writeBytes(out)
         return out.toByteArray()
+    }
+
+    private fun isPlainTextXml(bytes: ByteArray): Boolean {
+        if (bytes.isEmpty()) return false
+        val prefix = bytes.take(32).toByteArray().toString(Charsets.UTF_8).trimStart()
+        return prefix.startsWith("<")
+    }
+
+    private fun loadManifestBlock(manifestBytes: ByteArray): AndroidManifestBlock {
+        val block = AndroidManifestBlock()
+        if (isPlainTextXml(manifestBytes)) {
+            parseTextXmlToBlock(manifestBytes, block)
+        } else {
+            ByteArrayInputStream(manifestBytes).use { block.readBytes(it) }
+        }
+        return block
+    }
+
+    private fun parseTextXmlToBlock(xmlBytes: ByteArray, block: AndroidManifestBlock) {
+        val factory = DocumentBuilderFactory.newInstance()
+        factory.isNamespaceAware = true
+        val doc = factory.newDocumentBuilder().parse(ByteArrayInputStream(xmlBytes))
+        val manifestElement = doc.documentElement
+
+        val pkg = manifestElement.getAttribute("package").ifEmpty { "com.retropack.template" }
+        block.packageName = pkg
+        val vcStr = manifestElement.getAttributeNS(ANDROID_NS_URI, "versionCode")
+            .ifEmpty { manifestElement.getAttribute("android:versionCode") }
+        block.versionCode = vcStr.toIntOrNull() ?: 1
+
+        val vnStr = manifestElement.getAttributeNS(ANDROID_NS_URI, "versionName")
+            .ifEmpty { manifestElement.getAttribute("android:versionName") }
+        block.versionName = vnStr.ifEmpty { "1.0" }
+
+        val appNodeList = manifestElement.getElementsByTagName("application")
+        if (appNodeList.length > 0) {
+            val appElem = appNodeList.item(0) as Element
+            val app = block.getOrCreateApplicationElement()
+
+            val label = appElem.getAttributeNS(ANDROID_NS_URI, "label")
+                .ifEmpty { appElem.getAttribute("android:label") }
+            if (label.isNotEmpty()) {
+                block.setApplicationLabel(label)
+            }
+
+            val hasCode = appElem.getAttributeNS(ANDROID_NS_URI, "hasCode")
+                .ifEmpty { appElem.getAttribute("android:hasCode") }
+            if (hasCode.isNotEmpty()) {
+                app.getOrCreateAndroidAttribute("hasCode", 0x0101000c).setValueAsBoolean(hasCode.toBoolean())
+            }
+
+            val extractLibs = appElem.getAttributeNS(ANDROID_NS_URI, "extractNativeLibs")
+                .ifEmpty { appElem.getAttribute("android:extractNativeLibs") }
+            if (extractLibs.isNotEmpty()) {
+                app.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea).setValueAsBoolean(extractLibs.toBoolean())
+            } else {
+                app.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea).setValueAsBoolean(false)
+            }
+
+            val activityNodes = appElem.getElementsByTagName("activity")
+            for (i in 0 until activityNodes.length) {
+                val actElem = activityNodes.item(i) as Element
+                val actName = actElem.getAttributeNS(ANDROID_NS_URI, "name")
+                    .ifEmpty { actElem.getAttribute("android:name") }
+                val activity = app.createChildElement("activity")
+                activity.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = actName
+
+                val exported = actElem.getAttributeNS(ANDROID_NS_URI, "exported")
+                    .ifEmpty { actElem.getAttribute("android:exported") }
+                if (exported.isNotEmpty()) {
+                    activity.getOrCreateAndroidAttribute("exported", 0x01010010).setValueAsBoolean(exported.toBoolean())
+                }
+
+                val screenOrientation = actElem.getAttributeNS(ANDROID_NS_URI, "screenOrientation")
+                    .ifEmpty { actElem.getAttribute("android:screenOrientation") }
+                if (screenOrientation.isNotEmpty()) {
+                    activity.getOrCreateAndroidAttribute("screenOrientation", 0x0101001e).valueAsString = screenOrientation
+                }
+
+                // meta-data
+                val metaNodes = actElem.getElementsByTagName("meta-data")
+                for (m in 0 until metaNodes.length) {
+                    val metaElem = metaNodes.item(m) as Element
+                    val mName = metaElem.getAttributeNS(ANDROID_NS_URI, "name")
+                        .ifEmpty { metaElem.getAttribute("android:name") }
+                    val mVal = metaElem.getAttributeNS(ANDROID_NS_URI, "value")
+                        .ifEmpty { metaElem.getAttribute("android:value") }
+                    val metaChild = activity.createChildElement("meta-data")
+                    metaChild.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = mName
+                    metaChild.getOrCreateAndroidAttribute("value", 0x01010024).valueAsString = mVal
+                }
+
+                // intent-filter
+                val filterNodes = actElem.getElementsByTagName("intent-filter")
+                for (f in 0 until filterNodes.length) {
+                    val filterElem = filterNodes.item(f) as Element
+                    val filter = activity.createChildElement("intent-filter")
+                    val actionNodes = filterElem.getElementsByTagName("action")
+                    for (a in 0 until actionNodes.length) {
+                        val aElem = actionNodes.item(a) as Element
+                        val aName = aElem.getAttributeNS(ANDROID_NS_URI, "name")
+                            .ifEmpty { aElem.getAttribute("android:name") }
+                        val action = filter.createChildElement("action")
+                        action.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = aName
+                    }
+                    val catNodes = filterElem.getElementsByTagName("category")
+                    for (c in 0 until catNodes.length) {
+                        val cElem = catNodes.item(c) as Element
+                        val cName = cElem.getAttributeNS(ANDROID_NS_URI, "name")
+                            .ifEmpty { cElem.getAttribute("android:name") }
+                        val category = filter.createChildElement("category")
+                        category.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = cName
+                    }
+                }
+            }
+        }
     }
 
     private fun mutateLauncherActivityLabels(manifest: AndroidManifestBlock, gameTitle: String) {

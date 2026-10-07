@@ -44,11 +44,11 @@ ICON_SRC = TEMPLATE_APK_DIR / "src" / "main" / "res" / "mipmap-xxhdpi" / "ic_lau
 NATIVE_ENGINE_DIR = ROOT_DIR / "native_engine"
 
 CORE_TO_TEMPLATE_MAP = {
-    "mgba": "template_gba.apk",
-    "snes9x": "template_snes.apk",
-    "genesis_plus_gx": "template_genesis.apk",
-    "fceumm": "template_nes.apk",
-    "mednafen_pce_fast": "template_pce.apk",
+    "mgba": "mgba-unified/template.apk",
+    "snes9x": "snes9x-unified/template.apk",
+    "genesis_plus_gx": "genesis-unified/template.apk",
+    "fceumm": "fceumm-unified/template.apk",
+    "mednafen_pce_fast": "pce-unified/template.apk",
 }
 
 PAGE_ALIGNMENT = 16384  # 16 KB

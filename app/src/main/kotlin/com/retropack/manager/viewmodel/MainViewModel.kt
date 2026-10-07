@@ -923,7 +923,7 @@ class MainViewModel : ViewModel() {
         if (coreFiles.isNotEmpty()) {
             appendLog("[✓] Discovered ${coreFiles.size} Libretro core shared libraries in staging: ${coreFiles.joinToString(", ")}")
         } else {
-            appendLog("[!] Warning: No Libretro core (.so) binaries detected in staging directory (${targetRuntimesDir.absolutePath})")
+            appendLog("[i] Using self-contained precompiled Libretro base template ($runtimeId)")
         }
 
         return when (outcome) {

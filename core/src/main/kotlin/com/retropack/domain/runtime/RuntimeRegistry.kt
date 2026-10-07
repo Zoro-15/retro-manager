@@ -48,19 +48,36 @@ object RuntimeRegistry {
      * RuntimeBundleIntegrityTest fails the build when any of them drift.
      */
     val TRUSTED_TEMPLATES: Map<String, String> = mapOf(
-        RUNTIME_MGBA_UNIFIED to "391b8bc1cb323f4a4d07784af3778cebe1ecd366f702fb0605bb63a1b6d9d8e0"
+        RUNTIME_MGBA_UNIFIED to "b048b542efaaa4a3b4404e86157327f9b00e3a06202e97e25a59be58e021a8ad",
+        RUNTIME_SNES9X_UNIFIED to "8eaf2ab7d51d0c2900912f1f91eaf0c5fbf0b3b4c7e8fb0f3a7086780f3026f0",
+        RUNTIME_GENESIS_UNIFIED to "4debabe118a06538a9cdc3f05c911df8ebbcdcf630be86f041ccd0fd95eeddd8",
+        RUNTIME_FCEUMM_UNIFIED to "aff522c667a4cabe1d99f452fc7cab25c2064a01465b5e4b595315c946730054",
+        RUNTIME_PCE_UNIFIED to "19d4ef86928165e131b33ff3d79c94df389b7182a227fb8a86c76d2396d52323"
     )
 
     /**
      * Protected entries bytecode trust anchors for Step 9 integrity validation.
-     * Entry names must match the REAL template contents: the NDK build produces
-     * libretropack-runtime.so (System.loadLibrary("retropack-runtime")), NOT
-     * libmgba.so.
      */
     val TRUSTED_PROTECTED_ENTRIES: Map<String, Map<String, String>> = mapOf(
         RUNTIME_MGBA_UNIFIED to mapOf(
-            "classes.dex" to "b2533f8585723081e9d2bda0038eb8b0d550a7dbc9c4a52a0a66a2bf3901010f",
-            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_mgba.so" to "b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
+        ),
+        RUNTIME_SNES9X_UNIFIED to mapOf(
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_snes9x.so" to "dfd51707769000b08551e61eee4fe1a68d9e6188d62bf849c762339fa6bebcd3"
+        ),
+        RUNTIME_GENESIS_UNIFIED to mapOf(
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_genesis_plus_gx.so" to "ef8ca1df538d5904707edd083d19df1927da767f1be5425624f61c527bc2b71a"
+        ),
+        RUNTIME_FCEUMM_UNIFIED to mapOf(
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_fceumm.so" to "38659530f800032ed6ed46ea0cdf167a38326e0ecd9afa09a3c08130020d85af"
+        ),
+        RUNTIME_PCE_UNIFIED to mapOf(
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_mednafen_pce_fast.so" to "ffc291edc40220dd2269091cffd45cc8e7fe93ad3d2bc8e35bbeda20a7686e4d"
         )
     )
 

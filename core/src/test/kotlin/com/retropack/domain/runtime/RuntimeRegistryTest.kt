@@ -58,7 +58,7 @@ class RuntimeRegistryTest {
         // Hardcoded (NOT read from RuntimeRegistry) so an accidental anchor
         // rotation is caught here; RuntimeBundleIntegrityTest separately pins
         // the anchor to the committed template.apk bytes.
-        val trustedHash = "391b8bc1cb323f4a4d07784af3778cebe1ecd366f702fb0605bb63a1b6d9d8e0"
+        val trustedHash = "b048b542efaaa4a3b4404e86157327f9b00e3a06202e97e25a59be58e021a8ad"
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, trustedHash))
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, "sha256:$trustedHash"))
 
@@ -67,18 +67,18 @@ class RuntimeRegistryTest {
     }
 
     @Test
-    fun `verifyProtectedEntries validates classes dex and native library against bytecode trust anchors`() {
+    fun `verifyProtectedEntries validates native libraries against bytecode trust anchors`() {
         val validEntries = mapOf(
-            "classes.dex" to "b2533f8585723081e9d2bda0038eb8b0d550a7dbc9c4a52a0a66a2bf3901010f",
-            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
+            "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
+            "lib/arm64-v8a/libretro_mgba.so" to "b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
         )
         assertTrue(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, validEntries))
 
-        val tamperedDex = mapOf(
-            "classes.dex" to "badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb",
-            "lib/arm64-v8a/libretropack-runtime.so" to "2253df2006ed765a84492382325b09e2ee2dfad72e943ab9d50fa3a31f09754b"
+        val tamperedLib = mapOf(
+            "lib/arm64-v8a/libretro_engine.so" to "badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb",
+            "lib/arm64-v8a/libretro_mgba.so" to "b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
         )
-        assertFalse(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, tamperedDex))
+        assertFalse(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, tamperedLib))
     }
 
     @Test

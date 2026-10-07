@@ -57,8 +57,9 @@ class RuntimeTemplateTest {
         )
 
         val declared = RuntimeDescriptor.MGBA_UNIFIED.protectedEntries
+        val firstKey = declared.keys.firstOrNull() ?: "lib/arm64-v8a/libretro_engine.so"
         val tamperedEntries = declared.entries.associate { (k, v) ->
-            if (k == "classes.dex") k to "0000000000000000000000000000000000000000000000000000000000000000"
+            if (k == firstKey) k to "0000000000000000000000000000000000000000000000000000000000000000"
             else k to v.removePrefix("sha256:")
         }
 
