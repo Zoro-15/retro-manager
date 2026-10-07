@@ -245,6 +245,7 @@ def find_so_files(search_paths: List[Path]) -> List[Path]:
 def run_alignment_verification(
     search_paths: Optional[List[Path]] = None,
     manifest_path: Optional[Path] = DEFAULT_MANIFEST,
+    target_abis: Optional[List[str]] = None,
     strict_manifest: bool = False,
     verbose: bool = False,
     json_report_path: Optional[Path] = None,
@@ -275,7 +276,9 @@ def run_alignment_verification(
                 mdata = json.load(mf)
                 manifest_cores = mdata.get("cores", [])
                 manifest_abis = mdata.get("supported_abis", manifest_abis)
-            print(f"[*] Loaded catalog manifest: {manifest_path.name} ({len(manifest_cores)} cores declared)")
+            if target_abis:
+                manifest_abis = [abi for abi in target_abis if abi in manifest_abis]
+            print(f"[*] Loaded catalog manifest: {manifest_path.name} ({len(manifest_cores)} cores declared, ABIs: {', '.join(manifest_abis)})")
         except Exception as ex:
             print(f"[!] Warning reading manifest {manifest_path}: {ex}")
 
@@ -436,6 +439,12 @@ def main():
         help="Path to cores.json manifest to cross-reference",
     )
     parser.add_argument(
+        "-a",
+        "--abis",
+        nargs="+",
+        help="Filter specific ABIs to expect when verifying manifest compliance (e.g. --abis arm64-v8a)",
+    )
+    parser.add_argument(
         "-s",
         "--strict",
         action="store_true",
@@ -460,6 +469,7 @@ def main():
     exit_code = run_alignment_verification(
         search_paths=search_paths,
         manifest_path=args.manifest,
+        target_abis=args.abis,
         strict_manifest=args.strict,
         verbose=args.verbose,
         json_report_path=args.json_report,

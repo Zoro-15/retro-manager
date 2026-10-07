@@ -58,7 +58,7 @@ class RuntimeRegistryTest {
         // Hardcoded (NOT read from RuntimeRegistry) so an accidental anchor
         // rotation is caught here; RuntimeBundleIntegrityTest separately pins
         // the anchor to the committed template.apk bytes.
-        val trustedHash = "2d20706a5e0d35864ad8b75caccb3da5992f7791e5f6b5f8239aea766c0da0fa"
+        val trustedHash = "e4b155f6ec48f462bb502e144c5f6d951d5ead234034b08d8599ee4c25383b96"
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, trustedHash))
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, "sha256:$trustedHash"))
 
@@ -70,13 +70,13 @@ class RuntimeRegistryTest {
     fun `verifyProtectedEntries validates native libraries against bytecode trust anchors`() {
         val validEntries = mapOf(
             "lib/arm64-v8a/libretro_engine.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-            "lib/arm64-v8a/libretro_mgba.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
+            "lib/arm64-v8a/libretro_mgba.so" to "b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
         )
         assertTrue(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, validEntries))
 
         val tamperedLib = mapOf(
             "lib/arm64-v8a/libretro_engine.so" to "badbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadbadb",
-            "lib/arm64-v8a/libretro_mgba.so" to "4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
+            "lib/arm64-v8a/libretro_mgba.so" to "b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
         )
         assertFalse(RuntimeRegistry.verifyProtectedEntries(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, tamperedLib))
     }

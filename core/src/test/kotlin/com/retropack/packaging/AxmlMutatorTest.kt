@@ -83,6 +83,54 @@ class AxmlMutatorTest {
     }
 
     @Test
+    fun `mutate converts plain text template manifest to valid binary AXML block`() {
+        val plainXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package="com.retropack.runtime">
+                <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+                <application
+                    android:hasCode="false"
+                    android:label="Retro Game"
+                    android:extractNativeLibs="false"
+                    android:allowBackup="false">
+                    <activity
+                        android:name="android.app.NativeActivity"
+                        android:exported="true">
+                        <meta-data android:name="android.app.lib_name" android:value="retro_engine" />
+                        <intent-filter>
+                            <action android:name="android.intent.action.MAIN" />
+                            <category android:name="android.intent.category.LAUNCHER" />
+                        </intent-filter>
+                    </activity>
+                </application>
+            </manifest>
+        """.trimIndent().toByteArray(StandardCharsets.UTF_8)
+
+        val identity = PackageIdentity.create(
+            gameTitle = "Golden Sun",
+            romBytes = "ROM Sample Golden Sun".toByteArray(StandardCharsets.UTF_8),
+            versionCode = 1,
+            versionName = "1.0.0"
+        )
+
+        val mutatedBytes = AxmlMutator.mutate(
+            manifestBytes = plainXml,
+            packageIdentity = identity,
+            gameTitle = "Golden Sun"
+        )
+
+        val block = AndroidManifestBlock()
+        ByteArrayInputStream(mutatedBytes).use { block.readBytes(it) }
+        assertEquals(identity.packageName, block.packageName)
+        assertEquals("Golden Sun", block.applicationLabelString)
+        assertEquals(26, block.minSdkVersion)
+        assertEquals(35, block.targetSdkVersion)
+        assertEquals(1, block.versionCode)
+        assertEquals("1.0.0", block.versionName)
+    }
+
+    @Test
     fun `mutate fails with IllegalStateException when activity uses shorthand relative name`() {
         val shorthandAxml = createSampleAxml(activityName = ".GameActivity")
         val identity = PackageIdentity.create(

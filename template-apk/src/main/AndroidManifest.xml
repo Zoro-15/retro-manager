@@ -1,27 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.retropack.runtime"
+    android:versionCode="1"
+    android:versionName="1.0.0">
 
-    <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-sdk
+        android:minSdkVersion="26"
+        android:targetSdkVersion="35" />
 
     <application
         android:hasCode="false"
         android:label="Retro Game"
         android:extractNativeLibs="false"
-        android:allowBackup="false"
-        android:requestLegacyExternalStorage="true"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        android:allowBackup="false">
 
         <activity
             android:name="android.app.NativeActivity"
+            android:label="Retro Game"
+            android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:exported="true"
-            android:screenOrientation="sensorLandscape"
-            android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode"
-            android:windowSoftInputMode="adjustNothing">
-            <meta-data android:name="android.app.lib_name" android:value="retro_engine" />
+            android:configChanges="orientation|keyboardHidden|screenSize|screenLayout"
+            android:screenOrientation="sensorLandscape">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="retro_engine" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

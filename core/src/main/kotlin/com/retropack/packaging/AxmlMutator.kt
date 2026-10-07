@@ -2,6 +2,7 @@ package com.retropack.packaging
 
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
 import com.reandroid.arsc.chunk.xml.ResXmlElement
+import com.reandroid.arsc.value.ValueType
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -22,6 +23,11 @@ object AxmlMutator {
     private const val ATTR_LABEL_RESOURCE_ID = 0x01010001
     private const val ACTION_MAIN = "android.intent.action.MAIN"
     private const val CATEGORY_LAUNCHER = "android.intent.category.LAUNCHER"
+
+    // Typed attribute constants for binary AXML compatibility across all Android versions (API 26-35+)
+    private const val ORIENTATION_SENSOR_LANDSCAPE = 6
+    private const val CONFIG_CHANGES_BITMASK = 0x000004a0 // orientation | keyboardHidden | screenSize
+    private const val WINDOW_SOFT_INPUT_ADJUST_NOTHING = 0x00000030
 
     /**
      * Mutates raw AXML (or plain-text XML) [manifestBytes] using [packageIdentity] and [gameTitle].
@@ -115,17 +121,6 @@ object AxmlMutator {
             block.targetSdkVersion = 35
         }
 
-        // Permissions
-        val permNodes = manifestElement.getElementsByTagName("uses-permission")
-        for (i in 0 until permNodes.length) {
-            val pElem = permNodes.item(i) as Element
-            val pName = pElem.getAttributeNS(ANDROID_NS_URI, "name")
-                .ifEmpty { pElem.getAttribute("android:name") }
-            if (pName.isNotEmpty()) {
-                block.addUsesPermission(pName)
-            }
-        }
-
         val appNodeList = manifestElement.getElementsByTagName("application")
         if (appNodeList.length > 0) {
             val appElem = appNodeList.item(0) as Element
@@ -154,7 +149,6 @@ object AxmlMutator {
             }
 
             app.getOrCreateAndroidAttribute("allowBackup", 0x01010280).setValueAsBoolean(false)
-            app.getOrCreateAndroidAttribute("theme", 0x01010000).valueAsString = "@android:style/Theme.Black.NoTitleBar.Fullscreen"
 
             val activityNodes = appElem.getElementsByTagName("activity")
             for (i in 0 until activityNodes.length) {
@@ -172,9 +166,16 @@ object AxmlMutator {
                     activity.getOrCreateAndroidAttribute("exported", 0x01010010).setValueAsBoolean(true)
                 }
 
-                activity.getOrCreateAndroidAttribute("configChanges", 0x0101001f).valueAsString = "orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode"
-                activity.getOrCreateAndroidAttribute("windowSoftInputMode", 0x0101022b).valueAsString = "adjustNothing"
-                activity.getOrCreateAndroidAttribute("screenOrientation", 0x0101001e).valueAsString = "sensorLandscape"
+                activity.getOrCreateAndroidAttribute("configChanges", 0x0101001f).setTypeAndData(ValueType.HEX, CONFIG_CHANGES_BITMASK)
+                activity.getOrCreateAndroidAttribute("windowSoftInputMode", 0x0101022b).setTypeAndData(ValueType.HEX, WINDOW_SOFT_INPUT_ADJUST_NOTHING)
+                activity.getOrCreateAndroidAttribute("screenOrientation", 0x0101001e).setTypeAndData(ValueType.DEC, ORIENTATION_SENSOR_LANDSCAPE)
+
+                val theme = actElem.getAttributeNS(ANDROID_NS_URI, "theme")
+                    .ifEmpty { actElem.getAttribute("android:theme") }
+                if (theme.isNotEmpty()) {
+                    val themeResId = if (theme.contains("Theme.Black.NoTitleBar.Fullscreen")) 0x01030008 else 0x01030007
+                    activity.getOrCreateAndroidAttribute("theme", 0x01010000).setTypeAndData(ValueType.REFERENCE, themeResId)
+                }
 
                 // meta-data
                 val metaNodes = actElem.getElementsByTagName("meta-data")
