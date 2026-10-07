@@ -58,7 +58,7 @@ class RuntimeRegistryTest {
         // Hardcoded (NOT read from RuntimeRegistry) so an accidental anchor
         // rotation is caught here; RuntimeBundleIntegrityTest separately pins
         // the anchor to the committed template.apk bytes.
-        val trustedHash = "f5779064f92848a2b8176241ff34dfd335fe1611daf4197008ad5f74f4b0ddac"
+        val trustedHash = "2d20706a5e0d35864ad8b75caccb3da5992f7791e5f6b5f8239aea766c0da0fa"
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, trustedHash))
         assertTrue(RuntimeRegistry.isTrustedTemplate(RuntimeRegistry.RUNTIME_MGBA_UNIFIED, "sha256:$trustedHash"))
 

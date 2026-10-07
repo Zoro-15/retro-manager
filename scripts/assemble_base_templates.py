@@ -251,7 +251,6 @@ class BaseTemplateAssembler:
             
             # Icons
             zf.writestr("res/mipmap-xxhdpi/ic_launcher.png", icon_bytes, compress_type=zipfile.ZIP_DEFLATED)
-            zf.writestr("res/mipmap-anydpi-v26/ic_launcher.xml", b'<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><foreground android:drawable="@mipmap/ic_launcher"/></adaptive-icon>', compress_type=zipfile.ZIP_DEFLATED)
 
             # Assets
             zf.writestr("assets/rom.bin", dummy_rom_bytes, compress_type=zipfile.ZIP_DEFLATED)
