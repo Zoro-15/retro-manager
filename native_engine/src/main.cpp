@@ -486,6 +486,21 @@ void android_main(struct android_app* app) {
     ctx.activeCorePath = discoverCoreLibrary(app);
     LOGI("Discovered target core: %s", ctx.activeCorePath.c_str());
 
+    // Configure Console-Adaptive VirtualPad Layout (PPSSPP floating stick + console buttons)
+    if (ctx.activeCorePath.find("mgba") != std::string::npos || ctx.activeCorePath.find("gba") != std::string::npos) {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::GBA);
+    } else if (ctx.activeCorePath.find("snes") != std::string::npos) {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::SNES);
+    } else if (ctx.activeCorePath.find("fceumm") != std::string::npos || ctx.activeCorePath.find("nes") != std::string::npos) {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::NES);
+    } else if (ctx.activeCorePath.find("genesis") != std::string::npos) {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::GENESIS);
+    } else if (ctx.activeCorePath.find("pce") != std::string::npos) {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::PCE);
+    } else {
+        ctx.virtualPad.setConsoleLayout(retropack::ConsoleLayout::GBA);
+    }
+
     if (!ctx.bridge.loadCore(ctx.activeCorePath)) {
         LOGE("Failed to load Libretro core: %s. Error: %s",
              ctx.activeCorePath.c_str(), ctx.bridge.getLastError().c_str());

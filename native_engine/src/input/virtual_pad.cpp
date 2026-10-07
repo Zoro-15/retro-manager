@@ -35,6 +35,16 @@ const char* kPadFragmentShader =
     "    gl_FragColor = uColor;\n"
     "}\n";
 
+static bool hitTestCircle(float px, float py, float cx, float cy, float radius) {
+    float dx = px - cx;
+    float dy = py - cy;
+    return (dx * dx + dy * dy) <= (radius * radius);
+}
+
+static bool hitTestRect(float px, float py, float rx, float ry, float rw, float rh) {
+    return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
+}
+
 } // namespace
 
 VirtualPad::VirtualPad() {
@@ -42,6 +52,7 @@ VirtualPad::VirtualPad() {
         m_pointers[i].id = -1;
         m_pointers[i].active = false;
     }
+    setConsoleLayout(ConsoleLayout::GBA);
 }
 
 VirtualPad::~VirtualPad() {
@@ -51,8 +62,39 @@ VirtualPad::~VirtualPad() {
     }
 }
 
-void VirtualPad::updateLayout(int screenWidth, int screenHeight) {
+void VirtualPad::setConsoleLayout(ConsoleLayout layout) {
     std::lock_guard<std::mutex> lock(m_mutex);
+    m_consoleLayout = layout;
+
+    switch (layout) {
+        case ConsoleLayout::GBA:
+            m_hasX = false;
+            m_hasY = false;
+            m_hasShoulders = true;
+            break;
+
+        case ConsoleLayout::NES:
+        case ConsoleLayout::PCE:
+            m_hasX = false;
+            m_hasY = false;
+            m_hasShoulders = false;
+            break;
+
+        case ConsoleLayout::SNES:
+        case ConsoleLayout::GENESIS:
+        default:
+            m_hasX = true;
+            m_hasY = true;
+            m_hasShoulders = true;
+            break;
+    }
+
+    if (m_screenWidth > 0 && m_screenHeight > 0) {
+        updateLayout(m_screenWidth, m_screenHeight);
+    }
+}
+
+void VirtualPad::updateLayout(int screenWidth, int screenHeight) {
     m_screenWidth = screenWidth;
     m_screenHeight = screenHeight;
 
@@ -60,86 +102,152 @@ void VirtualPad::updateLayout(int screenWidth, int screenHeight) {
 
     float base = static_cast<float>(std::min(screenWidth, screenHeight));
     float scale = base / 720.0f;
-    if (scale < 0.6f) scale = 0.6f;
+    if (scale < 0.65f) scale = 0.65f;
 
     float w = static_cast<float>(screenWidth);
     float h = static_cast<float>(screenHeight);
 
-    // 1. D-Pad (Bottom-Left)
-    m_dpadCenter.x = 180.0f * scale;
-    m_dpadCenter.y = h - (180.0f * scale);
-    m_dpadCenter.radius = 120.0f * scale;
-    m_dpadCenter.label = "DPAD";
+    // 1. PPSSPP Floating Thumbstick Dimensions
+    m_stickOuterRadius = 78.0f * scale;
+    m_stickNubRadius = 34.0f * scale;
+    m_stickMaxDist = 65.0f * scale;
+    m_stickDeadzone = 12.0f * scale;
 
-    // 2. Action Diamond Buttons (Bottom-Right)
-    float btnRadius = 42.0f * scale;
-    float diamondCenterDist = 72.0f * scale;
+    m_defaultStickX = 180.0f * scale;
+    m_defaultStickY = h - (180.0f * scale);
+
+    if (!m_stickActive) {
+        m_stickBaseX = m_defaultStickX;
+        m_stickBaseY = m_defaultStickY;
+        m_stickNubX = m_defaultStickX;
+        m_stickNubY = m_defaultStickY;
+    }
+
+    // 2. Action Buttons
+    float btnRadius = 40.0f * scale;
     float rightCenterX = w - (180.0f * scale);
     float rightCenterY = h - (180.0f * scale);
 
-    m_btnA.x = rightCenterX + diamondCenterDist;
-    m_btnA.y = rightCenterY;
-    m_btnA.radius = btnRadius;
-    m_btnA.mask = BTN_A;
-    m_btnA.label = "A";
+    if (m_consoleLayout == ConsoleLayout::GBA) {
+        // GBA: Natural 25-degree thumb sweep arc
+        // A is top-right, B is bottom-left
+        float angleRad = 25.0f * (static_cast<float>(M_PI) / 180.0f);
+        float spacing = 58.0f * scale;
 
-    m_btnB.x = rightCenterX;
-    m_btnB.y = rightCenterY + diamondCenterDist;
-    m_btnB.radius = btnRadius;
-    m_btnB.mask = BTN_B;
-    m_btnB.label = "B";
+        m_btnA.x = rightCenterX + (std::cos(angleRad) * spacing);
+        m_btnA.y = rightCenterY - (std::sin(angleRad) * spacing);
+        m_btnA.radius = btnRadius * 1.08f;
+        m_btnA.mask = BTN_A;
+        m_btnA.label = "A";
+        m_btnA.enabled = true;
 
-    m_btnX.x = rightCenterX;
-    m_btnX.y = rightCenterY - diamondCenterDist;
-    m_btnX.radius = btnRadius;
-    m_btnX.mask = BTN_X;
-    m_btnX.label = "X";
+        m_btnB.x = rightCenterX - (std::cos(angleRad) * spacing);
+        m_btnB.y = rightCenterY + (std::sin(angleRad) * spacing);
+        m_btnB.radius = btnRadius * 1.08f;
+        m_btnB.mask = BTN_B;
+        m_btnB.label = "B";
+        m_btnB.enabled = true;
 
-    m_btnY.x = rightCenterX - diamondCenterDist;
-    m_btnY.y = rightCenterY;
-    m_btnY.radius = btnRadius;
-    m_btnY.mask = BTN_Y;
-    m_btnY.label = "Y";
+        m_btnX.enabled = false;
+        m_btnY.enabled = false;
+    } else if (m_consoleLayout == ConsoleLayout::NES || m_consoleLayout == ConsoleLayout::PCE) {
+        // NES / PCE: Horizontal 2-button layout
+        float spacing = 52.0f * scale;
+
+        m_btnB.x = rightCenterX - spacing;
+        m_btnB.y = rightCenterY;
+        m_btnB.radius = btnRadius;
+        m_btnB.mask = BTN_B;
+        m_btnB.label = (m_consoleLayout == ConsoleLayout::PCE) ? "I" : "B";
+        m_btnB.enabled = true;
+
+        m_btnA.x = rightCenterX + spacing;
+        m_btnA.y = rightCenterY;
+        m_btnA.radius = btnRadius;
+        m_btnA.mask = BTN_A;
+        m_btnA.label = (m_consoleLayout == ConsoleLayout::PCE) ? "II" : "A";
+        m_btnA.enabled = true;
+
+        m_btnX.enabled = false;
+        m_btnY.enabled = false;
+    } else {
+        // SNES / Genesis: 4-Button Diamond Cluster
+        float diamondDist = 65.0f * scale;
+
+        m_btnA.x = rightCenterX + diamondDist;
+        m_btnA.y = rightCenterY;
+        m_btnA.radius = btnRadius;
+        m_btnA.mask = BTN_A;
+        m_btnA.label = "A";
+        m_btnA.enabled = true;
+
+        m_btnB.x = rightCenterX;
+        m_btnB.y = rightCenterY + diamondDist;
+        m_btnB.radius = btnRadius;
+        m_btnB.mask = BTN_B;
+        m_btnB.label = "B";
+        m_btnB.enabled = true;
+
+        m_btnX.x = rightCenterX;
+        m_btnX.y = rightCenterY - diamondDist;
+        m_btnX.radius = btnRadius;
+        m_btnX.mask = BTN_X;
+        m_btnX.label = "X";
+        m_btnX.enabled = true;
+
+        m_btnY.x = rightCenterX - diamondDist;
+        m_btnY.y = rightCenterY;
+        m_btnY.radius = btnRadius;
+        m_btnY.mask = BTN_Y;
+        m_btnY.label = "Y";
+        m_btnY.enabled = true;
+    }
 
     // 3. Shoulder Buttons (Top Corners)
     m_btnL.x = 24.0f * scale;
-    m_btnL.y = 20.0f * scale;
-    m_btnL.width = 140.0f * scale;
-    m_btnL.height = 55.0f * scale;
+    m_btnL.y = 16.0f * scale;
+    m_btnL.width = 145.0f * scale;
+    m_btnL.height = 54.0f * scale;
     m_btnL.mask = BTN_L;
     m_btnL.label = "L";
+    m_btnL.enabled = m_hasShoulders;
 
-    m_btnR.x = w - (164.0f * scale);
-    m_btnR.y = 20.0f * scale;
-    m_btnR.width = 140.0f * scale;
-    m_btnR.height = 55.0f * scale;
+    m_btnR.x = w - (169.0f * scale);
+    m_btnR.y = 16.0f * scale;
+    m_btnR.width = 145.0f * scale;
+    m_btnR.height = 54.0f * scale;
     m_btnR.mask = BTN_R;
     m_btnR.label = "R";
+    m_btnR.enabled = m_hasShoulders;
 
     // 4. Utility Buttons (Bottom-Center)
     m_btnSelect.x = (w * 0.5f) - (110.0f * scale);
-    m_btnSelect.y = h - (55.0f * scale);
-    m_btnSelect.width = 90.0f * scale;
-    m_btnSelect.height = 40.0f * scale;
+    m_btnSelect.y = h - (52.0f * scale);
+    m_btnSelect.width = 92.0f * scale;
+    m_btnSelect.height = 38.0f * scale;
     m_btnSelect.mask = BTN_SELECT;
     m_btnSelect.label = "SELECT";
+    m_btnSelect.enabled = true;
 
-    m_btnStart.x = (w * 0.5f) + (20.0f * scale);
-    m_btnStart.y = h - (55.0f * scale);
-    m_btnStart.width = 90.0f * scale;
-    m_btnStart.height = 40.0f * scale;
+    m_btnStart.x = (w * 0.5f) + (18.0f * scale);
+    m_btnStart.y = h - (52.0f * scale);
+    m_btnStart.width = 92.0f * scale;
+    m_btnStart.height = 38.0f * scale;
     m_btnStart.mask = BTN_START;
     m_btnStart.label = "START";
+    m_btnStart.enabled = true;
 
     // 5. In-Engine OSD Menu Trigger (Top-Center)
-    m_btnMenu.x = (w * 0.5f) - (60.0f * scale);
-    m_btnMenu.y = 15.0f * scale;
-    m_btnMenu.width = 120.0f * scale;
-    m_btnMenu.height = 45.0f * scale;
+    m_btnMenu.x = (w * 0.5f) - (65.0f * scale);
+    m_btnMenu.y = 14.0f * scale;
+    m_btnMenu.width = 130.0f * scale;
+    m_btnMenu.height = 42.0f * scale;
     m_btnMenu.mask = BTN_MENU;
     m_btnMenu.label = "MENU";
+    m_btnMenu.enabled = true;
 
-    LOGI("VirtualPad layout configured for display %dx%d (scale: %.2f)", screenWidth, screenHeight, scale);
+    LOGI("VirtualPad layout configured for display %dx%d (scale: %.2f, layout: %d)",
+         screenWidth, screenHeight, scale, static_cast<int>(m_consoleLayout));
 }
 
 int VirtualPad::handleInputEvent(const AInputEvent* event) {
@@ -159,12 +267,24 @@ void VirtualPad::updatePointers(const AInputEvent* event) {
     size_t pointerIndex = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
     size_t pointerCount = AMotionEvent_getPointerCount(event);
 
+    float leftZoneMaxX = static_cast<float>(m_screenWidth) * 0.45f;
+
     switch (actionMasked) {
         case AMOTION_EVENT_ACTION_DOWN:
         case AMOTION_EVENT_ACTION_POINTER_DOWN: {
             int pointerId = AMotionEvent_getPointerId(event, pointerIndex);
             float x = AMotionEvent_getX(event, pointerIndex);
             float y = AMotionEvent_getY(event, pointerIndex);
+
+            // If touch lands in the left control zone, dynamically anchor the PPSSPP floating stick
+            if (x < leftZoneMaxX && !m_stickActive) {
+                m_stickActive = true;
+                m_stickPointerId = pointerId;
+                m_stickBaseX = x;
+                m_stickBaseY = y;
+                m_stickNubX = x;
+                m_stickNubY = y;
+            }
 
             for (auto& p : m_pointers) {
                 if (!p.active) {
@@ -184,6 +304,21 @@ void VirtualPad::updatePointers(const AInputEvent* event) {
                 float x = AMotionEvent_getX(event, i);
                 float y = AMotionEvent_getY(event, i);
 
+                // Update stick position if this pointer is controlling the floating thumbstick
+                if (m_stickActive && pointerId == m_stickPointerId) {
+                    float dx = x - m_stickBaseX;
+                    float dy = y - m_stickBaseY;
+                    float dist = std::sqrt(dx * dx + dy * dy);
+
+                    if (dist > m_stickMaxDist && dist > 0.0f) {
+                        dx = (dx / dist) * m_stickMaxDist;
+                        dy = (dy / dist) * m_stickMaxDist;
+                    }
+
+                    m_stickNubX = m_stickBaseX + dx;
+                    m_stickNubY = m_stickBaseY + dy;
+                }
+
                 for (auto& p : m_pointers) {
                     if (p.active && p.id == pointerId) {
                         p.x = x;
@@ -197,6 +332,15 @@ void VirtualPad::updatePointers(const AInputEvent* event) {
 
         case AMOTION_EVENT_ACTION_POINTER_UP: {
             int pointerId = AMotionEvent_getPointerId(event, pointerIndex);
+            if (m_stickActive && pointerId == m_stickPointerId) {
+                m_stickActive = false;
+                m_stickPointerId = -1;
+                m_stickBaseX = m_defaultStickX;
+                m_stickBaseY = m_defaultStickY;
+                m_stickNubX = m_defaultStickX;
+                m_stickNubY = m_defaultStickY;
+            }
+
             for (auto& p : m_pointers) {
                 if (p.active && p.id == pointerId) {
                     p.active = false;
@@ -209,6 +353,13 @@ void VirtualPad::updatePointers(const AInputEvent* event) {
 
         case AMOTION_EVENT_ACTION_UP:
         case AMOTION_EVENT_ACTION_CANCEL: {
+            m_stickActive = false;
+            m_stickPointerId = -1;
+            m_stickBaseX = m_defaultStickX;
+            m_stickBaseY = m_defaultStickY;
+            m_stickNubX = m_defaultStickX;
+            m_stickNubY = m_defaultStickY;
+
             for (auto& p : m_pointers) {
                 p.active = false;
                 p.id = -1;
@@ -221,49 +372,59 @@ void VirtualPad::updatePointers(const AInputEvent* event) {
     }
 }
 
-static bool hitTestCircle(float px, float py, float cx, float cy, float radius) {
-    float dx = px - cx;
-    float dy = py - cy;
-    return (dx * dx + dy * dy) <= (radius * radius);
-}
-
-static bool hitTestRect(float px, float py, float rx, float ry, float rw, float rh) {
-    return (px >= rx && px <= rx + rw && py >= ry && py <= ry + rh);
-}
-
 void VirtualPad::recomputeBitmask() {
     uint32_t mask = 0;
 
+    // 1. PPSSPP Floating Thumbstick Directional Angle Mapping (360 -> 8-Way Digital)
+    if (m_stickActive) {
+        float dx = m_stickNubX - m_stickBaseX;
+        float dy = m_stickNubY - m_stickBaseY;
+        float dist = std::sqrt(dx * dx + dy * dy);
+
+        if (dist > m_stickDeadzone) {
+            float angleDeg = std::atan2(dy, dx) * (180.0f / static_cast<float>(M_PI)); // [-180, 180]
+
+            if (angleDeg >= -22.5f && angleDeg <= 22.5f) {
+                mask |= BTN_RIGHT;
+            } else if (angleDeg > 22.5f && angleDeg < 67.5f) {
+                mask |= (BTN_DOWN | BTN_RIGHT);
+            } else if (angleDeg >= 67.5f && angleDeg <= 112.5f) {
+                mask |= BTN_DOWN;
+            } else if (angleDeg > 112.5f && angleDeg < 157.5f) {
+                mask |= (BTN_DOWN | BTN_LEFT);
+            } else if (angleDeg >= 157.5f || angleDeg <= -157.5f) {
+                mask |= BTN_LEFT;
+            } else if (angleDeg < -112.5f && angleDeg > -157.5f) {
+                mask |= (BTN_UP | BTN_LEFT);
+            } else if (angleDeg <= -67.5f && angleDeg >= -112.5f) {
+                mask |= BTN_UP;
+            } else if (angleDeg < -22.5f && angleDeg > -67.5f) {
+                mask |= (BTN_UP | BTN_RIGHT);
+            }
+        }
+    }
+
+    // 2. Action & Utility Buttons Hit-Testing
     for (const auto& p : m_pointers) {
         if (!p.active) continue;
+        if (p.id == m_stickPointerId) continue; // Skip stick controlling thumb
 
-        // 1. Test D-Pad
-        float dx = p.x - m_dpadCenter.x;
-        float dy = p.y - m_dpadCenter.y;
-        float distSq = dx * dx + dy * dy;
+        // Action Buttons
+        if (m_btnA.enabled && hitTestCircle(p.x, p.y, m_btnA.x, m_btnA.y, m_btnA.radius * 1.35f)) mask |= BTN_A;
+        if (m_btnB.enabled && hitTestCircle(p.x, p.y, m_btnB.x, m_btnB.y, m_btnB.radius * 1.35f)) mask |= BTN_B;
+        if (m_btnX.enabled && hitTestCircle(p.x, p.y, m_btnX.x, m_btnX.y, m_btnX.radius * 1.35f)) mask |= BTN_X;
+        if (m_btnY.enabled && hitTestCircle(p.x, p.y, m_btnY.x, m_btnY.y, m_btnY.radius * 1.35f)) mask |= BTN_Y;
 
-        if (distSq <= (m_dpadCenter.radius * m_dpadCenter.radius)) {
-            float deadzone = m_dpadCenter.radius * 0.22f;
-            if (dy < -deadzone) mask |= BTN_UP;
-            if (dy > deadzone)  mask |= BTN_DOWN;
-            if (dx < -deadzone) mask |= BTN_LEFT;
-            if (dx > deadzone)  mask |= BTN_RIGHT;
-        }
+        // Shoulder Buttons
+        if (m_btnL.enabled && hitTestRect(p.x, p.y, m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height)) mask |= BTN_L;
+        if (m_btnR.enabled && hitTestRect(p.x, p.y, m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height)) mask |= BTN_R;
 
-        // 2. Test Action Buttons
-        if (hitTestCircle(p.x, p.y, m_btnA.x, m_btnA.y, m_btnA.radius * 1.3f)) mask |= BTN_A;
-        if (hitTestCircle(p.x, p.y, m_btnB.x, m_btnB.y, m_btnB.radius * 1.3f)) mask |= BTN_B;
-        if (hitTestCircle(p.x, p.y, m_btnX.x, m_btnX.y, m_btnX.radius * 1.3f)) mask |= BTN_X;
-        if (hitTestCircle(p.x, p.y, m_btnY.x, m_btnY.y, m_btnY.radius * 1.3f)) mask |= BTN_Y;
+        // Utility Buttons
+        if (m_btnSelect.enabled && hitTestRect(p.x, p.y, m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height)) mask |= BTN_SELECT;
+        if (m_btnStart.enabled && hitTestRect(p.x, p.y, m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height)) mask |= BTN_START;
 
-        // 3. Test Shoulders & Utilities
-        if (hitTestRect(p.x, p.y, m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height)) mask |= BTN_L;
-        if (hitTestRect(p.x, p.y, m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height)) mask |= BTN_R;
-        if (hitTestRect(p.x, p.y, m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height)) mask |= BTN_SELECT;
-        if (hitTestRect(p.x, p.y, m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height)) mask |= BTN_START;
-
-        // 4. Test Menu Trigger
-        if (hitTestRect(p.x, p.y, m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height)) {
+        // Menu Trigger
+        if (m_btnMenu.enabled && hitTestRect(p.x, p.y, m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height)) {
             m_menuRequested = true;
         }
     }
@@ -334,7 +495,7 @@ bool VirtualPad::initGL() {
 }
 
 void VirtualPad::renderCircle(float cx, float cy, float radius, float r, float g, float b, float a) {
-    constexpr int SEGMENTS = 24;
+    constexpr int SEGMENTS = 28;
     GLfloat vertices[(SEGMENTS + 2) * 2];
 
     vertices[0] = cx;
@@ -350,6 +511,28 @@ void VirtualPad::renderCircle(float cx, float cy, float radius, float r, float g
     glVertexAttribPointer(m_locPosition, 2, GL_FLOAT, GL_FALSE, 0, vertices);
     glEnableVertexAttribArray(m_locPosition);
     glDrawArrays(GL_TRIANGLE_FAN, 0, SEGMENTS + 2);
+}
+
+void VirtualPad::renderRing(float cx, float cy, float innerRadius, float outerRadius, float r, float g, float b, float a) {
+    constexpr int SEGMENTS = 32;
+    GLfloat vertices[(SEGMENTS + 1) * 4];
+
+    for (int i = 0; i <= SEGMENTS; ++i) {
+        float angle = static_cast<float>(i) * (2.0f * static_cast<float>(M_PI) / SEGMENTS);
+        float cosA = std::cos(angle);
+        float sinA = std::sin(angle);
+
+        vertices[i * 4 + 0] = cx + cosA * outerRadius;
+        vertices[i * 4 + 1] = cy + sinA * outerRadius;
+
+        vertices[i * 4 + 2] = cx + cosA * innerRadius;
+        vertices[i * 4 + 3] = cy + sinA * innerRadius;
+    }
+
+    glUniform4f(m_locColor, r, g, b, a);
+    glVertexAttribPointer(m_locPosition, 2, GL_FLOAT, GL_FALSE, 0, vertices);
+    glEnableVertexAttribArray(m_locPosition);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, (SEGMENTS + 1) * 2);
 }
 
 void VirtualPad::renderRect(float x, float y, float w, float h, float r, float g, float b, float a) {
@@ -383,25 +566,25 @@ void VirtualPad::render(int screenWidth, int screenHeight) {
     glUseProgram(m_program);
     glUniform2f(m_locScreenSize, static_cast<float>(screenWidth), static_cast<float>(screenHeight));
 
-    float normalAlpha = m_opacity * 0.45f;
-    float activeAlpha = m_opacity * 0.85f;
+    float baseAlpha = m_opacity;              // ~0.30f
+    float activeAlpha = std::min(1.0f, baseAlpha * 2.5f); // ~0.75f upon touch
 
-    // 1. D-Pad Base Circle
-    renderCircle(m_dpadCenter.x, m_dpadCenter.y, m_dpadCenter.radius, 0.2f, 0.2f, 0.25f, normalAlpha);
+    // 1. PPSSPP Floating Thumbstick Rendering
+    // 1a. Outer Base Disc & Ring
+    renderCircle(m_stickBaseX, m_stickBaseY, m_stickOuterRadius, 0.15f, 0.20f, 0.30f, baseAlpha * 0.4f);
+    renderRing(m_stickBaseX, m_stickBaseY, m_stickOuterRadius - 2.5f, m_stickOuterRadius, 0.4f, 0.6f, 0.9f, m_stickActive ? activeAlpha : baseAlpha);
 
-    // D-Pad Directional Arrows
-    float armDist = m_dpadCenter.radius * 0.55f;
-    float arrowR = m_dpadCenter.radius * 0.32f;
+    // 1b. Directional Guide Ticks (Up, Down, Left, Right)
+    float tickLen = 8.0f;
+    renderRect(m_stickBaseX - 1.5f, m_stickBaseY - m_stickOuterRadius - tickLen, 3.0f, tickLen, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
+    renderRect(m_stickBaseX - 1.5f, m_stickBaseY + m_stickOuterRadius, 3.0f, tickLen, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
+    renderRect(m_stickBaseX - m_stickOuterRadius - tickLen, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
+    renderRect(m_stickBaseX + m_stickOuterRadius, m_stickBaseY - 1.5f, tickLen, 3.0f, 0.5f, 0.7f, 1.0f, baseAlpha * 0.8f);
 
-    bool upActive = (m_activeBitmask & BTN_UP) != 0;
-    bool downActive = (m_activeBitmask & BTN_DOWN) != 0;
-    bool leftActive = (m_activeBitmask & BTN_LEFT) != 0;
-    bool rightActive = (m_activeBitmask & BTN_RIGHT) != 0;
-
-    renderCircle(m_dpadCenter.x, m_dpadCenter.y - armDist, arrowR, upActive ? 0.3f : 0.4f, upActive ? 0.8f : 0.4f, upActive ? 0.9f : 0.5f, upActive ? activeAlpha : normalAlpha);
-    renderCircle(m_dpadCenter.x, m_dpadCenter.y + armDist, arrowR, downActive ? 0.3f : 0.4f, downActive ? 0.8f : 0.4f, downActive ? 0.9f : 0.5f, downActive ? activeAlpha : normalAlpha);
-    renderCircle(m_dpadCenter.x - armDist, m_dpadCenter.y, arrowR, leftActive ? 0.3f : 0.4f, leftActive ? 0.8f : 0.4f, leftActive ? 0.9f : 0.5f, leftActive ? activeAlpha : normalAlpha);
-    renderCircle(m_dpadCenter.x + armDist, m_dpadCenter.y, arrowR, rightActive ? 0.3f : 0.4f, rightActive ? 0.8f : 0.4f, rightActive ? 0.9f : 0.5f, rightActive ? activeAlpha : normalAlpha);
+    // 1c. Inner Draggable Nub
+    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius, 0.25f, 0.45f, 0.75f, m_stickActive ? activeAlpha : baseAlpha * 1.2f);
+    renderRing(m_stickNubX, m_stickNubY, m_stickNubRadius - 2.0f, m_stickNubRadius, 0.7f, 0.85f, 1.0f, m_stickActive ? activeAlpha : baseAlpha * 1.5f);
+    renderCircle(m_stickNubX, m_stickNubY, m_stickNubRadius * 0.35f, 0.4f, 0.6f, 0.9f, m_stickActive ? activeAlpha : baseAlpha * 0.8f);
 
     // 2. Action Buttons (A, B, X, Y)
     bool aActive = (m_activeBitmask & BTN_A) != 0;
@@ -409,27 +592,48 @@ void VirtualPad::render(int screenWidth, int screenHeight) {
     bool xActive = (m_activeBitmask & BTN_X) != 0;
     bool yActive = (m_activeBitmask & BTN_Y) != 0;
 
-    renderCircle(m_btnA.x, m_btnA.y, m_btnA.radius, aActive ? 0.9f : 0.8f, aActive ? 0.3f : 0.3f, aActive ? 0.3f : 0.3f, aActive ? activeAlpha : normalAlpha);
-    renderCircle(m_btnB.x, m_btnB.y, m_btnB.radius, bActive ? 0.9f : 0.9f, bActive ? 0.7f : 0.6f, bActive ? 0.2f : 0.2f, bActive ? activeAlpha : normalAlpha);
-    renderCircle(m_btnX.x, m_btnX.y, m_btnX.radius, xActive ? 0.3f : 0.3f, xActive ? 0.6f : 0.5f, xActive ? 0.9f : 0.8f, xActive ? activeAlpha : normalAlpha);
-    renderCircle(m_btnY.x, m_btnY.y, m_btnY.radius, yActive ? 0.3f : 0.3f, yActive ? 0.8f : 0.7f, yActive ? 0.4f : 0.4f, yActive ? activeAlpha : normalAlpha);
+    // Button A (Red/Pink Accent)
+    if (m_btnA.enabled) {
+        renderCircle(m_btnA.x, m_btnA.y, m_btnA.radius, 0.9f, 0.3f, 0.4f, aActive ? activeAlpha : baseAlpha);
+        renderRing(m_btnA.x, m_btnA.y, m_btnA.radius - 2.5f, m_btnA.radius, 1.0f, 0.5f, 0.6f, aActive ? activeAlpha : baseAlpha * 1.4f);
+    }
+
+    // Button B (Amber/Yellow Accent)
+    if (m_btnB.enabled) {
+        renderCircle(m_btnB.x, m_btnB.y, m_btnB.radius, 0.95f, 0.65f, 0.2f, bActive ? activeAlpha : baseAlpha);
+        renderRing(m_btnB.x, m_btnB.y, m_btnB.radius - 2.5f, m_btnB.radius, 1.0f, 0.8f, 0.3f, bActive ? activeAlpha : baseAlpha * 1.4f);
+    }
+
+    // Button X (Blue Accent)
+    if (m_btnX.enabled) {
+        renderCircle(m_btnX.x, m_btnX.y, m_btnX.radius, 0.25f, 0.55f, 0.95f, xActive ? activeAlpha : baseAlpha);
+        renderRing(m_btnX.x, m_btnX.y, m_btnX.radius - 2.5f, m_btnX.radius, 0.5f, 0.75f, 1.0f, xActive ? activeAlpha : baseAlpha * 1.4f);
+    }
+
+    // Button Y (Green Accent)
+    if (m_btnY.enabled) {
+        renderCircle(m_btnY.x, m_btnY.y, m_btnY.radius, 0.2f, 0.8f, 0.5f, yActive ? activeAlpha : baseAlpha);
+        renderRing(m_btnY.x, m_btnY.y, m_btnY.radius - 2.5f, m_btnY.radius, 0.4f, 0.95f, 0.65f, yActive ? activeAlpha : baseAlpha * 1.4f);
+    }
 
     // 3. Shoulder Buttons (L, R)
-    bool lActive = (m_activeBitmask & BTN_L) != 0;
-    bool rActive = (m_activeBitmask & BTN_R) != 0;
+    if (m_hasShoulders) {
+        bool lActive = (m_activeBitmask & BTN_L) != 0;
+        bool rActive = (m_activeBitmask & BTN_R) != 0;
 
-    renderRect(m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height, 0.4f, 0.45f, 0.5f, lActive ? activeAlpha : normalAlpha);
-    renderRect(m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height, 0.4f, 0.45f, 0.5f, rActive ? activeAlpha : normalAlpha);
+        renderRect(m_btnL.x, m_btnL.y, m_btnL.width, m_btnL.height, 0.3f, 0.4f, 0.55f, lActive ? activeAlpha : baseAlpha);
+        renderRect(m_btnR.x, m_btnR.y, m_btnR.width, m_btnR.height, 0.3f, 0.4f, 0.55f, rActive ? activeAlpha : baseAlpha);
+    }
 
     // 4. Utility Buttons (Select, Start)
     bool selActive = (m_activeBitmask & BTN_SELECT) != 0;
     bool staActive = (m_activeBitmask & BTN_START) != 0;
 
-    renderRect(m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height, 0.35f, 0.35f, 0.4f, selActive ? activeAlpha : normalAlpha);
-    renderRect(m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height, 0.35f, 0.35f, 0.4f, staActive ? activeAlpha : normalAlpha);
+    renderRect(m_btnSelect.x, m_btnSelect.y, m_btnSelect.width, m_btnSelect.height, 0.25f, 0.3f, 0.4f, selActive ? activeAlpha : baseAlpha);
+    renderRect(m_btnStart.x, m_btnStart.y, m_btnStart.width, m_btnStart.height, 0.25f, 0.3f, 0.4f, staActive ? activeAlpha : baseAlpha);
 
     // 5. Menu Trigger Button
-    renderRect(m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height, 0.2f, 0.5f, 0.8f, normalAlpha);
+    renderRect(m_btnMenu.x, m_btnMenu.y, m_btnMenu.width, m_btnMenu.height, 0.2f, 0.45f, 0.75f, baseAlpha * 0.9f);
 
     glDisable(GL_BLEND);
 }
