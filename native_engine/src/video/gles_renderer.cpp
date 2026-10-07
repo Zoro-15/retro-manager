@@ -379,12 +379,14 @@ void GlesRenderer::updateFrame(
 
 void GlesRenderer::renderFrame() {
     std::lock_guard<std::mutex> lock(m_mutex);
-    if (!m_initialized || m_textureId == 0) return;
+    if (!m_initialized) return;
 
     // 1. Clear whole screen with black background
     glViewport(0, 0, m_screenWidth, m_screenHeight);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    if (m_textureId == 0) return;
 
     // 2. Set aspect-ratio preserved letterboxed viewport for game quad
     glViewport(m_viewport.x, m_viewport.y, m_viewport.width, m_viewport.height);
@@ -406,8 +408,11 @@ void GlesRenderer::renderFrame() {
 
     glDisableVertexAttribArray(m_locPosition);
     glDisableVertexAttribArray(m_locTexCoord);
+}
 
-    // 4. Present frame to display
+void GlesRenderer::present() {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_initialized || m_display == EGL_NO_DISPLAY || m_surface == EGL_NO_SURFACE) return;
     eglSwapBuffers(m_display, m_surface);
 }
 

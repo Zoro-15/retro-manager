@@ -536,10 +536,17 @@ void android_main(struct android_app* app) {
         int events = 0;
         struct android_poll_source* source = nullptr;
 
-        // Poll events: non-blocking (0) during active play, blocking (-1) when idle/paused
-        int pollTimeout = (ctx.running && ctx.hasFocus && ctx.windowInitialized && ctx.bridge.isGameLoaded()) ? 0 : -1;
+        // Drain event queue: non-blocking (0) when active & animating, blocking (-1) when idle/paused
+        while (true) {
+            bool canAnimate = (ctx.running && ctx.hasFocus && ctx.windowInitialized && ctx.bridge.isGameLoaded());
+            int timeoutMillis = canAnimate ? 0 : -1;
 
-        while (ALooper_pollOnce(pollTimeout, nullptr, &events, (void**)&source) >= 0) {
+            int ident = ALooper_pollOnce(timeoutMillis, nullptr, &events, (void**)&source);
+            if (ident < 0) {
+                // Queue drained or timeout reached
+                break;
+            }
+
             if (source != nullptr) {
                 source->process(app, source);
             }
@@ -571,7 +578,7 @@ void android_main(struct android_app* app) {
                 // Render game texture quad
                 ctx.renderer.renderFrame();
 
-                // Render in-engine UI layers
+                // Render in-engine UI layers (VirtualPad or OSD Menu)
                 int screenW = ctx.renderer.getScreenWidth();
                 int screenH = ctx.renderer.getScreenHeight();
 
@@ -580,6 +587,9 @@ void android_main(struct android_app* app) {
                 } else {
                     ctx.virtualPad.render(screenW, screenH);
                 }
+
+                // Present composite frame to screen
+                ctx.renderer.present();
             } else {
                 // Yield briefly to avoid CPU starvation
                 auto remaining = ctx.currentFrameInterval - elapsed;

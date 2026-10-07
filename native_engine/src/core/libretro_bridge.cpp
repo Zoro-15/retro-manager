@@ -582,6 +582,14 @@ bool LibretroBridge::handleEnvironment(unsigned cmd, void* data) {
             return true;
         }
 
+        case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO: {
+            if (!data) return false;
+            m_avInfo = *static_cast<const struct retro_system_av_info*>(data);
+            LOGI("System AV info updated: %ux%u (aspect %.2f, fps %.2f)",
+                 m_avInfo.geometry.base_width, m_avInfo.geometry.base_height, m_avInfo.geometry.aspect_ratio, m_avInfo.timing.fps);
+            return true;
+        }
+
         case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: {
             if (!data) return false;
             auto* cb = static_cast<struct retro_log_callback*>(data);

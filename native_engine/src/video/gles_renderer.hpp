@@ -75,9 +75,14 @@ public:
     );
 
     /**
-     * Draw the textured video quad to the screen and swap EGL buffers.
+     * Draw the textured video quad to the active framebuffer.
      */
     void renderFrame();
+
+    /**
+     * Swap EGL back buffer to the display surface.
+     */
+    void present();
 
     /**
      * Status queries.

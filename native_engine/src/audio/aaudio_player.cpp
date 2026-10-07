@@ -135,10 +135,14 @@ bool AAudioPlayer::stop() {
 
     m_running.store(false, std::memory_order_release);
 
-    aaudio_result_t result = AAudioStream_requestStop(m_stream);
-    if (result != AAUDIO_OK) {
-        LOGW("AAudioStream_requestStop failed: %s", AAudio_convertResultToText(result));
-        return false;
+    aaudio_stream_state_t state = AAudioStream_getState(m_stream);
+    if (state != AAUDIO_STREAM_STATE_STOPPED && state != AAUDIO_STREAM_STATE_STOPPING &&
+        state != AAUDIO_STREAM_STATE_PAUSED && state != AAUDIO_STREAM_STATE_PAUSING) {
+        aaudio_result_t result = AAudioStream_requestStop(m_stream);
+        if (result != AAUDIO_OK) {
+            LOGW("AAudioStream_requestStop failed: %s", AAudio_convertResultToText(result));
+            return false;
+        }
     }
 
     if (m_ringBuffer) {
