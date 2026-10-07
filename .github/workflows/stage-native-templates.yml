@@ -107,7 +107,7 @@ jobs:
       - name: Verify Zero-Bytecode Invariant (No DEX in templates)
         run: |
           set -euo pipefail
-          for apk in runtimes/template_*.apk; do
+          for apk in runtimes/*-unified/template.apk; do
             echo "Inspecting $apk for DEX bytecode..."
             if unzip -l "$apk" | grep -E '\.dex$' > /dev/null; then
               echo "ERROR: Found DEX bytecode in pure NativeActivity template $apk"
@@ -120,6 +120,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: retropack-native-base-templates
-          path: runtimes/template_*.apk
+          path: |
+            runtimes/*-unified/template.apk
+            runtimes/*-unified/runtime.json
           if-no-files-found: error
           retention-days: 30

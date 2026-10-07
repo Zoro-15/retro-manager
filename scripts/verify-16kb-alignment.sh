@@ -13,6 +13,8 @@ import os, sys, glob, struct, subprocess
 
 so_files = []
 for pattern in [
+    "runtimes/**/*.so",
+    "native_engine/build*/**/*.so",
     "runtime/*/build/**/*.so",
     "template-apk/build/**/*.so",
     "app/build/**/*.so"

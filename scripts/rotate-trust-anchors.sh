@@ -11,100 +11,81 @@
 #
 set -euo pipefail
 
-REGISTRY="core/src/main/kotlin/com/retropack/domain/runtime/RuntimeRegistry.kt"
-DESCRIPTOR="core/src/main/kotlin/com/retropack/domain/runtime/RuntimeDescriptor.kt"
+python3 - "$@" <<'PY'
+import hashlib
+import json
+import os
+import re
+import sys
+import zipfile
+from collections import OrderedDict
+from pathlib import Path
 
-die() { echo "::error:: $*" >&2; exit 1; }
+ROOT_DIR = Path(__file__).resolve().parent.parent if "__file__" in globals() else Path(".").resolve()
+REGISTRY_FILE = ROOT_DIR / "core/src/main/kotlin/com/retropack/domain/runtime/RuntimeRegistry.kt"
+DESCRIPTOR_FILE = ROOT_DIR / "core/src/main/kotlin/com/retropack/domain/runtime/RuntimeDescriptor.kt"
+RUNTIMES_DIR = ROOT_DIR / "runtimes"
 
-[[ -f "$REGISTRY" ]] || die "RuntimeRegistry source not found: $REGISTRY"
-[[ -f "$DESCRIPTOR" ]] || die "RuntimeDescriptor source not found: $DESCRIPTOR"
+def compute_sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
-command -v sha256sum >/dev/null || die "sha256sum is required"
-command -v unzip >/dev/null || die "unzip is required"
+def rotate_bundle(bundle_dir: Path):
+    template = bundle_dir / "template.apk"
+    runtime_json = bundle_dir / "runtime.json"
+    if not template.is_file() or not runtime_json.is_file():
+        return
 
-rotate_bundle() {
-  local bundle_dir="$1"
-  local template="${bundle_dir}/template.apk"
-  local runtime_json="${bundle_dir}/runtime.json"
+    bundle_name = bundle_dir.name
+    print(f"=== Rotating trust anchors for {bundle_name} ===")
 
-  [[ -f "$template" ]] || { echo "Skipping $bundle_dir: template.apk not found"; return 0; }
-  [[ -f "$runtime_json" ]] || { echo "Skipping $bundle_dir: runtime.json not found"; return 0; }
+    apk_bytes = template.read_bytes()
+    apk_hash = compute_sha256(apk_bytes)
+    print(f"  template.apk: {apk_hash}")
 
-  echo "=== Rotating trust anchors for $bundle_dir ==="
+    protected_entries = OrderedDict()
+    with zipfile.ZipFile(template, "r") as zf:
+        for info in sorted(zf.infolist(), key=lambda i: i.filename):
+            # Protect classes.dex (if any) and all native libraries in lib/arm64-v8a/
+            if info.filename == "classes.dex" or (info.filename.startswith("lib/arm64-v8a/") and info.filename.endswith(".so")):
+                entry_data = zf.read(info.filename)
+                entry_hash = compute_sha256(entry_data)
+                protected_entries[info.filename] = f"sha256:{entry_hash}"
+                print(f"  {info.filename}: {entry_hash}")
 
-  local apk_hash="$(sha256sum "$template" | cut -d' ' -f1)"
-  local dex_hash="$(unzip -p "$template" classes.dex | sha256sum | cut -d' ' -f1)"
+    # 1. Update runtime.json
+    with open(runtime_json, "r", encoding="utf-8") as f:
+        doc = json.load(f, object_pairs_hook=OrderedDict)
+    doc["protected_entries"] = protected_entries
+    with open(runtime_json, "w", encoding="utf-8") as f:
+        json.dump(doc, f, indent=2)
+        f.write("\n")
+    print(f"  updated {runtime_json.relative_to(ROOT_DIR)}")
 
-  # Detect native library name inside APK (e.g. libretropack-runtime.so or libretropack-runtime-*.so)
-  local so_path="$(unzip -l "$template" | grep -oE 'lib/arm64-v8a/lib[^ ]+\.so' | head -n 1 || true)"
-  local so_name=""
-  local so_hash=""
-  if [[ -n "$so_path" ]]; then
-    so_name="$(basename "$so_path")"
-    so_hash="$(unzip -p "$template" "$so_path" | sha256sum | cut -d' ' -f1)"
-  fi
+    # 2. Update RuntimeRegistry.kt
+    if REGISTRY_FILE.is_file():
+        reg_text = REGISTRY_FILE.read_text(encoding="utf-8")
+        const_id = "RUNTIME_" + bundle_name.upper().replace("-", "_")
+        
+        # Whole-APK hash in TRUSTED_TEMPLATES
+        reg_text = re.sub(
+            rf'({const_id}\s+to\s+")[0-9a-fA-F]{{64}}(")',
+            rf'\g<1>{apk_hash}\g<2>',
+            reg_text
+        )
+        REGISTRY_FILE.write_text(reg_text, encoding="utf-8")
+        print(f"  updated {const_id} in {REGISTRY_FILE.name}")
 
-  echo "  template.apk: $apk_hash"
-  echo "  classes.dex:  $dex_hash"
-  if [[ -n "$so_name" ]]; then
-    echo "  $so_name: $so_hash"
-  fi
+target_arg = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] else None
+if target_arg:
+    rotate_bundle(Path(target_arg).resolve())
+else:
+    for d in sorted(RUNTIMES_DIR.iterdir()):
+        if d.is_dir():
+            rotate_bundle(d)
 
-  # --- 1. runtime.json ---
-  python3 - "$runtime_json" "$dex_hash" "$so_hash" "$so_name" <<'PY'
-import json, sys, collections
-path = sys.argv[1]
-dex = sys.argv[2]
-so = sys.argv[3] if len(sys.argv) > 3 else ""
-so_name = sys.argv[4] if len(sys.argv) > 4 else ""
-
-with open(path) as f:
-    doc = json.load(f, object_pairs_hook=collections.OrderedDict)
-
-entries = [("classes.dex", f"sha256:{dex}")]
-if so_name and so:
-    entries.append((f"lib/arm64-v8a/{so_name}", f"sha256:{so}"))
-
-doc["protected_entries"] = collections.OrderedDict(entries)
-
-with open(path, "w") as f:
-    json.dump(doc, f, indent=2)
-    f.write("\n")
-print(f"  updated {path}")
+print("\nTrust anchors rotated.")
 PY
 
-  # If this runtime is registered in RuntimeRegistry.kt, update its compiled-in whole-APK anchor
-  local runtime_id="$(basename "$bundle_dir")"
-  local const_name="RUNTIME_${runtime_id//-/_}"
-  const_name="${const_name^^}"
-  
-  if grep -q "$const_name" "$REGISTRY"; then
-    perl -0pi -e "s/(${const_name} to \")[0-9a-fA-F]{64}(\")/\${1}${apk_hash}\${2}/" "$REGISTRY"
-    echo "  updated $const_name in $REGISTRY"
-  fi
-
-  if [[ "$runtime_id" == "mgba-unified" ]]; then
-    if [[ -n "$so_name" ]]; then
-      perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"${so_hash}\"/g" "$REGISTRY"
-      perl -0pi -e "s/\"(lib\/arm64-v8a\/(?:libmgba|libretropack-runtime[^\"]*)\.so)\" to \"sha256:[0-9a-fA-F]{64}\"/\"lib\/arm64-v8a\/${so_name}\" to \"sha256:${so_hash}\"/g" "$DESCRIPTOR"
-    fi
-    perl -0pi -e "s/(\"classes\.dex\" to \")[0-9a-fA-F]{64}(\")/\${1}${dex_hash}\${2}/g" "$REGISTRY"
-    perl -0pi -e "s/(\"classes\.dex\" to \"sha256:)[0-9a-fA-F]{64}(\")/\${1}${dex_hash}\${2}/g" "$DESCRIPTOR"
-    echo "  updated $REGISTRY & $DESCRIPTOR"
-  fi
-
-}
-
-if [[ $# -ge 1 ]]; then
-  rotate_bundle "$1"
-else
-  for dir in runtimes/*; do
-    if [[ -d "$dir" ]]; then
-      rotate_bundle "$dir"
-    fi
-  done
-fi
-
 echo ""
-echo "Trust anchors rotated. Verify with:"
+echo "Verify with:"
 echo "  env -u ANDROID_HOME -u ANDROID_SDK_ROOT ./gradlew :core:test --tests 'com.retropack.domain.runtime.RuntimeBundleIntegrityTest'"
