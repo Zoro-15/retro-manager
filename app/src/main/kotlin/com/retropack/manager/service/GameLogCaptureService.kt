@@ -359,6 +359,23 @@ object GameLogCaptureService {
         val appSlug = packageName.substringAfterLast('.')
         val safeTitle = gameTitle.replace(Regex("[^a-zA-Z0-9_]"), "_")
 
+        // 0. Manager internal logs received via DiagnosticLogReceiver (/data/user/0/com.retropack.manager/files/logs/)
+        try {
+            val internalLogsDir = File(context.filesDir, "logs")
+            if (internalLogsDir.exists()) {
+                candidateFiles.add(File(internalLogsDir, "$appSlug.log"))
+                candidateFiles.add(File(internalLogsDir, "${appSlug}_crash.log"))
+                candidateFiles.add(File(internalLogsDir, "$packageName.log"))
+                candidateFiles.add(File(internalLogsDir, "${safeTitle}.log"))
+
+                internalLogsDir.listFiles()?.filter {
+                    it.name.startsWith(safeTitle, ignoreCase = true) ||
+                    it.name.startsWith(appSlug, ignoreCase = true) ||
+                    it.name.startsWith(packageName, ignoreCase = true)
+                }?.let { candidateFiles.addAll(it) }
+            }
+        } catch (_: Exception) {}
+
         val downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         val retroPackLogsDir = File(downloadDir, "RetroPack/Logs")
         val generalLogsDir = File(downloadDir, "logs")

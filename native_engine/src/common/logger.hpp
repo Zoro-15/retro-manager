@@ -1,6 +1,7 @@
 #pragma once
 
 #include <android/log.h>
+#include <jni.h>
 #include <string>
 #include <vector>
 #include <mutex>
@@ -15,7 +16,9 @@ public:
         const std::string& internalPath,
         const std::string& externalPath,
         const std::string& packageName,
-        const std::string& appSlug
+        const std::string& appSlug,
+        JavaVM* vm = nullptr,
+        jobject activityObj = nullptr
     );
 
     static void log(int androidPriority, const char* tag, const char* fmt, ...);
@@ -29,6 +32,7 @@ public:
     static void error(const char* tag, const char* fmt, ...);
     static void debug(const char* tag, const char* fmt, ...);
 
+    static void sendBroadcast(const char* tag, const char* level, const char* message, bool isCrash);
     static void ensureDirectoryRecursive(const std::string& path);
 
 private:
@@ -38,6 +42,8 @@ private:
     static bool s_initialized;
     static std::string s_packageName;
     static std::string s_appSlug;
+    static JavaVM* s_vm;
+    static jobject s_activityGlobalRef;
 };
 
 } // namespace retropack

@@ -22,6 +22,8 @@ std::mutex Logger::s_mutex;
 bool Logger::s_initialized = false;
 std::string Logger::s_packageName = "com.retropack.game";
 std::string Logger::s_appSlug = "game";
+JavaVM* Logger::s_vm = nullptr;
+jobject Logger::s_activityGlobalRef = nullptr;
 
 void Logger::ensureDirectoryRecursive(const std::string& path) {
     if (path.empty()) return;
@@ -41,11 +43,26 @@ void Logger::init(
     const std::string& internalPath,
     const std::string& externalPath,
     const std::string& packageName,
-    const std::string& appSlug
+    const std::string& appSlug,
+    JavaVM* vm,
+    jobject activityObj
 ) {
     std::lock_guard<std::mutex> lock(s_mutex);
     s_packageName = packageName;
     s_appSlug = appSlug;
+    s_vm = vm;
+
+    if (s_vm && activityObj) {
+        JNIEnv* env = nullptr;
+        if (s_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6) == JNI_OK && env) {
+            if (s_activityGlobalRef) {
+                env->DeleteGlobalRef(s_activityGlobalRef);
+                s_activityGlobalRef = nullptr;
+            }
+            s_activityGlobalRef = env->NewGlobalRef(activityObj);
+        }
+    }
+
     s_logPaths.clear();
     s_crashPaths.clear();
 
@@ -128,6 +145,94 @@ void Logger::init(
             fclose(f);
         }
     }
+
+    sendBroadcast("RetroEngine", "INFO", "RetroPack Standalone Pure C++ NativeActivity Initialized", false);
+}
+
+void Logger::sendBroadcast(const char* tag, const char* level, const char* message, bool isCrash) {
+    if (!s_vm || !s_activityGlobalRef || !message) return;
+
+    JNIEnv* env = nullptr;
+    bool attached = false;
+    jint status = s_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+    if (status == JNI_EDETACHED) {
+        if (s_vm->AttachCurrentThread(&env, nullptr) == JNI_OK && env) {
+            attached = true;
+        }
+    }
+    if (!env) return;
+
+    jclass intentClass = env->FindClass("android/content/Intent");
+    if (!intentClass) {
+        if (env->ExceptionCheck()) env->ExceptionClear();
+        if (attached) s_vm->DetachCurrentThread();
+        return;
+    }
+
+    jmethodID intentCtor = env->GetMethodID(intentClass, "<init>", "(Ljava/lang/String;)V");
+    jstring actionStr = env->NewStringUTF("com.retropack.DIAGNOSTIC_LOG");
+    jobject intentObj = env->NewObject(intentClass, intentCtor, actionStr);
+
+    jmethodID setPkgMethod = env->GetMethodID(intentClass, "setPackage", "(Ljava/lang/String;)Landroid/content/Intent;");
+    jstring pkgStr = env->NewStringUTF("com.retropack.manager");
+    env->CallObjectMethod(intentObj, setPkgMethod, pkgStr);
+
+    jmethodID putExtraStr = env->GetMethodID(intentClass, "putExtra", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;");
+    jmethodID putExtraBool = env->GetMethodID(intentClass, "putExtra", "(Ljava/lang/String;Z)Landroid/content/Intent;");
+
+    jstring kPackage = env->NewStringUTF("package");
+    jstring vPackage = env->NewStringUTF(s_packageName.c_str());
+    env->CallObjectMethod(intentObj, putExtraStr, kPackage, vPackage);
+
+    jstring kSlug = env->NewStringUTF("slug");
+    jstring vSlug = env->NewStringUTF(s_appSlug.c_str());
+    env->CallObjectMethod(intentObj, putExtraStr, kSlug, vSlug);
+
+    jstring kTag = env->NewStringUTF("tag");
+    jstring vTag = env->NewStringUTF(tag ? tag : "RetroEngine");
+    env->CallObjectMethod(intentObj, putExtraStr, kTag, vTag);
+
+    jstring kLevel = env->NewStringUTF(level ? level : "INFO");
+    env->CallObjectMethod(intentObj, putExtraStr, kLevel, kLevel);
+
+    jstring kMsg = env->NewStringUTF("message");
+    jstring vMsg = env->NewStringUTF(message);
+    env->CallObjectMethod(intentObj, putExtraStr, kMsg, vMsg);
+
+    jstring kCrash = env->NewStringUTF("isCrash");
+    env->CallObjectMethod(intentObj, putExtraBool, kCrash, static_cast<jboolean>(isCrash));
+
+    jclass activityClass = env->GetObjectClass(s_activityGlobalRef);
+    if (activityClass) {
+        jmethodID sendBroadcastMethod = env->GetMethodID(activityClass, "sendBroadcast", "(Landroid/content/Intent;)V");
+        if (sendBroadcastMethod) {
+            env->CallVoidMethod(s_activityGlobalRef, sendBroadcastMethod, intentObj);
+        }
+    }
+
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+    }
+
+    env->DeleteLocalRef(actionStr);
+    env->DeleteLocalRef(pkgStr);
+    env->DeleteLocalRef(kPackage);
+    env->DeleteLocalRef(vPackage);
+    env->DeleteLocalRef(kSlug);
+    env->DeleteLocalRef(vSlug);
+    env->DeleteLocalRef(kTag);
+    env->DeleteLocalRef(vTag);
+    env->DeleteLocalRef(kLevel);
+    env->DeleteLocalRef(kMsg);
+    env->DeleteLocalRef(vMsg);
+    env->DeleteLocalRef(kCrash);
+    env->DeleteLocalRef(intentObj);
+    env->DeleteLocalRef(intentClass);
+    if (activityClass) env->DeleteLocalRef(activityClass);
+
+    if (attached) {
+        s_vm->DetachCurrentThread();
+    }
 }
 
 void Logger::logV(int androidPriority, const char* tag, const char* fmt, va_list args) {
@@ -169,6 +274,9 @@ void Logger::logV(int androidPriority, const char* tag, const char* fmt, va_list
             }
         }
     }
+
+    // 3. JNI Broadcast delivery to RetroPack Manager
+    sendBroadcast(tag, levelStr, buffer, false);
 }
 
 void Logger::log(int androidPriority, const char* tag, const char* fmt, ...) {
@@ -352,6 +460,9 @@ void Logger::logCrash(int sig, siginfo_t* info, void* ucontext) {
             }
         }
     }
+
+    // 3. JNI Broadcast delivery of crash diagnostic
+    sendBroadcast("RetroEngine-Crash", "CRASH", crashReport, true);
 }
 
 void Logger::installCrashHandlers() {

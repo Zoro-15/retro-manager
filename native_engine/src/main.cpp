@@ -343,6 +343,10 @@ static int32_t handleEngineInput(struct android_app* app, AInputEvent* event) {
     return handled;
 }
 
+// Ensure ANativeActivity_onCreate is exported with STV_DEFAULT visibility in .dynsym
+extern "C" JNIEXPORT __attribute__((visibility("default")))
+void ANativeActivity_onCreate(ANativeActivity* activity, void* savedState, size_t savedStateSize);
+
 } // namespace
 
 /**
@@ -388,7 +392,9 @@ void android_main(struct android_app* app) {
     }
 
     std::string externalDataPath = (app->activity && app->activity->externalDataPath) ? app->activity->externalDataPath : "";
-    retropack::Logger::init(ctx.internalDataPath, externalDataPath, packageName, appSlug);
+    JavaVM* vm = (app->activity) ? app->activity->vm : nullptr;
+    jobject activityClazz = (app->activity) ? app->activity->clazz : nullptr;
+    retropack::Logger::init(ctx.internalDataPath, externalDataPath, packageName, appSlug, vm, activityClazz);
 
     LOGI("================================================================================");
     LOGI("   RetroPack Standalone Pure C++ NativeActivity Booting                         ");

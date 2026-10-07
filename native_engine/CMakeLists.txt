@@ -30,19 +30,6 @@ elseif(DEFINED ENV{ANDROID_NDK_HOME})
     set(NDK_ROOT "$ENV{ANDROID_NDK_HOME}")
 endif()
 
-if(NDK_ROOT)
-    include_directories(${NDK_ROOT}/sources/android/native_app_glue)
-    add_library(native_app_glue STATIC
-        ${NDK_ROOT}/sources/android/native_app_glue/android_native_app_glue.c
-    )
-    set_target_properties(native_app_glue PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-    )
-else()
-    # Fallback include path if toolchain provides glue headers
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/compat)
-endif()
-
 # Core native engine sources
 set(ENGINE_SOURCES
     src/main.cpp
@@ -54,6 +41,13 @@ set(ENGINE_SOURCES
     src/ui/osd_menu.cpp
     src/storage/state_manager.cpp
 )
+
+if(NDK_ROOT)
+    include_directories(${NDK_ROOT}/sources/android/native_app_glue)
+    list(APPEND ENGINE_SOURCES
+        ${NDK_ROOT}/sources/android/native_app_glue/android_native_app_glue.c
+    )
+endif()
 
 # Main shared library: libretro_engine.so
 add_library(retro_engine SHARED
@@ -81,10 +75,6 @@ set(LINK_LIBRARIES
     m
 )
 
-if(TARGET native_app_glue)
-    list(APPEND LINK_LIBRARIES native_app_glue)
-endif()
-
 target_link_libraries(retro_engine PRIVATE
     ${LINK_LIBRARIES}
 )
@@ -92,5 +82,7 @@ target_link_libraries(retro_engine PRIVATE
 target_link_options(retro_engine PRIVATE
     "-Wl,-z,max-page-size=16384"
     "-Wl,-z,common-page-size=16384"
+    "-Wl,-u,ANativeActivity_onCreate"
+    "-Wl,--export-dynamic"
     "-flto"
 )
