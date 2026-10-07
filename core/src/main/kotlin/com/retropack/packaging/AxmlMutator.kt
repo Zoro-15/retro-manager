@@ -71,6 +71,16 @@ object AxmlMutator {
         } else {
             ByteArrayInputStream(manifestBytes).use { block.readBytes(it) }
         }
+        // Ensure compulsory Android 15+ SDK attributes
+        if (block.minSdkVersion == null || block.minSdkVersion == 0) {
+            block.minSdkVersion = 26
+        }
+        if (block.targetSdkVersion == null || block.targetSdkVersion == 0) {
+            block.targetSdkVersion = 35
+        }
+        try {
+            block.setCompileSdkVersion(35)
+        } catch (_: Throwable) {}
         return block
     }
 
@@ -88,7 +98,33 @@ object AxmlMutator {
 
         val vnStr = manifestElement.getAttributeNS(ANDROID_NS_URI, "versionName")
             .ifEmpty { manifestElement.getAttribute("android:versionName") }
-        block.versionName = vnStr.ifEmpty { "1.0" }
+        block.versionName = vnStr.ifEmpty { "1.0.0" }
+
+        // SDK constraints
+        val sdkNodes = manifestElement.getElementsByTagName("uses-sdk")
+        if (sdkNodes.length > 0) {
+            val sdkElem = sdkNodes.item(0) as Element
+            val minSdk = sdkElem.getAttributeNS(ANDROID_NS_URI, "minSdkVersion")
+                .ifEmpty { sdkElem.getAttribute("android:minSdkVersion") }
+            val targetSdk = sdkElem.getAttributeNS(ANDROID_NS_URI, "targetSdkVersion")
+                .ifEmpty { sdkElem.getAttribute("android:targetSdkVersion") }
+            block.minSdkVersion = minSdk.toIntOrNull() ?: 26
+            block.targetSdkVersion = targetSdk.toIntOrNull() ?: 35
+        } else {
+            block.minSdkVersion = 26
+            block.targetSdkVersion = 35
+        }
+
+        // Permissions
+        val permNodes = manifestElement.getElementsByTagName("uses-permission")
+        for (i in 0 until permNodes.length) {
+            val pElem = permNodes.item(i) as Element
+            val pName = pElem.getAttributeNS(ANDROID_NS_URI, "name")
+                .ifEmpty { pElem.getAttribute("android:name") }
+            if (pName.isNotEmpty()) {
+                block.addUsesPermission(pName)
+            }
+        }
 
         val appNodeList = manifestElement.getElementsByTagName("application")
         if (appNodeList.length > 0) {
@@ -105,6 +141,8 @@ object AxmlMutator {
                 .ifEmpty { appElem.getAttribute("android:hasCode") }
             if (hasCode.isNotEmpty()) {
                 app.getOrCreateAndroidAttribute("hasCode", 0x0101000c).setValueAsBoolean(hasCode.toBoolean())
+            } else {
+                app.getOrCreateAndroidAttribute("hasCode", 0x0101000c).setValueAsBoolean(false)
             }
 
             val extractLibs = appElem.getAttributeNS(ANDROID_NS_URI, "extractNativeLibs")
@@ -114,6 +152,9 @@ object AxmlMutator {
             } else {
                 app.getOrCreateAndroidAttribute("extractNativeLibs", 0x010104ea).setValueAsBoolean(false)
             }
+
+            app.getOrCreateAndroidAttribute("allowBackup", 0x01010280).setValueAsBoolean(false)
+            app.getOrCreateAndroidAttribute("theme", 0x01010000).valueAsString = "@android:style/Theme.Black.NoTitleBar.Fullscreen"
 
             val activityNodes = appElem.getElementsByTagName("activity")
             for (i in 0 until activityNodes.length) {
@@ -127,13 +168,13 @@ object AxmlMutator {
                     .ifEmpty { actElem.getAttribute("android:exported") }
                 if (exported.isNotEmpty()) {
                     activity.getOrCreateAndroidAttribute("exported", 0x01010010).setValueAsBoolean(exported.toBoolean())
+                } else {
+                    activity.getOrCreateAndroidAttribute("exported", 0x01010010).setValueAsBoolean(true)
                 }
 
-                val screenOrientation = actElem.getAttributeNS(ANDROID_NS_URI, "screenOrientation")
-                    .ifEmpty { actElem.getAttribute("android:screenOrientation") }
-                if (screenOrientation.isNotEmpty()) {
-                    activity.getOrCreateAndroidAttribute("screenOrientation", 0x0101001e).valueAsString = screenOrientation
-                }
+                activity.getOrCreateAndroidAttribute("configChanges", 0x0101001f).valueAsString = "orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode"
+                activity.getOrCreateAndroidAttribute("windowSoftInputMode", 0x0101022b).valueAsString = "adjustNothing"
+                activity.getOrCreateAndroidAttribute("screenOrientation", 0x0101001e).valueAsString = "sensorLandscape"
 
                 // meta-data
                 val metaNodes = actElem.getElementsByTagName("meta-data")
@@ -148,27 +189,41 @@ object AxmlMutator {
                     metaChild.getOrCreateAndroidAttribute("value", 0x01010024).valueAsString = mVal
                 }
 
+                if (metaNodes.length == 0 && actName.contains("NativeActivity")) {
+                    val metaChild = activity.createChildElement("meta-data")
+                    metaChild.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = "android.app.lib_name"
+                    metaChild.getOrCreateAndroidAttribute("value", 0x01010024).valueAsString = "retro_engine"
+                }
+
                 // intent-filter
                 val filterNodes = actElem.getElementsByTagName("intent-filter")
-                for (f in 0 until filterNodes.length) {
-                    val filterElem = filterNodes.item(f) as Element
+                if (filterNodes.length > 0) {
+                    for (f in 0 until filterNodes.length) {
+                        val filterElem = filterNodes.item(f) as Element
+                        val filter = activity.createChildElement("intent-filter")
+                        val actionNodes = filterElem.getElementsByTagName("action")
+                        for (a in 0 until actionNodes.length) {
+                            val aElem = actionNodes.item(a) as Element
+                            val aName = aElem.getAttributeNS(ANDROID_NS_URI, "name")
+                                .ifEmpty { aElem.getAttribute("android:name") }
+                            val action = filter.createChildElement("action")
+                            action.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = aName
+                        }
+                        val catNodes = filterElem.getElementsByTagName("category")
+                        for (c in 0 until catNodes.length) {
+                            val cElem = catNodes.item(c) as Element
+                            val cName = cElem.getAttributeNS(ANDROID_NS_URI, "name")
+                                .ifEmpty { cElem.getAttribute("android:name") }
+                            val category = filter.createChildElement("category")
+                            category.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = cName
+                        }
+                    }
+                } else {
                     val filter = activity.createChildElement("intent-filter")
-                    val actionNodes = filterElem.getElementsByTagName("action")
-                    for (a in 0 until actionNodes.length) {
-                        val aElem = actionNodes.item(a) as Element
-                        val aName = aElem.getAttributeNS(ANDROID_NS_URI, "name")
-                            .ifEmpty { aElem.getAttribute("android:name") }
-                        val action = filter.createChildElement("action")
-                        action.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = aName
-                    }
-                    val catNodes = filterElem.getElementsByTagName("category")
-                    for (c in 0 until catNodes.length) {
-                        val cElem = catNodes.item(c) as Element
-                        val cName = cElem.getAttributeNS(ANDROID_NS_URI, "name")
-                            .ifEmpty { cElem.getAttribute("android:name") }
-                        val category = filter.createChildElement("category")
-                        category.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = cName
-                    }
+                    val action = filter.createChildElement("action")
+                    action.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = ACTION_MAIN
+                    val category = filter.createChildElement("category")
+                    category.getOrCreateAndroidAttribute("name", 0x01010003).valueAsString = CATEGORY_LAUNCHER
                 }
             }
         }

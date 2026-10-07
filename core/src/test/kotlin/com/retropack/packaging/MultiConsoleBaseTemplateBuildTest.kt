@@ -79,6 +79,29 @@ class MultiConsoleBaseTemplateBuildTest {
         assertTrue(result.artifactFile!!.exists())
         assertEquals(15, result.stageProvenance.size)
         assertTrue(result.stageProvenance.all { it.passed })
+
+        val apkZip = java.util.zip.ZipFile(result.artifactFile!!)
+        val manifestEntry = apkZip.getEntry("AndroidManifest.xml")
+        assertNotNull(manifestEntry)
+        val manifestBytes = apkZip.getInputStream(manifestEntry).readBytes()
+        apkZip.close()
+
+        val block = com.reandroid.arsc.chunk.xml.AndroidManifestBlock()
+        java.io.ByteArrayInputStream(manifestBytes).use { block.readBytes(it) }
+        println("Inspected built manifest:")
+        println("  packageName: ${block.packageName}")
+        println("  versionCode: ${block.versionCode}")
+        println("  versionName: ${block.versionName}")
+        println("  minSdkVersion: ${block.minSdkVersion}")
+        println("  targetSdkVersion: ${block.targetSdkVersion}")
+        println("  application: ${block.applicationElement}")
+        val acts = block.listApplicationElementsByTag("activity")
+        for (a in acts) {
+            println("  activity: $a")
+        }
+        assertTrue(block.packageName.startsWith("com.retropack.game."))
+        assertEquals(26, block.minSdkVersion)
+        assertEquals(35, block.targetSdkVersion)
     }
 
     @Test

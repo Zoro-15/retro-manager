@@ -76,7 +76,7 @@ data class RuntimeDescriptor(
             ),
             protectedEntries = mapOf(
                 "lib/arm64-v8a/libretro_engine.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-                "lib/arm64-v8a/libretro_mgba.so" to "sha256:b5a6ed40ede735ea7f1d56916f4ceed8c2aabe4d481fe3383ae2b5e5485b6545"
+                "lib/arm64-v8a/libretro_mgba.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
             )
         )
 
@@ -102,7 +102,7 @@ data class RuntimeDescriptor(
             ),
             protectedEntries = mapOf(
                 "lib/arm64-v8a/libretro_engine.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-                "lib/arm64-v8a/libretro_snes9x.so" to "sha256:dfd51707769000b08551e61eee4fe1a68d9e6188d62bf849c762339fa6bebcd3"
+                "lib/arm64-v8a/libretro_snes9x.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
             )
         )
 
@@ -128,7 +128,7 @@ data class RuntimeDescriptor(
             ),
             protectedEntries = mapOf(
                 "lib/arm64-v8a/libretro_engine.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-                "lib/arm64-v8a/libretro_genesis_plus_gx.so" to "sha256:ef8ca1df538d5904707edd083d19df1927da767f1be5425624f61c527bc2b71a"
+                "lib/arm64-v8a/libretro_genesis_plus_gx.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
             )
         )
 
@@ -154,7 +154,7 @@ data class RuntimeDescriptor(
             ),
             protectedEntries = mapOf(
                 "lib/arm64-v8a/libretro_engine.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-                "lib/arm64-v8a/libretro_fceumm.so" to "sha256:38659530f800032ed6ed46ea0cdf167a38326e0ecd9afa09a3c08130020d85af"
+                "lib/arm64-v8a/libretro_fceumm.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
             )
         )
 
@@ -180,7 +180,7 @@ data class RuntimeDescriptor(
             ),
             protectedEntries = mapOf(
                 "lib/arm64-v8a/libretro_engine.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0",
-                "lib/arm64-v8a/libretro_mednafen_pce_fast.so" to "sha256:ffc291edc40220dd2269091cffd45cc8e7fe93ad3d2bc8e35bbeda20a7686e4d"
+                "lib/arm64-v8a/libretro_mednafen_pce_fast.so" to "sha256:4dccf8df732336322a40ef84f0337dc99ca762606d43f461c9d41f9c1a8ecaf0"
             )
         )
 
